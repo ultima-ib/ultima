@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-pub (crate) fn fx_jargon<'a> () -> HashMap<&'a str, &'a str> {
-    HashMap::from([
+pub (crate) fn fx_jargon<'a> () -> [(&'a str, &'a str); 19] {
+        [
         ("EURUSD", "Euro-dollar"),
         ("USDJPY", "Dollar-yen"),
         ("EURJPY", "Euro-yen"),
@@ -21,5 +21,5 @@ pub (crate) fn fx_jargon<'a> () -> HashMap<&'a str, &'a str> {
         ("USDMXN", "Dollar-mex"),
         ("USDBRL", "Dollar-brazil"),
         ("USDSGD", "Dollar-sing")
-    ])
+    ]
 }

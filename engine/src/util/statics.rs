@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-pub (crate) fn fx_jargon<'a> () -> [(&'a str, &'a str); 19] {
+const FX_JARGON: [(&str, &str); 19] =
         [
         ("EURUSD", "Euro-dollar"),
         ("USDJPY", "Dollar-yen"),
@@ -21,5 +19,18 @@ pub (crate) fn fx_jargon<'a> () -> [(&'a str, &'a str); 19] {
         ("USDMXN", "Dollar-mex"),
         ("USDBRL", "Dollar-brazil"),
         ("USDSGD", "Dollar-sing")
-    ]
+    ];
+
+pub(crate) fn derive_jargon(key: &str) -> String {
+    let mut jargon: Option<String> = None;
+    for (pair, _jargon) in FX_JARGON.iter() {
+        if pair == &key {
+            jargon = Some(String::from(*_jargon));
+            break
+        }
+    }
+    if let None = jargon {
+        jargon = Some(String::from(key));
+    }
+    jargon.unwrap()
 }

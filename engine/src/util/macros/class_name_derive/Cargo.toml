@@ -1,10 +1,13 @@
 [package]
-name = "driver"
+name = "class_name_derive"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-engine = {path = "../engine"}
-serde = { version = "1.0", features = ["derive"] }
+syn = "1.0"
+quote = "1.0"
+
+[lib]
+proc-macro = true

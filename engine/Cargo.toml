@@ -6,3 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+class_name_derive = { path = "../engine/src/util/macros/class_name_derive" }
+serde = { version = "1.0", features = ["derive"] }

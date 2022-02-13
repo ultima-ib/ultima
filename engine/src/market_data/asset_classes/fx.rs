@@ -1,4 +1,8 @@
-use crate::util::statics::fx_jargon;
+use crate::util::statics::derive_jargon;
+pub use crate::util::macros::ClassName;
+pub use class_name_derive::ClassName;
+
+#[derive(ClassName)]
 pub struct FxPair {
     pub label: String,
     pub spot: f64,
@@ -7,23 +11,23 @@ pub struct FxPair {
 
 impl FxPair {
     pub fn new(label: String, spot: f64) -> Self {
-        let mut jargon = None;
-        let _fx_jargon = fx_jargon();
-        for (pair, _jargon) in _fx_jargon.iter() {
-            if pair == &label {
-                jargon = Some(String::from(*_jargon));
-                break
-            }
-        }
-        if let None = jargon {
-            jargon = Some(String::from(&label))
-        }
-        /*
-        match fx_jargon().get(&*label){
-            Some(v) => {jargon = String::from(*v)},
-            None =>  {jargon = String::from(&label)}
-        }; */
-        Self{label, spot, jargon: jargon.unwrap()}
+        let jargon = derive_jargon(&label);
+        Self{label, spot, jargon}
+    }
+    pub fn cls_name(&self) -> String {
+        self.class_name()
     }
 }
 trait FxPairDates {}
+trait MarketDataObjectCreator {
+    fn new_fxpair(label: String, spot: f64) -> FxPair;
+}
+
+struct MarketData {}
+
+impl MarketDataObjectCreator for MarketData {
+    fn new_fxpair(label: String, spot: f64) -> FxPair {
+        let jargon = derive_jargon(&label);
+        FxPair{label, spot, jargon}
+    }
+}

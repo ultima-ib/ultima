@@ -1,5 +1,7 @@
+use crate::util::statics::derive_jargon;
+
 #[test]
-fn it_works() {
-    let result = 2 + 2;
-    assert_eq!(result, 4);
+fn test_derive_jargon() {
+    let jargon = derive_jargon("GBPUSD");
+    assert_eq!("Cable", jargon);
 }

@@ -3,4 +3,5 @@ struct _FxVanilla<T> {
     sell_ccy: T,
     buy_ammount: T,
     sell_ammount: T,
+    expiry_date: T
 }

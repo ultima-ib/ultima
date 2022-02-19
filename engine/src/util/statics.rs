@@ -1,3 +1,5 @@
+use phf::{phf_map, Map};
+
 const FX_JARGON: [(&str, &str); 19] =
         [
         ("EURUSD", "Euro-dollar"),
@@ -34,3 +36,17 @@ pub(crate) fn derive_jargon(key: &str) -> String {
     }
     jargon.unwrap()
 }
+
+const ONE: u8 = 1;
+pub static SPOT_CONVENVENTION: Map<&str, u8> = phf_map! {
+    "USDCAD" => ONE,
+    "USDTRY" => ONE,
+    "USDRUB" => ONE,
+    "EURTRY" => ONE,
+    "EURRUB" => ONE,
+    "CADTRY" => ONE,
+    "CADRUB" => ONE,
+    "TRYRUB" => ONE,
+};
+
+pub const FRI_SAT_WEEKEND: [&str; 1] = ["SAR"];

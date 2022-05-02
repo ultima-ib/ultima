@@ -7,6 +7,9 @@ edition = "2021"
 
 [dependencies]
 class_name_derive = { path = "../engine/src/util/macros/class_name_derive" }
-serde = { version = "1.0", features = ["derive"] }
+yearfrac = "0.1.2"
+
+serde = { version = "1.0.136", features = ["derive"] }
+serde_json ="1.0.79"
 chrono = "0.4.19"
 phf = { version = "0.10.1", features = ["macros"] }

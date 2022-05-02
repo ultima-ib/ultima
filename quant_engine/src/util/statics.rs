@@ -49,4 +49,5 @@ pub static SPOT_CONVENVENTION: Map<&str, u8> = phf_map! {
     "TRYRUB" => ONE,
 };
 
-pub const FRI_SAT_WEEKEND: [&str; 1] = ["SAR"];
+pub const THU_FRI_WEEKEND: [&str; 2] = ["SAR", "JOD"];
+pub const FRI_SAT_WEEKEND: [&str; 5] = ["EGP", "BHD", "KWD", "OMR", "QAR"];

@@ -2,5 +2,7 @@
 
 members = [
     'driver',
-    'engine',
+    'quant_engine',
+    'frtb_engine',
+    'yearfrac'
 ]

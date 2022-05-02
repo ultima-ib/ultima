@@ -11,11 +11,17 @@ mod tests;
 pub fn run(conf: Config) -> Result<(), Box<dyn Error>> {
     if conf.job_type == "MTM"{
         jobs::mtm()
+    } else {
+        Ok(())
     }
     
-    Ok(())
+    
 }
 
-pub struct Config<'a> {
-    pub job_type: &'a str
+pub struct Config {
+    pub job_type: String
+}
+
+pub enum JobType {
+    MTM
 }

@@ -48,19 +48,3 @@ impl<FX: FxSpot> FxPair<FX> {
         ccy2.label(), ccy2.holidays(), ccy3.holidays())
     } 
 }
-
-/*
-impl MarketDataObject for FxPair {}
-
-trait FxPairDates {}
-
-trait MarketDataObjectCreator {
-    fn new_fxpair(label: String, spot: f64) -> FxPair;
-}
-struct MarketData {}
-
-impl MarketDataObjectCreator for MarketData {
-    fn new_fxpair(label: String, spot: f64) -> FxPair {
-        FxPair::new(label, spot)
-    }
-}  */

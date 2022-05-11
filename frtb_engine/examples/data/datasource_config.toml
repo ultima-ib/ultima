@@ -1,0 +1,6 @@
+title = "setup.toml Example"
+type = "CSV"
+
+[paths]
+delta_path = "frtb_engine/examples/data/Delta2.csv"
+hms_path = "frtb_engine/examples/data/hms.csv"

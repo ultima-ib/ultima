@@ -1,0 +1,2 @@
+TradeId,RiskClass,VegaRiskFactor,ImpVol,BAUVega,VegaCCY
+1,FX,EURGBP,1;2;4;5;0,5;4;3;2;1,USD

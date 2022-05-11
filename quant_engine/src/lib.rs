@@ -9,13 +9,11 @@ mod products;
 mod tests;
 
 pub fn run(conf: Config) -> Result<(), Box<dyn Error>> {
-    if conf.job_type == "MTM"{
+    if conf.job_type == "MTM" {
         jobs::mtm()
     } else {
         Ok(())
-    }
-    
-    
+    } 
 }
 
 pub struct Config {

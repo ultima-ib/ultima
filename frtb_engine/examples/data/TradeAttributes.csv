@@ -1,4 +1,4 @@
 TradeId,BookId,Product
 1,FO001,FXOption
-2,FO001,FXCash
-3,BO001,IRSwap
+2,BO001,FXCash
+3,FO001,IRSwap

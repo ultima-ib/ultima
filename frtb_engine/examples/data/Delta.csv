@@ -1,7 +1,8 @@
-TradeId,RiskClass,DeltaRiskFactor,RiskFactorType,GIRRCcy,Delta,DeltaCcy
-1,FX,EURUSD,,,5,USD
-1,FX,GBPEUR,,,15,EUR
-1,FX,GBPUSD,,,10,USD
-1,GIRR,3M_Libor,Yield,USD,1;2;3;4;5;6;7;8;9;10;11,USD
-2,GIRR,6M_Libor,Yield,CNY,1;;;2;2;0;0;8.1;9.9;1.9;1.7,USD
-2,FX,CNOUSD,,,7.7,USD
+TradeId,RiskClass,RiskFactor,RiskFactorType,GIRRCcy,DeltaSpot,Delta0.25Y,Delta0.5Y,Delta1Y,Delta2Y,Delta3Y,Delta5Y,Delta10Y,Delta15Y,Delta20Y,Delta30Y,DeltaCcy
+1,FX,EURUSD,,,5,,,,,,,,,,,USD
+1,FX,GBPEUR,,,15,,,,,,,,,,,EUR
+1,FX,GBPUSD,,,10,,,,,,,,,,,USD
+1,GIRR,3M_Libor,Yield,USD,,1,2,3,4,5,6,-7,8,9,10,USD
+2,GIRR,6M_Libor,Yield,GBP,,1,,,2,2,0,0,8.1,9.9,1.9,USD
+2,FX,CNOUSD,,,-13.5,,,,,,,,,,,USD
+3,FX,SARUSD,,,-1.5,,,,,,,,,,,USD

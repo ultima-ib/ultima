@@ -1,3 +1,4 @@
 BookId,Desk,Country,LegalEntity
-FO001,FXOptions,UK,EU
-BO001,Rates,UK,EU
+FO001,FXOptions,UK,UK
+FO002,FXCash,France,EMEA
+BO001,Rates,China,Asia

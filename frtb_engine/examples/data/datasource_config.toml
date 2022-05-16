@@ -2,6 +2,13 @@ title = "setup.toml Example"
 type = "CSV"
 
 [paths]
-delta_path = "frtb_engine/examples/data/Delta.csv"
-trade_attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
-hms_path = "frtb_engine/examples/data/hms.csv"
+# delta_path 
+file_1_path = "frtb_engine/examples/data/Delta.csv"
+# trade attributes
+attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
+# HMS
+hierarchy_path = "frtb_engine/examples/data/hms.csv"
+# delta/vega/curvature <-> trade attributes
+file_join_attributes = ["TradeId"]
+# attributes <-> hierarchy
+attributes_join_hierarchy = ["BookId"] 

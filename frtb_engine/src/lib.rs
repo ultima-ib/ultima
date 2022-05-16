@@ -1,13 +1,8 @@
 //! FRTB job entry point
 pub mod prelude;
 
-use polars::export::arrow::array::Utf8Array;
 use serde::{Serialize, Deserialize};
 use polars::prelude::*;
-use std::{borrow::Borrow, collections::HashMap};
-use std::fs::File;
-use std::io::Read;
-use std::str::FromStr;
 //use std::error::Error;
 //use std::result::Result;
 use log::{warn, debug};
@@ -22,7 +17,6 @@ where T: serde::de::DeserializeOwned,
  {
     
     let result_string: std::result::Result<String, std::io::Error> = std::fs::read_to_string(path);
-
 
     match result_string {
         Ok(f) => {
@@ -44,168 +38,196 @@ where T: serde::de::DeserializeOwned,
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type", content = "paths")]
-pub enum FRTBDataSetUp {
-    CSV{#[serde(default)]
-        delta_path: Option<String>,
-        #[serde(default)]
-        vega_path: Option<String>,
-        #[serde(default)]
-        curvature_path: Option<String>,
-        #[serde(default)]
-        trade_attributes_path: Option<String>,
-        #[serde(default)]
-        hms_path: Option<String>,
+pub enum DataSourceConfig {
+    CSV{#[serde(default, rename = "file_1_path")]
+        file_1: Option<String>,
+        #[serde(default, rename = "file_2_path")]
+        file_2: Option<String>,
+        #[serde(default, rename = "file_3_path")]
+        file_3: Option<String>,
+        #[serde(default, rename = "attributes_path")]
+        attr: Option<String>,
+        #[serde(default, rename = "hierarchy_path")]
+        hms: Option<String>,
     }
 }
 
 /// Main source of data for FRTBRequest
 /// pointer to/copy of FRTBDataSet to be passed with each request
 #[derive(Clone)]
-pub struct FRTBDataSet {
-    pub delta: Option<DataFrame>,
-    pub vega: Option<DataFrame>,
-    pub curv: Option<DataFrame>,
-    pub trade_attr: Option<DataFrame>,
-    pub hms: Option<DataFrame>
+pub struct DataSet {
+    pub f1: DataFrame,
+    pub f2: DataFrame,
+    pub f3: DataFrame,
+    pub attr: DataFrame,
+    pub hms: DataFrame
 }
 
-impl FRTBDataSet {
-    pub fn new() -> Self {
-        Self {delta: None, vega: None, curv: None, trade_attr: None, hms: None}
-    }
-}
-
-impl FRTBDataSetUp {
+impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
-    pub fn build_data(&self) -> FRTBDataSet {
+    pub fn build_data(&self) -> DataSet {
 
         match self{
-            FRTBDataSetUp::CSV{delta_path: d, 
-                vega_path: v,
-                curvature_path: c,
-                trade_attributes_path: ta,
-                hms_path: hms} => {
+            DataSourceConfig::CSV{
+                file_1: d, 
+                file_2: v,
+                file_3: c,
+                attr: ta,
+                hms} => {
 
-                    let delta = match  d {
-                        Some(y) => Some(path_to_lazy_df(y, &*DELTA_CAST)),
-                        _ => None };
+                    let f1 = match  d {
+                        Some(y) => path_to_df(y),
+                        _ => empty_frame() };
 
-                    let vega = match  v{
-                        Some(y) => Some(path_to_lazy_df(y, &*DELTA_CAST)),
-                        _ => None };
+                    let f2 = match  v{
+                        Some(y) => path_to_df(y),
+                        _ => empty_frame() };
 
-                    let curv = match  c{
-                        Some(y) => Some(path_to_lazy_df(y, &*DELTA_CAST)),
-                        _ => None };
+                    let f3 = match  c{
+                        Some(y) => path_to_df(y),
+                        _ => empty_frame() };
                     
-                    let trade_attr = match  ta{
-                        Some(y) => Some(path_to_lazy_df(y, &[])),
-                        _ => None };
+                    let attr = match  ta{
+                        Some(y) => path_to_df(y),
+                        _ => empty_frame() };
                     
                     let hms = match  hms{
-                        Some(y) => Some(path_to_lazy_df(y, &[])),
-                        _ => None };
+                        Some(y) => path_to_df(y),
+                        _ => empty_frame() };
         
-                    FRTBDataSet{delta, vega, curv, trade_attr, hms}
+                    DataSet{f1, f2, f3, attr, hms}
                 },
             _ => todo!(),
         }
     }
 }
 
+fn empty_frame () -> DataFrame {
+    let x: Vec<Series> = vec![];
+    DataFrame::new(x).unwrap()
+}
+
 /// reads LazyFrame from path, validating schema
-fn path_to_lazy_df(path: &str, schema: &[Expr] ) -> DataFrame {
+fn path_to_df(path: &str ) -> DataFrame {
     debug!("Reading: {}", path);
-    let h = LazyCsvReader::new(path.into())
+    let df = CsvReader::from_path(path)
+                            .unwrap()
                             .has_header(true)
-                            .with_ignore_parser_errors(false)
-                            //.with_dtype_overwrite(schema)
-                            //.with_schema(schema)
                             .finish()
                             // if path provided, then we expect it to be of the correct format, hence
                             // unrecoverable. Panic if failed to read file
-                            .unwrap()
-                            .with_columns(schema)
-                            .collect()
                             .unwrap();
-    debug!("DF: {:?}", h);
-    h
-    
+    df
 }
 
-/// main function which returns a LazyFrame
-pub fn sa_capital(req: FRTBRequest, data: FRTBDataSet, reg_config: FRTBRegParams) -> Result<DataFrame> { 
+/// this is FRTBRequest specific funtion
+/// main function which returns a DataFrame
+pub fn sa_capital(req: FRTBRequest, data: &DataSet, reg_config: FRTBRegParams) -> Result<DataFrame> { 
     // Step 0. Validate Filters
-    // Step 1.1 Cast Categorical since has to be casted within same lazy query
+    // Step 1.2 or 1.0 .select takes a pointer to df, returning a new df
+    // In lazy .select takes lf, returning a new lf
+    // Hence to minimize copying would make sence to do .select first?
+    // -> but .select depends on the measure+groupby+filters+file
+    // Step 1.1 Apply Filters. Filters are file specific. Have to cast within filter
     // https://docs.rs/polars/0.13.3/polars/docs/performance/index.html
-    // Step 1.2 Apply Filters. Filters are file specific.
-    // Need to know which filter applies to which file | unless join full set first BUT that's expensive.
     // 1.3 pass two/three frames (eg delta, curv, hms) | merge, then pass(avoids merging for multiple measures)
     // 1.4 Groupby + calc measure
 
-
-    // if data: &FRTBDataSet
-    //let mut dlt = data.delta.as_ref().and_then(|x| Some( ( (*x).clone(), (*x).get_column_names_owned())) );
-    //let veg = data.vega.as_ref().and_then(|x| Some((*x).clone()) );
-    //let crv = data.curv.as_ref().and_then(|x| Some((*x).clone()) );
-    //let mut hms = data.hms.as_ref().and_then(|x|  Some( ( (*x).clone().lazy(), (*x).get_column_names_owned())) );
-    //let trd = data.trade_attr.as_ref().and_then(|x|  Some( ( (*x).clone(), (*x).get_column_names())) );
-  
-    print!("HMS: {:?}", data.hms);
     // delta, vega, curv columns are fixed
     // hms, ta columns could be passed to avoid recomputing every time
-    let (mut dlt_cols,
-         mut vega_cols, 
-         mut curv_cols, 
-         mut hms_cols, 
-         mut ta_cols) = 
-    (data.delta.as_ref().and_then(|x| Some( (*x).get_column_names_owned() ) ) ,
-    data.vega.as_ref().and_then(|x| Some( (*x).get_column_names_owned() ) ),
-    data.curv.as_ref().and_then(|x| Some( (*x).get_column_names_owned() ) ),
-    data.hms.as_ref().and_then(|x| Some( (*x).get_column_names_owned() ) ),
-    data.trade_attr.as_ref().and_then(|x| Some( (*x).get_column_names_owned() ) ),   
-    );
+    let (hms_cols, 
+         ta_cols) = (
+        data.hms.get_column_names_owned() ,
+        data.attr.get_column_names_owned()   
+        );
     
-    let (dlt, veg, crv, hms, trd) =
-     (data.delta, data.vega, data.curv, data.hms, data.trade_attr);
+
+    let hms_required_cols: Vec<String> = Vec::from(["BookId".to_string()]);
+    let mut hms = data.hms.select(vec!["BookId", "Desk", "Country", "LegalEntity"])?;
+    
+    println!("{:?}", hms);
+
+    let (dlt, veg, crv, trd) =
+    (data.f1.clone(), data.f2.clone(), data.f3.clone(), data.attr.clone());  
+
+    let mut hms = hms.lazy();
+    let dlt_lf = dlt.lazy();
+
+
+    
+    //hms.select(selection)
 
     //Step 1.0 Applying Filters:
-    for f in req.filters {
+
+    // Inside single Filter expect first element(X) of (X ,.) to be from the same file
+    // ie OR "ON" filters have to be on columns of the same file
+    // ie if flitrs[0].0 is in hms_cols, then filters[1].0 is in hms_cols
+    for f in req.filters.into_iter() {
         match f {
-            FRTBFilter::In(fltrs) => (),
-            FRTBFilter::On(fltrs) => {
-                if let Some(ref mut y) = hms_cols {
-                    if y.contains(&fltrs[0].0) {
-                        println!("INSIDE A FILTER")
-                    };
-                    ()
-                } else{
-                ()}
+            Filter::In(fltrs) => {
+                if hms_cols.contains(&fltrs[0].0) {
+                    hms = hms.filter(fltr_in_or_builder(fltrs));
+                };
             },
-            FRTBFilter::Out(fltrs) => (),
+            Filter::On(fltrs) => {
+                    if hms_cols.contains(&fltrs[0].0) {
+                        hms = hms.filter(fltr_on_or_builder(fltrs));
+                    };
+                } ,
+            Filter::Out(fltrs) => {
+                if hms_cols.contains(&fltrs[0].0) {
+                    hms = hms.filter(fltr_out_or_builder(fltrs));
+                };
+            },
         }
     }
-    //let k = dlt.unwrap().0.clone().lazy();   
-    //let k = filter_in(k, "RiskClass", vec!["FX".to_string()], true);
 
-    let h = hms.unwrap();
-
-    Ok(h)
+    Ok(hms.collect()?)
  }
 
-pub fn filter_in(lf: LazyFrame, field: &str, _in: Vec<String>, cat: bool ) -> LazyFrame {
-    let s = Series::new("filter", _in);
+fn fltr_in_or_builder(mut f: Vec<(String, Vec<String>)>) -> Expr {
+    let (a, b) = f.remove(0);
+    let s = Series::new("filter", b);
+    let cat = true; // set true for now, later to be checked if col is among cat cols
+    let mut e: Expr;
     if cat {
-        lf
-        .filter( col(field).cast(DataType::Categorical(None)) .is_in( s.lit().cast(DataType::Categorical(None)) ))
-    } else {
-        lf
-        .filter( col(field) .is_in( s.lit() ) ) 
-    }
+        e = col(&*a).cast(DataType::Categorical(None))
+         .is_in( s.lit().cast(DataType::Categorical(None)) );
+    } else { e = col(&*a) .is_in( s.lit()  ) };
+
+    for (i, j) in f.into_iter() {
+        let s = Series::new("filter", j);
+        if cat {
+            e = e.or( col(&*i).cast(DataType::Categorical(None))
+            .is_in( s.lit().cast(DataType::Categorical(None)) ) );
+        } else {
+            e = e.or ( col(&*i) 
+            .is_in( s.lit()  ))
+        }
+    } 
+    e
 } 
 
-pub fn filter_on() {}
+/// To add categorical here
+fn fltr_on_or_builder(mut f: Vec<(String, String)>) -> Expr {
+    let (a, b) = f.remove(0);
+    let mut e: Expr = col(&*a).eq(lit::<String>(b));
+    for (i, j) in f.into_iter() {
+        e = e.or(col(&*i).eq(lit::<String>(j)))
+    };
+    e
+}
+
+/// To add categorical here
+fn fltr_out_or_builder(mut f: Vec<(String, String)>) -> Expr {
+    let (a, b) = f.remove(0);
+    let mut e: Expr = col(&*a).neq(lit::<String>(b));
+    for (i, j) in f.into_iter() {
+        e = e.or(col(&*i).neq(lit::<String>(j)))
+    };
+    e
+}
 
 pub fn fx_delta (delta_hms_lf: LazyFrame) -> LazyFrame {
      // REMEMBER fx_delta + fx_curvature requires additional filter on RiskFactor
@@ -216,13 +238,46 @@ pub fn fx_delta (delta_hms_lf: LazyFrame) -> LazyFrame {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FRTBRequest { 
-    cob: chrono::NaiveDate,
+    // general fields
     measures: Vec<String>,
-    groupby: Vec<String>, // To be replaced by polars Expr?
+    groupby: Vec<String>,
+    filters: Vec<Filter>,
+    // FRTB Specific
     /// A spot rate must exist for translation from DeltaCcy
     /// into reporting_ccy
     reporting_ccy: ReportingCCY,
-    filters: Vec<FRTBFilter>,
+    cob: chrono::NaiveDate,
+}
+
+pub trait DataRequest{
+    /// Returns a list of columns required (from DataSet)
+    /// to perform calculation by looking into self.filters and self.groupby
+    /// self.measures
+    fn required_columns(&self) -> Vec<&str>;
+}
+
+impl DataRequest for FRTBRequest {
+    fn required_columns(&self) -> Vec<&str> {
+        let mut res: Vec<&str> = Vec::with_capacity(self.groupby.len());
+
+        // each of the groupby cols must be present in the database
+        for i in &self.groupby {
+            res.push(i)
+        }
+        for f in &self.filters{
+            match f{
+                Filter::On(v) | Filter::Out(v) => { 
+                    for s in v {
+                        res.push(&s.0)
+                }},
+                Filter::In(v) => { 
+                    for s in v {
+                        res.push(&s.0)
+                }},
+            }
+        }
+        res
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -233,41 +288,54 @@ enum ReportingCCY{
 
 /// Inner elements of each Filter are OR
 /// Filters themselves are AND
+/// Inside single Filter expect first element(X) of (X ,.) to be from the same file
+/// ie OR "ON" filters have to be on columns of the same file
+/// ie if flitrs[0].0 is in hms_cols, then filters[1].0 is in hms_cols
 #[derive(Serialize, Deserialize, Debug)]
-pub enum FRTBFilter {
-    /// On Same as In, but useful for 1 field only
+pub enum Filter {
+    /// On Same as In, but better for 1 field only
     On(Vec<(String, String)>),
     In(Vec<(String, Vec<String>)>),
     Out(Vec<(String, String)>)
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
-
 lazy_static!(
-    static ref DELTA_CAT: Vec<String> = vec!["RiskClass".into(), "RiskFactorType".into(), "DeltaCcy".into()];
+    static ref DELTA_COLUMNS: [String; 17] = [
+    "TradeId".to_string(),
+    "RiskClass".to_string(),
+    "RiskFactor".to_string(),
+    "RiskFactorType".to_string(), 
+    "DeltaCcy".to_string(),
+    "DeltaSpot".to_string(),
+    "Delta0.25".to_string(),
+    "Delta0.5Y".to_string(),
+    "Delta1Y".to_string(),
+    "Delta2Y".to_string(),
+    "Delta3Y".to_string(),
+    "Delta5Y".to_string(),
+    "Delta10Y".to_string(),
+    "Delta15Y".to_string(),
+    "Delta20Y".to_string(),
+    "Delta30Y".to_string(),
+    "DeltaCcy".to_string()];
+    static ref DELTA_CAT: Vec<String> = vec![
+    "RiskClass".into(),
+    "RiskFactor".into(),
+    "RiskFactorType".into(),
+    "DeltaCcy".into()];
     static ref DELTA_CAST: [Expr; 11] = [
-                                //col("RiskClass").cast(DataType::Categorical(None)),
-                                //col("RiskFactorType").cast(DataType::Categorical(None)),
-                                col("DeltaSpot").cast(DataType::Float64),
-                                col("Delta0.25Y").cast(DataType::Float64),
-                                col("Delta0.5Y").cast(DataType::Float64),
-                                col("Delta1Y").cast(DataType::Float64),
-                                col("Delta2Y").cast(DataType::Float64),
-                                col("Delta3Y").cast(DataType::Float64),
-                                col("Delta5Y").cast(DataType::Float64),
-                                col("Delta10Y").cast(DataType::Float64),
-                                col("Delta15Y").cast(DataType::Float64),
-                                col("Delta20Y").cast(DataType::Float64),
-                                col("Delta30Y").cast(DataType::Float64),
-                                //col("DeltaCcy").cast(DataType::Categorical(None)),
-                                ];
+    col("DeltaSpot").cast(DataType::Float64),
+    col("Delta0.25Y").cast(DataType::Float64),
+    col("Delta0.5Y").cast(DataType::Float64),
+    col("Delta1Y").cast(DataType::Float64),
+    col("Delta2Y").cast(DataType::Float64),
+    col("Delta3Y").cast(DataType::Float64),
+    col("Delta5Y").cast(DataType::Float64),
+    col("Delta10Y").cast(DataType::Float64),
+    col("Delta15Y").cast(DataType::Float64),
+    col("Delta20Y").cast(DataType::Float64),
+    col("Delta30Y").cast(DataType::Float64),
+    ];
 
     static ref SUPPORTED_MEASURES: Vec<String> = vec!["FX_Delta".into()];
 /* Not supported yet
@@ -312,25 +380,21 @@ pub trait Validate{
     fn derive_groups(&self, buf: Vec<String>) -> Vec<String>;
 }
 
-impl Validate for FRTBDataSet{
+impl Validate for DataSet{
 
     /// Helper function
     /// Used to access possible groupby/filters param in FRTBRequest from a FRTBDataSet
     /// every column of hms or ta file is a valid group/filter
     fn derive_groups(&self, mut buf: Vec<String>) -> Vec<String> {
-        if let Some(ref hms) = &self.hms {
-            let cn = hms.get_column_names();
-            for i in cn {
-                buf.push(i.to_string())
-            }
-        } ;
+        let cn = &self.hms.get_column_names();
+        for i in cn {
+            buf.push(i.to_string())
+        };
 
-        if let Some(ref ta) = &self.trade_attr {
-            let cn = ta.get_column_names();
-            for i in cn {
-                buf.push(i.to_string())
-            }
-        } ;
+        let cn = &self.attr.get_column_names();
+        for i in cn {
+            buf.push(i.to_string())
+        };
 
         // Conver to hash set?
         buf.sort_unstable();
@@ -339,29 +403,11 @@ impl Validate for FRTBDataSet{
     }
 }
 
-struct Wrapper(String);
-use std::fmt;
-
-/*
-impl fmt::Display for Wrapper {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.0)
-    }
-}
-*/
-
-use std::ops::Deref;
-
-impl Deref for Wrapper {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0 //pointer to LazyFrame
-    }
-}
-
-impl Wrapper {
-    fn say_hello(&self) {
-        println!("HELLO")
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
     }
 }

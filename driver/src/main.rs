@@ -13,7 +13,7 @@ fn main() {
     dotenv::dotenv().ok();
     pretty_env_logger::init();
 
-    let conf = read_toml2::<FRTBDataSetUp>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
+    let conf = read_toml2::<DataSourceConfig>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     info!("Data SetUp: {:?}", conf);
 
     let data = conf.build_data();
@@ -22,7 +22,7 @@ fn main() {
     //let z = serde_json::to_string::<FRTBFilter>(&a).unwrap();
     //debug!("FRTBFilter: {:?}", z);
 
-    let message: Message = serde_json::from_str(JSON).unwrap();
+    let message: Message = serde_json::from_str(JSON3).unwrap();
 
     //recoverable. If not valid use default
     let default_params = read_toml2::<FRTBRegParams>(REG_PARAMS)
@@ -31,11 +31,11 @@ fn main() {
     // Example setup to validate possible filter/groupby
     let groups: Vec<String> = vec!["TradeId".to_string(), "RiskClass".to_string(), "RiskFactor".to_string()];
     let groups = data.derive_groups(groups);
-    println!("Groups: {:?}", groups);
+    //println!("Groups: {:?}", groups);
 
     match message {
         Message::Request{ params: conf, ..} => {
-            match frtb_engine::sa_capital(conf, data, default_params){
+            match frtb_engine::sa_capital(conf, &data, default_params){
                 Err(e) =>{ // eventually will be tokio::spawn_blocking
                     eprintln!("Application error: {:#?}", e);
                     process::exit(1);
@@ -49,6 +49,8 @@ fn main() {
 }
 
 
+// public params: Request
+// bespoke params: FRTBRequest
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 enum Message {
@@ -66,10 +68,38 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "cob": "2022-04-05",
-        "measures": ["FX_Delta"],
+        "measures": ["Delta"],
         "groupby": ["Desk"],
         "reporting_ccy": "USD",
-        "filters": [{"On":[["LegalEntity", "EU"], ["Country", "UK"]]}]
+        "filters": [{"On":[["LegalEntity", "EMEA"], ["Country", "UK"]]}]
+    }
+}"#;
+
+/// Sample request 2
+const JSON2: &str = r#"
+{"type": "Request",
+    "id": "123", 
+    "method": "None", 
+    "params": {
+        "cob": "2022-04-05",
+        "measures": ["Delta"],
+        "groupby": ["Desk"],
+        "reporting_ccy": "USD",
+        "filters": [{"In":[["LegalEntity", ["EMEA"]], ["Country", ["UK", "China"]]]}]
+    }
+}"#;
+
+/// Sample request 2
+const JSON3: &str = r#"
+{"type": "Request",
+    "id": "123", 
+    "method": "None", 
+    "params": {
+        "cob": "2022-04-05",
+        "measures": ["Delta"],
+        "groupby": ["Desk"],
+        "reporting_ccy": "USD",
+        "filters": [{"Out":[ ["LegalEntity", "Asia"], ["Country", "UK"] ]}]
     }
 }"#;
 

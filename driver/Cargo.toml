@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-quant_engine = {path = "../quant_engine"}
+base_engine = {path = "../base_engine"}
 frtb_engine = {path = "../frtb_engine"}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

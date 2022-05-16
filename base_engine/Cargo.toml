@@ -1,0 +1,21 @@
+[package]
+name = "base_engine"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = {version="1.0", features=["derive"]}
+frtb_engine = {path = "../frtb_engine"}
+serde_json = "1.0"
+toml = "0.5"
+chrono = {version = "0.4", features=["serde"]}
+polars = {version = "0.20", features=["serde", "ndarray", "lazy", "is_in", "dtype-categorical"]}
+log = "0.4"
+lazy_static = "1.4"
+yearfrac = "0.1.2"
+
+[features]
+#default = ["FRTB"]
+FRTB = [] # If not used: none of the selected packages contains these features: FRTB

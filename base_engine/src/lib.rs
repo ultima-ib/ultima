@@ -1,10 +1,8 @@
 pub mod prelude;
 
-
 use serde::{Serialize, Deserialize};
 use polars::prelude::*;
-use log::{warn, debug};
-use lazy_static::lazy_static;
+use log::{warn, debug, info};
 
 #[cfg(feature = "FRTB")]
 use frtb_engine::prelude::*;
@@ -49,6 +47,10 @@ pub enum DataSourceConfig {
         attr: Option<String>,
         #[serde(default, rename = "hierarchy_path")]
         hms: Option<String>,
+        #[serde(default)]
+        files_join_attributes: Vec<String>,
+        #[serde(default)]
+        attributes_join_hierarchy: Vec<String>,
     }
 }
 
@@ -60,7 +62,9 @@ pub struct DataSet {
     pub f2: DataFrame,
     pub f3: DataFrame,
     pub attr: DataFrame,
-    pub hms: DataFrame
+    pub hms: DataFrame,
+    pub f2a: Vec<String>,
+    pub a2h: Vec<String>,
 }
 
 impl DataSourceConfig {
@@ -70,59 +74,75 @@ impl DataSourceConfig {
 
         match self{
             DataSourceConfig::CSV{
-                file_1: d, 
+                file_1, 
                 file_2: v,
                 file_3: c,
                 attr: ta,
-                hms} => {
+                hms,
+                files_join_attributes: f2a,
+                attributes_join_hierarchy: a2h} => {
 
-                    let f1 = match  d {
+                    let f1 = match  file_1 {
                         Some(y) => path_to_df(y),
-                        _ => empty_frame() };
+                        _ => empty_frame(f2a) };
 
                     let f2 = match  v{
                         Some(y) => path_to_df(y),
-                        _ => empty_frame() };
+                        _ => empty_frame(f2a) };
 
                     let f3 = match  c{
                         Some(y) => path_to_df(y),
-                        _ => empty_frame() };
+                        _ => empty_frame(f2a) };
                     
                     let attr = match  ta{
                         Some(y) => path_to_df(y),
-                        _ => empty_frame() };
+                        _ => {
+                            let mut tmp = f2a.clone();
+                            tmp.extend(a2h.clone());
+                            empty_frame(&tmp) 
+                        }};
                     
                     let hms = match  hms{
                         Some(y) => path_to_df(y),
-                        _ => empty_frame() };
+                        _ => empty_frame(a2h) };
+                    
+                    info!("{:?}", f1);
+                    info!("{:?}", f2);
+                    info!("{:?}", attr);
+                    info!("{:?}", hms);
+
+                    let f2a = f2a.to_vec();
+                    let a2h = a2h.to_vec();
         
-                    DataSet{f1, f2, f3, attr, hms}
+                    DataSet{f1, f2, f3, attr, hms, f2a, a2h}
                 },
         }
     }
 }
 
-fn empty_frame () -> DataFrame {
-    let x: Vec<Series> = vec![];
+fn empty_frame (with_columns: &Vec<String>) -> DataFrame {
+    let mut x: Vec<Series> = Vec::with_capacity(with_columns.len());
+    for c in with_columns {
+        x.push(Series::new(c, &[""]));
+    }
     DataFrame::new(x).unwrap()
 }
 
-/// reads LazyFrame from path, validating schema
+/// reads DataFrame from path
 fn path_to_df(path: &str ) -> DataFrame {
     debug!("Reading: {}", path);
+    // if path provided, then we expect it to be of the correct format
+    // unrecoverable. Panic if failed to read file
     let df = CsvReader::from_path(path)
-                            .unwrap()
-                            .has_header(true)
-                            .finish()
-                            // if path provided, then we expect it to be of the correct format, hence
-                            // unrecoverable. Panic if failed to read file
-                            .unwrap();
+        .unwrap()
+        .has_header(true)
+        .finish()
+        .unwrap();
     df
 }
 
-/// this is FRTBRequest specific funtion
 /// main function which returns a DataFrame
-pub fn sa_capital(req: FRTBRequest, data: &DataSet, reg_config: FRTBRegParams) -> Result<DataFrame> { 
+pub fn execute(req: DataRequestS, data: &DataSet) -> Result<DataFrame> { 
     // Step 0. Validate Filters
     // Step 1.2 or 1.0 .select takes a pointer to df, returning a new df
     // In lazy .select takes lf, returning a new lf
@@ -132,54 +152,90 @@ pub fn sa_capital(req: FRTBRequest, data: &DataSet, reg_config: FRTBRegParams) -
     // https://docs.rs/polars/0.13.3/polars/docs/performance/index.html
     // 1.3 pass two/three frames (eg delta, curv, hms) | merge, then pass(avoids merging for multiple measures)
     // 1.4 Groupby + calc measure
+    // 1.5 Before calc measure check if it exists in cache 
 
-    // delta, vega, curv columns are fixed
-    // hms, ta columns could be passed to avoid recomputing every time
-    let (hms_cols, 
-         ta_cols) = (
-        data.hms.get_column_names_owned() ,
-        data.attr.get_column_names_owned()   
+    // Step 1.0 Select columns required for current request
+
+    // from dataset, minimizing cloning
+    let (f1_cols, f2_cols, f3_cols,
+        hms_cols, attr_cols) = (
+        data.f1.get_column_names(),
+        data.f2.get_column_names(),
+        data.f3.get_column_names(),
+        data.hms.get_column_names(),
+        data.attr.get_column_names()   
         );
     
-
-    let hms_required_cols: Vec<String> = Vec::from(["BookId".to_string()]);
-    let mut hms = data.hms.select(vec!["BookId", "Desk", "Country", "LegalEntity"])?;
     
-    println!("{:?}", hms);
+    let mut f1_select: Vec<&str> = vec![]; 
+    let mut f2_select: Vec<&str> = vec![]; 
+    let mut f3_select: Vec<&str> = vec![]; 
+    let mut attr_select: Vec<&str> = vec![]; 
+    let mut hms_select: Vec<&str> = vec![]; 
 
-    let (dlt, veg, crv, trd) =
-    (data.f1.clone(), data.f2.clone(), data.f3.clone(), data.attr.clone());  
+    for i in &data.f2a {
+        f1_select.push(&i);
+        f2_select.push(&i);
+        f3_select.push(&i);
+        attr_select.push(&i);
+    }
+    for i in &data.a2h {
+        attr_select.push(&i);
+        hms_select.push(&i);
+    }
 
-    let mut hms = hms.lazy();
-    let dlt_lf = dlt.lazy();
+    let req_cols = req.required_columns();
+    println!("Required columns: {:?}", req_cols);
 
-    //Step 1.0 Applying Filters:
+    for col in req_cols {
+
+        if f1_cols.contains(&col) {
+            f1_select.push(col)
+        } 
+
+        if f2_cols.contains(&col) {
+            f2_select.push(col)
+        } 
+        
+        if f3_cols.contains(&col) {
+            f3_select.push(col)
+        } 
+        
+        if hms_cols.contains(&col) {
+            hms_select.push(col)
+        } 
+        
+        if attr_cols.contains(&col) {
+            attr_select.push(col)
+        }
+    };
+    
+    let mut hms = data.hms.select(hms_select)?
+        .lazy();
+
+    //Step 1.1 Applying Filters:
 
     // Inside single Filter expect first element(X) of (X ,.) to be from the same file
     // ie OR "ON" filters have to be on columns of the same file
     // ie if flitrs[0].0 is in hms_cols, then filters[1].0 is in hms_cols
-    for f in req.filters.into_iter() {
+    for f in req.filters {
         match f {
-            Filter::In(fltrs) => {
-                if hms_cols.contains(&fltrs[0].0) {
+            FilterS::In(fltrs) => {
+                if hms_cols.contains(&&*fltrs[0].0) {
                     hms = hms.filter(fltr_in_or_builder(fltrs));
                 };
             },
-            Filter::On(fltrs) => {
-                    if hms_cols.contains(&fltrs[0].0) {
-                        hms = hms.filter(fltr_on_or_builder(fltrs));
-                    };
+            FilterS::Eq(fltrs) => {
+                if hms_cols.contains(&&*fltrs[0].0) {
+                    hms = hms.filter(fltr_on_or_builder(fltrs));
+                };
                 } ,
-            Filter::Out(fltrs) => {
-                if hms_cols.contains(&fltrs[0].0) {
+            FilterS::Neq(fltrs) => {
+                if hms_cols.contains(&&*fltrs[0].0) {
                     hms = hms.filter(fltr_out_or_builder(fltrs));
                 };
             },
         }
-    }
-
-    if cfg!(feature = "FRTB") {
-        println!("#### !FRTB! ####")
     }
 
     Ok(hms.collect()?)
@@ -221,6 +277,7 @@ fn fltr_on_or_builder(mut f: Vec<(String, String)>) -> Expr {
 /// To add categorical here
 fn fltr_out_or_builder(mut f: Vec<(String, String)>) -> Expr {
     let (a, b) = f.remove(0);
+    println!("a: {}, b: {}", a, b);
     let mut e: Expr = col(&*a).neq(lit::<String>(b));
     for (i, j) in f.into_iter() {
         e = e.or(col(&*i).neq(lit::<String>(j)))
@@ -236,45 +293,66 @@ pub fn fx_delta (delta_hms_lf: LazyFrame) -> LazyFrame {
 
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct FRTBRequest { 
+pub struct DataRequestS { 
     // general fields
-    measures: Vec<String>,
+    /// Measure can be of two types:
+    /// basic: Column - Action
+    /// bespoke: DerivedField - Action
+    measures: Vec<(String, String)>,
     groupby: Vec<String>,
-    filters: Vec<Filter>,
+    filters: Vec<FilterS>,
     // FRTB Specific
     /// A spot rate must exist for translation from DeltaCcy
     /// into reporting_ccy
-    reporting_ccy: ReportingCCY,
-    cob: chrono::NaiveDate,
+    reporting_ccy: ReportingCCY, // <- potentially to go into FRTB hyper params?
+    // cob: chrono::NaiveDate <-- will be part of the filters 
 }
 
-pub trait DataRequest{
+pub trait DataRequestT{
     /// Returns a list of columns required (from DataSet)
     /// to perform calculation by looking into self.filters and self.groupby
     /// self.measures
     fn required_columns(&self) -> Vec<&str>;
 }
 
-impl DataRequest for FRTBRequest {
+impl DataRequestT for DataRequestS {
     fn required_columns(&self) -> Vec<&str> {
-        let mut res: Vec<&str> = Vec::with_capacity(self.groupby.len());
+        let mut res: Vec<&str> = Vec::with_capacity(self.groupby.len() + self.filters.len());
 
-        // each of the groupby cols must be present in the database
+        // each of the groupby cols must be present
         for i in &self.groupby {
             res.push(i)
         }
+        // each filter column must be present
         for f in &self.filters{
             match f{
-                Filter::On(v) | Filter::Out(v) => { 
+                FilterS::Eq(v) | FilterS::Neq(v) => { 
                     for s in v {
                         res.push(&s.0)
                 }},
-                Filter::In(v) => { 
+                FilterS::In(v) => { 
                     for s in v {
                         res.push(&s.0)
                 }},
             }
         }
+
+        // each measure must be present
+        for m in &self.measures {
+            // check if the measure is one of bespoke measures
+            if cfg!(feature = "FRTB") {
+                match frtb_engine::MEASURE_COL_MAP.get(&m.0){
+                    Some(x) => { res.extend(x); },
+                    _ => (),
+                }
+            } // if not assume it's a base measure and therefore
+            // a column must be present
+            else {
+                res.push(&m.0);
+            }
+        };
+        res.sort_unstable();
+        res.dedup();
         res
     }
 }
@@ -291,71 +369,12 @@ enum ReportingCCY{
 /// ie OR "ON" filters have to be on columns of the same file
 /// ie if flitrs[0].0 is in hms_cols, then filters[1].0 is in hms_cols
 #[derive(Serialize, Deserialize, Debug)]
-pub enum Filter {
+pub enum FilterS {
     /// On Same as In, but better for 1 field only
-    On(Vec<(String, String)>),
+    Eq(Vec<(String, String)>),
     In(Vec<(String, Vec<String>)>),
-    Out(Vec<(String, String)>)
+    Neq(Vec<(String, String)>)
 }
-
-lazy_static!(
-    static ref DELTA_COLUMNS: [String; 17] = [
-    "TradeId".to_string(),
-    "RiskClass".to_string(),
-    "RiskFactor".to_string(),
-    "RiskFactorType".to_string(), 
-    "DeltaCcy".to_string(),
-    "DeltaSpot".to_string(),
-    "Delta0.25".to_string(),
-    "Delta0.5Y".to_string(),
-    "Delta1Y".to_string(),
-    "Delta2Y".to_string(),
-    "Delta3Y".to_string(),
-    "Delta5Y".to_string(),
-    "Delta10Y".to_string(),
-    "Delta15Y".to_string(),
-    "Delta20Y".to_string(),
-    "Delta30Y".to_string(),
-    "DeltaCcy".to_string()];
-    static ref DELTA_CAT: Vec<String> = vec![
-    "RiskClass".into(),
-    "RiskFactor".into(),
-    "RiskFactorType".into(),
-    "DeltaCcy".into()];
-    static ref DELTA_CAST: [Expr; 11] = [
-    col("DeltaSpot").cast(DataType::Float64),
-    col("Delta0.25Y").cast(DataType::Float64),
-    col("Delta0.5Y").cast(DataType::Float64),
-    col("Delta1Y").cast(DataType::Float64),
-    col("Delta2Y").cast(DataType::Float64),
-    col("Delta3Y").cast(DataType::Float64),
-    col("Delta5Y").cast(DataType::Float64),
-    col("Delta10Y").cast(DataType::Float64),
-    col("Delta15Y").cast(DataType::Float64),
-    col("Delta20Y").cast(DataType::Float64),
-    col("Delta30Y").cast(DataType::Float64),
-    ];
-
-    static ref SUPPORTED_MEASURES: Vec<String> = vec!["FX_Delta".into()];
-/* Not supported yet
-    static ref DELTA_SCHEMA: Arc<Schema> = Arc::new(Schema::from(vec![
-        Field::new("TradeId", DataType::Utf8),
-        Field::new("RiskClass", DataType::Categorical(
-            Some(Arc::new(
-                RevMapping::Local(Utf8Array::<i64>::from([Some("FX"), Some("GIRR")]))
-                )
-            )
-        )),
-        Field::new("DeltaRiskFactor", DataType::Categorical(None)),
-        Field::new("RiskFactorType", DataType::Categorical(None)),
-        //Field::new("RiskClass", DataType::Utf8),
-        Field::new("DeltaRiskFactor", DataType::Utf8),
-        Field::new("RiskFactorType", DataType::Utf8),
-        Field::new("Delta", DataType::Utf8),
-        Field::new("DeltaCcy", DataType::Utf8),
-    ]));
-*/
-); 
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FRTBRegParams {
@@ -376,7 +395,8 @@ fn usd_func() -> String {
 }
 
 pub trait Validate{
-    fn derive_groups(&self, buf: Vec<String>) -> Vec<String>;
+    fn columns_owned(&self, buf: Vec<String>) -> Vec<String>;
+    fn validate(&self);
 }
 
 impl Validate for DataSet{
@@ -384,22 +404,22 @@ impl Validate for DataSet{
     /// Helper function
     /// Used to access possible groupby/filters param in FRTBRequest from a FRTBDataSet
     /// every column of hms or ta file is a valid group/filter
-    fn derive_groups(&self, mut buf: Vec<String>) -> Vec<String> {
-        let cn = &self.hms.get_column_names();
-        for i in cn {
-            buf.push(i.to_string())
+    fn columns_owned(&self, mut buf: Vec<String>) -> Vec<String> {
+        for df in [&self.hms, &self.attr, &self.f1, &self.f2, &self.f3] {
+            let cn = df.get_column_names_owned();
+            for i in cn {
+                buf.push(i)
+            }
         };
-
-        let cn = &self.attr.get_column_names();
-        for i in cn {
-            buf.push(i.to_string())
-        };
-
         // Conver to hash set?
         buf.sort_unstable();
         buf.dedup();
         buf
     }
+
+    /// Validate Dataset contains columns 
+    /// files_join_attributes and attributes_join_hierarchy
+    fn validate(&self) {}
 }
 
 #[cfg(test)]

@@ -9,6 +9,6 @@ attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
 # HMS
 hierarchy_path = "frtb_engine/examples/data/hms.csv"
 # delta/vega/curvature <-> trade attributes
-file_join_attributes = ["TradeId"]
+files_join_attributes = ["TradeId"]
 # attributes <-> hierarchy
 attributes_join_hierarchy = ["BookId"] 

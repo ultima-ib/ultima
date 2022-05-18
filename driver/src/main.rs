@@ -16,19 +16,15 @@ fn main() {
 
     let data = conf.build_data();
 
-    let message: Message = serde_json::from_str(JSON3).unwrap();
+    let message: Message = serde_json::from_str(JSON).unwrap();
 
     //recoverable. If not valid use default
-    let default_params = read_toml2::<FRTBRegParams>(REG_PARAMS)
-    .unwrap(); // recoverable, but for now ok to unwrap()
-
-    // Example setup to validate possible filter/groupby
-    //let groups = data.derive_groups(groups);
-    //println!("Groups: {:?}", groups);
+    //let default_params = read_toml2::<FRTBRegParams>(REG_PARAMS)
+    //.unwrap(); // recoverable, but for now ok to unwrap()
 
     match message {
         Message::Request{ params: conf, ..} => {
-            match base_engine::sa_capital(conf, &data, default_params){
+            match base_engine::execute(conf, &data){
                 Err(e) =>{ // eventually will be tokio::spawn_blocking
                     eprintln!("Application error: {:#?}", e);
                     process::exit(1);
@@ -47,14 +43,14 @@ fn main() {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 enum Message {
-    Request { id: String, method: String, params: FRTBRequest },
+    Request { id: String, method: String, params: DataRequestS },
     Response { id: String, result: PlaceHolder },
 }
 
 #[derive(Serialize, Deserialize)]
 struct PlaceHolder(u8);
 
-/*
+
 /// Sample request
 const JSON: &str = r#"
 {"type": "Request",
@@ -62,13 +58,13 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "cob": "2022-04-05",
-        "measures": ["Delta"],
+        "measures": [["Delta", "sum"]],
         "groupby": ["Desk"],
         "reporting_ccy": "USD",
-        "filters": [{"On":[["LegalEntity", "EMEA"], ["Country", "UK"]]}]
+        "filters": [{"Eq":[["LegalEntity", "EMEA"], ["Country", "UK"]]}]
     }
 }"#;
-
+/*
 /// Sample request 2
 const JSON2: &str = r#"
 {"type": "Request",
@@ -76,28 +72,28 @@ const JSON2: &str = r#"
     "method": "None", 
     "params": {
         "cob": "2022-04-05",
-        "measures": ["Delta"],
+        "measures": [["Delta", "sum"]],
         "groupby": ["Desk"],
         "reporting_ccy": "USD",
         "filters": [{"In":[["LegalEntity", ["EMEA"]], ["Country", ["UK", "China"]]]}]
     }
 }"#;
-*/
+
 /// Sample request 2
 const JSON3: &str = r#"
 {"type": "Request",
     "id": "123", 
     "method": "None", 
     "params": {
-        "cob": "2022-04-05",
-        "measures": ["Delta"],
+        "measures": [["Delta", "sum"]],
         "groupby": ["Desk"],
         "reporting_ccy": "USD",
-        "filters": [{"Out":[ ["LegalEntity", "Asia"], ["Country", "UK"] ]}]
+        "filters": [{"Neq":[ ["LegalEntity", "Asia"], ["Country", "UK"] ]}]
     }
 }"#;
+*/
 
 //to be passed as a command line argument
 const SETUP: &str = r"frtb_engine/examples/data/datasource_config.toml";
 // Default regulatory parameters
-const REG_PARAMS: &str = r"frtb_engine/examples/data/reg_params.toml";
+//const REG_PARAMS: &str = r"frtb_engine/examples/data/reg_params.toml";

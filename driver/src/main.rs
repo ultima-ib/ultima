@@ -1,41 +1,47 @@
 //! Server side entry point
 //! This to be conversted into server
 
-use frtb_engine::prelude::*;
-use std::{process, str::FromStr};
-//use pretty_env_logger;
-use log::{debug, info, trace, warn};
+mod measures;
+
+use base_engine::prelude::*;
+use std::process;
+use std::sync::Arc;
+use log::info;
 use serde::{Serialize, Deserialize};
-use serde_json::value::Serializer;
-use chrono::NaiveDate;
+
+#[cfg(feature = "FRTB")]
+use frtb_engine::prelude::*;
 
 fn main() {
     dotenv::dotenv().ok();
     pretty_env_logger::init();
 
-    let conf = read_toml2::<FRTBDataSetUp>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
+    let conf = read_toml2::<DataSourceConfig>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     info!("Data SetUp: {:?}", conf);
 
-    let data = conf.build_data();
+    let mut data = conf.build_data();
 
-    //let a = FRTBFilter::On(vec![("Anatoly".to_string(), "Bugakov".to_string())]);
-    //let z = serde_json::to_string::<FRTBFilter>(&a).unwrap();
-    //debug!("FRTBFilter: {:?}", z);
+    #[cfg(feature = "FRTB")]
+    if cfg!(feature = "FRTB") {
+        data = data.prepare();
+    }
+
+    let numer_cols = data.numeric_columns_owned(vec![]);
+    println!("numeric columns: {:?}", numer_cols);
+
+    let (measure_col, measure_fn) 
+    = measures::derive_bespoke_measures(numer_cols);
 
     let message: Message = serde_json::from_str(JSON).unwrap();
 
-    //recoverable. If not valid use default
-    let default_params = read_toml2::<FRTBRegParams>(REG_PARAMS)
-    .unwrap(); // recoverable, but for now ok to unwrap()
-
-    // Example setup to validate possible filter/groupby
-    let groups: Vec<String> = vec!["TradeId".to_string(), "RiskClass".to_string(), "RiskFactor".to_string()];
-    let groups = data.derive_groups(groups);
-    println!("Groups: {:?}", groups);
+    let (arc_measure_col,
+        arc_measure_fn) = 
+        (Arc::new(measure_col), Arc::new(measure_fn));
 
     match message {
         Message::Request{ params: conf, ..} => {
-            match frtb_engine::sa_capital(conf, data, default_params){
+            match base_engine::execute(conf, &data, Arc::clone(&arc_measure_col),
+            Arc::clone(&arc_measure_fn)){
                 Err(e) =>{ // eventually will be tokio::spawn_blocking
                     eprintln!("Application error: {:#?}", e);
                     process::exit(1);
@@ -49,16 +55,19 @@ fn main() {
 }
 
 
+// public params: Request
+// bespoke params: FRTBRequest
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 enum Message {
-    Request { id: String, method: String, params: FRTBRequest },
+    Request { id: String, method: String, params: DataRequestS },
     Response { id: String, result: PlaceHolder },
 }
 
 #[derive(Serialize, Deserialize)]
 struct PlaceHolder(u8);
 
+/*
 /// Sample request
 const JSON: &str = r#"
 {"type": "Request",
@@ -66,14 +75,86 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "cob": "2022-04-05",
-        "measures": ["FX_Delta"],
+        "measures": [["Delta", "sum"]],
         "groupby": ["Desk"],
         "reporting_ccy": "USD",
-        "filters": [{"On":[["LegalEntity", "EU"], ["Country", "UK"]]}]
+        "filters": [{"Eq":[["LegalEntity", "EMEA"], ["Country", "UK"]]}]
     }
 }"#;
+
+/// Sample request 2
+const JSON: &str = r#"
+{"type": "Request",
+    "id": "123", 
+    "method": "None", 
+    "params": {
+        "cob": "2022-04-05",
+        "measures": [["Delta", "sum"]],
+        "groupby": ["Desk"],
+        "reporting_ccy": "USD",
+        "filters": [{"In":[["LegalEntity", ["EMEA"]], ["Country", ["UK", "China"]]]}]
+    }
+}"#;
+
+/// Sample request 3
+const JSON: &str = r#"
+{"type": "Request",
+    "id": "123", 
+    "method": "None", 
+    "params": {
+        "measures": [["DeltaSpot", "sum"],["FXDeltaSens", "sum"]],
+        "groupby": ["Desk"],
+        "reporting_ccy": "USD",
+        "filters": [{"Neq":[ ["LegalEntity", "Asia"], ["Country", "UK"] ]}]
+    }
+}"#;
+
+
+/// Sample request 4
+const JSON: &str = r#"
+{"type": "Request",
+    "id": "123", 
+    "method": "None", 
+    "params": {
+        "measures": [
+            ["FXDeltaSens", "sum"],
+            ["FxDeltaSensWeighted", "sum"],
+            ["FxDeltaChargeLow", "first"],
+            ["FxDeltaChargeMedium", "first"],
+            ["FxDeltaChargeHigh", "first"]],
+        "groupby": ["Desk"],
+        "reporting_ccy": "USD",
+        "filters": []
+    }
+}"#;
+//["DeltaWeights", "list"] , 
+["TotalDeltaSens", "sum"],
+["DeltaSpot", "sum"], 
+["FXDeltaSens", "sum"], 
+["FxDeltaSensWeighted", "sum"],
+*/
+
+const JSON: &str = r#"
+{"type": "Request",
+    "id": "123", 
+    "method": "None", 
+    "params": {
+        "measures": [
+            ["GIRRDeltaChargeLow", "first"],
+            ["GIRRDeltaChargeMedium", "first"],
+            ["GIRRDeltaChargeHigh", "first"]  
+        ],
+        "groupby": ["Desk"],
+        "reporting_ccy": "USD",
+        "filters": []
+    }
+}"#;
+
+//["GIRRDeltaChargeMedium", "first"],
+//["GIRRDeltaChargeLow", "first"],
+//["GIRRDeltaChargeHigh", "first"]
 
 //to be passed as a command line argument
 const SETUP: &str = r"frtb_engine/examples/data/datasource_config.toml";
 // Default regulatory parameters
-const REG_PARAMS: &str = r"frtb_engine/examples/data/reg_params.toml";
+//const REG_PARAMS: &str = r"frtb_engine/examples/data/reg_params.toml";

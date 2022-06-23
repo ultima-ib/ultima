@@ -2,6 +2,20 @@ title = "setup.toml Example"
 type = "CSV"
 
 [paths]
-delta_path = "frtb_engine/examples/data/Delta.csv"
-trade_attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
-hms_path = "frtb_engine/examples/data/hms.csv"
+# delta_path 
+file_1_path = "frtb_engine/examples/data/Delta.csv"
+# trade attributes
+attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
+# HMS
+hierarchy_path = "frtb_engine/examples/data/hms.csv"
+# file_1/file_2/file_3 <-> trade attributes
+files_join_attributes = ["TradeId"]
+# attributes <-> hierarchy
+# must be provided if hierarchy file is provided
+attributes_join_hierarchy = ["BookId"] 
+# Numeric columns. Optional field. @TODO: Used to limit Basic Measures
+# to these columns.
+# Bespoke measures assume existance of certain columns
+# eg ("ColumnA", "sum")
+f1_numeric_cols = ["DeltaSpot", "Delta0.25Y", "Delta0.5Y", "Delta1Y",
+             "Delta2Y", "Delta3Y", "Delta5Y", "Delta10Y", "Delta15Y", "Delta20Y", "Delta30Y"]

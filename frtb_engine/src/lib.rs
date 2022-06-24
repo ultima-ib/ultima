@@ -2,20 +2,17 @@
 pub mod prelude;
 mod sbm;
 
-use polars::export::rayon::iter::IntoParallelRefIterator;
 use prelude::sbm::buckets;
-use sbm::fx::example;
 use sbm::delta_weights::*;
+use base_engine::prelude::*;
 
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use polars::prelude::*;
-use polars::frame::row::Row;
 use serde::{Serialize, Deserialize};
-use base_engine::prelude::*;
 use ndarray::{prelude::*, Zip};
 use ndarray::{Array, Array2, concatenate};
-use std::cell::{RefCell};
+use std::cell::RefCell;
 
 
 pub trait FRTBDataSetT {
@@ -597,6 +594,15 @@ struct ScenarioConfig {
     pub fx_delta_rho: f64,
     pub fx_delta_gamma: f64,
 }
+// Export measures
+static FX_DELTA_SENS: Lazy<Measure>  = Lazy::new(|| {
+    Measure{
+        calculator: Box::new(total_delta_sens),
+        name: "FXDeltaSens",
+        req_columns: vec!["RiskClass", "DeltaSpot"],
+        aggregation: Some("sum"),
+    }
+});
 
 lazy_static!(
     pub static ref MEASURE_COL_MAP: HashMap<&'static str, (Vec<&'static str>, fn() -> Expr )> 

@@ -3,6 +3,7 @@ mod filters;
 mod dataset;
 mod datarequest;
 mod datasource;
+mod measure;
 
 use polars::prelude::*;
 use log::{warn, debug, info};

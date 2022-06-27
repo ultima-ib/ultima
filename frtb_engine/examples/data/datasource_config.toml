@@ -13,9 +13,9 @@ files_join_attributes = ["TradeId"]
 # attributes <-> hierarchy
 # must be provided if hierarchy file is provided
 attributes_join_hierarchy = ["BookId"] 
-# Numeric columns. Optional field. @TODO: Used to limit Basic Measures
-# to these columns.
-# Bespoke measures assume existance of certain columns
+# Measure columns. Optional field. Used as a constraint on which numeric columns
+# can be aggregated.
 # eg ("ColumnA", "sum")
-f1_numeric_cols = ["DeltaSpot", "Delta0.25Y", "Delta0.5Y", "Delta1Y",
-             "Delta2Y", "Delta3Y", "Delta5Y", "Delta10Y", "Delta15Y", "Delta20Y", "Delta30Y"]
+f1_measure_cols = ["DeltaSpot", "Delta30Y"]
+# Build Params. Additional parameters to be passed to DataSet.prebuild()
+build_params = {fx_sqrt2_div = "true", girr_sqrt2_div = "true"}

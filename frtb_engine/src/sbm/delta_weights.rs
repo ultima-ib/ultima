@@ -47,7 +47,7 @@ pub fn delta_weight_logic(weights: DeltaWeightsConfig) -> Expr {
 }
 
 /// Default RWs assignment
-/// @TODO: support override within request option
+/// TODO support override within request option
 pub fn delta_weights_assign() -> Expr {
 
     let fx_base = &[0.15];

@@ -23,9 +23,7 @@ measure_fn: Arc<MF>) -> Result<DataFrame> {
     // Recall within same Filter columns should be from the same file
 
     info!("f1 with HMS, attr and prepared: {:?}", 
-    data.f1
-    //.select(["TradeId", "RiskFactor", "RiskClass", "DeltaSpotWeight", "Delta0.25YWeight"])
-);
+    data.f1);
 
     // Step 1.0 SELECT columns required for current request
     // In case of SQL data source we need to create DF from 
@@ -36,14 +34,15 @@ measure_fn: Arc<MF>) -> Result<DataFrame> {
         data.f3.get_column_names()  
         );
     
-    
-    let mut f1_select: Vec<&str> = vec![]; 
-    let mut f2_select: Vec<&str> = vec![]; 
-    let mut f3_select: Vec<&str> = vec![];
+    // No need to select since DataFrame clones are super cheap
+    //let mut f1_select: Vec<&str> = vec![]; 
+    //let mut f2_select: Vec<&str> = vec![]; 
+    //let mut f3_select: Vec<&str> = vec![];
+    let f1_select = f1_cols;
 
-    let (req_cols, bespoke_m) = req.required_columns(measure_col);
+    /*
+    //let (req_cols, bespoke_m) = req.required_columns(measure_col);
     //debug!("Required columns: {:?}", req_cols);
-
     for col in req_cols.iter() {
         let mut present = false;
 
@@ -70,11 +69,13 @@ measure_fn: Arc<MF>) -> Result<DataFrame> {
             // return Anyhow error here(converts into polarsError) 
         }
     };
+    */
     
     //this clones (but only selected) part of the Frame
-    let mut f1 = data.f1.select(f1_select.clone())?.lazy();
+    //let mut f1 = data.f1.select(f1_select.clone())?.lazy();
     //let mut f2 = data.f2.select(f2_select)?.lazy();
     //let mut f3 = data.f3.select(f3_select)?.lazy();
+    let mut f1 = data.f1().lazy();
 
     //Step 1.1 Applying FILTERS:
 
@@ -112,18 +113,19 @@ measure_fn: Arc<MF>) -> Result<DataFrame> {
     // can be derived based on columns for basic measures
     // for bespoke need assumptions (eg "Delta")
 
+    //AGGREGATE
     //Potentially rayon spawn here, for each measure-df
     //ie we can do all the delta || to vega || to curv
     //the join on groupby cols
     //use https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
     let m = &req.measures();
-
     let aggregate: Vec<Expr> = agg_builder(m, measure_fn);
+    
+    //GROUPBY
     let groups: Vec<Expr> = req._groupby()
         .iter()
         .map(|x| { col(x) })
         .collect();
-
     //info!("f1 filtered: {:?}", f1.clone().collect()?);
 
     f1 = f1.groupby_stable(groups)
@@ -131,6 +133,8 @@ measure_fn: Arc<MF>) -> Result<DataFrame> {
  
     Ok(f1.collect()?)
  }
+
+
 
 /// This fn to be called per DataFrame
 /// Builds aggregation expressions

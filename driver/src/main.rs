@@ -29,8 +29,14 @@ fn main() {
     let numer_cols = data.numeric_columns_owned(vec![]);
     println!("numeric columns: {:?}", numer_cols);
 
+    //### Measures Struct ###
+    let measures_vec = measures::derive_measures_vec(&data.measure_cols);
+    let measures_map = measures::derive_measures_map(&measures_vec);
+    dbg!(measures_map);
+    //### ### ###
+
     let (measure_col, measure_fn) 
-    = measures::derive_bespoke_measures(numer_cols);
+    = measures::derive_bespoke_measures(numer_cols.clone());
 
     let message: Message = serde_json::from_str(JSON).unwrap();
 

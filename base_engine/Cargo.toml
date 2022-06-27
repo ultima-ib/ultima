@@ -14,6 +14,7 @@ polars = {version = "0.22.0", features=["strings", "ndarray", "lazy", "is_in", "
 log = "0.4"
 lazy_static = "1.4"
 yearfrac = "0.1.2"
+derivative = "2.2"
 
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.

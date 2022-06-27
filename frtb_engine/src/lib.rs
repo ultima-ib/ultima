@@ -53,7 +53,7 @@ pub fn total_delta_sens() -> Expr {
 }
 
 /// Returns a Series equal to DeltaSpot with RiskClass == FX and RiskFactor == ...CCY where CCY is Reporting CCY
-/// @TODO: function should take Some(FRTBParams as an argument)
+/// TODO: function should take Some(FRTBParams as an argument)
 /// as we want to support different reporting currencies
 pub fn fx_delta_sens () -> Expr {
     // Add reporting_ccy check here
@@ -68,6 +68,7 @@ pub fn fx_delta_sens () -> Expr {
             .utf8()?
             .contains("^...USD$")?;
         
+        // Set delta's which don't match mask1 or mask2 to None (ie NaN)
         let delta = columns[2]
             .f64()?
             .set(&!(mask1&mask2), None)?;
@@ -476,7 +477,6 @@ fn girr_corr_matrix() -> Array2<f64> {
     base_weights
 }
 
-/// Helper
 /// Shifts 2D array by {int} to the right
 fn shift_columns_by(by: usize, a: &Array2<f64>) -> Array2<f64> {
     
@@ -594,15 +594,27 @@ struct ScenarioConfig {
     pub fx_delta_rho: f64,
     pub fx_delta_gamma: f64,
 }
-// Export measures
-static FX_DELTA_SENS: Lazy<Measure>  = Lazy::new(|| {
-    Measure{
-        calculator: Box::new(total_delta_sens),
-        name: "FXDeltaSens",
-        req_columns: vec!["RiskClass", "DeltaSpot"],
-        aggregation: Some("sum"),
-    }
+
+//total_delta_sens
+
+fn test (x: f64) -> Expr {
+    col("YOLO")
+}
+/// Export measures
+pub static MEASURE_MAP: Lazy<Vec<Measure>>  = Lazy::new(|| {
+    vec![
+        Measure{
+            name: "FXDeltaSens",
+            calculator: Box::new(total_delta_sens),
+            req_columns: vec!["RiskClass", "DeltaSpot"],
+            aggregation: Some("sum"),
+        },
+    ]
 });
+
+pub enum FRTBFile {
+//    Delta(File::F1),
+}
 
 lazy_static!(
     pub static ref MEASURE_COL_MAP: HashMap<&'static str, (Vec<&'static str>, fn() -> Expr )> 

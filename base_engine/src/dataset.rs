@@ -3,25 +3,22 @@ use polars::prelude::*;
 
 /// Main source of data for FRTBRequest
 /// pointer to/copy of FRTBDataSet to be passed with each request
-//#[derive(Clone)]
+#[derive(Debug)]
 pub struct DataSet {
     pub f1: DataFrame,
     pub f2: DataFrame,
     pub f3: DataFrame,
-    pub numeric_cols: Vec<String>, //@TODO: cast to f64 upon build
+    pub measure_cols: Vec<String>, 
 }
 
 pub trait DataSetT{
     fn columns_owned(&self, buf: Vec<String>) -> Vec<String>;
     fn numeric_columns_owned(&self, buf: Vec<String>) -> Vec<String>;
     fn validate(&self);
-    //@TODO
-    //fn filter();
-    //fn prepare(); - pre calculate 
+    fn f1(&self) -> DataFrame;
 }
 
 impl DataSetT for DataSet{
-
     /// Returns all avaiiable columns in the Dataset
     fn columns_owned(&self, mut buf: Vec<String>) -> Vec<String> {
         for df in [&self.f1, &self.f2, &self.f3] {
@@ -36,7 +33,7 @@ impl DataSetT for DataSet{
         buf
     }
 
-    ///Numeric columns(these + bespoke are potential measures)
+    ///Numeric columns
     fn numeric_columns_owned(&self, mut buf: Vec<String>) -> Vec<String> {
         for c in self.columns_owned(vec![]){
             match self.f1.column(&c) {
@@ -64,14 +61,30 @@ impl DataSetT for DataSet{
         buf
     }
 
+    fn f1(&self) -> DataFrame {
+        // Polars DataFrame clones are super cheap:
+        //https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
+        self.f1.clone()
+    }
+
     /// Validate Dataset contains columns 
     /// files_join_attributes and attributes_join_hierarchy
-    /// numeric_cols and @todo dimensions(groups and filters)
+    /// numeric_cols and TODO dimensions(groups and filters)
     /// !only! numeric_col can be a measure
     ///  and therefore <numeric_col> should be only one across DataSet
     /// see how to validate dtype:
     /// https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust
     fn validate(&self) {}
+}
+
+pub (crate) fn numeric_columns(df: &DataFrame) -> Vec<String> {
+    let mut res = vec![];
+    for c in df.get_columns() {
+        if is_numeric(c) {
+            res.push(c.name().to_string())
+        }
+    };
+    res
 }
 
 pub fn is_numeric(s: &Series) -> bool {

@@ -4,17 +4,14 @@ use base_engine::prelude::*;
 use crate::helpers::*;
 
 use ndarray::Order;
-use ndarray::parallel::prelude::IndexedParallelIterator;
-use ndarray::parallel::prelude::IntoParallelRefIterator;
 use ndarray::parallel::prelude::IntoParallelRefMutIterator;
 use rayon::prelude::*;
 use crate::sbm::common::*;
-use crate::helpers::*;
 use crate::prelude::*;
 use polars::prelude::*;
 use ndarray::{prelude::*, Zip};
 use ndarray::parallel::prelude::ParallelIterator;
-use log::{info, warn};
+
 
 pub fn total_csr_nonsec_delta_sens (_: &OCP) -> Expr {
     rc_delta_sens("CSR_nonSec")
@@ -95,18 +92,6 @@ pub(crate) fn csr_nonsec_delta_charge_high(op: &OCP) -> Expr {
     csr_nonsec_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO)
 }
 
-/// if CRR2 feature is not activated, this will return BCBS
-/// if jurisdiction is not part of optional params or can't parse this will return BCBS
-/// 
-pub(crate) fn get_jurisdiction(op: &OCP) -> Jurisdiction {
-    op.as_ref()
-    .and_then(|map| map.get("jurisdiction"))
-    .and_then(|x| x.parse::<Jurisdiction>().ok())
-    .unwrap_or({
-        warn!("Jurisdiction used for calculation: BCBS");
-        Jurisdiction::default()
-    })
-}
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 /// And pass them to the main Delta Charge calculator accordingly
@@ -114,7 +99,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
     let juri: Jurisdiction = get_jurisdiction(op);
     
     let (y05, y1, y3, y5, y10, bucket_col, name_rho_vec, 
-        gamma_rating, gamma_sector) = match juri{
+        gamma_rating, gamma_sector) =
+         match juri{
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (csr_nonsec_delta_sens_weighted_05y_crr2(),
         csr_nonsec_delta_sens_weighted_1y_crr2(),

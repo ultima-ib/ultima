@@ -2,10 +2,9 @@ use base_engine::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
 use crate::sbm::common::*;
 use crate::prelude::*;
-use crate::helpers::*;
 
 use polars::prelude::*;
-use ndarray::{prelude::*, concatenate, Zip};
+use ndarray::{prelude::*, Zip};
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens (_: &OCP) -> Expr {
@@ -159,8 +158,9 @@ fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13],
 }
 
 
-// 21.78
-// Used to build both RF based rho and RFT based rho
+/// 21.78
+/// Used to build both RF based rho and RFT based rho
+/// This function is similar to helpers::build_basis_rho but is for a scalar value
 fn build_eq_rho_base(srs: &Series, eq_rho: f64) -> Result<Array2<f64>> {
     // Note: we never have same type AND same issuer since these were netted
     // ie never APPspot APPspot

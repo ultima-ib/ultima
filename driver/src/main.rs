@@ -7,7 +7,6 @@ use std::process;
 use std::sync::Arc;
 use log::info;
 use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
 use std::time::Instant;
 
 #[cfg(feature = "FRTB")]
@@ -187,6 +186,8 @@ const JSON: &str = r#"
 ["CSR_nonSec_DeltaCharge_Low", "first"],
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
 ["CSR_nonSec_DeltaCharge_High", "first"],
+
+"reporting_ccy": "USD"
 */
 
 const JSON: &str = r#"
@@ -195,15 +196,26 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "measures": [
+            ["FX_DeltaCharge_Low", "first"],
+            ["FX_DeltaCharge_Medium", "first"],
+            ["FX_DeltaCharge_High", "first"],
             ["GIRR_DeltaCharge_Low", "first"],
-["GIRR_DeltaCharge_Medium", "first"],
-["GIRR_DeltaCharge_High", "first"]
+            ["GIRR_DeltaCharge_Medium", "first"],
+            ["GIRR_DeltaCharge_High", "first"],
+            ["Commodity_DeltaCharge_Low", "first"],
+            ["Commodity_DeltaCharge_Medium", "first"],
+            ["Commodity_DeltaCharge_High", "first"],
+            ["Equity_DeltaCharge_Low", "first"],
+            ["Equity_DeltaCharge_Medium", "first"],
+            ["Equity_DeltaCharge_High", "first"],
+            ["CSR_nonSec_DeltaCharge_Low", "first"],
+            ["CSR_nonSec_DeltaCharge_Medium", "first"],
+            ["CSR_nonSec_DeltaCharge_High", "first"]
         ],
         "groupby": ["Desk"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],
         "optional_params": {
-            "calc_params": {"reporting_ccy": "USD",
-                            "jurisdiction": "BCBS"}
+            "calc_params": {"jurisdiction": "BCBS"}
         }
     }
 }"#;

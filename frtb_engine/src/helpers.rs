@@ -1,6 +1,9 @@
+use crate::prelude::*;
+
 use ndarray::prelude::*;
 use polars::prelude::*;
 use rayon::prelude::*;
+use log::warn;
 
 /// Shifts 2D array by {int} to the right
 /// Creates a new Array2 (essentially cloning)
@@ -77,7 +80,7 @@ fn reduce_nans(mut a: Array1<f64>, mut m: Array2<f64>) -> (Array1<f64>, Array2<f
 }
 
 /// Used to build CSR and Commodity (and potentially others) tenor rhos
-///expands (n_tenorsXn_tenors) matrix into (n_curves*n_tenors X n_curves*n_tenors)
+/// expands (n_tenorsXn_tenors) matrix into (n_curves*n_tenors X n_curves*n_tenors)
 /// removing unwanted indexes
 pub(crate)fn build_tenor_rho(n_curves: usize, rho_diff_tenor: ArrayView2<f64>, idx_select: &[usize]) -> Result<Array2<f64>> {
     
@@ -118,7 +121,7 @@ pub(crate) fn build_basis_rho(n_tenors: usize, srs: &Series, rho_diff: f64, idx_
     for i in 0..ln {
         let rf_i = unsafe{ loc_chunkarray.get_unchecked(i).unwrap() };
         let rf_vec: Vec<ArrayView2<f64>> = loc_chunkarray
-            .par_iter()
+            .par_iter() //par_iter because len of srs might be large
             .map(|x| match x {
                 Some(rf2) if rf2==rf_i => rho_base_same.view() ,
                 _ => rho_base_diff.view()
@@ -143,4 +146,17 @@ pub(crate) fn build_basis_rho(n_tenors: usize, srs: &Series, rho_diff: f64, idx_
         .map_err(|_| PolarsError::ShapeMisMatch("Could not build Commodity Basis Rho. Invalid Shape".into()));
 
     rho_basis
+}
+
+/// if CRR2 feature is not activated, this will return BCBS
+/// if jurisdiction is not part of optional params or can't parse this will return BCBS
+/// 
+pub(crate) fn get_jurisdiction(op: &OCP) -> Jurisdiction {
+    op.as_ref()
+    .and_then(|map| map.get("jurisdiction"))
+    .and_then(|x| x.parse::<Jurisdiction>().ok())
+    .unwrap_or({
+        warn!("Jurisdiction used for calculation: BCBS");
+        Jurisdiction::default()
+    })
 }

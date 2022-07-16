@@ -6,8 +6,7 @@ use std::ops::Index;
 /// Filters themselves are AND
 /// Inside single Filter expect first element(X) of (X ,.) to be from the same file
 /// ie OR "ON" filters have to be on columns of the same file
-/// ie if flitrs[0].0 is in hms_cols, then filters[1].0 is in hms_cols
-#[derive(Serialize, Deserialize, Debug, Hash)]
+#[derive(Serialize, Deserialize, Debug, Hash, Clone)]
 pub enum FilterS {
     /// On Same as In, but better for 1 field only
     Eq(Vec<(String, String)>),

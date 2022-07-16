@@ -4,3 +4,15 @@ TradeId,BookId,Product
 3a,FO001,IRSwap
 3a,FO001,IRSwap
 3,FO001,TarfBoWo
+4,FO001,Forward
+5,FO001,Forward
+6,FO001,Forward
+7,FO001,Forward
+8,FO001,EqSpot
+9,FO001,EqSpot
+10,FO001,EqSpot
+11,FO001,EqSpot
+12,FO001,Bond
+13,FO001,CDS
+14,FO001,CDS
+15,BO001,Bond

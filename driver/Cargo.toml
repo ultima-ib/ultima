@@ -15,10 +15,9 @@ log = "0.4"
 pretty_env_logger = "0.4"
 dotenv = "0.15"
 tokio = {version = "1.17.0", features=["full"]}
-#clap = {version = "3.1.5", features=["cargo"]}
 toml = "0.5.9"
-#chrono = {version = "0.4", features=["serde"]}
 
 [features]
-default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.
-FRTB = ["dep:frtb_engine"] # If not used: none of the selected packages contains these features: FRTB
+#default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.
+FRTB = ["frtb_engine"] # feature FRTB of my lib activate optional dep frtb_engine
+FRTB_CRR2 = ["FRTB", "frtb_engine/CRR2"] # feature FRTB_CRR2 activates optional dep frtb_engine with it's CRR2 feature, but only CRR2

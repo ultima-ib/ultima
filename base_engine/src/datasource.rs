@@ -65,7 +65,7 @@ pub enum DataSourceConfig {
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
-    pub fn build_data(&self) -> DataSet {
+    pub fn build(self) -> DataSet {
 
         match self{
             DataSourceConfig::CSV{
@@ -79,36 +79,37 @@ impl DataSourceConfig {
                 f1_measure_cols: f1_m,
                 f2_measure_cols: f2_m,
                 f3_measure_cols: f3_m,
-                ..} => {
+                mut build_params} => {
 
                     let mut df1 = match  file_1 {
-                        Some(y) => path_to_df(y, f2a),
-                        _ => empty_frame(f2a) };
+                        Some(y) => path_to_df(&y, &f2a),
+                        _ => empty_frame(&f2a) };
 
                     let mut df2 = match  v{
-                        Some(y) => path_to_df(y, f2a),
-                        _ => empty_frame(f2a) };
+                        Some(y) => path_to_df(&y, &f2a),
+                        _ => empty_frame(&f2a) };
 
                     let mut df3 = match  c{
-                        Some(y) => path_to_df(y, f2a),
-                        _ => empty_frame(f2a) };
+                        Some(y) => path_to_df(&y, &f2a),
+                        _ => empty_frame(&f2a) };
+                    
                     
                     let mut tmp = f2a.clone();
                     tmp.extend(a2h.clone());
                     let mut df_attr = match  ta{
-                        Some(y) => path_to_df(y, &tmp)
-                                            .unique(Some(f2a), UniqueKeepStrategy::First).unwrap(),
+                        Some(y) => path_to_df(&y, &tmp)
+                                            .unique(Some(&f2a), UniqueKeepStrategy::First).unwrap(),
                         _ => {
                             empty_frame(&tmp) 
                         }};
                     
                     //here we expect if hms is provided then a2h is not empty
                     let mut df_hms = match  hms{
-                        Some(y) =>{ path_to_df(y, a2h)
-                                            .unique(Some(a2h), UniqueKeepStrategy::First)
+                        Some(y) =>{ path_to_df(&y, &a2h)
+                                            .unique(Some(&a2h), UniqueKeepStrategy::First)
                                             .expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
                                             in the datasource_config.toml") },
-                        _ => empty_frame(a2h) };
+                        _ => empty_frame(&a2h) };
 
                     // Cast to Categorical, needed for Join later
                     // Set a global string cache
@@ -116,14 +117,14 @@ impl DataSourceConfig {
                     use polars::toggle_string_cache;
                     toggle_string_cache(true);
 
-                    for i in a2h {
+                    for i in a2h.iter() {
                         df_hms.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         df_attr.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         
                     }
-                    for i in f2a {
+                    for i in f2a.iter() {
                         df_attr.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         df1.try_apply(i, |s| 
@@ -135,7 +136,7 @@ impl DataSourceConfig {
 
                     }
 
-                    let f2a = f2a.to_vec();
+                    //let f2a = f2a.to_vec();
 
                     // join with hms if a2h was provided
                     if !a2h.is_empty() {
@@ -158,7 +159,14 @@ impl DataSourceConfig {
 
                     };
 
-                    DataSet{f1: df1, f2: df2, f3: df3, measure_cols}
+                    let build_params = 
+                    if let Some(bp) = build_params.take() {
+                        bp
+                    } else {
+                        HashMap::default()
+                    };
+
+                    DataSet{f1: df1, f2: df2, f3: df3, measure_cols, build_params}
                 },
         }
     }

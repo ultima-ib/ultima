@@ -16,6 +16,7 @@ attributes_join_hierarchy = ["BookId"]
 # Measure columns. Optional field. Used as a constraint on which numeric columns
 # can be aggregated.
 # eg ("ColumnA", "sum")
-f1_measure_cols = ["DeltaSpot", "Delta30Y"]
+f1_measure_cols = ["SensitivitySpot", "Delta30Y"]
 # Build Params. Additional parameters to be passed to DataSet.prebuild()
+# csrnonsec_covered_bond_15 = "true" <-> column CoveredBondReducedWeight must be provided
 build_params = {fx_sqrt2_div = "true", girr_sqrt2_div = "true"}

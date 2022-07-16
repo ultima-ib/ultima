@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use polars::prelude::*;
 
 
@@ -9,6 +11,7 @@ pub struct DataSet {
     pub f2: DataFrame,
     pub f3: DataFrame,
     pub measure_cols: Vec<String>, 
+    pub build_params: HashMap<String, String>,
 }
 
 pub trait DataSetT{

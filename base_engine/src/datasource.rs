@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use polars::prelude::*;
 use log::{warn, debug, info};
 use serde::{Serialize, Deserialize};
@@ -49,18 +51,21 @@ pub enum DataSourceConfig {
         #[serde(default)]
         attributes_join_hierarchy: Vec<String>,
         #[serde(default)]
-        f1_numeric_cols: Vec<String>,
+        f1_measure_cols: Option<Vec<String>>,
         #[serde(default)]
-        f2_numeric_cols: Vec<String>,
+        f2_measure_cols: Option<Vec<String>>,
         #[serde(default)]
-        f3_numeric_cols: Vec<String>,
+        f3_measure_cols: Option<Vec<String>>,
+        /// parameters to be used for build and prepare
+        #[serde(default)]
+        build_params: Option<HashMap<String, String>>,
     }
 }
 
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
-    pub fn build_data(&self) -> DataSet {
+    pub fn build(self) -> DataSet {
 
         match self{
             DataSourceConfig::CSV{
@@ -71,38 +76,40 @@ impl DataSourceConfig {
                 hms,
                 files_join_attributes: f2a,
                 attributes_join_hierarchy: a2h,
-                f1_numeric_cols,
-                f2_numeric_cols,
-                f3_numeric_cols,} => {
+                f1_measure_cols: f1_m,
+                f2_measure_cols: f2_m,
+                f3_measure_cols: f3_m,
+                mut build_params} => {
 
                     let mut df1 = match  file_1 {
-                        Some(y) => path_to_df(y, f2a,f1_numeric_cols),
-                        _ => empty_frame(f2a) };
+                        Some(y) => path_to_df(&y, &f2a),
+                        _ => empty_frame(&f2a) };
 
                     let mut df2 = match  v{
-                        Some(y) => path_to_df(y, f2a, f2_numeric_cols),
-                        _ => empty_frame(f2a) };
+                        Some(y) => path_to_df(&y, &f2a),
+                        _ => empty_frame(&f2a) };
 
                     let mut df3 = match  c{
-                        Some(y) => path_to_df(y, f2a, f3_numeric_cols),
-                        _ => empty_frame(f2a) };
+                        Some(y) => path_to_df(&y, &f2a),
+                        _ => empty_frame(&f2a) };
+                    
                     
                     let mut tmp = f2a.clone();
                     tmp.extend(a2h.clone());
                     let mut df_attr = match  ta{
-                        Some(y) => path_to_df(y, &tmp, &[])
-                                            .unique(Some(f2a), UniqueKeepStrategy::First).unwrap(),
+                        Some(y) => path_to_df(&y, &tmp)
+                                            .unique(Some(&f2a), UniqueKeepStrategy::First).unwrap(),
                         _ => {
                             empty_frame(&tmp) 
                         }};
                     
                     //here we expect if hms is provided then a2h is not empty
                     let mut df_hms = match  hms{
-                        Some(y) =>{ path_to_df(y, a2h, &[])
-                                            .unique(Some(a2h), UniqueKeepStrategy::First)
+                        Some(y) =>{ path_to_df(&y, &a2h)
+                                            .unique(Some(&a2h), UniqueKeepStrategy::First)
                                             .expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
                                             in the datasource_config.toml") },
-                        _ => empty_frame(a2h) };
+                        _ => empty_frame(&a2h) };
 
                     // Cast to Categorical, needed for Join later
                     // Set a global string cache
@@ -110,14 +117,14 @@ impl DataSourceConfig {
                     use polars::toggle_string_cache;
                     toggle_string_cache(true);
 
-                    for i in a2h {
+                    for i in a2h.iter() {
                         df_hms.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         df_attr.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         
                     }
-                    for i in f2a {
+                    for i in f2a.iter() {
                         df_attr.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         df1.try_apply(i, |s| 
@@ -129,7 +136,7 @@ impl DataSourceConfig {
 
                     }
 
-                    let f2a = f2a.to_vec();
+                    //let f2a = f2a.to_vec();
 
                     // join with hms if a2h was provided
                     if !a2h.is_empty() {
@@ -139,11 +146,27 @@ impl DataSourceConfig {
                     df2 = df2.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
                     df3 = df3.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
                     
-                    let mut numeric_cols = f1_numeric_cols.to_owned();
-                    numeric_cols.extend(f2_numeric_cols.clone());
-                    numeric_cols.extend(f3_numeric_cols.clone());
-        
-                    DataSet{f1: df1, f2: df2, f3: df3, numeric_cols}
+                    
+                    let mut measure_cols = vec![];
+                    for (o, df) in [(f1_m, &df1), 
+                        (f2_m, &df2),  (f3_m, &df3)] {
+                        match o {
+                            //TODO Check here if each of f1_m is present in the df1
+                            Some(measures) =>{ measure_cols.extend(measures.clone()); },
+                            // If not provided return all columns
+                            None =>{ measure_cols.extend(numeric_columns(df)); },
+                        };
+
+                    };
+
+                    let build_params = 
+                    if let Some(bp) = build_params.take() {
+                        bp
+                    } else {
+                        HashMap::default()
+                    };
+
+                    DataSet{f1: df1, f2: df2, f3: df3, measure_cols, build_params}
                 },
         }
     }
@@ -156,11 +179,10 @@ fn empty_frame (with_columns: &[String]) -> DataFrame {
         x.push(Series::new(c, &y));
     }
     DataFrame::new_no_checks(x)
-    //DataFrame::default()
 }
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
-fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> DataFrame {
+fn path_to_df(path: &str, cast_to_str: &[String]) -> DataFrame {
     debug!("Reading: {}", path);
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
@@ -181,13 +203,10 @@ fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> Dat
         }
     
     
-    // normalize numeric columns by casting to f64 and filling Null with 0 
+    // normalize numeric columns by casting to f64
     for c in _df.get_columns_mut() {
         if is_numeric(c) {
-            *c = c.cast(&DataType::Float64)
-                //.and_then(|s|
-                //    s.fill_null(FillNullStrategy::Zero))
-                .unwrap();
+            *c = c.cast(&DataType::Float64).unwrap();
         }
     }
     

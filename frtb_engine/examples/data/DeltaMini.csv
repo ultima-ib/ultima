@@ -1,4 +1,4 @@
-TradeId,RiskClass,RiskFactor,RiskFactorType,Bucket,Delta_025Y,Delta_05Y,Delta_1Y,Delta_2Y,Delta_3Y,Delta_5Y,Delta_10Y,Delta_15Y,Delta_20Y,Delta_30Y,DeltaCcy,DeltaSpot,Empty,CorrectWeights,,How,groupby-agg,works,with when
+TradeId,RiskClass,RiskFactor,RiskFactorType,Bucket,Sensitivity_025Y,Sensitivity_05Y,Sensitivity_1Y,Sensitivity_2Y,Sensitivity_3Y,Sensitivity_5Y,Sensitivity_10Y,Sensitivity_15Y,Sensitivity_20Y,Sensitivity_30Y,DeltaCcy,SensitivitySpot,Empty,CorrectWeights,,How,groupby-agg,works,with when
 1,FX,EURUSD,,,,,,,,,,,,,USD,5.1,,0.1,,EURUSD,0.1,0.15,NULL
 1,FX,GBPEUR,,,,,,,,,,,,,EUR,15.1,,0.15,,GBPEUR,0.1,NULL,
 1,GIRR,3M_Libor,Yield,USD,1,2,3,4,5,6,-7,8,9,10,USD,,,NULL,,3M_Libor,NULL,,

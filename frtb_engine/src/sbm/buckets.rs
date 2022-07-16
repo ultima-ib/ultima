@@ -2,6 +2,12 @@ use polars::prelude::*;
 
 pub fn sbm_buckets () -> Expr {
     when(col("RiskClass").eq(lit("FX")))
-    .then( col("Bucket").fill_null(col("RiskFactor")))
-    .otherwise(col("Bucket"))
+    //Note Offshore: if RF is THOUSD, bucket should be THBUSD
+    .then( col("BucketBCBS").fill_null(col("RiskFactor")))
+    .otherwise(col("BucketBCBS"))
+}
+
+#[cfg(feature = "CRR2")]
+pub fn sbm_buckets_crr2 () -> Expr {
+    col("BucketCRR2").fill_null(col("BucketBCBS"))
 }

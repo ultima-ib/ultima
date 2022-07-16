@@ -1,10 +1,11 @@
 use crate::filters::*;
+use super::measure::OptParams;
 
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-#[derive(Serialize, Deserialize, Debug, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DataRequestS { 
     // general fields
     /// Measure can be of two types:
@@ -13,17 +14,15 @@ pub struct DataRequestS {
     measures: Vec<(String, String)>,
     groupby: Vec<String>,
     filters: Vec<FilterS>,
-    #[serde(default="empty_params")]
-    optional_params: Vec<(String, String)>  //<--> this is to accomodate for FRTBParams
-}
-
-fn empty_params() -> Vec<(String, String)> {
-    Vec::new()
+    #[serde(default)]
+    optional_params: Option<OptParams>
 }
 
 impl DataRequestS {
     /// returns a Vec of columns required by current request
     /// as well as bespoke_measures vec (eg FXDeltaSensWeighted) from the request
+    /// not required due to depreciated filtering 
+    /// TODO remove
     pub fn required_columns(&self, bespoke_measure_col_map: Arc<HashMap<String, Vec<String>>>) -> 
     (Vec<String>, Vec<String>) {
         //We have to clone, because required_column come not only from the request, but also
@@ -69,14 +68,6 @@ impl DataRequestS {
         (res, bespoke_measures_from_request)
     }
 
-    fn opt_params(&self) -> HashMap<String, String> {
-        let hm = self.optional_params
-        .clone()
-        .into_iter()
-        .collect();
-        hm
-    }
-
     pub fn filters(&self) -> &Vec<FilterS> {
         &self.filters
     }
@@ -87,5 +78,9 @@ impl DataRequestS {
 
     pub fn _groupby(&self) -> &Vec<String> {
         &self.groupby
+    }
+
+    pub fn optiona_params(&self) -> &Option<OptParams> {
+        &self.optional_params
     }
 }

@@ -6,7 +6,7 @@ use crate::helpers::*;
 use crate::prelude::*;
 
 use polars::prelude::*;
-use ndarray::{prelude::*, Zip};
+use ndarray::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
 
 pub fn total_ir_delta_sens (_: &OCP) -> Expr {

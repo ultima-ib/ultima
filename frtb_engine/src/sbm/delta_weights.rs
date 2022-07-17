@@ -50,7 +50,7 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
                 .or(col("RiskFactorType").eq(lit("Inflation")))))
         .then( 
             //temp shortcut, since xccy weight = infl weight
-            delta_weights.ir_xccy
+            delta_weights.ir_xccy_infl
         )
         .when(col("RiskClass").eq(lit("GIRR"))
                 .and(col("RiskFactorType").eq(lit("Yield"))))
@@ -120,7 +120,7 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         ("EUR|USD|GBP|AUD|JPY|SEK|CAD".to_string(), (Series::new("", ir_base)*girr_1_over_sqrt2).lit().list() ),
     ]);
     let ir_xccy = Series::new("", &[0.016]);
-    let ir_infl = ir_xccy.clone();
+    //let ir_infl = ir_xccy.clone(); <--- not needed atm as xccy weight == infl weight
 
     // Commodity 
     // 21.82
@@ -150,9 +150,9 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         fx: fx_base_srs.lit().list(),
         fx_override: fx_map,
         //GIRR
-        ir_xccy: ir_xccy.lit().list(),
+        ir_xccy_infl: ir_xccy.lit().list(),
         ir_yield: ir_base_srs.lit().list(),
-        ir_infl: ir_infl.lit().list(),
+        //ir_infl: ir_infl.lit().list(),
         ir_override: ir_map,
         //Commodity
         com_bucket_weight: commodity_bucket_weight,
@@ -176,9 +176,8 @@ pub struct SensWeightsConfig {
     fx: Expr,
     fx_override: HashMap<String, Expr>,
     // GIRR
-    ir_xccy: Expr,
+    ir_xccy_infl: Expr, //temp shortcut since infl and xccy weight is same
     ir_yield: Expr,
-    ir_infl: Expr,
     ir_override: HashMap<String, Expr>,
     // Commodity
     com_bucket_weight: HashMap<String, Expr>,
@@ -194,7 +193,7 @@ pub struct SensWeightsConfig {
 /// Ammends BCBS risk weights into CRR2 compliance 
 pub fn weights_assign_crr2() -> Expr {
     let x:Option<f64> = None;
-    let not_yet_implemented = Series::new("null", &[x]).lit().list();
+    //let not_yet_implemented = Series::new("null", &[x]).lit().list();
     let never_reached = Series::new("null", &[x]).lit().list();
 
     let csr_nonsec_weights = [ 0.005, 0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.1, 0.025, 0.02, 0.04, 0.12, 0.07, 0.085, 0.055, 0.05, 0.12, 0.015, 0.05];

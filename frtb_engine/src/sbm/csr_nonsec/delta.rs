@@ -9,7 +9,7 @@ use rayon::prelude::*;
 use crate::sbm::common::*;
 use crate::prelude::*;
 use polars::prelude::*;
-use ndarray::{prelude::*, Zip};
+use ndarray::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
 
 

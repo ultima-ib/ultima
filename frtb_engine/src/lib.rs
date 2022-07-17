@@ -5,7 +5,6 @@ mod helpers;
 pub mod docs;
 pub mod measures;
 
-use rayon::iter::IntoParallelRefMutIterator;
 use sbm::buckets;
 use sbm::girr::delta::girr_corr_matrix;
 use sbm::delta_weights::*;
@@ -13,8 +12,7 @@ use base_engine::prelude::*;
 
 use once_cell::sync::Lazy;
 use polars::prelude::*;
-use ndarray::{Array2, Array1, arr2};
-use serde::Deserialize;
+use ndarray::{Array2, Array1};
 use strum::EnumString;
 
 pub trait FRTBDataSetT {

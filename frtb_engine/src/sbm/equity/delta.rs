@@ -5,7 +5,7 @@ use crate::{sbm::common::*, helpers::across_bucket_agg};
 use crate::prelude::*;
 
 use polars::prelude::*;
-use ndarray::{prelude::*, Zip};
+use ndarray::prelude::*;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens (_: &OCP) -> Expr {
@@ -37,7 +37,7 @@ pub(crate) fn equity_delta_charge_low(op: &OCP) -> Expr {
     equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO)
 }
 
-fn equity_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
+fn equity_delta_charge_distributor(_: &OCP, scenario: &'static ScenarioConfig) -> Expr {
     equity_delta_charge(&scenario.eq_gamma, scenario.base_eq_rho_bucket, scenario.base_eq_rho_mult, scenario.scenario_fn)
 }
 
@@ -82,7 +82,7 @@ fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13],
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
         across_bucket_agg(kbs, sbs, &gamma, columns[0].len())
-        
+
     }, 
     &[ col("BucketBCBS"), equity_delta_sens_weighted_spot(), col("RiskFactorType"), col("RiskFactor") ], 
         GetOutput::from_type(DataType::Float64))
@@ -127,12 +127,10 @@ fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13],
     -> Result<(f64, f64)> 
     where F: Fn(f64) -> f64 + Sync + Send + 'static,{
     
-        let n_tenors = 11; //Commodity curve has 11 tenors
-    
         let bucket_df = df.lazy()
                 .filter(col("b").eq(lit(bucket_id.to_string())))
                 .collect()?;
-        let n_curves = bucket_df.height();
+
         if bucket_df.height() == 0 { return Ok((0.,0.)) };
 
         let dw_sum = bucket_df["dw_sum"]

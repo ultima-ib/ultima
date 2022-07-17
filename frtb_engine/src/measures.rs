@@ -4,7 +4,7 @@ use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delt
 use crate::sbm::fx::delta::{fx_delta_sens, fx_delta_sens_weighted, fx_delta_charge_low, fx_delta_charge_medium, fx_delta_charge_high};
 use crate::sbm::girr::delta::{total_ir_delta_sens, girr_delta_sens_weighted,
     girr_delta_charge_low, girr_delta_charge_medium, girr_delta_charge_high};
-use crate::sbm::commodity::{total_commodity_delta_sens, commodity_delta_sens_weighted, 
+use crate::sbm::commodity::delta::{total_commodity_delta_sens, commodity_delta_sens_weighted, 
     commodity_delta_charge_low, commodity_delta_charge_medium, commodity_delta_charge_high};
 use crate::sbm::equity::delta::{equity_delta_sens, equity_delta_sens_weighted,
         equity_delta_charge_low, equity_delta_charge_medium, equity_delta_charge_high};

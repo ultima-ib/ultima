@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use ndarray::prelude::*;
+use ndarray::{prelude::*, Zip};
 use polars::prelude::*;
 use rayon::prelude::*;
 use log::warn;
@@ -159,4 +159,53 @@ pub(crate) fn get_jurisdiction(op: &OCP) -> Jurisdiction {
         warn!("Jurisdiction used for calculation: BCBS");
         Jurisdiction::default()
     })
+}
+
+pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gamma: &Array2<f64>, res_len: usize) 
+-> Result<Series>
+ {
+    let kbs_arr = Array1::from_iter(kbs);        
+    let sbs_arr = Array1::from_iter(sbs);
+
+    //21.4.5 sum{ sum {gamma*s_b*s_c} }
+    let a = sbs_arr.t().dot(gamma);
+    let b = a.dot(&sbs_arr);
+
+    //21.4.5 sum{K-b^2}
+    let c = kbs_arr.dot(&kbs_arr);
+
+    let sum = c+b;
+
+    let res = if sum < 0. {
+        //21.4.5.b
+        let sbs_alt = alt_sbs(sbs_arr.view(), kbs_arr.view());
+        //now recalculate capital charge with alternative sb
+        //21.4.5 sum{ sum {gamma*s_b*s_c} }
+        let a = sbs_alt.t().dot(gamma);
+        let b = a.dot(&sbs_alt);
+        //21.4.5 sum{K-b^2}
+        let c = kbs_arr.dot(&kbs_arr);
+        let sum = c+b;
+        sum.sqrt()
+    } else {
+        sum.sqrt()
+    };
+
+    // The function is supposed to return a series of same len as the input, hence we broadcast the result
+    let res_arr = Array::from_elem(res_len, res);
+    // if option panics on .unwrap() implement match and use .iter() and then Series from iter
+    Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
+}
+
+pub(crate) fn alt_sbs(sbs_arr: ArrayView1<f64>, kbs_arr: ArrayView1<f64>) -> Array1<f64>{
+   //21.4.5.b
+   let mut sbs_alt = Array1::<f64>::zeros(kbs_arr.raw_dim());
+   Zip::from(&mut sbs_alt)
+       .and(sbs_arr)
+       .and(kbs_arr)
+       .par_for_each(|alt, &sb, &kb|{
+           let _min = sb.min(kb);
+           *alt = _min.max(-kb);
+   });
+   sbs_alt
 }

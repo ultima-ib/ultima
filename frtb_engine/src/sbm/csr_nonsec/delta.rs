@@ -174,49 +174,16 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
              base_tenor_rho, rho_name.clone(), rho_basis, scenario_fn)
         })
         .collect();
+
         let kbs_sbs = reskbs_sbs?;
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
-        let sbs_arr = Array1::from_iter(sbs);
-        let kbs_arr = Array1::from_iter(kbs);
         
         // 21.57 OR 325aj
         // Shape of gamma depends on regulation
         let mut gamma = gamma_sector*gamma_rating;
         gamma.par_mapv_inplace(|el| {scenario_fn(el)});
-        //21.4.5 sum{ sum {gamma*s_b*s_c} }
-        let a = sbs_arr.t().dot(&gamma);
-        let b = a.dot(&sbs_arr);
 
-        //21.4.5 sum{Kb^2}
-        let c = kbs_arr.dot(&kbs_arr);
-
-        let sum = c+b;
-
-        let res = if sum < 0. {
-            //21.4.5.b
-            let mut sbs_alt = Array1::<f64>::zeros(kbs_arr.raw_dim());
-            Zip::from(&mut sbs_alt)
-                .and(&sbs_arr)
-                .and(&kbs_arr)
-                .par_for_each(|alt, &sb, &kb|{
-                    let _min = sb.min(kb);
-                    *alt = _min.max(-kb);
-            });
-            //now recalculate capital charge with alternative sb
-            //21.4.5 sum{ sum {gamma*s_b*s_c} }
-            let a = sbs_alt.t().dot(&gamma);
-            let b = a.dot(&sbs_alt);
-            //21.4.5 sum{K-b^2}
-            let c = kbs_arr.dot(&kbs_arr);
-            let sum = c+b;
-            sum.sqrt()
-        } else {
-            sum.sqrt()
-        };
-
-        // The function is supposed to return a series of same len as the input, hence we broadcast the result
-        let res_arr = Array::from_elem(columns[0].len(), res);
-        Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
+        across_bucket_agg(kbs, sbs, &gamma, columns[0].len())
     }, 
     
     &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), bucket_col, 
@@ -230,11 +197,11 @@ fn csr_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, special_bucket: usize,
     rho_tenor: &Array2<f64>, rho_name: Vec<f64>, rho_basis: f64, scenario_fn: F) 
 -> Result<(f64, f64)> 
 where F: Fn(f64) -> f64 + Sync + Send + 'static,{
-    let bucket_df = df.clone().lazy()
+    let bucket_df = df.lazy()
             .filter(col("b").eq(lit(bucket_id.to_string())))
             .collect()?;
     let n_curves = bucket_df.height();
-    if n_curves == 0 { return Ok((0.,0.)) };
+    if bucket_df.height() == 0 { return Ok((0.,0.)) };
 
     let mut csr_arr = bucket_df
                 .select(["y05", "y1", "y3", "y5", "y10"])?

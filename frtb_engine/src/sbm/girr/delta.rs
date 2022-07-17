@@ -152,49 +152,11 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
             .collect();
         let kbs_sbs = res_kbs_sbs?;
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
-        
-        let sbs_arr = Array1::from_vec(sbs);
-        let kbs_arr = Array1::from_vec(kbs);
+        let mut gamma = Array2::from_elem((kbs.len(), kbs.len()), girr_delta_gamma );
+        let zeros = Array1::zeros(kbs.len() );
+        gamma.diag_mut().assign(&zeros);
 
-        let mut gamma_m = Array2::from_elem((kbs_arr.len(), kbs_arr.len()), girr_delta_gamma );
-        let zeros = Array1::zeros(kbs_arr.len() );
-        gamma_m.diag_mut().assign(&zeros);
-
-        //21.4.5 sum{ sum {gamma*s_b*s_c} }
-        let a = sbs_arr.t().dot(&gamma_m);
-        let b = a.dot(&sbs_arr);
-
-        //21.4.5 sum{K-b^2}
-        let c = kbs_arr.dot(&kbs_arr);
-
-        let sum = c+b;
-
-        let res = if sum < 0. {
-            //21.4.5.b
-            let mut sbs_alt = Array1::<f64>::zeros(kbs_arr.raw_dim());
-            Zip::from(&mut sbs_alt)
-                .and(&sbs_arr)
-                .and(&kbs_arr)
-                .par_for_each(|alt, &sb, &kb|{
-                    let _min = sb.min(kb);
-                    *alt = _min.max(-kb);
-            });
-            //now recalculate capital charge with alternative sb
-            //21.4.5 sum{ sum {gamma*s_b*s_c} }
-            let a = sbs_alt.t().dot(&gamma_m);
-            let b = a.dot(&sbs_alt);
-            //21.4.5 sum{K-b^2}
-            let c = kbs_arr.dot(&kbs_arr);
-            let sum = c+b;
-            sum.sqrt()
-        } else {
-            sum.sqrt()
-        };
-
-        // The function is supposed to return a series of same len as the input, hence we broadcast the result
-        let res_arr = Array::from_elem(columns[0].len(), res);
-        // if option panics on .unwrap() implement match and use .iter() and then Series from iter
-        Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
+        across_bucket_agg(kbs, sbs, &gamma, columns[0].len())
     }, 
     &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), col("BucketBCBS"), 
     girr_delta_sens_weighted_spot(), girr_delta_sens_weighted_025y(), girr_delta_sens_weighted_05y(),

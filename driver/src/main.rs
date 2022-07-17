@@ -196,21 +196,14 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "measures": [
-            ["Commodity_DeltaCharge_Low", "first"],
-            ["Commodity_DeltaCharge_Medium", "first"],
-            ["Commodity_DeltaCharge_High", "first"],
             ["FX_DeltaCharge_Low", "first"],
             ["FX_DeltaCharge_Medium", "first"],
             ["FX_DeltaCharge_High", "first"],
-            ["GIRR_DeltaCharge_Low", "first"],
-            ["GIRR_DeltaCharge_Medium", "first"],
-            ["GIRR_DeltaCharge_High", "first"],
+            
             ["Equity_DeltaCharge_Low", "first"],
             ["Equity_DeltaCharge_Medium", "first"],
-            ["Equity_DeltaCharge_High", "first"],
-            ["CSR_nonSec_DeltaCharge_Low", "first"],
-            ["CSR_nonSec_DeltaCharge_Medium", "first"],
-            ["CSR_nonSec_DeltaCharge_High", "first"]
+            ["Equity_DeltaCharge_High", "first"]
+            
         ],
         "groupby": ["Desk"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],

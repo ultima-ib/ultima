@@ -110,10 +110,10 @@ fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr) -> Expr {
         
 
         let df = df.lazy()
-            .filter(col("rc").eq(lit("FX")).and(
+            .filter(
                 // filtering out NULLs here
                 col("dw").is_not_null()
-            ))
+            )
             .groupby([col("rf")])
             .agg([col("dw").sum().alias("dw_sum")])
             .collect()?;

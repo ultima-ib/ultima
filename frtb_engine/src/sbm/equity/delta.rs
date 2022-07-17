@@ -1,5 +1,6 @@
 use base_engine::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
+use rayon::iter::IntoParallelIterator;
 use crate::{sbm::common::*, helpers::across_bucket_agg};
 use crate::prelude::*;
 
@@ -43,7 +44,7 @@ fn equity_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) 
 ///calculate FX Delta Capital charge
 fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13], 
     eq_rho_mult: f64, scenario_fn: F) -> Expr 
-    where F: Fn(f64) -> f64 + Sync + Send + 'static,{
+    where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,{
     // inner function
     apply_multiple( move |columns| {
 
@@ -68,51 +69,20 @@ fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13],
         if df.height() == 0 {
             return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )
         };
-        
-        // 21.4.4
-        let mut kbs: [f64; 13] = [0.;13];
-        // sb = sum {ws_b}
-        let mut sbs: [f64; 13] = [0.;13];
+        // Compute in parallel the 13 buckets
+        let reskbs_sbs: Result<Vec<(f64, f64)>> = (1usize..=13)
+        .into_par_iter()
+        .map(|bucket| {
+            eq_bucket_kb_sb(df.clone(), bucket, eq_rho_bucket, 
+            eq_rho_mult, scenario_fn)
+        })
+        .collect();
 
-        for bucket_df in df.partition_by(["b"])? {
+        let kbs_sbs = reskbs_sbs?;
+        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
-            let bucket = if let AnyValue::Utf8(b) = unsafe{ bucket_df["b"].get_unchecked(0) } { b } else { unreachable!() };
-
-            let bucket_as_idx = bucket.parse::<usize>().unwrap_or(1);
-
-            let dw_sum = bucket_df["dw_sum"]
-                .f64()?
-                .to_ndarray()?;
-            
-            let sb = dw_sum.sum();
-
-            if bucket_as_idx == 11 {
-                let kb = dw_sum.map(|x|x.abs()).sum();
-                kbs[10] = kb; //kbs[0] stands for bucket number 1, etc etc
-                sbs[10] = sb;
-                continue;
-            }
-
-            let buck_rho = eq_rho_bucket[bucket_as_idx-1];
-
-            let rho_rf = build_eq_rho_base(&bucket_df["rf"], buck_rho)?;
-            let rho_rft = build_eq_rho_base(&bucket_df["rft"], eq_rho_mult)?;
-            let mut eq_rho = rho_rf*rho_rft;
-            eq_rho.par_mapv_inplace(|el| {scenario_fn(el)});
-
-            //21.4.4
-            let a = dw_sum.t().dot(&eq_rho);
-
-            //21.4.4
-            let kb = a.dot(&dw_sum)
-                .max(0.)
-                .sqrt();
-            
-            kbs[bucket_as_idx-1] = kb;
-            sbs[bucket_as_idx-1] = sb;
-        };
-        
         across_bucket_agg(kbs, sbs, &gamma, columns[0].len())
+        
     }, 
     &[ col("BucketBCBS"), equity_delta_sens_weighted_spot(), col("RiskFactorType"), col("RiskFactor") ], 
         GetOutput::from_type(DataType::Float64))
@@ -150,4 +120,46 @@ fn build_eq_rho_base(srs: &Series, eq_rho: f64) -> Result<Array2<f64>> {
         .map_err(|_| PolarsError::ShapeMisMatch("Could not build Eq RF Rho. Invalid Shape".into()));
     
     rho_arr
+}
+
+fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13], 
+    eq_rho_mult: f64, scenario_fn: F) 
+    -> Result<(f64, f64)> 
+    where F: Fn(f64) -> f64 + Sync + Send + 'static,{
+    
+        let n_tenors = 11; //Commodity curve has 11 tenors
+    
+        let bucket_df = df.lazy()
+                .filter(col("b").eq(lit(bucket_id.to_string())))
+                .collect()?;
+        let n_curves = bucket_df.height();
+        if bucket_df.height() == 0 { return Ok((0.,0.)) };
+
+        let dw_sum = bucket_df["dw_sum"]
+            .f64()?
+            .to_ndarray()?;
+
+        let sb = dw_sum.sum();
+
+        if bucket_id == 11 {
+            let kb = dw_sum.map(|x|x.abs()).sum();
+            return Ok((kb, sb))
+        }
+
+        let buck_rho = eq_rho_bucket[bucket_id-1];
+
+        let rho_rf = build_eq_rho_base(&bucket_df["rf"], buck_rho)?;
+        let rho_rft = build_eq_rho_base(&bucket_df["rft"], eq_rho_mult)?;
+        let mut eq_rho = rho_rf*rho_rft;
+        eq_rho.par_mapv_inplace(|el| {scenario_fn(el)});
+
+        //21.4.4
+        let a = dw_sum.t().dot(&eq_rho);
+
+        //21.4.4
+        let kb = a.dot(&dw_sum)
+            .max(0.)
+            .sqrt();
+        
+        Ok((kb, sb))
 }

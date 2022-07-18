@@ -7,6 +7,7 @@ use log::warn;
 
 /// Shifts 2D array by {int} to the right
 /// Creates a new Array2 (essentially cloning)
+#[allow(dead_code)]
 pub(crate)fn shift_right_by(by: usize, a: &Array2<f64>) -> Array2<f64> {
     
     // if shift_by is > than number of columns
@@ -30,6 +31,7 @@ pub(crate)fn shift_right_by(by: usize, a: &Array2<f64>) -> Array2<f64> {
     }
 }
 
+#[allow(dead_code)]
 pub(crate)fn shift_down_by(by: usize, a: &Array2<f64>) -> Array2<f64> {
     
     // if shift_by is > than number of columns
@@ -62,6 +64,7 @@ pub fn non_nan_zero_idxs(arr: ArrayView1<f64>) -> Vec<usize> {
     nans
 }
 
+#[allow(dead_code)]
 #[deprecated(note="Better to reduce nans as building corr matrix")]
 //// Helper function to remove indexes
 /// Not used at as .select(non_nan_zero_idx) is preffered

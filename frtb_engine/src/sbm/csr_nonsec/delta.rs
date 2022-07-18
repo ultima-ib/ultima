@@ -99,7 +99,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
     let juri: Jurisdiction = get_jurisdiction(op);
     
     let (y05, y1, y3, y5, y10, bucket_col, name_rho_vec, 
-        gamma_rating, gamma_sector) =
+        gamma_rating, gamma_sector,
+        n_buckets, special_bucket) =
          match juri{
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (csr_nonsec_delta_sens_weighted_05y_crr2(),
@@ -109,7 +110,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
         csr_nonsec_delta_sens_weighted_10y_crr2(),
         col("BucketCRR2"),
         Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
-        &scenario.base_csr_nonsec_gamma_rating_crr2, &scenario.base_csr_nonsec_gamma_sector_crr2
+        &scenario.base_csr_nonsec_gamma_rating_crr2, &scenario.base_csr_nonsec_gamma_sector_crr2,
+        20usize, Some(18usize)
         ),
         Jurisdiction::BCBS=>
         (csr_nonsec_delta_sens_weighted_05y_bcbs(),
@@ -119,24 +121,27 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
         csr_nonsec_delta_sens_weighted_10y_bcbs(),
         col("BucketBCBS"),
         Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
-        &scenario.base_csr_nonsec_gamma_rating, &scenario.base_csr_nonsec_gamma_sector
+        &scenario.base_csr_nonsec_gamma_rating, &scenario.base_csr_nonsec_gamma_sector,
+        18, Some(16)
         )
         };
 
-    csr_nonsec_delta_charge(juri, y05, y1, y3, y5, y10, 
+    csr_nonsec_delta_charge(y05, y1, y3, y5, y10, 
         &scenario.base_csr_nonsec_rho_tenor, name_rho_vec,
         scenario.base_csr_nonsec_rho_basis, bucket_col, scenario.scenario_fn,
-        gamma_rating, gamma_sector)
+        gamma_rating, gamma_sector, n_buckets, special_bucket, "CSR_nonSec", "Delta")
 }
 
-fn csr_nonsec_delta_charge<F>(jurisdiction: Jurisdiction, y05: Expr, y1: Expr, y3: Expr, y5: Expr, y10: Expr,
+pub(crate) fn csr_nonsec_delta_charge<F>(y05: Expr, y1: Expr, y3: Expr, y5: Expr, y10: Expr,
     base_tenor_rho: &'static Array2<f64>, rho_name: Vec<f64>, rho_basis: f64,
-    bucket_col: Expr, scenario_fn: F, gamma_rating: &'static Array2<f64>, gamma_sector: &'static Array2<f64>) -> Expr
+    bucket_col: Expr, scenario_fn: F, gamma_rating: &'static Array2<f64>, gamma_sector: &'static Array2<f64>,
+    n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str) -> Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
     apply_multiple( move |columns| {
 
         let df = df![
+            "rcat" =>   columns[9].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
             "rft" =>  columns[2].clone(),
@@ -149,7 +154,8 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
         ]?;
 
         let df = df.lazy()
-            .filter(col("rc").eq(lit("CSR_nonSec")))
+            .filter(col("rc").eq(lit(risk_class))
+                .and(col("rcat").eq(lit(risk_cat))))
             .groupby([col("b"), col("rf"), col("rft")])
             .agg([
                 col("y05").sum(),
@@ -158,14 +164,10 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
                 col("y5").sum(),
                 col("y10").sum()           
             ])
-            .collect()?;        
+            .collect()?;
+        
+        dbg!(df.clone());
 
-        // 21.4.4
-        let (n_buckets, special_bucket) = match jurisdiction {
-            #[cfg(feature = "CRR2")]
-            Jurisdiction::CRR2 => (20usize, 18usize),
-            Jurisdiction::BCBS => (18usize, 16),
-        };
         // 21.4.4 - 21.5.a
         let reskbs_sbs: Result<Vec<(f64, f64)>> = (1usize..=n_buckets)
         .into_par_iter()
@@ -187,13 +189,13 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
     }, 
     
     &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), bucket_col, 
-    y05, y1, y3, y5, y10], 
+    y05, y1, y3, y5, y10, col("RiskCategory")], 
     
     GetOutput::from_type(DataType::Float64))
 
 }
 
-fn csr_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, special_bucket: usize, 
+fn csr_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, special_bucket: Option<usize>, 
     rho_tenor: &Array2<f64>, rho_name: Vec<f64>, rho_basis: f64, scenario_fn: F) 
 -> Result<(f64, f64)> 
 where F: Fn(f64) -> f64 + Sync + Send + 'static,{
@@ -206,11 +208,19 @@ where F: Fn(f64) -> f64 + Sync + Send + 'static,{
     let mut csr_arr = bucket_df
                 .select(["y05", "y1", "y3", "y5", "y10"])?
                 .to_ndarray::<Float64Type>()?;
-    // 21.56 and 
-    if bucket_id == special_bucket {
-        csr_arr.par_iter_mut().for_each(|x|*x=x.abs());
-        return Ok((csr_arr.sum(),csr_arr.sum()))
+    // 21.56 
+    match special_bucket {
+        Some(x) if x==bucket_id => {
+            csr_arr.par_iter_mut().for_each(|x|*x=x.abs());
+            return Ok((csr_arr.sum(),csr_arr.sum()))
+        },
+        _ => (),
     };
+
+    //if bucket_id == special_bucket {
+    //    csr_arr.par_iter_mut().for_each(|x|*x=x.abs());
+    //    return Ok((csr_arr.sum(),csr_arr.sum()))
+    //};
     // Reshape in order to perform matrix multiplication
     let csr_shaped = csr_arr
                 .to_shape((csr_arr.len(), Order::RowMajor) )

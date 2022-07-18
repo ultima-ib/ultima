@@ -101,6 +101,7 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
 
     apply_multiple( move |columns| {
         let df = df![
+            "rcat"=>  columns[15].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
             "loc" =>  columns[2].clone(),
@@ -119,7 +120,8 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
         ]?;
 
         let df = df.lazy()
-            .filter(col("rc").eq(lit("Commodity")))
+            .filter(col("rc").eq(lit("Commodity"))
+            .and(col("rcat").eq(lit("Delta"))))
             .groupby([col("b"), col("rf"), col("loc")])
             .agg([
                 col("y0").sum(),
@@ -158,7 +160,7 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
     commodity_delta_sens_weighted_spot(), commodity_delta_sens_weighted_025y(), commodity_delta_sens_weighted_05y(),
     commodity_delta_sens_weighted_1y(), commodity_delta_sens_weighted_2y(), commodity_delta_sens_weighted_3y(),
     commodity_delta_sens_weighted_5y(), commodity_delta_sens_weighted_10y(), commodity_delta_sens_weighted_15y(),
-    commodity_delta_sens_weighted_20y(), commodity_delta_sens_weighted_30y()], 
+    commodity_delta_sens_weighted_20y(), commodity_delta_sens_weighted_30y(), col("RiskCategory")], 
         GetOutput::from_type(DataType::Float64))
 }
 

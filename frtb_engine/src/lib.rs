@@ -12,7 +12,7 @@ use base_engine::prelude::*;
 
 use once_cell::sync::Lazy;
 use polars::prelude::*;
-use ndarray::{Array2, Array1};
+use ndarray::{Array2, Array1, Axis};
 use strum::EnumString;
 
 pub trait FRTBDataSetT {
@@ -141,7 +141,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         eq_gamma.push_column(Array1::from_vec(vec![0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0., 0.75]).view()).unwrap();
         eq_gamma.push_row(Array1::from_vec(vec![0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0., 0.75, 0.]).view()).unwrap();
 
-        // 21.54.2 and 21.55.2
+        // CSR non Sec 21.54.2 and 21.55.2
         let mut base_csr_nonsec_rho_tenor = Array2::from_elem((5, 5), 0.65 );
         let ones = Array1::<f64>::ones(5);
         base_csr_nonsec_rho_tenor.diag_mut().assign(&ones);
@@ -189,7 +189,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.75, 1.00
         ]).unwrap();
 
-        // CRR2 Article 325aj
+        // CSR non Sec CRR2 Article 325aj
         let mut base_csr_nonsec_gamma_rating_crr2 = Array2::<f64>::from_elem((20,20), 0.5);
         let credit_quality_step_1_3 = [1usize,2,3,4,5,6,7,8,9,10];
         let credit_quality_step_4_6 = [11usize,12,13,14,15,16,17];
@@ -226,7 +226,42 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             .unwrap();
 
 
-        
+        // CSR Sec CTP 21.54.2 and 21.55.2
+        let base_csr_ctp_rho_tenor = base_csr_nonsec_rho_tenor.clone();
+
+        let base_csr_ctp_rho_name_bcbs = [0.35, 0.35, 0.35, 0.35, 0.35,
+        0.35, 0.35, 0.35, 0.35, 0.35,
+        0.35, 0.35, 0.35, 0.35, 0.35,
+        0.];
+        let base_csr_ctp_rho_name_crr2 = [0.35, 0.35, 0.35, 0.35, 0.35,
+        0.35, 0.35, 0.35, 0.35, 0.35,
+        0.35, 0.35, 0.35, 0.35, 0.35,
+        0.35, 0.35, 0.35];
+        let base_csr_ctp_rho_basis = 0.99;
+        // CTP gamma is same nonSec, except buckets 17 and 16
+        // rememebr indexing starts from 0
+        let mut base_csr_ctp_gamma_rating = base_csr_nonsec_gamma_rating.clone();
+        let mut base_csr_ctp_gamma_sector = base_csr_nonsec_gamma_sector.clone();
+        for gamma in [&mut base_csr_ctp_gamma_rating, &mut base_csr_ctp_gamma_sector] {
+            gamma.remove_index(Axis(0), 17);
+            gamma.remove_index(Axis(1), 17);
+            gamma.remove_index(Axis(0), 16);
+            gamma.remove_index(Axis(1), 16);
+        };
+
+        //CTP CRR2
+
+        let mut base_csr_ctp_gamma_rating_crr2 = base_csr_nonsec_gamma_rating_crr2.clone();
+        let mut base_csr_ctp_gamma_sector_crr2 = base_csr_nonsec_gamma_sector_crr2.clone();
+        for gamma in [&mut base_csr_ctp_gamma_rating_crr2, &mut base_csr_ctp_gamma_sector_crr2] {
+            gamma.remove_index(Axis(0), 19);
+            gamma.remove_index(Axis(1), 19);
+            gamma.remove_index(Axis(0), 18);
+            gamma.remove_index(Axis(1), 18);
+        };
+
+        //dbg!(base_csr_ctp_gamma_rating.clone());
+        //dbg!(base_csr_ctp_gamma_sector.clone()); 
 
         ScenarioConfig {
             name: ScenarioName::Medium,
@@ -252,14 +287,26 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             //CSR nonSec
             base_csr_nonsec_rho_tenor,
             base_csr_nonsec_rho_name_bcbs,
-            base_csr_nonsec_rho_name_crr2,
             base_csr_nonsec_rho_basis,
+
             base_csr_nonsec_gamma_rating,
             base_csr_nonsec_gamma_sector,
             // CRR2 325aj
+            base_csr_nonsec_rho_name_crr2,
             base_csr_nonsec_gamma_rating_crr2,
-            base_csr_nonsec_gamma_sector_crr2
+            base_csr_nonsec_gamma_sector_crr2,
 
+            //CSR Sec CTP
+            base_csr_ctp_rho_tenor,
+            base_csr_ctp_rho_name_bcbs,
+            base_csr_ctp_rho_basis,
+
+            base_csr_ctp_gamma_rating,
+            base_csr_ctp_gamma_sector,
+            // CSR Sec CTP CRR2
+            base_csr_ctp_rho_name_crr2,
+            base_csr_ctp_gamma_rating_crr2,
+            base_csr_ctp_gamma_sector_crr2
         }}
 );
 
@@ -329,13 +376,24 @@ pub struct ScenarioConfig{
     // CSRnonSec 21.54.2 and 21.55.2
     pub base_csr_nonsec_rho_tenor: Array2<f64>,
     pub base_csr_nonsec_rho_name_bcbs: [f64; 18],
-    pub base_csr_nonsec_rho_name_crr2: [f64; 20],
     pub base_csr_nonsec_rho_basis: f64,
     pub base_csr_nonsec_gamma_rating: Array2<f64>,
     pub base_csr_nonsec_gamma_sector: Array2<f64>,
-    // CRR2 325aj
+    // CSR non Sec CRR2 325aj
+    pub base_csr_nonsec_rho_name_crr2: [f64; 20],
     pub base_csr_nonsec_gamma_rating_crr2: Array2<f64>,
     pub base_csr_nonsec_gamma_sector_crr2: Array2<f64>,
+    //CSR CTP
+    pub base_csr_ctp_rho_tenor: Array2<f64>,
+    pub base_csr_ctp_rho_name_bcbs: [f64; 16],
+    pub base_csr_ctp_rho_basis: f64,
+    pub base_csr_ctp_gamma_rating: Array2<f64>,
+    pub base_csr_ctp_gamma_sector: Array2<f64>,
+
+    pub base_csr_ctp_rho_name_crr2: [f64; 18],
+    pub base_csr_ctp_gamma_rating_crr2: Array2<f64>,
+    pub base_csr_ctp_gamma_sector_crr2: Array2<f64>,
+
 
 }
 
@@ -365,12 +423,23 @@ impl ScenarioConfig {
         com_gamma, eq_gamma] = matrixes;
 
         //objects which do not implement copy
-        let base_csr_nonsec_rho_tenor = self.base_csr_nonsec_rho_tenor.clone();
         let base_com_rho_tenor = self.base_com_rho_tenor.clone();
+
+        let base_csr_nonsec_rho_tenor = self.base_csr_nonsec_rho_tenor.clone();
         let base_csr_nonsec_gamma_rating = self.base_csr_nonsec_gamma_rating.clone();
         let base_csr_nonsec_gamma_sector = self.base_csr_nonsec_gamma_sector.clone();
         let base_csr_nonsec_gamma_rating_crr2 = self.base_csr_nonsec_gamma_rating_crr2.clone();
         let base_csr_nonsec_gamma_sector_crr2 = self.base_csr_nonsec_gamma_sector_crr2.clone();
+
+        let base_csr_ctp_rho_tenor = self.base_csr_ctp_rho_tenor.clone();
+        let base_csr_ctp_gamma_rating = self.base_csr_ctp_gamma_rating.clone();
+        let base_csr_ctp_gamma_sector = self.base_csr_ctp_gamma_sector.clone();
+
+        let base_csr_ctp_gamma_rating_crr2 = self.base_csr_ctp_gamma_rating_crr2.clone();
+        let base_csr_ctp_gamma_sector_crr2 = self.base_csr_ctp_gamma_sector_crr2.clone();
+
+
+        //
 
         //Next, apply to singles and return a scenario
         Self {  name: scenario,
@@ -394,6 +463,14 @@ impl ScenarioConfig {
                 base_csr_nonsec_gamma_sector,
                 base_csr_nonsec_gamma_rating_crr2,
                 base_csr_nonsec_gamma_sector_crr2,
+
+                base_csr_ctp_rho_tenor,
+                base_csr_ctp_gamma_rating,
+                base_csr_ctp_gamma_sector,
+
+                base_csr_ctp_gamma_rating_crr2,
+                base_csr_ctp_gamma_sector_crr2,
+
                 ..*self }
         
     }

@@ -106,6 +106,7 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
     apply_multiple( move |columns| {
 
         let df = df![
+            "rcat" =>   columns[15].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
             "rft" =>  columns[2].clone(),
@@ -124,7 +125,7 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
         ]?;
 
         let df = df.lazy()
-            .filter(col("rc").eq(lit("GIRR")))
+            .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Delta"))))
             .groupby([col("b"), col("rf"), col("rft")])
             .agg([
                 col("y0").sum(),
@@ -162,7 +163,7 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
     girr_delta_sens_weighted_spot(), girr_delta_sens_weighted_025y(), girr_delta_sens_weighted_05y(),
     girr_delta_sens_weighted_1y(), girr_delta_sens_weighted_2y(), girr_delta_sens_weighted_3y(),
     girr_delta_sens_weighted_5y(), girr_delta_sens_weighted_10y(), girr_delta_sens_weighted_15y(),
-    girr_delta_sens_weighted_20y(), girr_delta_sens_weighted_30y()], 
+    girr_delta_sens_weighted_20y(), girr_delta_sens_weighted_30y(), col("RiskCategory")], 
         GetOutput::from_type(DataType::Float64))
 }
 

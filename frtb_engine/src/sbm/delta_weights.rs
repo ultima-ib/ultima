@@ -80,6 +80,12 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
             rf_rw_map("BucketBCBS", delta_weights.csr_non_sec_weight, never_reached.clone())
         )
 
+        // CSR secCTP
+        .when(col("RiskClass").eq(lit("CSR_secCTP")))
+        .then(
+            rf_rw_map("BucketBCBS", delta_weights.csr_sec_ctp_weight, never_reached.clone())
+        )
+
         .otherwise(not_yet_implemented.clone())
     )
     .otherwise(not_yet_implemented)
@@ -141,8 +147,13 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     // 21.53
     // same weight for all tenors, hence we simplify by keeping just one
     // TODO when arr gets fixed expand to all 5 tenors in order to use Total Delta/Total Weighted Delta
-    let csr_nonsec_weights = [ 0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.025, 0.02, 0.04, 0.12, 0.07, 0.085, 0.055, 0.05, 0.12, 0.015, 0.05];
-    let csr_non_sec_weight: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights);
+    let csr_nonsec_weights_arr = [ 0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.025, 0.02, 0.04, 0.12, 0.07, 0.085, 0.055, 0.05, 0.12, 0.015, 0.05];
+    let csr_non_sec_weight: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights_arr);
+
+    // CSR Sec CTP 21.59
+    let csr_sec_ctp_weights_arr = [ 0.04, 0.04, 0.08, 0.05, 0.04, 0.03, 0.02, 0.06, 0.13, 0.13, 0.16, 0.10, 0.12, 0.12, 0.12, 0.13];
+    let csr_sec_ctp_weight: HashMap<String, Expr> = bucket_weight_map(&csr_sec_ctp_weights_arr);
+
 
 
     let dlt_weights = SensWeightsConfig {
@@ -160,7 +171,9 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         eq_bucket_spot_weight: equity_bucket_spot_weights,
         eq_bucket_repo_weight: equity_bucket_repo_weights,
         //CSR non-Sec
-        csr_non_sec_weight
+        csr_non_sec_weight,
+        // CSR sec CTP
+        csr_sec_ctp_weight
 
     };
 
@@ -186,24 +199,34 @@ pub struct SensWeightsConfig {
     eq_bucket_repo_weight: HashMap<String, Expr>,
     // CSR non-Sec
     csr_non_sec_weight: HashMap<String, Expr>,
+    // CSR sec CTP
+    csr_sec_ctp_weight: HashMap<String, Expr>,
 
 
 }
 
-/// Ammends BCBS risk weights into CRR2 compliance 
+/// Ammends BCBS risk weights into CRR2 compliance where required
 pub fn weights_assign_crr2() -> Expr {
     let x:Option<f64> = None;
     //let not_yet_implemented = Series::new("null", &[x]).lit().list();
     let never_reached = Series::new("null", &[x]).lit().list();
 
     let csr_nonsec_weights = [ 0.005, 0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.1, 0.025, 0.02, 0.04, 0.12, 0.07, 0.085, 0.055, 0.05, 0.12, 0.015, 0.05];
-    let csr_non_sec_weight: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights);
+    let csr_non_sec_weight_crr2: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights);
+
+    // CSR Sec CTP 21.59
+    let csr_sec_ctp_weights_crr2 = [ 0.04, 0.04, 0.04, 0.08, 0.05, 0.04, 0.03, 0.02, 0.03, 0.06, 0.13, 0.13, 0.16, 0.10, 0.12, 0.12, 0.12, 0.13];
+    let csr_sec_ctp_weight_crr2: HashMap<String, Expr> = bucket_weight_map(&csr_sec_ctp_weights_crr2);
     
     when(col("RiskCategory").eq(lit("Delta")))
     .then(
         when(col("RiskClass").eq(lit("CSR_nonSec")))
         .then( 
-                rf_rw_map("BucketBCBS", csr_non_sec_weight, never_reached)
+                rf_rw_map("BucketCRR2", csr_non_sec_weight_crr2, never_reached.clone())
+            )
+        .when(col("RiskClass").eq(lit("CSR_secCTP")))
+        .then( 
+                rf_rw_map("BucketCRR2", csr_sec_ctp_weight_crr2, never_reached)
             )
         .otherwise(col("SensWeights"))
     )

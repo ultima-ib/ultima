@@ -186,6 +186,9 @@ const JSON: &str = r#"
 ["CSR_nonSec_DeltaCharge_Low", "first"],
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
 ["CSR_nonSec_DeltaCharge_High", "first"],
+["CSR_secCTP_DeltaCharge_Low", "first"],
+["CSR_secCTP_DeltaCharge_Medium", "first"],
+["CSR_secCTP_DeltaCharge_High", "first"],
 
 "reporting_ccy": "USD"
 */
@@ -196,19 +199,15 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "measures": [
-            ["FX_DeltaCharge_Low", "first"],
-            ["FX_DeltaCharge_Medium", "first"],
-            ["FX_DeltaCharge_High", "first"],
-            
-            ["Equity_DeltaCharge_Low", "first"],
-            ["Equity_DeltaCharge_Medium", "first"],
-            ["Equity_DeltaCharge_High", "first"]
+            ["CSR_secCTP_DeltaCharge_Low", "first"],
+["CSR_secCTP_DeltaCharge_Medium", "first"],
+["CSR_secCTP_DeltaCharge_High", "first"]
             
         ],
         "groupby": ["Desk"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],
         "optional_params": {
-            "calc_params": {"jurisdiction": "BCBS"}
+            "calc_params": {"jurisdiction": "CRR2"}
         }
     }
 }"#;

@@ -25,7 +25,6 @@ pub fn execute(req: DataRequestS, data: &DataSet, measure_map: Arc<MM>)
 
     info!("f1 with HMS, attr and prepared: {:?}", 
     data.f1);
-    //dbg!("{:?}", req.clone());
 
     // Step 1.0 SELECT columns required for current request
     // In case of SQL data source we need to create DF from 

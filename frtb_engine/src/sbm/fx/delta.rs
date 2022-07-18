@@ -111,7 +111,7 @@ fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr) -> Expr {
 
         let df = df.lazy()
             .filter(
-                // filtering out NULLs here
+                // filtering out NULLs here, as non FX non Delta were set to NULL
                 col("dw").is_not_null()
             )
             .groupby([col("rf")])

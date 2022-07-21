@@ -1,9 +1,13 @@
 use base_engine::prelude::*;
+use ndarray::AssignElem;
 use ndarray::Order;
 use ndarray::parallel::prelude::IntoParallelRefIterator;
+use rayon::iter::ParallelBridge;
 use crate::sbm::common::*;
 use crate::helpers::*;
 use crate::prelude::*;
+use std::time::Instant;
+use std::mem::MaybeUninit;
 
 use polars::prelude::*;
 use ndarray::prelude::*;
@@ -104,7 +108,7 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64) -> Expr {
 
     apply_multiple( move |columns| {
-
+        let now = Instant::now();
         let df = df![
             "rcat" =>   columns[15].clone(),
             "rc" =>   columns[0].clone(), 
@@ -140,13 +144,16 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
                 col("y20").sum(),
                 col("y30").sum()            
             ])
+            .fill_null(lit::<f64>(0.))
             .collect()?;
-        
+        let elapsed = now.elapsed();
+        println!("Creation and filtration took: {:.6?}", elapsed);
+        // columns[3] is the bucket column. Iterate over unique buckets
         let res_kbs_sbs: Result<Vec<(f64,f64)>> = df["b"].unique()?
             .utf8()?
             .par_iter()
             .map(|b|{
-                girr_bucket_kb_sb(df.clone(), b.unwrap(), 
+                girr_bucket_kb_sb(df.clone().lazy(), b.unwrap_or_else(||"Default"), 
                 girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
                 girr_delta_rho_infl, girr_delta_rho_xccy)
             })
@@ -167,86 +174,6 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
         GetOutput::from_type(DataType::Float64))
 }
 
-
-/// Dirty, builds correlation matrix using all 10 tenors
-/// However, we select non zero idxs
-/// Ideally we should build corr mtrx from views to non zero indxs (see GIRR Delta Simple tab in the xlsx)
-/// However, this is not yet possible: https://github.com/rust-ndarray/ndarray/discussions/1183
-fn build_girr_corr_matrix( girr_delta_rho_same_curve: &Array2<f64>, 
-    girr_delta_rho_diff_curve: &Array2<f64>, 
-    girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,
-    y: usize, i: usize, x: usize,
-    yield_idx_select: &[usize]) -> Result<Array2<f64>> {
-
-    let n = 10; //represents number of tenors (aka columns) of yield curve
-    let y_curves = y / n ; //represents number of yield curves
-    let i_curves = i;
-    let x_curves = x;
-
-    let mut res = Array2::ones((0, 0));
-
-    if y_curves > 0 {
-        //21.46 GIRR delta risk correlation within same bucket, same curve
-        let corr_with_self_yield = girr_delta_rho_same_curve;
-        //21.47 GIRR delta risk correlation within same bucket, different curves
-        let corr_with_other_yields = girr_delta_rho_diff_curve;//corr_with_self_yield.clone() * 0.999;
-        // Vec to store a set of vecs ("rows")
-        let mut vec_rows_cols: Vec<Vec<ArrayView2<f64>>> = Vec::with_capacity(y_curves);
-
-        for i in 0..y_curves {
-            let mut tmp: Vec<ArrayView2<f64>> = Vec::with_capacity(y_curves);
-            tmp.extend(vec![corr_with_other_yields.view(); i]);
-            tmp.extend([corr_with_self_yield.view()]);
-            tmp.extend(vec![corr_with_other_yields.view(); y-i-1]);
-            vec_rows_cols.push(tmp);
-        };
-
-        let vec_rows: Vec<Array2<f64>> = vec_rows_cols
-        .par_iter()
-        .map(|x| ndarray::concatenate(Axis(1), x)
-            .unwrap() // have to unwrap here since inside closure
-            .select(Axis(1), yield_idx_select))
-        .collect();
-
-        res = ndarray::concatenate(Axis(0), vec_rows
-            .iter()
-            .map(|x| x.view())
-            .collect::<Vec<ArrayView2<f64>>>()
-            .as_slice())
-        .and_then(|x| Ok(x.select(Axis(0), yield_idx_select)))
-        .map_err(|_| PolarsError::ShapeMisMatch("Could not build Yield Rho. Invalid Shape".into()))?;
-
-    }
-
-    for _ in 0..i_curves {
-        let res_nrows = res.nrows();
-        // 21.48
-        let v_col = vec![girr_delta_rho_infl; res_nrows];
-        let mut v_row = v_col.clone();
-        v_row.push(1.);
-        res.push_column(Array1::from_vec(v_col).view())
-            .map_err(|_| PolarsError::ShapeMisMatch("GIRR Inflation couldn't push column".into()) )?;
-        res.push_row(Array1::from_vec(v_row).view())
-            .map_err(|_| PolarsError::ShapeMisMatch("GIRR Inflation couldn't push row".into()) )?;
-    }
-
-    for _ in 0..x_curves {
-        let res_nrows = res.nrows();
-        //21.49
-        let v_col = vec![girr_delta_rho_xccy; res_nrows];
-        let mut v_row = v_col.clone();
-        v_row.push(1.);
-        res.push_column(Array1::from_vec(v_col).view())
-            .map_err(|_| PolarsError::ShapeMisMatch("GIRR Xccy couldn't push column".into()) )?;
-        res.push_row(Array1::from_vec(v_row).view())
-            .map_err(|_| PolarsError::ShapeMisMatch("GIRR Xccy couldn't push row".into()) )?;
-    }
-    // can't select using all indexes anymore, since yield nan/zero indexes have already been dropped
-    // however, that's ok since generally if XCCY or Inflation is provided, the Spot risk shouldn't be 0.
-    Ok(res)
-}
-
-
 ///21.46 GIRR delta risk correlation within same bucket, same curve
 /// results in 10x10 matrix
 /// Used at the initiation of the program using OnceCell
@@ -262,11 +189,11 @@ pub(crate) fn girr_corr_matrix() -> Array2<f64> {
     base_weights
 }
 
-fn girr_bucket_kb_sb(df: DataFrame, bucket: &str, 
+fn girr_bucket_kb_sb(df: LazyFrame, bucket: &str, 
     girr_delta_rho_same_curve: &Array2<f64>, 
     girr_delta_rho_diff_curve: &Array2<f64>,
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,) -> Result<(f64, f64)> {
-    let bucket_df = df.lazy()
+    let bucket_df = df
             .filter(col("b").eq(lit(bucket)))
             .collect()?;
     
@@ -295,26 +222,16 @@ fn girr_bucket_kb_sb(df: DataFrame, bucket: &str,
     let xccy_arr = xccy_df["y0"].f64()?
         .to_ndarray()?;
     
-    let non_nan_zero_idxs_yield_vec =  non_nan_zero_idxs(yield_arr_shaped.view());
-
-    let corr_mtrx: Array2<f64> = build_girr_corr_matrix(girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
+    let corr_mtrx: Array2<f64> = build_girr_corr_matrix_3(girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
         girr_delta_rho_infl, girr_delta_rho_xccy, 
-        yield_arr.len(), infl_arr.len(), xccy_arr.len(),
-        &non_nan_zero_idxs_yield_vec)?;
+        yield_arr.len(), infl_arr.len(), xccy_arr.len())?;
         
-    // Concat into one vector, note:
-    // Rhos has been reduced by non nan/zero yields already. 
-    // Now, reduce weighted deltas by throwing away zeros and nans of YIELD ONLY
     let yield_infl_xccy: Array1<f64> = 
-        ndarray::concatenate(Axis(0), &[yield_arr_shaped.select(Axis(0), &non_nan_zero_idxs_yield_vec).view(),
+        ndarray::concatenate(Axis(0), &[yield_arr_shaped.view(),
          infl_arr.view(), xccy_arr.view()] )
         .map_err(|_| PolarsError::ShapeMisMatch("Could not concatenate yield infl xccy".into()) )?;
-    //Rhos has been reduced already. 
-    // Note above we selected non nan/zero YIELD indexes only
-    //Now, reduce weighted deltas by throwing away zeros and nans of YIELD ONLY
-   // yield_infl_xccy = yield_infl_xccy.select(Axis(0), &non_nan_zero_idxs_yield_vec);
 
-    let a = yield_infl_xccy.t().dot(&corr_mtrx);
+    let a = yield_infl_xccy.dot(&corr_mtrx);
 
     //21.4.4
     let kb = a.dot(&yield_infl_xccy)
@@ -328,3 +245,62 @@ fn girr_bucket_kb_sb(df: DataFrame, bucket: &str,
     Ok((kb, sb))
 }
 
+fn build_girr_corr_matrix_3( girr_delta_rho_same_curve: &Array2<f64>, 
+    girr_delta_rho_diff_curve: &Array2<f64>, 
+    girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,
+    y: usize, i: usize, x: usize) -> Result<Array2<f64>> {
+
+    let n = 10; //represents number of tenors (aka columns) of yield curve
+    let y_curves = y / n ; //represents number of yield curves
+    //let i_curves = i;
+    //let x_curves = x;
+    let total_len = y + i + x;
+    let mut res = Array2::ones((0, 0));
+    if total_len>0{
+        let mut arr = Array2::<f64>::uninit((total_len, total_len));
+        if y > 0 {
+            let mut yield_slice = arr.slice_mut(s![..y, ..y]);
+            yield_slice
+            .exact_chunks_mut((n, n))
+            .into_iter()
+            .enumerate()
+            .par_bridge()
+            .for_each(|(i, chunk)|{
+                let row_id = i/y_curves; //eg 27usize/10usize = 2usize
+                let col_id = i%y_curves; //eg 27usize % 10usize = 7usize
+                //21.46 GIRR delta risk correlation within same bucket, same curve
+                if row_id == col_id {
+                    //girr_delta_rho_same_curve.assign_to(chunk);
+                    girr_delta_rho_same_curve.to_owned().move_into_uninit(chunk)
+                //21.47 GIRR delta risk correlation within same bucket, different curves
+                } else {
+                    //girr_delta_rho_diff_curve.assign_to(chunk);
+                    girr_delta_rho_diff_curve.to_owned().move_into_uninit(chunk)
+                }
+            });
+        };
+        if i>0 {
+            // Can't use multi slice because slices intersect
+            // Have to take advantage of Rust's non-lexical lifetimes
+            let infl_rho_element = MaybeUninit::new(girr_delta_rho_infl);
+            let mut inflation_slice_row = arr.slice_mut(s![y..y+i, ..]);
+            inflation_slice_row.fill(infl_rho_element);
+            let mut inflation_slice_col = arr.slice_mut(s![..,y..y+i]);
+            inflation_slice_col.fill(infl_rho_element);
+        }
+        if x>0 {
+            let xccy_rho_elem = MaybeUninit::new(girr_delta_rho_xccy);
+            let mut xccy_slice_row = arr.slice_mut(s![y+i.., ..]);
+            xccy_slice_row.fill(xccy_rho_elem);
+            let mut xccy_slice_col = arr.slice_mut(s![.., y+i..]);
+            xccy_slice_col.fill(xccy_rho_elem);
+        }
+        unsafe {
+            res = arr.assume_init();
+        }
+    }
+
+    let ones = Array1::<f64>::ones(total_len);
+    res.diag_mut().assign(&ones);
+    Ok(res)
+}

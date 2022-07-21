@@ -3,7 +3,6 @@
 //! 
 
 use base_engine::prelude::*;
-use ndarray::Order;
 use rayon::iter::IntoParallelIterator;
 use crate::sbm::common::*;
 use crate::helpers::*;
@@ -97,9 +96,9 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
     -> Expr 
     where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,{  
     
-    let n_tenors = 11usize;
-
+        
     apply_multiple( move |columns| {
+        
         let df = df![
             "rcat"=>  columns[15].clone(),
             "rc" =>   columns[0].clone(), 
@@ -118,6 +117,7 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
             "y20" =>  columns[13].clone(),
             "y30" =>  columns[14].clone(),
         ]?;
+        
 
         let df = df.lazy()
             .filter(col("rc").eq(lit("Commodity"))
@@ -136,17 +136,22 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
                 col("y20").sum(),
                 col("y30").sum()            
             ])
-            .collect()?;        
+            .fill_null(lit::<f64>(0.));
+            //.collect()?; 
+              
         // If no buckets, early return zeros
-        if df.height() == 0 {
-            return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) );
-        }
+        //if df.height() == 0 {
+        //    return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) );
+        //}
         // Compute in parallel the 11 buckets
+        let tenor_cols = vec!["y0", "y025", "y05", "y1", "y2","y3", "y5", "y10", "y15", "y20", "y30"];
+        
         let reskbs_sbs: Result<Vec<(f64, f64)>> = (1usize..=11)
         .into_par_iter()
         .map(|bucket| {
-            comm_bucket_kb_sb(df.clone(), bucket, bucket_rho_basis, 
-            com_rho_base_diff_loc, rho_tenor, scenario_fn, n_tenors)
+            bucket_kb_sb_chunks(df.clone(), bucket, None,
+            rho_tenor, bucket_rho_basis.to_vec(), com_rho_base_diff_loc, scenario_fn,
+            tenor_cols.clone(), "rf", "loc")
         })
         .collect();
 
@@ -162,59 +167,5 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
     commodity_delta_sens_weighted_5y(), commodity_delta_sens_weighted_10y(), commodity_delta_sens_weighted_15y(),
     commodity_delta_sens_weighted_20y(), commodity_delta_sens_weighted_30y(), col("RiskCategory")], 
         GetOutput::from_type(DataType::Float64))
-}
-
-
-fn comm_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, bucket_rho_basis: [f64; 11], 
-com_rho_base_diff_loc: f64, rho_tenor: &'static Array2<f64>, scenario_fn: F, n_tenors: usize) 
--> Result<(f64, f64)> 
-where F: Fn(f64) -> f64 + Sync + Send + 'static,{
-
-    let bucket_df = df.lazy()
-            .filter(col("b").eq(lit(bucket_id.to_string())))
-            .collect()?;
-    let n_curves = bucket_df.height();
-    if bucket_df.height() == 0 { return Ok((0.,0.)) };
-
-    let comm_arr = bucket_df
-    .select(
-        ["y0", "y025", "y05", "y1", "y2", "y3", "y5", "y10", "y15", "y20", "y30"])?
-    .to_ndarray::<Float64Type>()?;
-
-    let comm_reshaped = comm_arr.to_shape(( n_tenors*n_curves, Order::RowMajor) )
-    .map_err(|_| PolarsError::ShapeMisMatch("Could not reshape commodity arr".into()) )?;
-
-    // indexes to be removed
-    let non_nan_zero_idxs_vec = non_nan_zero_idxs(comm_reshaped.view());
-    
-    // 21.83.1
-    let bucket_rho_basis = bucket_rho_basis[bucket_id-1];
-    let rho_cty = build_basis_rho(n_tenors, &bucket_df["rf"], bucket_rho_basis, &non_nan_zero_idxs_vec)?;
-    
-    // 21.83.2
-    let rho_tenor = build_tenor_rho( bucket_df.height(), rho_tenor.view(), &non_nan_zero_idxs_vec)?;
-
-    // 21.83.3
-    let rho_basis: Array2<f64> = build_basis_rho(n_tenors, &bucket_df["loc"], com_rho_base_diff_loc, &non_nan_zero_idxs_vec)?;
-
-    //Rhos has been reduced already. Now, reduce weighted deltas by throwing away zeros and nans
-    let comm_reshaped = comm_reshaped.select(Axis(0), &non_nan_zero_idxs_vec);
-    // 21.83 final
-    let mut rho = rho_cty*rho_tenor*rho_basis;
-    
-    //Apply Scenario rho
-    rho.par_mapv_inplace(|el| {scenario_fn(el)});
-    //21.4.4
-    let a = comm_reshaped.t().dot(&rho);
-
-    //21.4.4
-    let kb = a.dot(&comm_reshaped)
-        .max(0.)
-        .sqrt();
-
-    //21.4.5.a
-    let sb = comm_reshaped.sum();
-
-    Ok((kb, sb))
 }
 

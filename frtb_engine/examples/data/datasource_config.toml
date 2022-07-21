@@ -3,7 +3,10 @@ type = "CSV"
 
 [paths]
 # delta_path 
-file_1_path = "frtb_engine/examples/data/Delta.csv"
+# "C:/rust/delta_6500x4_csr.csv"
+# "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
+# "C:/rust/DeltaGirr100_100_400000.csv"
+file_1_path = "C:/rust/DeltaGirr100_100_400000.csv"
 # trade attributes
 attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
 # HMS
@@ -14,9 +17,15 @@ files_join_attributes = ["TradeId"]
 # must be provided if hierarchy file is provided
 attributes_join_hierarchy = ["BookId"] 
 # Measure columns. Optional field. Used as a constraint on which numeric columns
-# can be aggregated.
-# eg ("ColumnA", "sum")
-f1_measure_cols = ["SensitivitySpot", "Delta30Y"]
+# can be aggregated eg ("SensitivitySpot", _)
+# f1_measure_cols=[]
+# Polars can't always guess the right type of col. eg an empty col is str
+# So one must provide the list
+f1_numeric_cols = ["SensitivitySpot", "Sensitivity_025Y","Sensitivity_05Y",
+"Sensitivity_1Y","Sensitivity_2Y","Sensitivity_3Y","Sensitivity_5Y",
+"Sensitivity_10Y","Sensitivity_15Y","Sensitivity_20Y","Sensitivity_30Y",]
+# Columns which must be cast to str in the preprocessing step
+f1_cast_to_str = ["BucketBCBS", "RiskFactor", "RiskFactorType"]
 # Build Params. Additional parameters to be passed to DataSet.prebuild()
 # csrnonsec_covered_bond_15 = "true" <-> column CoveredBondReducedWeight must be provided
-build_params = {fx_sqrt2_div = "true", girr_sqrt2_div = "true"}
+build_params = {fx_sqrt2_div = "true", girr_sqrt2_div = "true", csrnonsec_covered_bond_15 = "true"}

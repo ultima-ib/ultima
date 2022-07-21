@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use polars::prelude::*;
-use log::{warn, debug, info};
+use log::{warn, debug};
 use serde::{Serialize, Deserialize};
 
 use crate::dataset::*;
@@ -56,6 +56,10 @@ pub enum DataSourceConfig {
         f2_measure_cols: Option<Vec<String>>,
         #[serde(default)]
         f3_measure_cols: Option<Vec<String>>,
+        #[serde(default)]
+        f1_numeric_cols: Option<Vec<String>>,
+        #[serde(default)]
+        f1_cast_to_str: Option<Vec<String>>,
         /// parameters to be used for build and prepare
         #[serde(default)]
         build_params: Option<HashMap<String, String>>,
@@ -79,25 +83,38 @@ impl DataSourceConfig {
                 f1_measure_cols: f1_m,
                 f2_measure_cols: f2_m,
                 f3_measure_cols: f3_m,
+                f1_cast_to_str: cast_to_str_vec,
+                f1_numeric_cols,
                 mut build_params} => {
+                    // in order to convert to categorical, f2a columns have to be Utf8
+                    let mut str_cols: Vec<String> = match cast_to_str_vec {
+                        Some(v) => v.clone(),
+                        _ => vec![]
+                    };
+                    str_cols.extend(f2a.clone());
+                    let f64_cols: Vec<String> = match f1_numeric_cols {
+                        Some(v) => v.clone(),
+                        _ => vec![]
+                    };
+
 
                     let mut df1 = match  file_1 {
-                        Some(y) => path_to_df(&y, &f2a),
+                        Some(y) => path_to_df(&y, &str_cols, &f64_cols),
                         _ => empty_frame(&f2a) };
 
                     let mut df2 = match  v{
-                        Some(y) => path_to_df(&y, &f2a),
+                        Some(y) => path_to_df(&y, &f2a, &f64_cols),
                         _ => empty_frame(&f2a) };
 
                     let mut df3 = match  c{
-                        Some(y) => path_to_df(&y, &f2a),
+                        Some(y) => path_to_df(&y, &f2a, &f64_cols),
                         _ => empty_frame(&f2a) };
                     
                     
                     let mut tmp = f2a.clone();
                     tmp.extend(a2h.clone());
                     let mut df_attr = match  ta{
-                        Some(y) => path_to_df(&y, &tmp)
+                        Some(y) => path_to_df(&y, &tmp, &[])
                                             .unique(Some(&f2a), UniqueKeepStrategy::First).unwrap(),
                         _ => {
                             empty_frame(&tmp) 
@@ -105,7 +122,7 @@ impl DataSourceConfig {
                     
                     //here we expect if hms is provided then a2h is not empty
                     let mut df_hms = match  hms{
-                        Some(y) =>{ path_to_df(&y, &a2h)
+                        Some(y) =>{ path_to_df(&y, &a2h, &[])
                                             .unique(Some(&a2h), UniqueKeepStrategy::First)
                                             .expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
                                             in the datasource_config.toml") },
@@ -135,8 +152,6 @@ impl DataSourceConfig {
                             s.cast(&DataType::Categorical(None))).unwrap();
 
                     }
-
-                    //let f2a = f2a.to_vec();
 
                     // join with hms if a2h was provided
                     if !a2h.is_empty() {
@@ -182,33 +197,34 @@ fn empty_frame (with_columns: &[String]) -> DataFrame {
 }
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
-fn path_to_df(path: &str, cast_to_str: &[String]) -> DataFrame {
-    debug!("Reading: {}", path);
+fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> DataFrame {
+    let mut cast_exprs: Vec<Expr> = cast_to_str.iter()
+        .map(|x| col(x as &str).cast(DataType::Utf8))
+        .collect();
+
+    cast_to_f64.iter()
+        .for_each(|x| cast_exprs.push(col(x as &str).cast(DataType::Float64)));
+
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
-    let mut df = CsvReader::from_path(path)
-        .unwrap()
+    let mut df = LazyCsvReader::new(path.to_string())
         .has_header(true)
+        //.with_schema(Arc::new(myschema))
         .finish()
+        .unwrap()
+        .with_columns(&cast_exprs)
+        .collect()
         .unwrap();
 
-    let mut _df: &mut DataFrame = &mut df;
-    for i in cast_to_str {
-        _df = match _df.try_apply(i, |s| 
-            s.cast(&DataType::Utf8) ).ok() {
-                Some(x) => x,
-                // unrecoverable error
-                None => panic!("Column {i} provided in datasource_config.toml must be present in {path}")
-            }
-        }
+    let mut _df: &mut DataFrame = &mut df;    
     
-    
+    // Not needed because user has to provide numeric columns in dataconfig toml
     // normalize numeric columns by casting to f64
-    for c in _df.get_columns_mut() {
-        if is_numeric(c) {
-            *c = c.cast(&DataType::Float64).unwrap();
-        }
-    }
+    //for c in _df.get_columns_mut() {
+    //    if is_numeric(c) {
+    //        *c = c.cast(&DataType::Float64).unwrap();
+    //    }
+    //}
     
     df
 }

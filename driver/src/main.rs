@@ -199,15 +199,14 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "measures": [
-            ["CSR_secCTP_DeltaCharge_Low", "first"],
-["CSR_secCTP_DeltaCharge_Medium", "first"],
-["CSR_secCTP_DeltaCharge_High", "first"]
-            
+            ["GIRR_DeltaCharge_Low", "first"],
+            ["GIRR_DeltaCharge_Medium", "first"],
+            ["GIRR_DeltaCharge_High", "first"]
         ],
-        "groupby": ["Desk"],
+        "groupby": ["BookId"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],
         "optional_params": {
-            "calc_params": {"jurisdiction": "CRR2"}
+            "calc_params": {"jurisdiction": "BCBS"}
         }
     }
 }"#;

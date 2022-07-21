@@ -1,10 +1,8 @@
 //! CSR bib-Sec Delta Calculations
-//! 
+
 use base_engine::prelude::*;
 use crate::helpers::*;
 
-use ndarray::Order;
-use ndarray::parallel::prelude::IntoParallelRefMutIterator;
 use rayon::prelude::*;
 use crate::sbm::common::*;
 use crate::prelude::*;
@@ -139,7 +137,7 @@ pub(crate) fn csr_nonsec_delta_charge<F>(y05: Expr, y1: Expr, y3: Expr, y5: Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
     apply_multiple( move |columns| {
-
+        //let now = Instant::now();
         let df = df![
             "rcat" =>   columns[9].clone(),
             "rc" =>   columns[0].clone(), 
@@ -164,16 +162,16 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
                 col("y5").sum(),
                 col("y10").sum()           
             ])
-            .collect()?;
-        
-        dbg!(df.clone());
+            .fill_null(lit::<f64>(0.));
 
         // 21.4.4 - 21.5.a
+        let tenor_cols = vec!["y05", "y1", "y3", "y5", "y10"];
         let reskbs_sbs: Result<Vec<(f64, f64)>> = (1usize..=n_buckets)
         .into_par_iter()
         .map(|bucket| {
-            csr_bucket_kb_sb(df.clone(), bucket, special_bucket,
-             base_tenor_rho, rho_name.clone(), rho_basis, scenario_fn)
+            bucket_kb_sb_chunks(df.clone(), bucket, special_bucket,
+             base_tenor_rho, rho_name.clone(), rho_basis, scenario_fn,
+             tenor_cols.clone(), "rf", "rft")
         })
         .collect();
 
@@ -195,58 +193,4 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
 }
 
-fn csr_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, special_bucket: Option<usize>, 
-    rho_tenor: &Array2<f64>, rho_name: Vec<f64>, rho_basis: f64, scenario_fn: F) 
--> Result<(f64, f64)> 
-where F: Fn(f64) -> f64 + Sync + Send + 'static,{
-    let bucket_df = df.lazy()
-            .filter(col("b").eq(lit(bucket_id.to_string())))
-            .collect()?;
-    let n_curves = bucket_df.height();
-    if bucket_df.height() == 0 { return Ok((0.,0.)) };
-
-    let mut csr_arr = bucket_df
-                .select(["y05", "y1", "y3", "y5", "y10"])?
-                .to_ndarray::<Float64Type>()?;
-    // 21.56 
-    match special_bucket {
-        Some(x) if x==bucket_id => {
-            csr_arr.par_iter_mut().for_each(|x|*x=x.abs());
-            return Ok((csr_arr.sum(),csr_arr.sum()))
-        },
-        _ => (),
-    };
-
-    //if bucket_id == special_bucket {
-    //    csr_arr.par_iter_mut().for_each(|x|*x=x.abs());
-    //    return Ok((csr_arr.sum(),csr_arr.sum()))
-    //};
-    // Reshape in order to perform matrix multiplication
-    let csr_shaped = csr_arr
-                .to_shape((csr_arr.len(), Order::RowMajor) )
-                .map_err(|_| PolarsError::ShapeMisMatch("Could not reshape csr arr".into()) )?;
-    // zero/nan indexes can be dropped
-    let non_nan_zero_idxs_vec = non_nan_zero_idxs(csr_shaped.view());
-    let tenor_rho = build_tenor_rho(n_curves,rho_tenor.view(), &non_nan_zero_idxs_vec)?;
-    //21.54.1 and 21.55.1
-    let rho_name_bucket = rho_name[bucket_id-1];
-    let name_rho = build_basis_rho(5, &bucket_df["rf"], rho_name_bucket, &non_nan_zero_idxs_vec)?;
-    //21.54.3 and 21.55.3
-    let basis_rho = build_basis_rho(5, &bucket_df["rft"], rho_basis, &non_nan_zero_idxs_vec)?;
-    let mut rho = name_rho*tenor_rho*basis_rho;
-    //Apply Scenario rho
-    rho.par_mapv_inplace(|el| {scenario_fn(el)});
-    // Get rid of NaNs/Zeros before multiplying
-    let csr_shaped = csr_shaped.select(Axis(0), &non_nan_zero_idxs_vec);
-    //21.4.4
-    let a = csr_shaped.t().dot(&rho);
-    //21.4.4
-    let kb = a.dot(&csr_shaped)
-        .max(0.)
-        .sqrt();
-
-    //21.4.5.a
-    let sb = csr_shaped.sum();
-    Ok((kb,sb))
-}
 

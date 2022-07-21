@@ -123,12 +123,12 @@ fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr) -> Expr {
         let dw_sum = df["dw_sum"].f64()?
             .to_ndarray()?; //Ok since we have filtered out NULLs above
 
-        let mut rho_m = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma );
+        let mut gamma = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma );
         let zeros = Array::zeros(dw_sum.len() );
-        rho_m.diag_mut().assign(&zeros);
+        gamma.diag_mut().assign(&zeros);
 
         // 21.4.5 sum { gamma * Sc }
-        let x = dw_sum.t().dot(&rho_m);
+        let x = dw_sum.t().dot(&gamma);
 
         // 21.4.5 sum { Sb*x}
         let y = dw_sum.dot(&x);

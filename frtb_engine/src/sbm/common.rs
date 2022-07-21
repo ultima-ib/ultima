@@ -1,5 +1,6 @@
 use base_engine::prelude::*;
 
+
 use polars::prelude::*;
 
 /// Sum of all delta sensis, from spot to 30Y tenor
@@ -39,10 +40,11 @@ pub fn rc_delta_sens(rc: &str) -> Expr {
 pub fn rc_tenor_weighted_sens(rcat: &'static str, rc: &'static str, delta_tenor: &str, weights_col: &str, weight_idx: i64) -> Expr {
 
     apply_multiple(  move |columns| {
+         
         //RiskClass
         let mask = columns[0]
-            .utf8()?
-            .equal(rc);
+            //.utf8()?
+            .equal(rc)?;
         //RiskCategory
         let mask1 = columns[3]
             .utf8()?
@@ -51,7 +53,7 @@ pub fn rc_tenor_weighted_sens(rcat: &'static str, rc: &'static str, delta_tenor:
         let delta = columns[1]
             .f64()?
             .set(&!(mask&mask1), None)?;
-
+        
         let x = delta.multiply(&columns[2])?;
         Ok(x)
     }, 

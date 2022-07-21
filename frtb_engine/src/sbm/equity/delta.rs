@@ -1,6 +1,7 @@
 use base_engine::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
-use rayon::iter::IntoParallelIterator;
+use rayon::iter::{IntoParallelIterator, IndexedParallelIterator};
+use rayon::slice::ParallelSliceMut;
 use crate::{sbm::common::*, helpers::across_bucket_agg};
 use crate::prelude::*;
 
@@ -89,39 +90,6 @@ fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13],
 }
 
 
-/// 21.78
-/// Used to build both RF based rho and RFT based rho
-/// This function is similar to helpers::build_basis_rho but is for a scalar value
-fn build_eq_rho_base(srs: &Series, eq_rho: f64) -> Result<Array2<f64>> {
-    // Note: we never have same type AND same issuer since these were netted
-    // ie never APPspot APPspot
-    // APPLspot APPLrepo is 0.999*1 because spot != repo(0.999), and APP APP (1)
-    // APPLspot GOOGspot/APPLrepo GOOGrepo 
-    // is 1*0.25 because spot == spot (1) and Goog != App (0.25)
-    // Apprepo Googspot is 0.999*0.25 because repo != spot and App != Goog (0.25)
-    // Hence, it's sufficient to build two matrixes:
-    // 1 based on rft and 2 based on rf 
-    let ln = srs.len();
-    let _chunkarr = srs.utf8()?;
-    let mut all_rhos_vec = Vec::with_capacity(ln*ln);
-    for i in 0..ln {
-        let rf_i = unsafe{ _chunkarr.get_unchecked(i).unwrap() };
-        let mut rf_vec: Vec<f64> = _chunkarr
-            .par_iter()
-            .map(|x| match x {
-                Some(rf2) if rf2==rf_i => 1. ,
-                _ => eq_rho
-            })
-            .collect();
-        all_rhos_vec.append(&mut rf_vec);   
-    }
-
-    let rho_arr = Array2::<f64>::from_shape_vec((ln, ln), all_rhos_vec)
-        .map_err(|_| PolarsError::ShapeMisMatch("Could not build Eq RF Rho. Invalid Shape".into()));
-    
-    rho_arr
-}
-
 fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13], 
     eq_rho_mult: f64, scenario_fn: F) 
     -> Result<(f64, f64)> 
@@ -146,13 +114,12 @@ fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13],
 
         let buck_rho = eq_rho_bucket[bucket_id-1];
 
-        let rho_rf = build_eq_rho_base(&bucket_df["rf"], buck_rho)?;
-        let rho_rft = build_eq_rho_base(&bucket_df["rft"], eq_rho_mult)?;
-        let mut eq_rho = rho_rf*rho_rft;
-        eq_rho.par_mapv_inplace(|el| {scenario_fn(el)});
+        let mut rho = build_eq_rho(&bucket_df["rf"], &bucket_df["rft"], buck_rho, eq_rho_mult)?;
+        dbg!(rho.clone());
+        rho.par_mapv_inplace(|el| {scenario_fn(el)});
 
         //21.4.4
-        let a = dw_sum.t().dot(&eq_rho);
+        let a = dw_sum.dot(&rho);
 
         //21.4.4
         let kb = a.dot(&dw_sum)
@@ -160,4 +127,51 @@ fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13],
             .sqrt();
         
         Ok((kb, sb))
+}
+
+/// 21.78
+/// Used to build both RF based rho and RFT based rho
+/// This function is similar to helpers::build_basis_rho but is for a scalar value
+fn build_eq_rho(names: &Series, types: &Series, rho_name: f64, rho_type: f64) -> Result<Array2<f64>> {
+    // Note: we never have same type AND same issuer since these were netted
+    // ie never APPspot APPspot
+    // APPLspot APPLrepo is 0.999*1 because spot != repo(0.999), and APP APP (1)
+    // APPLspot GOOGspot/APPLrepo GOOGrepo 
+    // is 1*0.25 because spot == spot (1) and Goog != App (0.25)
+    // Apprepo Googspot is 0.999*0.25 because repo != spot and App != Goog (0.25)
+    // Hence, it's sufficient to build two matrixes:
+    // 1 based on rft and 2 based on rf 
+    let ln = names.len();
+    let chunkarr_name = names.utf8()?;
+    let chunkarr_type = types.utf8()?;
+    
+    //let mut all_rhos_vec: Vec<f64> = Vec::with_capacity(ln*ln);
+    let mut all_rhos_vec: Vec<f64> = vec![0.;ln*ln];
+
+    all_rhos_vec
+    .par_chunks_exact_mut(ln)
+    .enumerate()
+    .for_each(|(i, res)| {
+        // First curve
+        let rf_i = unsafe{ chunkarr_name.get_unchecked(i).unwrap_or_else(||"Default") };
+        //Similarly, second curve
+        let rft_i = unsafe{ chunkarr_type.get_unchecked(i).unwrap_or_else(||"Default") };
+
+        res.iter_mut()
+        .zip(chunkarr_name)
+        .zip(chunkarr_type)
+        .for_each(|((r, name2), type2)|{
+            let _rho_name = if rf_i == name2.unwrap_or_else(||"Default") {
+                1.
+            } else {rho_name};
+            let _rho_type = if rft_i == type2.unwrap_or_else(||"Default") {
+                1.
+            } else {rho_type};
+            *r = _rho_name*_rho_type
+        });
+    });
+
+    Array2::<f64>::from_shape_vec((ln, ln), all_rhos_vec)
+        .map_err(|_| PolarsError::ShapeMisMatch("Could not build Eq RF Rho. Invalid Shape".into()))
+    
 }

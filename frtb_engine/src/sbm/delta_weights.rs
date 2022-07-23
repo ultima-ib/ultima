@@ -81,9 +81,14 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
         )
 
         // CSR secCTP
-        .when(col("RiskClass").eq(lit("CSR_secCTP")))
+        .when(col("RiskClass").eq(lit("CSR_Sec_CTP")))
         .then(
             rf_rw_map("BucketBCBS", delta_weights.csr_sec_ctp_weight, never_reached.clone())
+        )
+        // CSR sec nonCTP
+        .when(col("RiskClass").eq(lit("CSR_Sec_nonCTP")))
+        .then(
+            rf_rw_map("BucketBCBS", delta_weights.csr_sec_nonctp_weight, never_reached.clone())
         )
 
         .otherwise(not_yet_implemented.clone())
@@ -147,12 +152,17 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     // 21.53
     // same weight for all tenors, hence we simplify by keeping just one
     // TODO when arr gets fixed expand to all 5 tenors in order to use Total Delta/Total Weighted Delta
-    let csr_nonsec_weights_arr = [ 0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.025, 0.02, 0.04, 0.12, 0.07, 0.085, 0.055, 0.05, 0.12, 0.015, 0.05];
+    let csr_nonsec_weights_arr = [0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.025, 0.02, 0.04, 0.12, 0.07, 0.085, 0.055, 0.05, 0.12, 0.015, 0.05];
     let csr_non_sec_weight: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights_arr);
 
     // CSR Sec CTP 21.59
-    let csr_sec_ctp_weights_arr = [ 0.04, 0.04, 0.08, 0.05, 0.04, 0.03, 0.02, 0.06, 0.13, 0.13, 0.16, 0.10, 0.12, 0.12, 0.12, 0.13];
+    let csr_sec_ctp_weights_arr = [0.04, 0.04, 0.08, 0.05, 0.04, 0.03, 0.02, 0.06, 0.13, 0.13, 0.16, 0.10, 0.12, 0.12, 0.12, 0.13];
     let csr_sec_ctp_weight: HashMap<String, Expr> = bucket_weight_map(&csr_sec_ctp_weights_arr);
+
+    // CSR Sec nonCTP 21.62 and 325am
+    let csr_sec_nonctp_weight_arr: [f64; 25] = [0.009, 0.015, 0.02, 0.02, 0.008, 0.012, 0.012, 0.014, 0.0125, 0.01875, 0.025, 0.025, 0.01, 0.015, 0.015, 0.0175, 
+    0.01575, 0.02625, 0.035, 0.035, 0.014, 0.021, 0.021, 0.0245, 0.035];
+    let csr_sec_nonctp_weight: HashMap<String, Expr> = bucket_weight_map(&csr_sec_nonctp_weight_arr);
 
 
 
@@ -173,8 +183,9 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         //CSR non-Sec
         csr_non_sec_weight,
         // CSR sec CTP
-        csr_sec_ctp_weight
-
+        csr_sec_ctp_weight,
+        // CSR sec nonCTP
+        csr_sec_nonctp_weight
     };
 
     //Assign Delta Weights
@@ -201,6 +212,8 @@ pub struct SensWeightsConfig {
     csr_non_sec_weight: HashMap<String, Expr>,
     // CSR sec CTP
     csr_sec_ctp_weight: HashMap<String, Expr>,
+    // CSR sec nonCTP
+    csr_sec_nonctp_weight: HashMap<String, Expr>,
 
 
 }

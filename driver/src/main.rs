@@ -168,29 +168,54 @@ const JSON: &str = r#"
 
 ["Equity_DeltaSens", "sum"],
 ["Equity_DeltaSens_Weighted", "sum"],
+
+["Commodity_DeltaSens", "sum"],
+["Commodity_DeltaSens_Weighted", "sum"],
+
 ["FX_DeltaSens", "sum"],
+["FX_DeltaSens_Weighted", "sum"],
+
 ["GIRR_DeltaSens", "sum"],
+["GIRR_DeltaSens_Weighted", "sum"],
+
+["CSR_Sec_nonCTP_DeltaSens", "sum"],
+["CSR_Sec_nonCTP_DeltaSens_Weighted", "sum"],
+
+["CSR_secCTP_DeltaSens", "sum"],
+["CSR_secCTP_DeltaSens_Weighted", "sum"],
+
+["CSR_nonSec_DeltaSens", "sum"],
+["CSR_nonSec_DeltaSens_Weighted", "sum"],
 
 ["FX_DeltaCharge_Low", "first"],
 ["FX_DeltaCharge_Medium", "first"],
 ["FX_DeltaCharge_High", "first"],
+
 ["GIRR_DeltaCharge_Low", "first"],
 ["GIRR_DeltaCharge_Medium", "first"],
 ["GIRR_DeltaCharge_High", "first"],
+
 ["Commodity_DeltaCharge_Low", "first"],
 ["Commodity_DeltaCharge_Medium", "first"],
 ["Commodity_DeltaCharge_High", "first"],
+
 ["Equity_DeltaCharge_Low", "first"],
 ["Equity_DeltaCharge_Medium", "first"],
 ["Equity_DeltaCharge_High", "first"],
+
 ["CSR_nonSec_DeltaCharge_Low", "first"],
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
 ["CSR_nonSec_DeltaCharge_High", "first"],
+
 ["CSR_secCTP_DeltaCharge_Low", "first"],
 ["CSR_secCTP_DeltaCharge_Medium", "first"],
 ["CSR_secCTP_DeltaCharge_High", "first"],
 
 "reporting_ccy": "USD"
+"filters": [{"Eq":[["Desk", "FXOptions"]]}],
+"base_csr_nonsec_tenor_rho": "{\"v\":1,\"dim\":[5,5],\"data\":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}"
+"base_csr_nonsec_diff_name_rho_per_bucket": "[1.0,2.0]" <- Example of bad input. Parsing would go for a default  
+
 */
 
 const JSON: &str = r#"
@@ -199,14 +224,14 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "measures": [
-            ["GIRR_DeltaCharge_Low", "first"],
-            ["GIRR_DeltaCharge_Medium", "first"],
-            ["GIRR_DeltaCharge_High", "first"]
+            ["Commodity_DeltaCharge_Low", "first"],
+["Commodity_DeltaCharge_Medium", "first"],
+["Commodity_DeltaCharge_High", "first"]
         ],
-        "groupby": ["BookId"],
-        "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+        "groupby": ["Desk"],
+        "filters": [],
         "optional_params": {
-            "calc_params": {"jurisdiction": "BCBS"}
+            "calc_params": {"jurisdiction": "CRR2"}
         }
     }
 }"#;

@@ -6,7 +6,7 @@ type = "CSV"
 # "C:/rust/delta_6500x4_csr.csv"
 # "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
 # "C:/rust/DeltaGirr100_100_400000.csv"
-file_1_path = "C:/rust/DeltaGirr100_100_400000.csv"
+file_1_path = "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
 # trade attributes
 attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
 # HMS

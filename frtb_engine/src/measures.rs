@@ -2,6 +2,7 @@
 use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high};
+use crate::sbm::csr_sec_nonctp::delta::{total_csr_sec_nonctp_delta_sens, csr_sec_nonctp_delta_sens_weighted, csr_sec_nonctp_delta_charge_low, csr_sec_nonctp_delta_charge_medium, csr_sec_nonctp_delta_charge_high};
 use crate::sbm::fx::delta::{fx_delta_sens, fx_delta_sens_weighted, fx_delta_charge_low, fx_delta_charge_medium, fx_delta_charge_high};
 use crate::sbm::girr::delta::{total_ir_delta_sens, girr_delta_sens_weighted,
     girr_delta_charge_low, girr_delta_charge_medium, girr_delta_charge_high};
@@ -237,6 +238,41 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
             calculator: Box::new(csr_sec_ctp_delta_charge_high),
             req_columns: vec!["RiskClass", "RiskFactor","SensWeights", "RiskFactorType", "BucketBCBS", "SensitivitySpot"],
             aggregation: Some("first"),
+        },
+        //CSR Sec non-CTP
+        Measure {
+            name: "CSR_Sec_nonCTP_DeltaSens",
+            calculator: Box::new(total_csr_sec_nonctp_delta_sens),
+            req_columns: vec!["RiskCategory","RiskClass", "RiskFactor","SensitivitySpot"],
+            aggregation: None
+        },
+
+        Measure {
+            name: "CSR_Sec_nonCTP_DeltaSens_Weighted",
+            calculator: Box::new(csr_sec_nonctp_delta_sens_weighted),
+            req_columns: vec!["RiskCategory","RiskClass", "RiskFactor", "SensWeights", "SensitivitySpot"],
+            aggregation: None,
+        },
+
+        Measure {
+            name: "CSR_Sec_nonCTP_DeltaCharge_Low",
+            calculator: Box::new(csr_sec_nonctp_delta_charge_low),
+            req_columns: vec!["RiskCategory","RiskClass", "RiskFactor","SensitivitySpot"],
+            aggregation: None
+        },
+
+        Measure {
+            name: "CSR_Sec_nonCTP_DeltaCharge_Medium",
+            calculator: Box::new(csr_sec_nonctp_delta_charge_medium),
+            req_columns: vec!["RiskCategory","RiskClass", "RiskFactor", "SensWeights", "SensitivitySpot"],
+            aggregation: None,
+        },
+
+        Measure {
+            name: "CSR_Sec_nonCTP_DeltaCharge_High",
+            calculator: Box::new(csr_sec_nonctp_delta_charge_high),
+            req_columns: vec!["RiskCategory","RiskClass", "RiskFactor", "SensWeights", "SensitivitySpot"],
+            aggregation: None,
         },
 
 

@@ -1,4 +1,6 @@
-//! CSR bib-Sec Delta Calculations
+//! CSR non-Sec Delta Calculations
+
+use std::sync::Mutex;
 
 use base_engine::prelude::*;
 use crate::helpers::*;
@@ -9,6 +11,7 @@ use crate::prelude::*;
 use polars::prelude::*;
 use ndarray::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
+use log::warn;
 
 
 pub fn total_csr_nonsec_delta_sens (_: &OCP) -> Expr {
@@ -95,6 +98,7 @@ pub(crate) fn csr_nonsec_delta_charge_high(op: &OCP) -> Expr {
 /// And pass them to the main Delta Charge calculator accordingly
 fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
     let juri: Jurisdiction = get_jurisdiction(op);
+    let _suffix = scenario.as_str();
     
     let (y05, y1, y3, y5, y10, bucket_col, name_rho_vec, 
         gamma_rating, gamma_sector,
@@ -124,15 +128,33 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
         )
         };
 
+    let base_csr_nonsec_rho_tenor = get_optional_parameter_array(op,"base_csr_nonsec_tenor_rho", 
+    &scenario.base_csr_nonsec_rho_tenor);
+
+    let name_rho_vec = get_optional_parameter_vec(op,"base_csr_nonsec_diff_name_rho_per_bucket", 
+    &name_rho_vec);
+
+    let base_csr_nonsec_rho_basis = get_optional_parameter(op,"base_csr_nonsec_diff_basis_rho", 
+    &scenario.base_csr_nonsec_rho_basis);
+
+    let gamma_rating = get_optional_parameter_array(op,"base_csr_nonsec_rating_gamma", 
+    gamma_rating);
+
+    let gamma_sector = get_optional_parameter_array(op,"base_csr_nonsec_sector_gamma", 
+    gamma_sector);
+
     csr_nonsec_delta_charge(y05, y1, y3, y5, y10, 
-        &scenario.base_csr_nonsec_rho_tenor, name_rho_vec,
-        scenario.base_csr_nonsec_rho_basis, bucket_col, scenario.scenario_fn,
-        gamma_rating, gamma_sector, n_buckets, special_bucket, "CSR_nonSec", "Delta")
+        base_csr_nonsec_rho_tenor,
+         name_rho_vec,
+        base_csr_nonsec_rho_basis, 
+        bucket_col, scenario.scenario_fn,
+        gamma_rating, gamma_sector,
+        n_buckets, special_bucket, "CSR_nonSec", "Delta")
 }
 
 pub(crate) fn csr_nonsec_delta_charge<F>(y05: Expr, y1: Expr, y3: Expr, y5: Expr, y10: Expr,
-    base_tenor_rho: &'static Array2<f64>, rho_name: Vec<f64>, rho_basis: f64,
-    bucket_col: Expr, scenario_fn: F, gamma_rating: &'static Array2<f64>, gamma_sector: &'static Array2<f64>,
+    base_tenor_rho: Array2<f64>, rho_name: Vec<f64>, rho_basis: f64,
+    bucket_col: Expr, scenario_fn: F, gamma_rating: Array2<f64>, gamma_sector: Array2<f64>,
     n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str) -> Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
@@ -162,25 +184,49 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
                 col("y5").sum(),
                 col("y10").sum()           
             ])
-            .fill_null(lit::<f64>(0.));
-
+            .fill_null(lit::<f64>(0.))
+            .collect()?;
         // 21.4.4 - 21.5.a
         let tenor_cols = vec!["y05", "y1", "y3", "y5", "y10"];
-        let reskbs_sbs: Result<Vec<(f64, f64)>> = (1usize..=n_buckets)
-        .into_par_iter()
-        .map(|bucket| {
-            bucket_kb_sb_chunks(df.clone(), bucket, special_bucket,
-             base_tenor_rho, rho_name.clone(), rho_basis, scenario_fn,
-             tenor_cols.clone(), "rf", "rft")
-        })
-        .collect();
+        
 
+        let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
+        for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
+        let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
+        // Do not iterate over each bukcet. Instead, only iterate over unique buckets
+        df["b"]
+        .utf8()?
+        .unique()?
+        .par_iter()
+        .for_each(|b|{
+            match b {
+                Some(_b) => {
+                    let b_as_idx = _b.parse::<usize>().unwrap_or_else(|_|{
+                        warn!("{_b} cannot be parsed into a usize, which has to be an integer representing the bucket.");
+                        1usize});
+                    let a = bucket_kb_sb_chunks(df.clone().lazy(), b_as_idx, special_bucket,
+                    &base_tenor_rho, rho_name.clone(), rho_basis, scenario_fn,
+                    tenor_cols.clone(), "rf", "rft");
+                    let mut res = arc_mtx.lock().unwrap();
+                    res[b_as_idx-1] = a;
+                },
+                _=>()
+            }
+        });
+
+        let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
+        .unwrap()
+        .into_inner()
+        .unwrap()
+        .into_iter()
+        .collect();
+        //let reskbs_sbs = (*arc_mtx).into_inner().unwrap();
         let kbs_sbs = reskbs_sbs?;
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
         
         // 21.57 OR 325aj
         // Shape of gamma depends on regulation
-        let mut gamma = gamma_sector*gamma_rating;
+        let mut gamma = (&gamma_sector)*(&gamma_rating);
         gamma.par_mapv_inplace(|el| {scenario_fn(el)});
 
         across_bucket_agg(kbs, sbs, &gamma, columns[0].len())

@@ -43,8 +43,8 @@ pub fn rc_tenor_weighted_sens(rcat: &'static str, rc: &'static str, delta_tenor:
          
         //RiskClass
         let mask = columns[0]
-            //.utf8()?
-            .equal(rc)?;
+            .utf8()?
+            .equal(rc);
         //RiskCategory
         let mask1 = columns[3]
             .utf8()?

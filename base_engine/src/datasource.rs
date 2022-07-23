@@ -198,33 +198,27 @@ fn empty_frame (with_columns: &[String]) -> DataFrame {
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
 fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> DataFrame {
-    let mut cast_exprs: Vec<Expr> = cast_to_str.iter()
-        .map(|x| col(x as &str).cast(DataType::Utf8))
-        .collect();
-
-    cast_to_f64.iter()
-        .for_each(|x| cast_exprs.push(col(x as &str).cast(DataType::Float64)));
+    
+    let mut vc= Vec::with_capacity(cast_to_str.len()+cast_to_f64.len());
+    for str_col in cast_to_str {
+        vc.push(Field::new(str_col, DataType::Utf8))
+    }
+    for f64_col in cast_to_f64 {
+        vc.push(Field::new(f64_col, DataType::Float64))
+    }
+    
+    let schema = Schema::from(vc);
 
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
-    let mut df = LazyCsvReader::new(path.to_string())
+    let df = LazyCsvReader::new(path.to_string())
         .has_header(true)
-        //.with_schema(Arc::new(myschema))
+        .with_parse_dates(true)
+        .with_dtype_overwrite(Some(&schema))
+        //.with_ignore_parser_errors(ignore)
         .finish()
-        .unwrap()
-        .with_columns(&cast_exprs)
-        .collect()
+        .and_then(|lf| lf.collect())
         .unwrap();
-
-    let mut _df: &mut DataFrame = &mut df;    
-    
-    // Not needed because user has to provide numeric columns in dataconfig toml
-    // normalize numeric columns by casting to f64
-    //for c in _df.get_columns_mut() {
-    //    if is_numeric(c) {
-    //        *c = c.cast(&DataType::Float64).unwrap();
-    //    }
-    //}
     
     df
 }

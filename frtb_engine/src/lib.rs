@@ -12,7 +12,7 @@ use base_engine::prelude::*;
 
 use once_cell::sync::Lazy;
 use polars::prelude::*;
-use ndarray::{Array2, Array1, Axis};
+use ndarray::{Array2, Array1, Axis, s};
 use strum::EnumString;
 
 pub trait FRTBDataSetT {
@@ -42,10 +42,11 @@ impl FRTBDataSetT for DataSet {
             // 21.53 Footnote 17
             let csrnonsec_covered_bond_15 = self.build_params.get("csrnonsec_covered_bond_15")
                 .and_then(|s| s.parse::<bool>().ok() )
-                .unwrap_or(false); 
+                .unwrap_or_else(||false); 
+
             if csrnonsec_covered_bond_15 {
                 other_cols.push( 
-                    when(col("RiskClass").eq(lit("CSR_nonSec")).and(col("RiskCategory").eq(lit("Delta"))).and(col("BucketBCBS").eq(lit("8"))).and(col("CoveredBondReducedWeight").eq(lit("Y"))))
+                    when(col("RiskClass").eq(lit("CSR_nonSec")).and(col("RiskCategory").eq(lit("Delta"))).and(col("BucketBCBS").eq(lit("8"))).and(col("CoveredBondReducedWeight").eq(lit::<bool>(true))))
                     .then(Series::new("",&[0.015]).lit().list())
                     .otherwise(col("SensWeights"))
                     .alias("SensWeights"))
@@ -66,7 +67,10 @@ impl FRTBDataSetT for DataSet {
             // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776 
             if cfg!(feature = "CRR2") & csrnonsec_covered_bond_15 {
                 lf1 = lf1.with_column(
-                    when(col("RiskClass").eq(lit("CSR_nonSec")).and(col("RiskCategory").eq(lit("Delta"))).and(col("BucketBCBS").eq(lit("10"))).and(col("CoveredBondReducedWeight").eq(lit("Y"))))
+                    when(col("RiskClass").eq(lit("CSR_nonSec"))
+                        .and(col("RiskCategory").eq(lit("Delta")))
+                        .and(col("BucketBCBS").eq(lit("10")))
+                        .and(col("CoveredBondReducedWeight").eq(lit::<bool>(true))))
                     .then(Series::new("",&[0.015]).lit().list())
                     .otherwise(col("SensWeightsCRR2"))
                     .alias("SensWeightsCRR2")
@@ -228,11 +232,11 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
 
         // CSR Sec CTP 21.54.2 and 21.55.2
         let base_csr_ctp_rho_tenor = base_csr_nonsec_rho_tenor.clone();
-
+        // TODO check what's the Rho for bucket 16 here(ie CSR sec CTP)
         let base_csr_ctp_rho_name_bcbs = [0.35, 0.35, 0.35, 0.35, 0.35,
         0.35, 0.35, 0.35, 0.35, 0.35,
         0.35, 0.35, 0.35, 0.35, 0.35,
-        0.];
+        0.8]; // <-- TODO CHECK THIS
         let base_csr_ctp_rho_name_crr2 = [0.35, 0.35, 0.35, 0.35, 0.35,
         0.35, 0.35, 0.35, 0.35, 0.35,
         0.35, 0.35, 0.35, 0.35, 0.35,
@@ -250,7 +254,6 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         };
 
         //CTP CRR2
-
         let mut base_csr_ctp_gamma_rating_crr2 = base_csr_nonsec_gamma_rating_crr2.clone();
         let mut base_csr_ctp_gamma_sector_crr2 = base_csr_nonsec_gamma_sector_crr2.clone();
         for gamma in [&mut base_csr_ctp_gamma_rating_crr2, &mut base_csr_ctp_gamma_sector_crr2] {
@@ -260,8 +263,27 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             gamma.remove_index(Axis(1), 18);
         };
 
-        //dbg!(base_csr_ctp_gamma_rating.clone());
-        //dbg!(base_csr_ctp_gamma_sector.clone()); 
+        // CSR Sec nonCTP 21.68
+        let mut base_csr_sec_nonctp_rho_tenor = Array2::from_elem((5, 5), 0.8 );
+        let ones = Array1::<f64>::ones(5);
+        base_csr_sec_nonctp_rho_tenor.diag_mut().assign(&ones);
+        // Tranche is CSR Sec nonCTP alternative for Name(Risk Factor)
+        let base_csr_sec_nonctp_rho_diff_tranche = [
+            0.4, 0.4, 0.4, 0.4, 0.4,
+            0.4, 0.4, 0.4, 0.4, 0.4,
+            0.4, 0.4, 0.4, 0.4, 0.4,
+            0.4, 0.4, 0.4, 0.4, 0.4,
+            0.4, 0.4, 0.4, 0.4, 0.,];
+        let base_csr_sec_nonctp_rho_diff_basis = 0.999;
+
+        let mut csr_sec_nonctp_gamma = Array2::<f64>::zeros((25, 25) );
+        let mut base_csr_sec_nonctp_gamma_col25_slice = csr_sec_nonctp_gamma.slice_mut(s![..,24]);
+        base_csr_sec_nonctp_gamma_col25_slice.fill(1.);
+        let mut base_csr_sec_nonctp_gamma_row25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,..]);
+        base_csr_sec_nonctp_gamma_row25_slice.fill(1.);
+        // Finally, all diag elements must be 0 for gamma
+        let mut base_csr_sec_nonctp_gamma_row25col25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,24]);
+        base_csr_sec_nonctp_gamma_row25col25_slice.fill(0.);
 
         ScenarioConfig {
             name: ScenarioName::Medium,
@@ -306,7 +328,15 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             // CSR Sec CTP CRR2
             base_csr_ctp_rho_name_crr2,
             base_csr_ctp_gamma_rating_crr2,
-            base_csr_ctp_gamma_sector_crr2
+            base_csr_ctp_gamma_sector_crr2,
+
+            // CSR Sec nonCTP
+            base_csr_sec_nonctp_rho_tenor,
+            base_csr_sec_nonctp_rho_diff_tranche,
+            base_csr_sec_nonctp_rho_diff_basis,
+
+            csr_sec_nonctp_gamma
+
         }}
 );
 
@@ -394,6 +424,14 @@ pub struct ScenarioConfig{
     pub base_csr_ctp_gamma_rating_crr2: Array2<f64>,
     pub base_csr_ctp_gamma_sector_crr2: Array2<f64>,
 
+    //CSR Sec nonCTP 21.68
+    pub base_csr_sec_nonctp_rho_tenor: Array2<f64>,
+    pub base_csr_sec_nonctp_rho_diff_tranche: [f64; 25],
+    pub base_csr_sec_nonctp_rho_diff_basis: f64,
+
+    pub csr_sec_nonctp_gamma: Array2<f64>,
+
+
 
 }
 
@@ -412,34 +450,33 @@ impl ScenarioConfig {
     //where F: Fn(f64) -> f64 + Sync,
     {
         //First, apply function to matrixes 
-        let mut matrixes: [Array2<f64>; 4] = [self.girr_delta_rho_same_curve.clone(), self.girr_delta_rho_diff_curve.clone(),
-        self.com_gamma.clone(), self.eq_gamma.clone()];
+        let mut matrixes: [Array2<f64>; 5] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
+        self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned()];
 
         matrixes.iter_mut()
         .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
         );
         //Unzip matrixes into individual components
         let[girr_delta_rho_same_curve, girr_delta_rho_diff_curve,
-        com_gamma, eq_gamma] = matrixes;
+        com_gamma, eq_gamma, csr_sec_nonctp_gamma] = matrixes;
 
         //objects which do not implement copy
-        let base_com_rho_tenor = self.base_com_rho_tenor.clone();
+        let base_com_rho_tenor = self.base_com_rho_tenor.to_owned();
 
-        let base_csr_nonsec_rho_tenor = self.base_csr_nonsec_rho_tenor.clone();
-        let base_csr_nonsec_gamma_rating = self.base_csr_nonsec_gamma_rating.clone();
-        let base_csr_nonsec_gamma_sector = self.base_csr_nonsec_gamma_sector.clone();
-        let base_csr_nonsec_gamma_rating_crr2 = self.base_csr_nonsec_gamma_rating_crr2.clone();
-        let base_csr_nonsec_gamma_sector_crr2 = self.base_csr_nonsec_gamma_sector_crr2.clone();
+        let base_csr_nonsec_rho_tenor = self.base_csr_nonsec_rho_tenor.to_owned();
+        let base_csr_nonsec_gamma_rating = self.base_csr_nonsec_gamma_rating.to_owned();
+        let base_csr_nonsec_gamma_sector = self.base_csr_nonsec_gamma_sector.to_owned();
+        let base_csr_nonsec_gamma_rating_crr2 = self.base_csr_nonsec_gamma_rating_crr2.to_owned();
+        let base_csr_nonsec_gamma_sector_crr2 = self.base_csr_nonsec_gamma_sector_crr2.to_owned();
 
-        let base_csr_ctp_rho_tenor = self.base_csr_ctp_rho_tenor.clone();
-        let base_csr_ctp_gamma_rating = self.base_csr_ctp_gamma_rating.clone();
-        let base_csr_ctp_gamma_sector = self.base_csr_ctp_gamma_sector.clone();
+        let base_csr_ctp_rho_tenor = self.base_csr_ctp_rho_tenor.to_owned();
+        let base_csr_ctp_gamma_rating = self.base_csr_ctp_gamma_rating.to_owned();
+        let base_csr_ctp_gamma_sector = self.base_csr_ctp_gamma_sector.to_owned();
 
-        let base_csr_ctp_gamma_rating_crr2 = self.base_csr_ctp_gamma_rating_crr2.clone();
-        let base_csr_ctp_gamma_sector_crr2 = self.base_csr_ctp_gamma_sector_crr2.clone();
+        let base_csr_ctp_gamma_rating_crr2 = self.base_csr_ctp_gamma_rating_crr2.to_owned();
+        let base_csr_ctp_gamma_sector_crr2 = self.base_csr_ctp_gamma_sector_crr2.to_owned();
 
-
-        //
+        let base_csr_sec_nonctp_rho_tenor = self.base_csr_sec_nonctp_rho_tenor.to_owned();
 
         //Next, apply to singles and return a scenario
         Self {  name: scenario,
@@ -470,6 +507,10 @@ impl ScenarioConfig {
 
                 base_csr_ctp_gamma_rating_crr2,
                 base_csr_ctp_gamma_sector_crr2,
+
+                base_csr_sec_nonctp_rho_tenor,
+
+                csr_sec_nonctp_gamma,
 
                 ..*self }
         

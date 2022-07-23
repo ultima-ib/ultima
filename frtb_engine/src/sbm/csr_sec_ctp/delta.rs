@@ -10,49 +10,49 @@ use polars::prelude::*;
 
 
 pub fn total_csr_sec_ctp_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("CSR_secCTP")
+    rc_delta_sens("CSR_Sec_CTP")
 }
 /// Helper functions
 
 fn csr_sec_ctp_delta_sens_weighted_05y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_05Y", "SensWeights",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_05Y", "SensWeights",0)
 }
 fn csr_sec_ctp_delta_sens_weighted_1y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_1Y","SensWeights", 0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_1Y","SensWeights", 0)
 }
 fn csr_sec_ctp_delta_sens_weighted_3y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_3Y","SensWeights",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_3Y","SensWeights",0)
 }
 fn csr_sec_ctp_delta_sens_weighted_5y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_5Y","SensWeights",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_5Y","SensWeights",0)
 }
 fn csr_sec_ctp_delta_sens_weighted_10y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_10Y","SensWeights",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_10Y","SensWeights",0)
 }
 
 //CRR2
 #[cfg(feature = "CRR2")]
 fn csr_sec_ctp_delta_sens_weighted_05y_crr2() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_05Y", "SensWeightsCRR2",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_05Y", "SensWeightsCRR2",0)
 }
 #[cfg(feature = "CRR2")]
 fn csr_sec_ctp_delta_sens_weighted_1y_crr2() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_1Y","SensWeightsCRR2", 0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_1Y","SensWeightsCRR2", 0)
 }
 #[cfg(feature = "CRR2")]
 fn csr_sec_ctp_delta_sens_weighted_3y_crr2() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_3Y","SensWeightsCRR2",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_3Y","SensWeightsCRR2",0)
 }
 #[cfg(feature = "CRR2")]
 fn csr_sec_ctp_delta_sens_weighted_5y_crr2() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_5Y","SensWeightsCRR2",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_5Y","SensWeightsCRR2",0)
 }
 #[cfg(feature = "CRR2")]
 fn csr_sec_ctp_delta_sens_weighted_10y_crr2() -> Expr {
-    rc_tenor_weighted_sens("Delta","CSR_secCTP", "Sensitivity_10Y","SensWeightsCRR2",0)
+    rc_tenor_weighted_sens("Delta","CSR_Sec_CTP", "Sensitivity_10Y","SensWeightsCRR2",0)
 }
 
-/// Total CSR non-Sec Delta
+/// Total weighted CSR non-Sec Delta
 /// Not used in calculation
 pub(crate) fn csr_sec_ctp_delta_sens_weighted(op: &OCP) -> Expr {
 
@@ -91,9 +91,11 @@ pub(crate) fn csr_sec_ctp_delta_charge_high(op: &OCP) -> Expr {
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 /// And pass them to the main Delta Charge calculator accordingly
+/// calls csr_nonsec_delta_charge because the calculation is identical
 fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
     let juri: Jurisdiction = get_jurisdiction(op);
     
+    // First, obtaining parameters specific to jurisdiciton
     let (y05, y1, y3, y5, y10, bucket_col, name_rho_vec, 
         gamma_rating, gamma_sector,
         n_buckets, special_bucket) =
@@ -122,9 +124,26 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
         )
         };
 
-        // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets
-        csr_nonsec_delta_charge(y05, y1, y3, y5, y10, 
-        &scenario.base_csr_nonsec_rho_tenor, name_rho_vec,
-        scenario.base_csr_ctp_rho_basis, bucket_col, scenario.scenario_fn,
-        gamma_rating, gamma_sector, n_buckets, special_bucket, "CSR_secCTP", "Delta")
+    // Checking if request contains overrides
+    let base_csr_ctp_rho_tenor = get_optional_parameter_array(op,"base_csr_ctp_tenor_rho", 
+    &scenario.base_csr_ctp_rho_tenor);
+
+    let name_rho_vec = get_optional_parameter_vec(op,"base_csr_ctp_diff_name_rho_per_bucket", 
+    &name_rho_vec);
+
+    let base_csr_ctp_rho_basis = get_optional_parameter(op,"base_csr_ctp_diff_basis_rho", 
+    &scenario.base_csr_nonsec_rho_basis);
+
+    let gamma_rating = get_optional_parameter_array(op,"base_csr_ctp_rating_gamma", 
+    gamma_rating);
+
+    let gamma_sector = get_optional_parameter_array(op,"base_csr_ctp_sector_gamma", 
+    gamma_sector);
+
+    // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets
+    csr_nonsec_delta_charge(y05, y1, y3, y5, y10, 
+        base_csr_ctp_rho_tenor,
+     name_rho_vec,
+    base_csr_ctp_rho_basis, bucket_col, scenario.scenario_fn,
+    gamma_rating, gamma_sector, n_buckets, special_bucket, "CSR_Sec_CTP", "Delta")
 }

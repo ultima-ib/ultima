@@ -5,6 +5,7 @@ use ndarray::Order;
 use polars::prelude::*;
 use rayon::prelude::*;
 use log::warn;
+use serde::Deserialize;
 
 /// Shifts 2D array by {int} to the right
 /// Creates a new Array2 (essentially cloning)
@@ -102,6 +103,33 @@ pub(crate) fn get_jurisdiction(op: &OCP) -> Jurisdiction {
     })
 }
 
+/// Limited to types which implement Copy because this should only be used for types like f64
+pub(crate) fn get_optional_parameter<'a, T>(op: &'a OCP, param: &str, default: &T) -> T 
+where T: Deserialize<'a> + Copy{
+    op.as_ref()
+    .and_then(|map| map.get(param))
+    .and_then(|x| serde_json::from_str::<T>(x).ok())
+    .unwrap_or_else(||{*default})
+}
+
+/// we need to assert vec length, no other way to do it than create a func for vec
+pub(crate) fn get_optional_parameter_vec<'a>(op: &'a OCP, param: &str, default: &Vec<f64>) -> Vec<f64>{
+    op.as_ref()
+    .and_then(|map| map.get(param))
+    .and_then(|x| serde_json::from_str::<Vec<f64>>(x).ok())
+    .and_then(|v| if v.len()==default.len(){Some(v)} else {None})
+    .unwrap_or_else(||{default.clone()})
+}
+
+/// we need to assert arr shape, so we have a separate func for arrs
+pub(crate) fn get_optional_parameter_array<'a>(op: &'a OCP, param: &str, default: &Array2<f64>) -> Array2<f64>{
+    op.as_ref()
+    .and_then(|map| map.get(param))
+    .and_then(|x| serde_json::from_str::<Array2<f64>>(x).ok())
+    .and_then(|arr| if arr.shape()==default.shape(){Some(arr)} else {None})
+    .unwrap_or_else(||{default.to_owned()})
+}
+
 pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gamma: &Array2<f64>, res_len: usize) 
 -> Result<Series>
  {
@@ -155,10 +183,10 @@ pub(crate) fn alt_sbs(sbs_arr: ArrayView1<f64>, kbs_arr: ArrayView1<f64>) -> Arr
 /// Computes kb and sb efficiently via uninit
 pub(crate) fn bucket_kb_sb_chunks<F>(df: LazyFrame, bucket_id: usize, special_bucket: Option<usize>, 
     rho_tenor: &Array2<f64>, rho_bucket: Vec<f64>, rho_basis: f64, scenario_fn: F,
-    tenor_cols:Vec<&str>,bucket_col_name: &'static str, basis_col_name: &'static str) 
+    tenor_cols:Vec<&str>,name_col: &str, basis_col: &str) 
 -> Result<(f64, f64)> 
-where F: Fn(f64) -> f64 + Sync + Send + 'static,{
-    let bucket_df = df//.lazy()
+where F: Fn(f64) -> f64 + Sync + Send,{
+    let bucket_df = df
             .filter(col("b").eq(lit(bucket_id.to_string())))
             .collect()?;
 
@@ -178,8 +206,8 @@ where F: Fn(f64) -> f64 + Sync + Send + 'static,{
         _ => (),
     };
 
-    let name_arr = bucket_df[bucket_col_name].utf8()?;
-    let curve_type_arr = bucket_df[basis_col_name].utf8()?;
+    let name_arr = bucket_df[name_col].utf8()?;
+    let curve_type_arr = bucket_df[basis_col].utf8()?;
 
     let rho_name_bucket = rho_bucket[bucket_id-1];
 

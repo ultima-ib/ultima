@@ -4,9 +4,6 @@ use std::sync::Mutex;
 
 use base_engine::prelude::*;
 use crate::helpers::*;
-use crate::sbm::csr_nonsec::delta::csr_nonsec_delta_charge;
-
-use rayon::prelude::*;
 use crate::sbm::common::*;
 use crate::prelude::*;
 use polars::prelude::*;
@@ -65,7 +62,7 @@ pub(crate) fn csr_sec_nonctp_delta_charge_high(op: &OCP) -> Expr {
 /// Extracts relevant fields from OptionalParams
 /// And pass them to the main Delta Charge calculator accordingly
 /// calls csr_nonsec_delta_charge because the calculation is identical
-fn csr_sec_nonctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
+fn csr_sec_nonctp_delta_charge_distributor(_: &OCP, scenario: &'static ScenarioConfig) -> Expr {
     
     let (y05, y1, y3, y5, y10, bucket_col, tranche_rho_vec, 
         gamma,

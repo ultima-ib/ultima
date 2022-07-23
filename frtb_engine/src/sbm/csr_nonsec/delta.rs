@@ -5,7 +5,6 @@ use std::sync::Mutex;
 use base_engine::prelude::*;
 use crate::helpers::*;
 
-use rayon::prelude::*;
 use crate::sbm::common::*;
 use crate::prelude::*;
 use polars::prelude::*;

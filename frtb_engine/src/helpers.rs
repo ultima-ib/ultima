@@ -34,6 +34,7 @@ pub(crate)fn shift_right_by(by: usize, a: &Array2<f64>) -> Array2<f64> {
 }
 
 // Identifies NON (nan or zero) indexes
+#[allow(dead_code)]
 pub fn non_nan_zero_idxs(arr: ArrayView1<f64>) -> Vec<usize> {
     let mut nans: Vec<usize> = vec![];
     for (i, n) in arr.indexed_iter() {

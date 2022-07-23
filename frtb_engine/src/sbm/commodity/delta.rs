@@ -5,7 +5,6 @@
 use std::sync::Mutex;
 
 use base_engine::prelude::*;
-use rayon::iter::IntoParallelIterator;
 use crate::sbm::common::*;
 use crate::helpers::*;
 use crate::prelude::*;
@@ -141,7 +140,7 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
-            
+
         let tenor_cols = vec!["y0", "y025", "y05", "y1", "y2","y3", "y5", "y10", "y15", "y20", "y30"];
         let n_buckets = 11;
 

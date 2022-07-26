@@ -278,7 +278,7 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
         },
 
         //                                                   ##### Vega #####
-        // GIRR
+        // GIRR 
         Measure{
             name: "GIRR_VegaSens",
             calculator: Box::new(total_ir_vega_sens),

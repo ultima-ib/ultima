@@ -211,6 +211,10 @@ const JSON: &str = r#"
 ["CSR_secCTP_DeltaCharge_Medium", "first"],
 ["CSR_secCTP_DeltaCharge_High", "first"],
 
+["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
+["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
+["CSR_Sec_nonCTP_DeltaCharge_High", "first"]
+
 "reporting_ccy": "USD"
 "filters": [{"Eq":[["Desk", "FXOptions"]]}],
 "base_csr_nonsec_tenor_rho": "{\"v\":1,\"dim\":[5,5],\"data\":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}"
@@ -224,14 +228,15 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "measures": [
-            ["Commodity_DeltaCharge_Low", "first"],
-["Commodity_DeltaCharge_Medium", "first"],
-["Commodity_DeltaCharge_High", "first"]
+            ["CSR_nonSec_DeltaCharge_Low", "first"],
+["CSR_nonSec_DeltaCharge_Medium", "first"],
+["CSR_nonSec_DeltaCharge_High", "first"]
+
         ],
-        "groupby": ["Desk"],
+        "groupby": ["Desk", "TradeId"],
         "filters": [],
         "optional_params": {
-            "calc_params": {"jurisdiction": "CRR2"}
+            "calc_params": {"jurisdiction": "BCBS"}
         }
     }
 }"#;

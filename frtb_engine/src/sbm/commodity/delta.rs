@@ -1,8 +1,5 @@
 //! Commodity Delta Risk Charge
 //! TODO Commodity RiskFactor should be of the form ...CCY (same as FX, where CCY is the reporting CCY)
-//! 
-
-use std::sync::Mutex;
 
 use base_engine::prelude::*;
 use crate::sbm::common::*;
@@ -11,11 +8,9 @@ use crate::prelude::*;
 
 use polars::prelude::*;
 use ndarray::prelude::*;
-use ndarray::parallel::prelude::ParallelIterator;
-use log::warn;
 
 pub fn total_commodity_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("Commodity")
+    rc_delta_sens("Commodity", "Delta")
 }
 /// Helper functions
 pub(crate) fn commodity_delta_sens_weighted_spot() -> Expr {
@@ -89,12 +84,13 @@ fn commodity_delta_charge_distributor(_: &OCP, scenario: &'static ScenarioConfig
         scenario.base_com_rho_cty,
          &scenario.com_gamma,
         scenario.base_com_rho_basis_diff,
-    &scenario.base_com_rho_tenor,
+    scenario.base_com_rho_tenor.clone(),
     scenario.scenario_fn)
 }
 
-fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Array2<f64>, 
-    com_rho_base_diff_loc: f64, rho_tenor: &'static Array2<f64>, scenario_fn: F)
+
+fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: &'static Array2<f64>, 
+    com_rho_base_diff_loc: f64, rho_tenor: Array2<f64>, scenario_fn: F)
     -> Expr 
     where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,{  
     
@@ -142,43 +138,14 @@ fn commodity_delta_charge<F>(bucket_rho_basis: [f64; 11], com_gamma: &'static Ar
             .collect()?;
 
         let tenor_cols = vec!["y0", "y025", "y05", "y1", "y2","y3", "y5", "y10", "y15", "y20", "y30"];
-        let n_buckets = 11;
-
-        let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
-        for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
-        let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
-        // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-        df["b"]
-        .utf8()?
-        .unique()?
-        .par_iter()
-        .for_each(|b|{
-            match b {
-                Some(_b) => {
-                    let b_as_idx = _b.parse::<usize>().unwrap_or_else(|_|{
-                        warn!("{_b} cannot be parsed into a usize, which has to be an integer representing the bucket.");
-                        1usize});
-                    let a = bucket_kb_sb_chunks(df.clone().lazy(), b_as_idx, None,
-                        rho_tenor, bucket_rho_basis.to_vec(), com_rho_base_diff_loc, scenario_fn,
-                        tenor_cols.clone(), "rf", "loc");
-                    let mut res = arc_mtx.lock().unwrap();
-                    res[b_as_idx-1] = a;
-                },
-                _=>()
-            }
-        });
-
-        let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
-        .unwrap()
-        .into_inner()
-        .unwrap()
-        .into_iter()
-        .collect();
-        //let reskbs_sbs = (*arc_mtx).into_inner().unwrap();
-        let kbs_sbs = reskbs_sbs?;
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
+        let n_buckets = 11; // Commodity has 11 buckets
         
+        let kbs_sbs = all_kbs_sbs(df, tenor_cols, n_buckets, &rho_tenor,
+            &bucket_rho_cty, com_rho_base_diff_loc, scenario_fn,
+            "rf", "loc", None)?;
 
+        
+        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
         across_bucket_agg(kbs, sbs, &com_gamma, columns[0].len())
 
  }, 

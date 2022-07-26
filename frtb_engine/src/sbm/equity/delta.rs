@@ -2,7 +2,7 @@ use base_engine::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
 use rayon::iter::{IntoParallelIterator, IndexedParallelIterator};
 use rayon::slice::ParallelSliceMut;
-use crate::{sbm::common::*, helpers::across_bucket_agg};
+use crate::sbm::common::*;
 use crate::prelude::*;
 
 use polars::prelude::*;
@@ -10,7 +10,7 @@ use ndarray::prelude::*;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("Equity")
+    rc_delta_sens("Equity", "Delta")
 }
 
 pub(crate) fn equity_delta_sens_weighted (_: &OCP) -> Expr {

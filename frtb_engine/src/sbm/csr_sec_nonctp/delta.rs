@@ -1,19 +1,14 @@
-//! CSR Sec non-CYP Delta Calculations
-
-use std::sync::Mutex;
-
+//! CSR Sec non-CTP Delta Calculations
 use base_engine::prelude::*;
 use crate::helpers::*;
 use crate::sbm::common::*;
 use crate::prelude::*;
 use polars::prelude::*;
 use ndarray::prelude::*;
-use ndarray::parallel::prelude::ParallelIterator;
-use log::warn;
 
 
 pub fn total_csr_sec_nonctp_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("CSR_Sec_nonCTP")
+    rc_delta_sens("CSR_Sec_nonCTP", "Delta")
 }
 /// Helper functions
 
@@ -121,38 +116,10 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             .collect()?;
         // 21.4.4 - 21.5.a
         let tenor_cols = vec!["y05", "y1", "y3", "y5", "y10"];
-        let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
-        for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
-        let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
-        // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-        df["b"]
-        .utf8()?
-        .unique()?
-        .par_iter()
-        .for_each(|b|{
-            match b {
-                Some(_b) => {
-                    let b_as_idx = _b.parse::<usize>().unwrap_or_else(|_|{
-                        warn!("{_b} cannot be parsed into a usize, which has to be an integer representing the bucket.");
-                        1usize});
-                    let a = bucket_kb_sb_chunks(df.clone().lazy(), b_as_idx, special_bucket,
-                    &base_tenor_rho, rho_name.clone(), rho_basis, scenario_fn,
-                    tenor_cols.clone(), "rf", "rft");
-                    let mut res = arc_mtx.lock().unwrap();
-                    res[b_as_idx-1] = a;
-                },
-                _=>()
-            }
-        });
+        
+        let kbs_sbs = all_kbs_sbs(df, tenor_cols, n_buckets, &base_tenor_rho,
+            &rho_name, rho_basis, scenario_fn, "rf", "rft", special_bucket)?;
 
-        let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
-        .unwrap()
-        .into_inner()
-        .unwrap()
-        .into_iter()
-        .collect();
-        //let reskbs_sbs = (*arc_mtx).into_inner().unwrap();
-        let kbs_sbs = reskbs_sbs?;
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
         
         // 21.57 OR 325aj

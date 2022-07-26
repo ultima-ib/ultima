@@ -4,7 +4,6 @@ use rayon::iter::ParallelBridge;
 use crate::sbm::common::*;
 use crate::helpers::*;
 use crate::prelude::*;
-use std::time::Instant;
 use std::mem::MaybeUninit;
 
 use polars::prelude::*;
@@ -12,7 +11,7 @@ use ndarray::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
 
 pub fn total_ir_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("GIRR")
+    rc_delta_sens("GIRR", "Delta")
 }
 /// Helper functions
 fn girr_delta_sens_weighted_spot() -> Expr {
@@ -49,7 +48,7 @@ fn girr_delta_sens_weighted_30y() -> Expr {
     rc_tenor_weighted_sens("Delta","GIRR", "Sensitivity_30Y","SensWeights", 10)
 }
 
-/// Total GIRR Delta
+/// Total GIRR Delta Seins
 pub(crate) fn girr_delta_sens_weighted(_: &OCP) -> Expr {
     girr_delta_sens_weighted_spot().fill_null(0.)
     + girr_delta_sens_weighted_025y().fill_null(0.)
@@ -84,10 +83,7 @@ pub(crate) fn girr_delta_charge_high(op: &OCP) -> Expr {
 fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
     let _suffix = scenario.as_str();
 
-    let girr_delta_gamma = op.as_ref()
-        .and_then(|map| map.get(format!("girr_delta_gamma{_suffix}").as_ref() as &str))
-        .and_then(|s| s.parse::<f64>().ok() )
-        .unwrap_or(scenario.girr_delta_gamma);
+    let girr_delta_gamma = get_optional_parameter(op, format!("girr_delta_gamma{_suffix}").as_ref() as &str, &scenario.girr_delta_gamma);
 
     let girr_delta_rho_same_curve = &scenario.girr_delta_rho_same_curve;
     let girr_delta_rho_diff_curve = &scenario.girr_delta_rho_diff_curve;
@@ -102,11 +98,12 @@ fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) ->
 /// This allows for flexibility with overriding ScenarioConfig, but the drawback is cloning
 /// girr_delta_charge is called up to 3 times(1 for each scenario) FOR EACH group in outer groupby(say N) per request
 /// in total 3xN clones. Performance of such many clones has to be carefully accessed
-fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static Array2<f64>, girr_delta_rho_diff_curve: &'static Array2<f64>, 
+fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static Array2<f64>, 
+    girr_delta_rho_diff_curve: &'static Array2<f64>, 
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64) -> Expr {
 
     apply_multiple( move |columns| {
-        let now = Instant::now();
+
         let df = df![
             "rcat" =>   columns[15].clone(),
             "rc" =>   columns[0].clone(), 
@@ -144,9 +141,7 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
-        let elapsed = now.elapsed();
-        println!("Creation and filtration took: {:.6?}", elapsed);
-        // columns[3] is the bucket column. Iterate over unique buckets
+        
         let res_kbs_sbs: Result<Vec<(f64,f64)>> = df["b"].unique()?
             .utf8()?
             .par_iter()
@@ -172,17 +167,18 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: &'static 
         GetOutput::from_type(DataType::Float64))
 }
 
-///21.46 GIRR delta risk correlation within same bucket, same curve
+/// 21.46 GIRR delta risk correlation within same bucket, same curve
 /// results in 10x10 matrix
 /// Used at the initiation of the program using OnceCell
 pub(crate) fn girr_corr_matrix() -> Array2<f64> {
+    let theta: f64 = -0.03;
     let mut base_weights = Array2::<f64>::zeros((10, 10));
     let tenors = [ 0.25, 0.5, 1., 2., 3., 5., 10., 15., 20., 30. ];
 
     for ((row, col), val) in base_weights.indexed_iter_mut() {
         let tr = tenors[row];
         let tc = tenors[col];
-        *val = f64::max( f64::exp( -0.03 * f64::abs(tr-tc) / tr.min(tc) ) , 0.4 );
+        *val = f64::max( f64::exp( theta * f64::abs(tr-tc) / tr.min(tc) ) , 0.4 );
     }
     base_weights
 }
@@ -220,7 +216,7 @@ fn girr_bucket_kb_sb(df: LazyFrame, bucket: &str,
     let xccy_arr = xccy_df["y0"].f64()?
         .to_ndarray()?;
     
-    let corr_mtrx: Array2<f64> = build_girr_corr_matrix_3(girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
+    let corr_mtrx: Array2<f64> = build_girr_corr_matrix(girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
         girr_delta_rho_infl, girr_delta_rho_xccy, 
         yield_arr.len(), infl_arr.len(), xccy_arr.len())?;
         
@@ -243,7 +239,7 @@ fn girr_bucket_kb_sb(df: LazyFrame, bucket: &str,
     Ok((kb, sb))
 }
 
-fn build_girr_corr_matrix_3( girr_delta_rho_same_curve: &Array2<f64>, 
+fn build_girr_corr_matrix( girr_delta_rho_same_curve: &Array2<f64>, 
     girr_delta_rho_diff_curve: &Array2<f64>, 
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,
     y: usize, i: usize, x: usize) -> Result<Array2<f64>> {

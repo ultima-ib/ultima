@@ -24,9 +24,7 @@ pub fn execute(req: DataRequestS, data: &DataSet, measure_map: Arc<MM>)
     // Recall within same Filter columns should be from the same file
 
     info!("f1 with HMS, attr and prepared: {:?}", 
-    data.f1.clone().lazy().filter(
-        col("RiskClass").eq(lit::<&str>("CSR_nonSec"))
-    ).collect());
+    data.f1.clone().lazy().collect());
 
     // Step 1.0 SELECT columns required for current request
     // In case of SQL data source we need to create DF from 

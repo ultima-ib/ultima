@@ -93,6 +93,15 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
 
         .otherwise(not_yet_implemented.clone())
     )
+    .when(col("RiskCategory").eq(lit("Vega")))
+    .then(
+        when(col("RiskClass").neq(lit("Equity"))) //all vega except Equity
+        .then(
+            rf_rw_map("RiskClass", delta_weights.vega_risk_class_weight, never_reached.clone())
+        )
+        // Equity, special case
+        .otherwise(rf_rw_map("BucketBCBS", delta_weights.vega_equity_weight, never_reached.clone()))
+    )
     .otherwise(not_yet_implemented)
 
 }
@@ -164,6 +173,27 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     0.01575, 0.02625, 0.035, 0.035, 0.014, 0.021, 0.021, 0.0245, 0.035];
     let csr_sec_nonctp_weight: HashMap<String, Expr> = bucket_weight_map(&csr_sec_nonctp_weight_arr);
 
+    fn vega_rw(lh: u8) -> f64 {
+        ( 0.55*(lh as f64).sqrt()/(10f64).sqrt() ).min(1.)
+    }
+
+    let vega_risk_class_weight: HashMap<String, Expr> = HashMap::from([
+        ("^GIRR$".to_string(), Series::from_vec("", vec![vega_rw(60); 1]).lit().list() ),
+        ("^CSR_nonSec$".to_string(), Series::from_vec("", vec![vega_rw(120); 1]).lit().list() ),
+        ("^CSR_Sec_CTP$".to_string(), Series::from_vec("", vec![vega_rw(120); 1]).lit().list() ),
+        ("^CSR_Sec_nonCTP$".to_string(), Series::from_vec("", vec![vega_rw(120); 1]).lit().list() ),
+        //("^Equity$".to_string(), vega_rw(60)), // Equity small cap
+        ("^Commodity$".to_string(), Series::from_vec("", vec![vega_rw(120); 1]).lit().list() ),
+        ("^FX$".to_string(), Series::from_vec("", vec![vega_rw(40); 1]).lit().list() ),
+    ]);
+    let eq_large_cap = vega_rw(20);
+    let eq_small_cap = vega_rw(60);
+    let equity_vega_weights = [eq_large_cap, eq_large_cap, eq_large_cap, eq_large_cap,
+        eq_large_cap, eq_large_cap, eq_large_cap, eq_large_cap,
+        eq_small_cap, eq_small_cap, eq_small_cap, 
+        eq_large_cap, eq_large_cap];
+    let vega_equity_weight: HashMap<String, Expr> = bucket_weight_map(&equity_vega_weights);
+
 
 
     let dlt_weights = SensWeightsConfig {
@@ -185,12 +215,18 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         // CSR sec CTP
         csr_sec_ctp_weight,
         // CSR sec nonCTP
-        csr_sec_nonctp_weight
+        csr_sec_nonctp_weight,
+        // Vega RW except Eq
+        vega_risk_class_weight,
+        // Vega Eq 
+        vega_equity_weight,
     };
 
     //Assign Delta Weights
     weight_assign_logic(dlt_weights)
 }
+
+
 
 
 
@@ -214,6 +250,12 @@ pub struct SensWeightsConfig {
     csr_sec_ctp_weight: HashMap<String, Expr>,
     // CSR sec nonCTP
     csr_sec_nonctp_weight: HashMap<String, Expr>,
+
+    //Vega Risk Class except Equity
+    vega_risk_class_weight: HashMap<String, Expr>,
+
+    //Vega Equity 
+    vega_equity_weight: HashMap<String, Expr>,
 
 
 }

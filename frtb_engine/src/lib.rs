@@ -5,6 +5,7 @@ mod helpers;
 pub mod docs;
 pub mod measures;
 
+use prelude::sbm::common::option_maturity_rho;
 use sbm::buckets;
 use sbm::girr::delta::girr_corr_matrix;
 use sbm::delta_weights::*;
@@ -285,6 +286,8 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         let mut base_csr_sec_nonctp_gamma_row25col25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,24]);
         base_csr_sec_nonctp_gamma_row25col25_slice.fill(0.);
 
+        let base_vega_option_mat_rho = option_maturity_rho();
+
         ScenarioConfig {
             name: ScenarioName::Medium,
             scenario_fn: med_fn,
@@ -335,7 +338,10 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             base_csr_sec_nonctp_rho_diff_tranche,
             base_csr_sec_nonctp_rho_diff_basis,
 
-            csr_sec_nonctp_gamma
+            csr_sec_nonctp_gamma,
+
+            // Vega
+            base_vega_option_mat_rho
 
         }}
 );
@@ -430,6 +436,7 @@ pub struct ScenarioConfig{
     pub base_csr_sec_nonctp_rho_diff_basis: f64,
 
     pub csr_sec_nonctp_gamma: Array2<f64>,
+    pub base_vega_option_mat_rho: Array2<f64>,
 
 
 
@@ -477,6 +484,7 @@ impl ScenarioConfig {
         let base_csr_ctp_gamma_sector_crr2 = self.base_csr_ctp_gamma_sector_crr2.to_owned();
 
         let base_csr_sec_nonctp_rho_tenor = self.base_csr_sec_nonctp_rho_tenor.to_owned();
+        let base_vega_option_mat_rho = self.base_vega_option_mat_rho.to_owned();
 
         //Next, apply to singles and return a scenario
         Self {  name: scenario,
@@ -511,6 +519,8 @@ impl ScenarioConfig {
                 base_csr_sec_nonctp_rho_tenor,
 
                 csr_sec_nonctp_gamma,
+
+                base_vega_option_mat_rho,
 
                 ..*self }
         

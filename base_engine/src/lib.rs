@@ -127,19 +127,36 @@ pub fn execute(req: DataRequestS, data: &DataSet, measure_map: Arc<MM>)
     };
     
     // Build AGG
-    let aggregate: Vec<Expr> = agg_builder(m, measure_map, &calc_p);
+    let (aggregateions, newnames) = agg_builder(m, measure_map, &calc_p);
+
+    // Build Filter here to filter out lines where all measures are exactly 0
     
-    //GROUPBY
+    //Build GROUPBY
     let groups: Vec<Expr> = req._groupby()
         .iter()
         .map(|x| { col(x) })
         .collect();
-    //info!("f1 filtered: {:?}", f1.clone().collect()?);
-
+    
+    // GROUPBY and AGGREGATE
     f1 = f1.groupby(groups)
-        .agg(aggregate);
- 
-    Ok(f1.collect()?)
+        .agg(aggregateions);
+
+    // POSTPROCESSING
+
+    // Remove zeros, optional
+    if req.optiona_params().as_ref()
+        .and_then(|x|Some(x.hide_zeros))
+        .unwrap_or_default() {
+            let mut it = newnames.iter();
+            let c = it.next().unwrap(); // Request should contain at least one measure
+            let mut predicate = col(c).neq(lit::<f64>(0.));
+            for c in  it {
+                predicate = predicate.or(col(c).neq(lit::<f64>(0.)))
+            }
+            f1 = f1.filter(predicate);
+        };
+    
+    f1.collect()
  }
 
 
@@ -148,37 +165,36 @@ pub fn execute(req: DataRequestS, data: &DataSet, measure_map: Arc<MM>)
 /// Builds aggregation expressions
 fn agg_builder(measures_requested: &[(String, String)], 
     all_measures_map: Arc<MM>,
-    op: &OCP ) -> Vec<Expr> {
-    let mut res = Vec::with_capacity(measures_requested.len());
+    op: &OCP ) -> (Vec<Expr>, Vec<String>) {
+    let mut res_exprs: Vec<Expr> = Vec::with_capacity(measures_requested.len());
+    let mut res_alias: Vec<String> = Vec::with_capacity(measures_requested.len());
     for (measure_name, action) in measures_requested {
         let column: Expr;
-
+        
+        // First, get the calculator for {measure_name} from {all_measures_map}
         match all_measures_map.get(measure_name as &str) {
             Some(m) => column = (m.calculator)(op),
             _ => {warn!("Measure: {measure_name} not found"); continue }
         }
 
+        // Finally, apply correct aggregation to the measure (eg sum/first etc)
         match BASE_CALCS.get(action as &str) {
-            Some(act) => res.push(act(column, measure_name)),
+            Some(act) =>{
+                let (expr, newname) = act(column, measure_name);
+                res_exprs.push(expr);
+                res_alias.push(newname);
+            },
             _ => {warn!("Aggregation action: {action} not found"); continue }
         }
         }
-    res
+    (res_exprs, res_alias)
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
 
 lazy_static!(
-    pub static ref BASE_CALCS: HashMap<&'static str, fn(Expr, &str) -> Expr> = HashMap::from(
+    pub static ref BASE_CALCS: HashMap<&'static str, fn(Expr, &str) -> (Expr, String)> = HashMap::from(
         [
-        ("sum", sum as fn(Expr, &str) -> Expr),
+        ("sum", sum as fn(Expr, &str) -> (Expr, String)),
         ("min", min),
         ("max", max),
         ("mean", mean),
@@ -190,30 +206,46 @@ lazy_static!(
     );
 );
 
-fn sum(c: Expr, newname: &str) -> Expr {
-    c.sum().alias(format!("{newname}_sum").as_ref())
+fn sum(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_sum");
+    ( c.sum().alias(alias.as_ref()), alias )
 }
-fn min(c: Expr, newname: &str) -> Expr {
-    c.min().alias(format!("{newname}_min").as_ref())
+fn min(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_min");
+    ( c.min().alias(alias.as_ref()), alias )
 }
-fn max(c: Expr, newname: &str) -> Expr {
-    c.max().alias(format!("{newname}_max").as_ref())
+fn max(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_max");
+    ( c.max().alias(alias.as_ref()), alias )
 }
-fn mean(c: Expr, newname: &str) -> Expr {
-    c.mean().alias(format!("{newname}_mean").as_ref())
+fn mean(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_mean");
+    ( c.mean().alias(alias.as_ref()), alias )
 }
-fn var(c: Expr, newname: &str) -> Expr {
-    c.var().alias(format!("{newname}_var").as_ref())
+fn var(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_var");
+    ( c.var().alias(alias.as_ref()), alias)
 }
-fn quantile_95_lower(c: Expr, newname: &str) -> Expr {
-    c.quantile(0.95, QuantileInterpolOptions::Lower).alias(format!("{newname}_quantile95lower").as_ref())
+fn quantile_95_lower(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_quantile95lower");
+    ( c.quantile(0.95, QuantileInterpolOptions::Lower).alias(alias.as_ref()), alias )
 }
-fn first(c: Expr, newname: &str) -> Expr {
+fn first(c: Expr, newname: &str) -> (Expr, String) {
     // Not including "_first" alias to avoid confusion 
     // First is usually used by measures such as Capital or RiskWeight
     // Which are calculated at a level of a certain column such as RiskFactor 
-    c.first().alias(newname)
+    ( c.first().alias(newname), newname.to_string() )
 }
-fn list(c: Expr, newname: &str) -> Expr {
-    c.list().alias(format!("{newname}_list").as_ref())
+fn list(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_list");
+    ( c.list().alias(alias.as_ref()), alias)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
 }

@@ -81,25 +81,6 @@ pub fn sens_weights(_: &OCP) -> Expr {
     col("SensWeights")
 }
 
-/// 21.93
-pub fn option_maturity_rho() -> Array2<f64> {
-    let mut option_maturity_rho = Array2::<f64>::zeros((5, 5));
-    let tenors = [ 0.5, 1., 3., 5., 10.];
-
-    for ((row, col), val) in option_maturity_rho.indexed_iter_mut() {
-        let tr = tenors[row];
-        let tc = tenors[col];
-        *val = vega_rho_element(tr, tc);
-    }
-
-    option_maturity_rho
-}
-/// 21.93
-fn vega_rho_element(m1: f64, m2: f64) -> f64 {
-    let alpha = 0.01;
-    f64::exp(-alpha*f64::abs(m1-m2)/f64::min(m1,m2))
-}
-
 pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gamma: &Array2<f64>, res_len: usize) 
 -> Result<Series>
  {
@@ -278,4 +259,23 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
     .into_iter()
     .collect();
     reskbs_sbs
+}
+
+/// 21.93
+pub fn option_maturity_rho() -> Array2<f64> {
+    let mut option_maturity_rho = Array2::<f64>::zeros((5, 5));
+    let tenors = [ 0.5, 1., 3., 5., 10.];
+
+    for ((row, col), val) in option_maturity_rho.indexed_iter_mut() {
+        let tr = tenors[row];
+        let tc = tenors[col];
+        *val = vega_rho_element(tr, tc);
+    }
+
+    option_maturity_rho
+}
+/// 21.93
+fn vega_rho_element(m1: f64, m2: f64) -> f64 {
+    let alpha = 0.01;
+    f64::exp(-alpha*f64::abs(m1-m2)/f64::min(m1,m2))
 }

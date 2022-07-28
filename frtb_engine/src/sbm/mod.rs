@@ -6,6 +6,6 @@ pub mod csr_nonsec;
 pub mod csr_sec_ctp;
 pub mod csr_sec_nonctp;
 
-pub mod delta_weights;
+pub mod risk_weights;
 pub mod buckets;
 pub mod common;

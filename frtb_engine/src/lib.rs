@@ -5,10 +5,10 @@ mod helpers;
 pub mod docs;
 pub mod measures;
 
-use prelude::sbm::common::option_maturity_rho;
+use prelude::sbm::{common::option_maturity_rho, girr::vega::girr_vega_rho};
 use sbm::buckets;
 use sbm::girr::delta::girr_corr_matrix;
-use sbm::delta_weights::*;
+use sbm::risk_weights::*;
 use base_engine::prelude::*;
 
 use once_cell::sync::Lazy;
@@ -77,6 +77,15 @@ impl FRTBDataSetT for DataSet {
                     .alias("SensWeightsCRR2")
                 )
             }
+
+            lf1 = lf1.with_column(
+                when(col("RiskClass").eq(lit("GIRR"))
+                        .and(col("RiskCategory").eq(lit("Vega"))))
+
+                    .then(col("GirrVegaUnderlyingMaturity").fill_null(col("RiskFactorType")))
+
+                    .otherwise(col("GirrVegaUnderlyingMaturity"))
+            );
 
             self.f1 = lf1.collect().unwrap();
         }
@@ -286,7 +295,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         let mut base_csr_sec_nonctp_gamma_row25col25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,24]);
         base_csr_sec_nonctp_gamma_row25col25_slice.fill(0.);
 
-        let base_vega_option_mat_rho = option_maturity_rho();
+        let vega_rho = girr_vega_rho();
 
         ScenarioConfig {
             name: ScenarioName::Medium,
@@ -341,7 +350,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             csr_sec_nonctp_gamma,
 
             // Vega
-            base_vega_option_mat_rho
+            vega_rho,
 
         }}
 );
@@ -436,9 +445,9 @@ pub struct ScenarioConfig{
     pub base_csr_sec_nonctp_rho_diff_basis: f64,
 
     pub csr_sec_nonctp_gamma: Array2<f64>,
-    pub base_vega_option_mat_rho: Array2<f64>,
 
-
+    //Vega
+    pub vega_rho: Array2<f64>,
 
 }
 
@@ -457,15 +466,16 @@ impl ScenarioConfig {
     //where F: Fn(f64) -> f64 + Sync,
     {
         //First, apply function to matrixes 
-        let mut matrixes: [Array2<f64>; 5] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
-        self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned()];
+        let mut matrixes: [Array2<f64>; 6] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
+        self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.vega_rho.to_owned()];
 
         matrixes.iter_mut()
         .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
         );
         //Unzip matrixes into individual components
         let[girr_delta_rho_same_curve, girr_delta_rho_diff_curve,
-        com_gamma, eq_gamma, csr_sec_nonctp_gamma] = matrixes;
+        com_gamma, eq_gamma, csr_sec_nonctp_gamma,
+        vega_rho] = matrixes;
 
         //objects which do not implement copy
         let base_com_rho_tenor = self.base_com_rho_tenor.to_owned();
@@ -484,7 +494,6 @@ impl ScenarioConfig {
         let base_csr_ctp_gamma_sector_crr2 = self.base_csr_ctp_gamma_sector_crr2.to_owned();
 
         let base_csr_sec_nonctp_rho_tenor = self.base_csr_sec_nonctp_rho_tenor.to_owned();
-        let base_vega_option_mat_rho = self.base_vega_option_mat_rho.to_owned();
 
         //Next, apply to singles and return a scenario
         Self {  name: scenario,
@@ -520,7 +529,7 @@ impl ScenarioConfig {
 
                 csr_sec_nonctp_gamma,
 
-                base_vega_option_mat_rho,
+                vega_rho,
 
                 ..*self }
         

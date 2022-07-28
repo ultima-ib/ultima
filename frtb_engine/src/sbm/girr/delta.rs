@@ -234,7 +234,6 @@ fn girr_bucket_kb_sb(df: LazyFrame, bucket: &str,
 
     //21.4.5.a
     let sb = yield_infl_xccy.sum();
-    //kbs.push(kb)
 
     Ok((kb, sb))
 }

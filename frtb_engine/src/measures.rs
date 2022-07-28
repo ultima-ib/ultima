@@ -10,7 +10,7 @@ use crate::sbm::commodity::delta::{total_commodity_delta_sens, commodity_delta_s
     commodity_delta_charge_low, commodity_delta_charge_medium, commodity_delta_charge_high};
 use crate::sbm::equity::delta::{equity_delta_sens, equity_delta_sens_weighted,
         equity_delta_charge_low, equity_delta_charge_medium, equity_delta_charge_high};
-use crate::sbm::girr::vega::{total_ir_vega_sens, girr_vega_sens_weighted, girr_vega_charge_medium, girr_vega_kb_medium, girr_vega_sb_medium};
+use crate::sbm::girr::vega::{total_ir_vega_sens, girr_vega_sens_weighted, girr_vega_charge_medium, girr_vega_kb_medium, girr_vega_kb_high, girr_vega_charge_high, girr_vega_charge_low, girr_vega_kb_low, girr_vega_sb};
 
 use base_engine::prelude::*;
 
@@ -294,6 +294,27 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
         },
 
         Measure{
+            name: "GIRR_VegaSb",
+            calculator: Box::new(girr_vega_sb),
+            req_columns: [vec!["RiskClass", "RiskFactor", "RiskFactorType", "BucketBCBS"], all_sens_cols.clone()].concat(),
+            aggregation: Some("first"),
+        },
+        
+        Measure{
+            name: "GIRR_VegaCharge_Low",
+            calculator: Box::new(girr_vega_charge_low),
+            req_columns: [vec!["RiskClass", "RiskFactor", "RiskFactorType", "BucketBCBS"], all_sens_cols.clone()].concat(),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_VegaKb_Low",
+            calculator: Box::new(girr_vega_kb_low),
+            req_columns: [vec!["RiskClass", "RiskFactor", "RiskFactorType", "BucketBCBS"], all_sens_cols.clone()].concat(),
+            aggregation: Some("first"),
+        },
+
+        Measure{
             name: "GIRR_VegaCharge_Medium",
             calculator: Box::new(girr_vega_charge_medium),
             req_columns: [vec!["RiskClass", "RiskFactor", "RiskFactorType", "BucketBCBS"], all_sens_cols.clone()].concat(),
@@ -308,8 +329,15 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
         },
 
         Measure{
-            name: "GIRR_VegaSb_Medium",
-            calculator: Box::new(girr_vega_sb_medium),
+            name: "GIRR_VegaCharge_High",
+            calculator: Box::new(girr_vega_charge_high),
+            req_columns: [vec!["RiskClass", "RiskFactor", "RiskFactorType", "BucketBCBS"], all_sens_cols.clone()].concat(),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_VegaKb_High",
+            calculator: Box::new(girr_vega_kb_high),
             req_columns: [vec!["RiskClass", "RiskFactor", "RiskFactorType", "BucketBCBS"], all_sens_cols.clone()].concat(),
             aggregation: Some("first"),
         },

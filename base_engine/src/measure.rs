@@ -67,8 +67,11 @@ pub struct OptParams {
     pub add_rows: Option<AddRows>,
     // If this could be achieved with Filters
     // then shouldn't be needed
-    // pub remove_rows,
-    // Parameters, passed to bespoke measures
+    // pub remove_rows //could just filter out trades based on Id
+    #[serde(default)]
+    pub hide_zeros: bool,
+
+    // Parameters, passed to bespoke measures(ie calculation parameters)
     #[serde(default)]
     pub calc_params: OCP,
 }

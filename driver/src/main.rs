@@ -175,9 +175,6 @@ const JSON: &str = r#"
 ["FX_DeltaSens", "sum"],
 ["FX_DeltaSens_Weighted", "sum"],
 
-["GIRR_DeltaSens", "sum"],
-["GIRR_DeltaSens_Weighted", "sum"],
-
 ["CSR_Sec_nonCTP_DeltaSens", "sum"],
 ["CSR_Sec_nonCTP_DeltaSens_Weighted", "sum"],
 
@@ -191,9 +188,7 @@ const JSON: &str = r#"
 ["FX_DeltaCharge_Medium", "first"],
 ["FX_DeltaCharge_High", "first"],
 
-["GIRR_DeltaCharge_Low", "first"],
-["GIRR_DeltaCharge_Medium", "first"],
-["GIRR_DeltaCharge_High", "first"],
+
 
 ["Commodity_DeltaCharge_Low", "first"],
 ["Commodity_DeltaCharge_Medium", "first"],
@@ -213,7 +208,25 @@ const JSON: &str = r#"
 
 ["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
-["CSR_Sec_nonCTP_DeltaCharge_High", "first"]
+["CSR_Sec_nonCTP_DeltaCharge_High", "first"],
+
+
+["GIRR_DeltaSens", "sum"],
+["GIRR_DeltaSens_Weighted", "sum"],
+["GIRR_DeltaCharge_Low", "first"],
+["GIRR_DeltaCharge_Medium", "first"],
+["GIRR_DeltaCharge_High", "first"],
+
+["GIRR_VegaSens", "sum"],
+["GIRR_VegaSens_Weighted", "sum"],
+["GIRR_VegaSb", "first"],
+["GIRR_VegaKb_Low", "first"],
+["GIRR_VegaCharge_Low", "first"],
+["GIRR_VegaKb_Medium", "first"],
+["GIRR_VegaCharge_Medium", "first"],
+["GIRR_VegaKb_High", "first"],
+["GIRR_VegaCharge_High", "first"],
+
 
 "reporting_ccy": "USD"
 "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -228,14 +241,19 @@ const JSON: &str = r#"
     "method": "None", 
     "params": {
         "measures": [
-            ["CSR_nonSec_DeltaCharge_Low", "first"],
-["CSR_nonSec_DeltaCharge_Medium", "first"],
-["CSR_nonSec_DeltaCharge_High", "first"]
+            ["GIRR_VegaSb", "first"],
+["GIRR_VegaKb_Low", "first"],
+["GIRR_VegaCharge_Low", "first"],
+["GIRR_VegaKb_Medium", "first"],
+["GIRR_VegaCharge_Medium", "first"],
+["GIRR_VegaKb_High", "first"],
+["GIRR_VegaCharge_High", "first"]
 
         ],
-        "groupby": ["Desk", "TradeId"],
+        "groupby": ["Desk"],
         "filters": [],
         "optional_params": {
+            "hide_zeros": true,
             "calc_params": {"jurisdiction": "BCBS"}
         }
     }

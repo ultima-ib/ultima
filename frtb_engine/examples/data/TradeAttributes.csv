@@ -17,3 +17,4 @@ TradeId,BookId,Product
 14,FO001,CDS
 15,BO001,Bond
 16,BO001,Bond
+17,FO001,Swaption

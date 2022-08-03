@@ -1,6 +1,5 @@
 //! CSR Sec non-CTP Delta Calculations
 use base_engine::prelude::*;
-use crate::helpers::*;
 use crate::sbm::common::*;
 use crate::prelude::*;
 use polars::prelude::*;
@@ -8,7 +7,7 @@ use ndarray::prelude::*;
 
 
 pub fn total_csr_sec_nonctp_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("CSR_Sec_nonCTP", "Delta")
+    rc_rcat_sens("CSR_Sec_nonCTP", "Delta", total_delta_sens())
 }
 /// Helper functions
 
@@ -124,7 +123,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
         
         // 21.57 OR 325aj
         // Shape of gamma depends on regulation
-        across_bucket_agg(kbs, sbs, &gamma, columns[0].len())
+        across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
     }, 
     
     &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), bucket_col, 

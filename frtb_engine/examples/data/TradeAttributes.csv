@@ -1,8 +1,6 @@
 TradeId,BookId,Product
 1,FO001,FXOption
 2,BO001,FXCash
-3a,FO001,IRSwap
-3a,FO001,IRSwap
 3,FO001,TarfBoWo
 4,FO001,Forward
 5,FO001,Forward
@@ -18,3 +16,5 @@ TradeId,BookId,Product
 15,BO001,Bond
 16,BO001,Bond
 17,FO001,Swaption
+20,FO002,Swaption
+21,BO002,Swaption

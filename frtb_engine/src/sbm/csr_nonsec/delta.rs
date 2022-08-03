@@ -9,7 +9,7 @@ use ndarray::prelude::*;
 
 
 pub fn total_csr_nonsec_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("CSR_nonSec", "Delta")
+    rc_rcat_sens("CSR_nonSec", "Delta", total_delta_sens())
 }
 /// Helper functions
 
@@ -193,7 +193,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
         let mut gamma = (&gamma_sector)*(&gamma_rating);
         gamma.par_mapv_inplace(|el| {scenario_fn(el)});
 
-        across_bucket_agg(kbs, sbs, &gamma, columns[0].len())
+        across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
     }, 
     
     &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), bucket_col, 

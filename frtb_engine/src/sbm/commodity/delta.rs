@@ -3,14 +3,13 @@
 
 use base_engine::prelude::*;
 use crate::sbm::common::*;
-use crate::helpers::*;
 use crate::prelude::*;
 
 use polars::prelude::*;
 use ndarray::prelude::*;
 
 pub fn total_commodity_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("Commodity", "Delta")
+    rc_rcat_sens("Commodity", "Delta", total_delta_sens())
 }
 /// Helper functions
 pub(crate) fn commodity_delta_sens_weighted_spot() -> Expr {
@@ -146,7 +145,7 @@ fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: &'static Arra
 
         
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
-        across_bucket_agg(kbs, sbs, &com_gamma, columns[0].len())
+        across_bucket_agg(kbs, sbs, &com_gamma, columns[0].len(), SBMChargeType::DeltaVega)
 
  }, 
     &[ col("RiskClass"), col("RiskFactor"), col("CommodityLocation"), col("BucketBCBS"), 

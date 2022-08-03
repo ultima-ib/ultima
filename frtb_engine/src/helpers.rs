@@ -53,10 +53,11 @@ where T: Deserialize<'a> + Copy{
 }
 
 /// we need to assert vec length, no other way to do it than create a func for vec
-pub(crate) fn get_optional_parameter_vec<'a>(op: &'a OCP, param: &str, default: &Vec<f64>) -> Vec<f64>{
+pub(crate) fn get_optional_parameter_vec<'a, T>(op: &'a OCP, param: &str, default: &Vec<T>) -> Vec<T>
+where T: Deserialize<'a> + Clone{
     op.as_ref()
     .and_then(|map| map.get(param))
-    .and_then(|x| serde_json::from_str::<Vec<f64>>(x).ok())
+    .and_then(|x| serde_json::from_str::<Vec<T>>(x).ok())
     .and_then(|v| if v.len()==default.len(){Some(v)} else {None})
     .unwrap_or_else(||{default.clone()})
 }
@@ -76,5 +77,8 @@ pub(crate) enum ReturnMetric {
     CapitalCharge,
     Kb,
     Sb,
-    SbAlt
+    SbAlt,
+    /// Curvature
+    KbPlus,
+    KbMinus, 
 }

@@ -149,9 +149,10 @@ pub fn execute(req: DataRequestS, data: &DataSet, measure_map: Arc<MM>)
         .unwrap_or_default() {
             let mut it = newnames.iter();
             let c = it.next().unwrap(); // Request should contain at least one measure
-            let mut predicate = col(c).neq(lit::<f64>(0.));
+            // Filter where col is Not Eq 0 AND Not Eq Null
+            let mut predicate = col(c).neq(lit::<f64>(0.)) .and(col(c).neq(NULL.lit()));
             for c in  it {
-                predicate = predicate.or(col(c).neq(lit::<f64>(0.)))
+                predicate = predicate.or(col(c).neq(lit::<f64>(0.)). and(col(c).neq(NULL.lit())))
             }
             f1 = f1.filter(predicate);
         };

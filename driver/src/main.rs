@@ -8,9 +8,13 @@ use std::sync::Arc;
 use log::info;
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
-
 #[cfg(feature = "FRTB")]
 use frtb_engine::prelude::*;
+use mimalloc::MiMalloc;
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+//#[global_allocator]
+//static ALLOC: snmalloc_rs::SnMalloc = snmalloc_rs::SnMalloc;
 
 fn main() {
     // Read .env
@@ -188,8 +192,6 @@ const JSON: &str = r#"
 ["FX_DeltaCharge_Medium", "first"],
 ["FX_DeltaCharge_High", "first"],
 
-
-
 ["Commodity_DeltaCharge_Low", "first"],
 ["Commodity_DeltaCharge_Medium", "first"],
 ["Commodity_DeltaCharge_High", "first"],
@@ -213,6 +215,10 @@ const JSON: &str = r#"
 
 ["GIRR_DeltaSens", "sum"],
 ["GIRR_DeltaSens_Weighted", "sum"],
+["GIRR_DeltaSb", "sum"],
+["GIRR_DeltaKb_Low", "first"],
+["GIRR_DeltaKb_Medium", "first"],
+["GIRR_DeltaKb_High", "first"],
 ["GIRR_DeltaCharge_Low", "first"],
 ["GIRR_DeltaCharge_Medium", "first"],
 ["GIRR_DeltaCharge_High", "first"],
@@ -221,40 +227,60 @@ const JSON: &str = r#"
 ["GIRR_VegaSens_Weighted", "sum"],
 ["GIRR_VegaSb", "first"],
 ["GIRR_VegaKb_Low", "first"],
-["GIRR_VegaCharge_Low", "first"],
 ["GIRR_VegaKb_Medium", "first"],
-["GIRR_VegaCharge_Medium", "first"],
 ["GIRR_VegaKb_High", "first"],
+["GIRR_VegaCharge_Low", "first"],
+["GIRR_VegaCharge_Medium", "first"],
 ["GIRR_VegaCharge_High", "first"],
+
+["GIRR_CurvatureDelta", "sum"],
+["GIRR_PnLup", "sum"],
+["GIRR_PnLdown", "sum"],
+["GIRR_CurvatureDelta_Weighted", "sum"],
+["GIRR_CVRup", "sum"],
+["GIRR_CVRdown", "sum"],
+["GIRR_Curvature_KbPlus", "first"],
+["GIRR_Curvature_KbMinus", "first"],
+["GIRR_Curvature_Kb", "first"],
+["GIRR_Curvature_Sb", "first"],
+["GIRR_CurvatureCharge_Low", "first"],
+["GIRR_CurvatureCharge_Medium", "first"],
+["GIRR_CurvatureCharge_High", "first"]
+
+["PnL_Up", "sum"],
+["PnL_Down", "sum"]
 
 
 "reporting_ccy": "USD"
 "filters": [{"Eq":[["Desk", "FXOptions"]]}],
 "base_csr_nonsec_tenor_rho": "{\"v\":1,\"dim\":[5,5],\"data\":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}"
 "base_csr_nonsec_diff_name_rho_per_bucket": "[1.0,2.0]" <- Example of bad input. Parsing would go for a default  
-
+["Desk","FXCash"],["Desk","RatesEM"]
 */
 
 const JSON: &str = r#"
 {"type": "Request",
     "id": "123", 
-    "method": "None", 
+    "method": "SEND", 
     "params": {
         "measures": [
-            ["GIRR_VegaSb", "first"],
-["GIRR_VegaKb_Low", "first"],
-["GIRR_VegaCharge_Low", "first"],
-["GIRR_VegaKb_Medium", "first"],
-["GIRR_VegaCharge_Medium", "first"],
-["GIRR_VegaKb_High", "first"],
-["GIRR_VegaCharge_High", "first"]
+            ["GIRR_CVRup", "sum"],
+["GIRR_CVRdown", "sum"],
+["GIRR_Curvature_KbPlus", "first"],
+["GIRR_Curvature_KbMinus", "first"],
+["GIRR_Curvature_Kb", "first"],
+["GIRR_Curvature_Sb", "first"],
+["GIRR_CurvatureCharge_Low", "first"],
+["GIRR_CurvatureCharge_Medium", "first"],
+["GIRR_CurvatureCharge_High", "first"]
 
         ],
         "groupby": ["Desk"],
-        "filters": [],
+        "filters": [{"Eq": [["Desk","FXCash"],["Desk","RatesEM"]]}],
         "optional_params": {
             "hide_zeros": true,
-            "calc_params": {"jurisdiction": "BCBS"}
+            "calc_params": {"jurisdiction": "BCBS",
+            "apply_fx_curv_divisor": "true"}
         }
     }
 }"#;

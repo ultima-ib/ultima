@@ -17,7 +17,8 @@ pub struct Measure<'a>{
     /// Bespoke measures assumes presence of these columns
     /// This field is used to validate the DataSet
     /// Req Columns of all availiable measures must be present in the DataSet
-    pub req_columns: Vec<&'a str>,
+    //  pub req_columns: Vec<&'a str>, <-> not needed. We need a better way to validate DataSet.
+    // perhaps through an optional build param
     ///this field is to restrict aggregation option to certain type only
     ///for example where it makes sence to aggregate with "first" and not "sum"
     pub aggregation: Option<&'a str>,
@@ -35,7 +36,7 @@ pub fn derive_basic_measures_vec<'a> (dataset_numer_cols: &'a Vec<String>) -> Ve
             name: x,
             // If we want to take params:
             calculator: Box::new(|_|col(x)),
-            req_columns: vec![x],
+            //req_columns: vec![x],
             aggregation: None,
         }
     )

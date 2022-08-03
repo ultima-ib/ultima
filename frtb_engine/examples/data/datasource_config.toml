@@ -2,10 +2,9 @@ title = "setup.toml Example"
 type = "CSV"
 
 [paths]
-# delta_path 
-# "C:/rust/delta_6500x4_csr.csv"
-# "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
+# first file path 
 # "C:/rust/DeltaGirr100_100_400000.csv"
+# "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
 file_1_path = "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
 # trade attributes
 attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
@@ -26,6 +25,6 @@ f1_numeric_cols = ["SensitivitySpot", "Sensitivity_025Y","Sensitivity_05Y",
 "Sensitivity_10Y","Sensitivity_15Y","Sensitivity_20Y","Sensitivity_30Y",]
 # Columns which must be cast to str in the preprocessing step
 f1_cast_to_str = ["BucketBCBS", "RiskFactor", "RiskFactorType"]
-# Build Params. Additional parameters to be passed to DataSet.prebuild()
+# Build Params. Optional additional parameters to be passed to DataSet.prebuild()
 # csrnonsec_covered_bond_15 = "true" <-> column CoveredBondReducedWeight must be provided
 build_params = {fx_sqrt2_div = "true", girr_sqrt2_div = "true", csrnonsec_covered_bond_15 = "true"}

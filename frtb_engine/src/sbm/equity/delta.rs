@@ -10,7 +10,7 @@ use ndarray::prelude::*;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens (_: &OCP) -> Expr {
-    rc_delta_sens("Equity", "Delta")
+    rc_rcat_sens("Equity", "Delta", total_delta_sens())
 }
 
 pub(crate) fn equity_delta_sens_weighted (_: &OCP) -> Expr {
@@ -82,7 +82,7 @@ fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13],
         let kbs_sbs = reskbs_sbs?;
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
-        across_bucket_agg(kbs, sbs, &gamma, columns[0].len())
+        across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
 
     }, 
     &[ col("BucketBCBS"), equity_delta_sens_weighted_spot(), col("RiskFactorType"), col("RiskFactor") ], 

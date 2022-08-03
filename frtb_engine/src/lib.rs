@@ -32,11 +32,13 @@ impl FRTBDataSetT for DataSet {
             #[cfg(feature = "CRR2")]
             if cfg!(feature = "CRR2") { lf1 = lf1.with_column(buckets::sbm_buckets_crr2())};
 
-
             // Then assign risk weights based on buckets
-            lf1 = lf1.with_column(
-                weights_assign(&self.build_params).alias("SensWeights")
-            );
+            lf1 = lf1.with_column( weights_assign(&self.build_params).alias("SensWeights") )
+                // Curvature risk weight
+                .with_column( when(col("PnL_Up").is_not_null().or(col("PnL_Down").is_not_null()))
+                        .then(col("SensWeights").arr().max().alias("CurvatureRiskWeight"))
+                        .otherwise(NULL.lit())
+                );
             
             // Now,  ammend weights if required. ie has to be done after main assignment of risk weights
             let mut other_cols: Vec<Expr> = vec![];
@@ -295,16 +297,21 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         let mut base_csr_sec_nonctp_gamma_row25col25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,24]);
         base_csr_sec_nonctp_gamma_row25col25_slice.fill(0.);
 
-        let vega_rho = girr_vega_rho();
+        let girr_vega_rho = girr_vega_rho();
 
         ScenarioConfig {
             name: ScenarioName::Medium,
             scenario_fn: med_fn,
+
+            erm2_crr2: vec!["BGN".to_string(), "DKK".to_string(), "HRK".to_string()],
             girr_delta_rho_same_curve,
             girr_delta_rho_diff_curve,
             girr_delta_rho_infl: 0.4,
             girr_delta_rho_xccy: 0.,
-            girr_delta_gamma: 0.5,
+            girr_gamma: 0.5,
+            girr_gamma_crr2_erm2: 0.8,
+            girr_curv_gamma: 0.5f64.powi(2),
+            girr_curv_gamma_crr2_erm2: 0.8f64.powi(2),
 
             fx_delta_rho: 1.,
             fx_delta_gamma: 0.6,
@@ -350,7 +357,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             csr_sec_nonctp_gamma,
 
             // Vega
-            vega_rho,
+            girr_vega_rho,
 
         }}
 );
@@ -393,11 +400,17 @@ pub struct ScenarioConfig{
     pub name: ScenarioName,
     pub scenario_fn: fn(f64) -> f64,
 
+    pub erm2_crr2: Vec<String>,
+
     pub girr_delta_rho_same_curve: Array2<f64>,
     pub girr_delta_rho_diff_curve: Array2<f64>,
     pub girr_delta_rho_infl: f64,
     pub girr_delta_rho_xccy: f64,
-    pub girr_delta_gamma: f64,
+    pub girr_gamma: f64,
+    pub girr_gamma_crr2_erm2: f64,
+    pub girr_curv_gamma: f64,
+    pub girr_curv_gamma_crr2_erm2: f64,
+
     pub fx_delta_rho: f64,
     pub fx_delta_gamma: f64,
     // Commodity rho cannot be precomputed since too many options:
@@ -447,7 +460,7 @@ pub struct ScenarioConfig{
     pub csr_sec_nonctp_gamma: Array2<f64>,
 
     //Vega
-    pub vega_rho: Array2<f64>,
+    pub girr_vega_rho: Array2<f64>,
 
 }
 
@@ -467,7 +480,7 @@ impl ScenarioConfig {
     {
         //First, apply function to matrixes 
         let mut matrixes: [Array2<f64>; 6] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
-        self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.vega_rho.to_owned()];
+        self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned()];
 
         matrixes.iter_mut()
         .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
@@ -475,7 +488,7 @@ impl ScenarioConfig {
         //Unzip matrixes into individual components
         let[girr_delta_rho_same_curve, girr_delta_rho_diff_curve,
         com_gamma, eq_gamma, csr_sec_nonctp_gamma,
-        vega_rho] = matrixes;
+        girr_vega_rho] = matrixes;
 
         //objects which do not implement copy
         let base_com_rho_tenor = self.base_com_rho_tenor.to_owned();
@@ -495,14 +508,21 @@ impl ScenarioConfig {
 
         let base_csr_sec_nonctp_rho_tenor = self.base_csr_sec_nonctp_rho_tenor.to_owned();
 
+        let erm2_crr2 = self.erm2_crr2.clone();
+
         //Next, apply to singles and return a scenario
         Self {  name: scenario,
                 scenario_fn: function as fn(f64) -> f64,
+                
+                erm2_crr2,
+
                 girr_delta_rho_same_curve,
                 girr_delta_rho_diff_curve, 
                 girr_delta_rho_infl: function(self.girr_delta_rho_infl), 
                 girr_delta_rho_xccy: function(self.girr_delta_rho_xccy), 
-                girr_delta_gamma: function(self.girr_delta_gamma), 
+                girr_gamma: function(self.girr_gamma), 
+                girr_curv_gamma: function(self.girr_curv_gamma), 
+                girr_curv_gamma_crr2_erm2: function(self.girr_curv_gamma_crr2_erm2), 
 
                 fx_delta_rho: function(self.fx_delta_rho),
                 fx_delta_gamma: function(self.fx_delta_gamma),
@@ -529,7 +549,7 @@ impl ScenarioConfig {
 
                 csr_sec_nonctp_gamma,
 
-                vega_rho,
+                girr_vega_rho,
 
                 ..*self }
         

@@ -1,17 +1,17 @@
-use std::mem::MaybeUninit;
-
 use base_engine::prelude::*;
 use crate::prelude::*;
 use crate::helpers::{ReturnMetric, get_optional_parameter_array, get_optional_parameter};
-use crate::sbm::common::{rc_delta_sens, rc_tenor_weighted_sens, across_bucket_agg};
+use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg, total_delta_sens, SBMChargeType};
 
 use ndarray::{Array2, Array1};
 use polars::prelude::*;
-use rayon::iter::ParallelIterator;
+use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 use log::warn;
 
+use super::delta::build_girr_crr2_gamma;
+
 pub fn total_ir_vega_sens (_: &OCP) -> Expr {
-    rc_delta_sens("GIRR", "Vega")
+    rc_rcat_sens("GIRR", "Vega", total_delta_sens())
 }
 
 fn girr_vega_sens_weighted_05y() -> Expr {
@@ -39,6 +39,11 @@ pub(crate) fn girr_vega_sens_weighted(_: &OCP) -> Expr {
     + girr_vega_sens_weighted_10y().fill_null(0.)
 }
 
+/// Interm Result: GIRR Vega Sb <--> Sb Low == Sb Medium == Sb High
+pub(crate) fn girr_vega_sb(op: &OCP) -> Expr {
+    girr_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
+}
+
 ///calculate GIRR Vega Low Capital charge
 pub(crate) fn girr_vega_charge_low(op: &OCP) -> Expr {
     girr_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
@@ -47,11 +52,6 @@ pub(crate) fn girr_vega_charge_low(op: &OCP) -> Expr {
 /// Interm Result: GIRR Vega Low Kb 
 pub(crate) fn girr_vega_kb_low(op: &OCP) -> Expr {
     girr_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
-}
-
-/// Interm Result: GIRR Vega Sb <--> Sb Low == Sb Medium == Sb High
-pub(crate) fn girr_vega_sb(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
 }
 
 ///calculate GIRR Vega Medium Capital charge
@@ -77,18 +77,20 @@ pub(crate) fn girr_vega_kb_high(op: &OCP) -> Expr {
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn girr_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
+    let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
     
-    //let girr_delta_gamma = get_optional_parameter(op, format!("girr_delta_gamma{_suffix}").as_ref() as &str, &scenario.girr_delta_gamma);
-    let girr_vega_rho = get_optional_parameter_array(op, "base_girr_vega_option_rho", &scenario.vega_rho);
+    let girr_vega_rho = get_optional_parameter_array(op, format!("girr_vega_rho{_suffix}").as_str(), &scenario.girr_vega_rho);
+    let girr_vega_gamma = get_optional_parameter(op, format!("girr_vega_gamma{_suffix}").as_str(), &scenario.girr_gamma);
 
-    let girr_vega_gamma = get_optional_parameter(op, "base_girr_vega_option_rho", &scenario.girr_delta_gamma);
+    let girr_vega_gamma_crr2_erm2 = get_optional_parameter(op, format!("girr_vega_gamma_erm2{_suffix}").as_str(), &scenario.girr_gamma_crr2_erm2);
+    let erm2ccys =  get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_crr2);
 
-    girr_vega_charge( girr_vega_rho, girr_vega_gamma, rtrn)
-        
+    girr_vega_charge( girr_vega_rho, girr_vega_gamma, rtrn, juri, girr_vega_gamma_crr2_erm2, erm2ccys)
 }
 
-fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metric: ReturnMetric) -> Expr {
+fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metric: ReturnMetric, juri: Jurisdiction,
+    erm2_gamma: f64, erm2ccys: Vec<String>) -> Expr {
 
     apply_multiple( move |columns| {
 
@@ -106,7 +108,6 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
 
         let df = df.lazy()
             .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Vega"))))
-            // .with_column(col("um").fill_nan(col("rft"))) <--> this step is done in preprocessing
             .groupby([col("b"), col("um")])
             .agg([
                 col("y05").sum(),
@@ -118,15 +119,17 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
             .fill_null(lit::<f64>(0.))
             .collect()?;
         
-        let res_kbs_sbs: Result<Vec<(f64,f64)>> = df["b"].unique()?
-            .utf8()?
+        let part = df.partition_by(["b"])?;
+        let res_buckets_kbs_sbs: Result<Vec<((&str, f64), f64)>> = part
             .par_iter()
-            .map(|b|{
-                girr_vega_bucket_kb_sb(df.clone().lazy(), &girr_vega_opt_rho, b.unwrap_or_else(||"Default"))
+            .map(|bdf|{
+                girr_vega_bucket_kb_sb(bdf, &girr_vega_opt_rho)
             })
             .collect();
-        let kbs_sbs = res_kbs_sbs?;
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
+
+        let buckets_kbs_sbs = res_buckets_kbs_sbs?;
+        let (buckets_kbs, sbs): (Vec<(&str, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
+        let (buckets, kbs): (Vec<&str>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
         // Early return Kb or Sb is that is the required metric
         let res_len = columns[0].len();
@@ -135,31 +138,40 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
             ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
             _ => (),
         }
-        let mut gamma = Array2::from_elem((kbs.len(), kbs.len()), girr_gamma );
+
+        // 325ag
+        let mut gamma = match juri {
+            Jurisdiction::BCBS => Array2::from_elem((kbs.len(), kbs.len()), girr_gamma ),
+            Jurisdiction::CRR2 => { build_girr_crr2_gamma(&buckets, &erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
+                girr_gamma, erm2_gamma ) },
+        };
         let zeros = Array1::zeros(kbs.len() );
         gamma.diag_mut().assign(&zeros);
 
-        across_bucket_agg(kbs, sbs, &gamma, res_len)
+        across_bucket_agg(kbs, sbs, &gamma, res_len, SBMChargeType::DeltaVega)
     }, 
     &[ col("RiskCategory"), col("RiskClass"), col("BucketBCBS"), 
-    col("GirrVegaUnderlyingMaturity"), girr_vega_sens_weighted_05y(),
-    girr_vega_sens_weighted_1y(), girr_vega_sens_weighted_3y(),
-    girr_vega_sens_weighted_5y(), girr_vega_sens_weighted_10y()], 
+    col("GirrVegaUnderlyingMaturity"), 
+    col("Sensitivity_05Y")*col("SensWeights").arr().get(0),
+    col("Sensitivity_1Y")*col("SensWeights").arr().get(0),
+    col("Sensitivity_3Y")*col("SensWeights").arr().get(0),
+    col("Sensitivity_5Y")*col("SensWeights").arr().get(0),
+    col("Sensitivity_10Y")*col("SensWeights").arr().get(0),
+    ], 
         GetOutput::from_type(DataType::Float64))
 }
 
-fn girr_vega_bucket_kb_sb(lf: LazyFrame, girr_vega_rho: &Array2<f64>, bucket: &str) -> Result<(f64, f64)> {
-    let bucket_df = lf
-            .filter(col("b").eq(lit(bucket)));
+fn girr_vega_bucket_kb_sb<'a>(bucket_df: &'a DataFrame, girr_vega_rho: &Array2<f64>) -> Result<((&'a str, f64), f64)> {
+    let bucket = unsafe{bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or_else(||"Default")};
 
     // Extracting yield curves
-    let yield_05um = girr_underlying_maturity_arr(bucket_df.clone(), "0.5Y", bucket)?;
-    let yield_1um = girr_underlying_maturity_arr(bucket_df.clone(), "1Y", bucket)?;
-    let yield_3um = girr_underlying_maturity_arr(bucket_df.clone(), "3Y", bucket)?;
-    let yield_5um = girr_underlying_maturity_arr(bucket_df.clone(), "5Y", bucket)?;
-    let yield_10um = girr_underlying_maturity_arr(bucket_df.clone(), "10Y", bucket)?;
-    let infl = girr_underlying_maturity_arr(bucket_df.clone(), "Inflation", bucket)?;
-    let xccy = girr_underlying_maturity_arr(bucket_df.clone(), "XCCY", bucket)?;
+    let yield_05um = girr_underlying_maturity_arr(bucket_df, "0.5Y", bucket)?;
+    let yield_1um = girr_underlying_maturity_arr(bucket_df, "1Y", bucket)?;
+    let yield_3um = girr_underlying_maturity_arr(bucket_df, "3Y", bucket)?;
+    let yield_5um = girr_underlying_maturity_arr(bucket_df, "5Y", bucket)?;
+    let yield_10um = girr_underlying_maturity_arr(bucket_df, "10Y", bucket)?;
+    let infl = girr_underlying_maturity_arr(bucket_df, "Inflation", bucket)?;
+    let xccy = girr_underlying_maturity_arr(bucket_df, "XCCY", bucket)?;
 
     let mut a = Array1::<f64>::uninit(yield_05um.len() + yield_1um.len() + yield_3um.len()
         + yield_5um.len() + yield_10um.len() + infl.len() + xccy.len());
@@ -184,21 +196,20 @@ fn girr_vega_bucket_kb_sb(lf: LazyFrame, girr_vega_rho: &Array2<f64>, bucket: &s
     //21.4.5.a
     let sb = sens.sum();
 
-    Ok((kb, sb))
+    Ok(((bucket, kb), sb))
 }
 
 /// Returns Array1 of shape 5 which represents 5 option mat tenors for a given 
 /// girr maturity
-pub(crate) fn girr_underlying_maturity_arr(lf: LazyFrame, mat: &str, b: &str) -> Result<Array1<f64>> {
-    Ok(lf.filter(col("um").eq(lit(mat)))
-        .select([col("y05"), col("y1"), col("y3"),
-                 col("y5"), col("y10")])
-        .collect()?
+pub(crate) fn girr_underlying_maturity_arr(df: &DataFrame, mat: &str, _: &str) -> Result<Array1<f64>> {
+    let mask = df["um"].equal(mat)?;
+    Ok( df.filter(&mask)?.select(["y05", "y1", "y3", "y5", "y10"])?
         .to_ndarray::<Float64Type>()?
         .into_shape(5).unwrap_or_else(|_|{
             //warn!("For bucket: {b}, GirrVegaUnderlyingMaturity {mat} not found. Zero's will be used");
             Array1::<f64>::zeros(5)
-        }))
+        })
+    )
 }
 
 pub(crate) fn girr_vega_rho() -> Array2<f64> {

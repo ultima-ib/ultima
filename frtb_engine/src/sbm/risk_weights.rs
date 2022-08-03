@@ -197,20 +197,20 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
 
 
     let dlt_weights = SensWeightsConfig {
-        //FX
+        // FX
         fx: fx_base_srs.lit().list(),
         fx_override: fx_map,
-        //GIRR
+        // GIRR
         ir_xccy_infl: ir_xccy.lit().list(),
         ir_yield: ir_base_srs.lit().list(),
         //ir_infl: ir_infl.lit().list(),
         ir_override: ir_map,
-        //Commodity
+        // Commodity
         com_bucket_weight: commodity_bucket_weight,
-        //Eq
+        // Eq
         eq_bucket_spot_weight: equity_bucket_spot_weights,
         eq_bucket_repo_weight: equity_bucket_repo_weights,
-        //CSR non-Sec
+        // CSR non-Sec
         csr_non_sec_weight,
         // CSR sec CTP
         csr_sec_ctp_weight,

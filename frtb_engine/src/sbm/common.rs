@@ -25,27 +25,53 @@ pub fn total_delta_sens() -> Expr {
     +col("Sensitivity_30Y").fill_null(0.)
 }
 
-/// Shorter version of total_delta_sens
-/// More efficient because it only cares about Vega tenors of sensitivity
-pub fn total_vega_sens() -> Expr {
-    // When adding Exprs NULLs have to be filled
-    // Otherwise returns NULL
-    col("Sensitivity_05Y").fill_null(0.)
-    +col("Sensitivity_1Y").fill_null(0.)
-    +col("Sensitivity_3Y").fill_null(0.)
-    +col("Sensitivity_5Y").fill_null(0.)
-    +col("Sensitivity_10Y").fill_null(0.)
+pub(crate) fn total_sens_curv_weighted() -> Expr {
+    total_delta_sens()*col("CurvatureRiskWeight")
 }
+pub(crate) fn cvr_up() -> Expr {
+    lit::<f64>(0.) - (col("PnL_Up") - total_sens_curv_weighted() )
+}
+
+pub(crate) fn cvr_down() -> Expr {
+    lit::<f64>(0.) - (col("PnL_Down") + total_sens_curv_weighted() )
+}
+
+pub(crate) fn rc_cvr(rc: &str, dir: CVR)->Expr{
+    let cvr = match dir {
+        CVR::Up  => cvr_up(),
+        CVR::Down => cvr_down(),
+    };
+
+    when(col("RiskClass").eq(lit(rc)))
+    .then(cvr)
+    .otherwise(lit::<f64>(0.))
+}
+
+pub(crate) enum CVR {
+    Up,
+    Down
+}
+
+pub fn curv_delta(rc: &str) -> Expr {
+    when(col("RiskClass").eq(lit(rc)).and(
+        col("PnL_Up").is_not_null().or(col("PnL_Down").is_not_null())
+        )
+    )
+    .then(total_delta_sens())
+    .otherwise(lit::<f64>(0.0) )
+}
+
+//pub fn rc_pnl
 
 /// WhenThen shouldn't be used inside groupby
 /// this works so far
-/// but this function is NOT to be relied on in calculation
-pub fn rc_delta_sens(rc: &str, rcat: &str) -> Expr {
+/// but must be VERY careful with this function in calculation
+pub fn rc_rcat_sens(rc: &str, rcat: &str, risk: Expr) -> Expr {
     when(
         col("RiskClass").eq(lit(rc)).and(
             col("RiskCategory").eq(lit(rcat)))
     )
-    .then(total_delta_sens()) 
+    .then(risk) 
     .otherwise(lit::<f64>(0.0))
 }
 
@@ -81,7 +107,8 @@ pub fn sens_weights(_: &OCP) -> Expr {
     col("SensWeights")
 }
 
-pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gamma: &Array2<f64>, res_len: usize) 
+pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gamma: &Array2<f64>, 
+    res_len: usize, sbm_type: SBMChargeType) 
 -> Result<Series>
  {
     let kbs_arr = Array1::from_iter(kbs);        
@@ -91,12 +118,14 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gam
     let a = sbs_arr.dot(gamma);
     let b = a.dot(&sbs_arr);
 
-    //21.4.5 sum{K-b^2}
+    //21.4.5 sum{Kb^2}
     let c = kbs_arr.dot(&kbs_arr);
 
     let sum = c+b;
 
-    let res = if sum < 0. {
+    let res = match sbm_type {
+
+        SBMChargeType::DeltaVega => {if sum < 0. {
         //21.4.5.b
         let sbs_alt = alt_sbs(sbs_arr.view(), kbs_arr.view());
         //now recalculate capital charge with alternative sb
@@ -107,14 +136,22 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gam
         let c = kbs_arr.dot(&kbs_arr);
         let sum = c+b;
         sum.sqrt()
-    } else {
-        sum.sqrt()
+        } else {
+            sum.sqrt()
+        }},
+
+        SBMChargeType::Curvature => f64::max(sum, 0.).sqrt(),
     };
 
     // The function is supposed to return a series of same len as the input, hence we broadcast the result
     let res_arr = Array::from_elem(res_len, res);
     // if option panics on .unwrap() implement match and use .iter() and then Series from iter
     Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
+}
+
+pub(crate) enum SBMChargeType{
+    DeltaVega,
+    Curvature
 }
 
 pub(crate) fn alt_sbs(sbs_arr: ArrayView1<f64>, kbs_arr: ArrayView1<f64>) -> Array1<f64>{

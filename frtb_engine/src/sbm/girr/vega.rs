@@ -6,7 +6,6 @@ use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg
 use ndarray::{Array2, Array1};
 use polars::prelude::*;
 use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
-use log::warn;
 
 use super::delta::build_girr_crr2_gamma;
 
@@ -141,9 +140,10 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
 
         // 325ag
         let mut gamma = match juri {
-            Jurisdiction::BCBS => Array2::from_elem((kbs.len(), kbs.len()), girr_gamma ),
+            #[cfg(feature = "CRR2")]
             Jurisdiction::CRR2 => { build_girr_crr2_gamma(&buckets, &erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
                 girr_gamma, erm2_gamma ) },
+            _ => Array2::from_elem((kbs.len(), kbs.len()), girr_gamma ),
         };
         let zeros = Array1::zeros(kbs.len() );
         gamma.diag_mut().assign(&zeros);

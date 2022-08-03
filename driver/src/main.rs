@@ -264,19 +264,19 @@ const JSON: &str = r#"
     "method": "SEND", 
     "params": {
         "measures": [
-            ["GIRR_CVRup", "sum"],
-["GIRR_CVRdown", "sum"],
-["GIRR_Curvature_KbPlus", "first"],
-["GIRR_Curvature_KbMinus", "first"],
-["GIRR_Curvature_Kb", "first"],
-["GIRR_Curvature_Sb", "first"],
-["GIRR_CurvatureCharge_Low", "first"],
-["GIRR_CurvatureCharge_Medium", "first"],
-["GIRR_CurvatureCharge_High", "first"]
+            ["GIRR_DeltaSens", "sum"],
+["GIRR_DeltaSens_Weighted", "sum"],
+["GIRR_DeltaSb", "sum"],
+["GIRR_DeltaKb_Low", "first"],
+["GIRR_DeltaKb_Medium", "first"],
+["GIRR_DeltaKb_High", "first"],
+["GIRR_DeltaCharge_Low", "first"],
+["GIRR_DeltaCharge_Medium", "first"],
+["GIRR_DeltaCharge_High", "first"]
 
         ],
         "groupby": ["Desk"],
-        "filters": [{"Eq": [["Desk","FXCash"],["Desk","RatesEM"]]}],
+        "filters": [{"Eq": [["Desk","FXOptions"]]}],
         "optional_params": {
             "hide_zeros": true,
             "calc_params": {"jurisdiction": "BCBS",

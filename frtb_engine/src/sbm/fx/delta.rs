@@ -26,7 +26,7 @@ pub(crate) fn fx_delta_sens (op: &OCP) -> Expr {
                 None
             }
         })
-        .unwrap_or({
+        .unwrap_or_else(||{
             match juri{
                 #[cfg(feature = "CRR2")]
                 Jurisdiction::CRR2 => "^...EUR$".to_string(),

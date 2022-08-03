@@ -5,9 +5,9 @@ type = "CSV"
 # first file path 
 # "C:/rust/DeltaGirr100_100_400000.csv"
 # "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
-file_1_path = "C:/rust/ultima/frtb_engine/examples/data/Delta.csv"
+file_1_path = "C:/rust/DeltaGirr100_100_400000.csv"
 # trade attributes
-attributes_path = "frtb_engine/examples/data/TradeAttributes.csv"
+attributes_path = "frtb_engine/examples/data/TradeAttributes2.csv"
 # HMS
 hierarchy_path = "frtb_engine/examples/data/hms.csv"
 # file_1/file_2/file_3 <-> trade attributes

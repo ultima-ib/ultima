@@ -148,9 +148,10 @@ fn girr_curvature_charge(girr_curv_gamma: f64, erm2_gamma: f64,
 
         // 325ag
         let mut gamma = match juri {
-            Jurisdiction::BCBS => Array2::from_elem((kbs.len(), kbs.len()), girr_curv_gamma ),
+            #[cfg(feature = "CRR2")]
             Jurisdiction::CRR2 => { build_girr_crr2_gamma(&buckets, &erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
                 girr_curv_gamma, erm2_gamma ) },
+            _ => Array2::from_elem((kbs.len(), kbs.len()), girr_curv_gamma ),
         };
 
         let phi = phi(&sbs);

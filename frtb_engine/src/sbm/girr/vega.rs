@@ -6,7 +6,7 @@ use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg
 use ndarray::{Array2, Array1};
 use polars::prelude::*;
 use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
-
+#[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;
 
 pub fn total_ir_vega_sens (_: &OCP) -> Expr {
@@ -130,7 +130,7 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
         let (buckets_kbs, sbs): (Vec<(&str, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
         let (buckets, kbs): (Vec<&str>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
-        // Early return Kb or Sb is that is the required metric
+        // Early return Kb or Sb, ie the required metric
         let res_len = columns[0].len();
         match return_metric {
             ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),

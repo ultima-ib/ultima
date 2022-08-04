@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use polars::prelude::*;
 use log::{warn, debug};
 use serde::{Serialize, Deserialize};
+use toml::Value;
 
 use crate::dataset::*;
 
@@ -34,7 +35,7 @@ where T: serde::de::DeserializeOwned,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type", content = "paths")]
+#[serde(tag = "type")]
 pub enum DataSourceConfig {
     CSV{#[serde(default, rename = "file_1_path")]
         file_1: Option<String>,
@@ -175,11 +176,7 @@ impl DataSourceConfig {
                     };
 
                     let build_params = 
-                    if let Some(bp) = build_params.take() {
-                        bp
-                    } else {
-                        HashMap::default()
-                    };
+                    if let Some(bp) = build_params.take() { bp } else { HashMap::default()};
 
                     DataSet{f1: df1, f2: df2, f3: df3, measure_cols, build_params}
                 },

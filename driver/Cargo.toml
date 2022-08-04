@@ -17,7 +17,6 @@ pretty_env_logger = "0.4"
 dotenv = "0.15"
 tokio = {version = "1.17.0", features=["full"]}
 toml = "0.5.9"
-#snmalloc-rs = "0.3.3"
 
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.

@@ -2,6 +2,7 @@
 //! This to be conversted into server
 
 use base_engine::prelude::*;
+use toml::Value;
 
 use std::process;
 use std::sync::Arc;
@@ -13,8 +14,6 @@ use frtb_engine::prelude::*;
 use mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
-//#[global_allocator]
-//static ALLOC: snmalloc_rs::SnMalloc = snmalloc_rs::SnMalloc;
 
 fn main() {
     // Read .env
@@ -24,6 +23,7 @@ fn main() {
     // Read Config
     let conf = read_toml2::<DataSourceConfig>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     info!("Data SetUp: {:?}", conf);
+
     // Build data
     let mut data: DataSet = conf.build();
     // Pre build some columns, which you wish to store in memory alongside the original data
@@ -176,8 +176,7 @@ const JSON: &str = r#"
 ["Commodity_DeltaSens", "sum"],
 ["Commodity_DeltaSens_Weighted", "sum"],
 
-["FX_DeltaSens", "sum"],
-["FX_DeltaSens_Weighted", "sum"],
+
 
 ["CSR_Sec_nonCTP_DeltaSens", "sum"],
 ["CSR_Sec_nonCTP_DeltaSens_Weighted", "sum"],
@@ -188,9 +187,7 @@ const JSON: &str = r#"
 ["CSR_nonSec_DeltaSens", "sum"],
 ["CSR_nonSec_DeltaSens_Weighted", "sum"],
 
-["FX_DeltaCharge_Low", "first"],
-["FX_DeltaCharge_Medium", "first"],
-["FX_DeltaCharge_High", "first"],
+
 
 ["Commodity_DeltaCharge_Low", "first"],
 ["Commodity_DeltaCharge_Medium", "first"],
@@ -211,6 +208,24 @@ const JSON: &str = r#"
 ["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_High", "first"],
+
+["FX_DeltaSens", "sum"],
+["FX_DeltaSens_Weighted", "sum"],
+["FX_DeltaSb", "first"],
+["FX_DeltaKb", "first"],
+["FX_DeltaCharge_Low", "first"],
+["FX_DeltaCharge_Medium", "first"],
+["FX_DeltaCharge_High", "first"],
+
+["FX_VegaSens", "sum"],
+["FX_VegaSens_Weighted", "sum"],
+["FX_VegaSb", "first"],
+["FX_VegaKb_Low", "first"],
+["FX_VegaKb_Medium", "first"],
+["FX_VegaKb_High", "first"],
+["FX_VegaCharge_Low", "first"],
+["FX_VegaCharge_Medium", "first"],
+["FX_VegaCharge_High", "first"],
 
 
 ["GIRR_DeltaSens", "sum"],
@@ -264,18 +279,15 @@ const JSON: &str = r#"
     "method": "SEND", 
     "params": {
         "measures": [
-            ["GIRR_DeltaSens", "sum"],
-["GIRR_DeltaSens_Weighted", "sum"],
-["GIRR_DeltaSb", "sum"],
-["GIRR_DeltaKb_Low", "first"],
-["GIRR_DeltaKb_Medium", "first"],
-["GIRR_DeltaKb_High", "first"],
-["GIRR_DeltaCharge_Low", "first"],
-["GIRR_DeltaCharge_Medium", "first"],
-["GIRR_DeltaCharge_High", "first"]
-
+            ["FX_DeltaSens", "sum"],
+["FX_DeltaSens_Weighted", "sum"],
+["FX_DeltaSb", "first"],
+["FX_DeltaKb", "first"],
+["FX_DeltaCharge_Low", "first"],
+["FX_DeltaCharge_Medium", "first"],
+["FX_DeltaCharge_High", "first"]
         ],
-        "groupby": ["Desk"],
+        "groupby": ["Desk", "BucketBCBS"],
         "filters": [{"Eq": [["Desk","FXOptions"]]}],
         "optional_params": {
             "hide_zeros": true,

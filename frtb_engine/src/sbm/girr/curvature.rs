@@ -4,7 +4,7 @@ use base_engine::prelude::OCP;
 use polars::prelude::*;
 
 use crate::{sbm::common::curv_delta, helpers::ReturnMetric};
-
+#[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;
 
 pub fn ir_curv_delta (_: &OCP) -> Expr {

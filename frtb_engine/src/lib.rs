@@ -28,7 +28,7 @@ impl FRTBDataSetT for DataSet {
 
         if self.f1.height() != 0 {
             //First, identify buckets
-            let mut lf1 = self.f1.lazy().with_column(buckets::sbm_buckets());
+            let mut lf1 = self.f1.lazy().with_column(buckets::sbm_buckets(&self.build_params));
             #[cfg(feature = "CRR2")]
             if cfg!(feature = "CRR2") { lf1 = lf1.with_column(buckets::sbm_buckets_crr2())};
 
@@ -297,6 +297,8 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         let mut base_csr_sec_nonctp_gamma_row25col25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,24]);
         base_csr_sec_nonctp_gamma_row25col25_slice.fill(0.);
 
+        let vega_rho = option_maturity_rho();
+
         let girr_vega_rho = girr_vega_rho();
 
         ScenarioConfig {
@@ -314,7 +316,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             girr_curv_gamma_crr2_erm2: 0.8f64.powi(2),
 
             fx_delta_rho: 1.,
-            fx_delta_gamma: 0.6,
+            fx_gamma: 0.6,
 
             base_com_rho_cty: base_commodity_bucket_rho,
             base_com_rho_basis_diff: 0.999,
@@ -357,6 +359,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
             csr_sec_nonctp_gamma,
 
             // Vega
+            vega_rho,
             girr_vega_rho,
 
         }}
@@ -412,7 +415,7 @@ pub struct ScenarioConfig{
     pub girr_curv_gamma_crr2_erm2: f64,
 
     pub fx_delta_rho: f64,
-    pub fx_delta_gamma: f64,
+    pub fx_gamma: f64,
     // Commodity rho cannot be precomputed since too many options:
     // 21.83.1 same commodity or diff commodity(depends on per bucket)
     pub base_com_rho_cty: [f64; 11],
@@ -460,6 +463,7 @@ pub struct ScenarioConfig{
     pub csr_sec_nonctp_gamma: Array2<f64>,
 
     //Vega
+    pub vega_rho: Array2<f64>,
     pub girr_vega_rho: Array2<f64>,
 
 }
@@ -479,8 +483,9 @@ impl ScenarioConfig {
     //where F: Fn(f64) -> f64 + Sync,
     {
         //First, apply function to matrixes 
-        let mut matrixes: [Array2<f64>; 6] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
-        self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned()];
+        let mut matrixes: [Array2<f64>; 7] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
+        self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
+        self.vega_rho.to_owned()];
 
         matrixes.iter_mut()
         .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
@@ -488,7 +493,7 @@ impl ScenarioConfig {
         //Unzip matrixes into individual components
         let[girr_delta_rho_same_curve, girr_delta_rho_diff_curve,
         com_gamma, eq_gamma, csr_sec_nonctp_gamma,
-        girr_vega_rho] = matrixes;
+        girr_vega_rho, vega_rho] = matrixes;
 
         //objects which do not implement copy
         let base_com_rho_tenor = self.base_com_rho_tenor.to_owned();
@@ -525,7 +530,7 @@ impl ScenarioConfig {
                 girr_curv_gamma_crr2_erm2: function(self.girr_curv_gamma_crr2_erm2), 
 
                 fx_delta_rho: function(self.fx_delta_rho),
-                fx_delta_gamma: function(self.fx_delta_gamma),
+                fx_gamma: function(self.fx_gamma),
 
                 base_com_rho_tenor,
                 com_gamma,
@@ -549,6 +554,7 @@ impl ScenarioConfig {
 
                 csr_sec_nonctp_gamma,
 
+                vega_rho,
                 girr_vega_rho,
 
                 ..*self }

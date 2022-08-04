@@ -216,6 +216,7 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f6
 
 /// 325ag
 /// TODO test
+#[cfg(feature = "CRR2")]
 pub(crate) fn build_girr_crr2_gamma(buckets: &[&str], erm2ccys: &[&str], base_gamma: f64, erma2vseur: f64) -> Array2<f64>
 //where I: Iterator<Item = S>,
 {

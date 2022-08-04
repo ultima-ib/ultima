@@ -1,11 +1,23 @@
-//! TODO for CSR if Bucket is empy - fill null based on CSR Sector and Credit Quality
-//! 
+//! TODO for CSR if Bucket is empy - fill null based on CSR Sector and Credit Quality, if these are provided
+use std::collections::HashMap;
+
 use polars::prelude::*;
 
-pub fn sbm_buckets () -> Expr {
+pub fn sbm_buckets (conf: &HashMap<String, String>) -> Expr {
+    let offshore_onshore = conf.get("offshore_onshore_fx")
+        .and_then(|x| serde_json::from_str::<HashMap<String,String>>(x).ok())
+        .unwrap_or_default();
+        
     when(col("RiskClass").eq(lit("FX")))
-    //Note Offshore: if RF is THOUSD, bucket should be THBUSD
-    .then( col("BucketBCBS").fill_null(col("RiskFactor")))
+    .then( col("BucketBCBS").fill_null(
+        col("RiskFactor").map(move |srs|{
+            let mut res = srs.utf8()?.to_owned();
+            for (k, v) in &offshore_onshore{
+                res = res.replace(k, v)?;
+            };
+            Ok(res.into_series())
+        }, 
+            GetOutput::from_type(DataType::Utf8))))
     .otherwise(col("BucketBCBS"))
 }
 

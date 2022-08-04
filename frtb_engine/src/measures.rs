@@ -3,7 +3,8 @@ use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high};
 use crate::sbm::csr_sec_nonctp::delta::{total_csr_sec_nonctp_delta_sens, csr_sec_nonctp_delta_sens_weighted, csr_sec_nonctp_delta_charge_low, csr_sec_nonctp_delta_charge_medium, csr_sec_nonctp_delta_charge_high};
-use crate::sbm::fx::delta::{fx_delta_sens, fx_delta_sens_weighted, fx_delta_charge_low, fx_delta_charge_medium, fx_delta_charge_high};
+use crate::sbm::fx::delta::{fx_delta_sens_repccy, fx_delta_sens_weighted, fx_delta_charge_low, fx_delta_charge_medium, fx_delta_charge_high, fx_delta_sb, fx_delta_kb};
+use crate::sbm::fx::vega::{total_fx_vega_sens, total_fx_vega_sens_weighted, fx_vega_sb, fx_vega_kb_medium, fx_vega_kb_low, fx_vega_kb_high, fx_vega_charge_low, fx_vega_charge_medium, fx_vega_charge_high};
 use crate::sbm::girr::curvature::{ir_curv_delta, girr_curv_delta_weighted, girr_cvr_up, girr_cvr_down, girr_pnl_up, girr_pnl_down, girr_curvature_charge_medium, girr_curvature_kb_plus, girr_curvature_kb_minus, girr_curvature_kb, girr_curvature_sb, girr_curvature_charge_low, girr_curvature_charge_high};
 use crate::sbm::girr::delta::{total_ir_delta_sens, girr_delta_sens_weighted,
     girr_delta_charge_low, girr_delta_charge_medium, girr_delta_charge_high, girr_delta_sb, girr_delta_kb_low, girr_delta_kb_medium, girr_delta_kb_high};
@@ -25,66 +26,10 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
     //"Sensitivity_15Y", "Sensitivity_20Y", "Sensitivity_30Y"];
 
     vec![
-        //                                                 ##### Delta #####
-        // GIRR
-        Measure{
-            name: "GIRR_DeltaSens",
-            calculator: Box::new(total_ir_delta_sens),
-            aggregation: None,
-        },
-
-        Measure{
-            name: "GIRR_DeltaSens_Weighted",
-            calculator: Box::new(girr_delta_sens_weighted),
-            aggregation: None,
-        },
-
-        Measure{
-            name: "GIRR_DeltaSb",
-            calculator: Box::new(girr_delta_sb),
-            aggregation: Some("first"),
-        },
-
-        Measure{
-            name: "GIRR_DeltaCharge_Low",
-            calculator: Box::new(girr_delta_charge_low),
-            aggregation: Some("first"),
-        },
-
-        Measure{
-            name: "GIRR_DeltaKb_Low",
-            calculator: Box::new(girr_delta_kb_low),
-            aggregation: Some("first"),
-        },
-
-        Measure{
-            name: "GIRR_DeltaCharge_Medium",
-            calculator: Box::new(girr_delta_charge_medium),
-            aggregation: Some("first"),
-        },
-
-        Measure{
-            name: "GIRR_DeltaKb_Medium",
-            calculator: Box::new(girr_delta_kb_medium),
-            aggregation: Some("first"),
-        },
-
-        Measure{
-            name: "GIRR_DeltaCharge_High",
-            calculator: Box::new(girr_delta_charge_high),
-            aggregation: Some("first"),
-        },
-
-        Measure{
-            name: "GIRR_DeltaKb_High",
-            calculator: Box::new(girr_delta_kb_high),
-            aggregation: Some("first"),
-        },
-
-        //FX
+        //                             ############################## FX Delta ##############################
         Measure{
             name: "FX_DeltaSens",
-            calculator: Box::new(fx_delta_sens),
+            calculator: Box::new(fx_delta_sens_repccy),
             aggregation: None,
         },
 
@@ -92,6 +37,18 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
             name: "FX_DeltaSens_Weighted",
             calculator: Box::new(fx_delta_sens_weighted),
             aggregation: None,
+        },
+
+        Measure{
+            name: "FX_DeltaSb",
+            calculator: Box::new(fx_delta_sb),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "FX_DeltaKb",
+            calculator: Box::new(fx_delta_kb),
+            aggregation: Some("first"),
         },
 
         Measure{
@@ -111,8 +68,54 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
             calculator: Box::new(fx_delta_charge_high),
             aggregation: Some("first"),
         },
+        //        ################################# FX Vega ######################################
+        Measure{
+            name: "FX_VegaSens",
+            calculator: Box::new(total_fx_vega_sens),
+            aggregation: None,
+        },
+        Measure{
+            name: "FX_VegaSens_Weighted",
+            calculator: Box::new(total_fx_vega_sens_weighted),
+            aggregation: None,
+        },
+        Measure{
+            name: "FX_VegaSb",
+            calculator: Box::new(fx_vega_sb),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "FX_VegaKb_Low",
+            calculator: Box::new(fx_vega_kb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "FX_VegaKb_Medium",
+            calculator: Box::new(fx_vega_kb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "FX_VegaKb_High",
+            calculator: Box::new(fx_vega_kb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "FX_VegaCharge_Low",
+            calculator: Box::new(fx_vega_charge_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "FX_VegaCharge_Medium",
+            calculator: Box::new(fx_vega_charge_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "FX_VegaCharge_High",
+            calculator: Box::new(fx_vega_charge_high),
+            aggregation: Some("first"),
+        },
 
-        //Commodity
+        //        ################################ Commodity Delta ##############################
         Measure {
             name: "Commodity_DeltaSens",
             calculator: Box::new(total_commodity_delta_sens),
@@ -266,9 +269,62 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
             calculator: Box::new(csr_sec_nonctp_delta_charge_high),
             aggregation: None,
         },
+        //                      ################################ GIRR Delta #######################################
+        Measure{
+            name: "GIRR_DeltaSens",
+            calculator: Box::new(total_ir_delta_sens),
+            aggregation: None,
+        },
 
-        //                                                   ##### Vega #####
-        // GIRR 
+        Measure{
+            name: "GIRR_DeltaSens_Weighted",
+            calculator: Box::new(girr_delta_sens_weighted),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "GIRR_DeltaSb",
+            calculator: Box::new(girr_delta_sb),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_DeltaCharge_Low",
+            calculator: Box::new(girr_delta_charge_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_DeltaKb_Low",
+            calculator: Box::new(girr_delta_kb_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_DeltaCharge_Medium",
+            calculator: Box::new(girr_delta_charge_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_DeltaKb_Medium",
+            calculator: Box::new(girr_delta_kb_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_DeltaCharge_High",
+            calculator: Box::new(girr_delta_charge_high),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "GIRR_DeltaKb_High",
+            calculator: Box::new(girr_delta_kb_high),
+            aggregation: Some("first"),
+        },
+
+        //                      ################################ GIRR Vega ####################################### 
         Measure{
             name: "GIRR_VegaSens",
             calculator: Box::new(total_ir_vega_sens),
@@ -323,7 +379,7 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
             aggregation: Some("first"),
         },
 
-        // ##############################Curvature##############################
+        //                      ################################ GIRR Curvature #######################################
         Measure{
             name: "GIRR_CurvatureDelta",
             calculator: Box::new(ir_curv_delta),

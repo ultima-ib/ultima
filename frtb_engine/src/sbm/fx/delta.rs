@@ -1,5 +1,8 @@
+//! For FX RiskFactor is the original source of risk, could be offshore
+//! BucketBCBS/CRR2 to be 
+
 use base_engine::prelude::*;
-use crate::{prelude::*, helpers::get_jurisdiction};
+use crate::{prelude::*, helpers::get_jurisdiction, sbm::common::{SBMChargeType, across_bucket_agg}};
 
 use polars::prelude::*;
 use ndarray::prelude::*;
@@ -7,25 +10,13 @@ use ndarray::prelude::*;
 /// Returns a Series equal to SensitivitySpot with RiskClass == FX and RiskFactor == ...CCY
 /// !where CCY is either provided as part of optional parameters,
 /// !and if not, then is based on Jurisdiction
-pub(crate) fn fx_delta_sens (op: &OCP) -> Expr {
+pub(crate) fn fx_delta_sens_repccy (op: &OCP) -> Expr {
     let juri: Jurisdiction = get_jurisdiction(op);
-    /*
-    let ccy_regex = match juri{
-        #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => "^...EUR$".to_string(),
-        _=>"^...USD$".to_string()
-    };
-    */
+
     // This works for cases like GBP reporting with BCBS params
     let ccy_regex = op.as_ref()
         .and_then(|map| map.get("reporting_ccy"))
-        .and_then(|s| {
-            if s.len() == 3 {
-                Some(format!("^...{s}$")) 
-            } else {
-                None
-            }
-        })
+        .and_then(|s| { if s.len() == 3 { Some(format!("^...{s}$")) } else { None } })
         .unwrap_or_else(||{
             match juri{
                 #[cfg(feature = "CRR2")]
@@ -57,47 +48,51 @@ pub(crate) fn fx_delta_sens (op: &OCP) -> Expr {
 
         Ok(delta.into_series())
     }, 
-        &[col("RiskClass"), col("RiskFactor"), col("SensitivitySpot"), col("RiskCategory")], 
+        &[col("RiskClass"), col("BucketBCBS"), col("SensitivitySpot"), col("RiskCategory")], 
         GetOutput::from_type(DataType::Float64))
 }
 
 /// takes CalcParams because we need to know reporting CCY
 pub(crate) fn fx_delta_sens_weighted (op: &OCP) -> Expr {
-    fx_delta_sens(op) * col("SensWeights").arr().get(0)
+    fx_delta_sens_repccy(op) * col("SensWeights").arr().get(0)
+}
+///calculate FX Delta Sb, same for all scenarios
+pub(crate) fn fx_delta_sb(op: &OCP) -> Expr {
+    fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+}
+
+///calculate FX Delta Kb, same for all scenarios
+pub(crate) fn fx_delta_kb(op: &OCP) -> Expr {
+    fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate FX Delta High Capital charge
-/// TODO derive gamma from op or scenario def 
 pub(crate) fn fx_delta_charge_high(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO)
+    fx_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate FX Delta Medium Capital charge
 pub(crate) fn fx_delta_charge_medium(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO)
+    fx_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
-
-///calculate FX Delta Medium Capital charge
+///calculate FX Delta Low Capital charge
 pub(crate) fn fx_delta_charge_low(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO)
+    fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
-fn fx_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
+fn fx_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
     let fx_delta_sens_weighted_with_rep_ccy = fx_delta_sens_weighted(op);
 
     let _suffix = scenario.as_str();
 
-    let fx_delta_gamma = op.as_ref()
-        .and_then(|map| map.get(format!("fx_delta_gamma{_suffix}").as_ref() as &str))
-        .and_then(|s| s.parse::<f64>().ok() )
-        .unwrap_or(scenario.fx_delta_gamma);
+    let fx_delta_gamma = get_optional_parameter(op, format!("fx_delta_gamma{_suffix}").as_ref() as &str, &scenario.fx_gamma);
 
-    fx_delta_charge(fx_delta_gamma, fx_delta_sens_weighted_with_rep_ccy)
+    fx_delta_charge(fx_delta_gamma, fx_delta_sens_weighted_with_rep_ccy, rtrn)
 }
 
 ///calculate FX Delta Capital charge
-fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr) -> Expr {
+fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr, rtrn: ReturnMetric) -> Expr {
     // inner function
     apply_multiple( move |columns| {
 
@@ -122,29 +117,23 @@ fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr) -> Expr {
         //21.4.5.a sb == dw_sum
         let dw_sum = df["dw_sum"].f64()?
             .to_ndarray()?; //Ok since we have filtered out NULLs above
+        // Early return Kb or Sb, ie the required metric
+        let res_len = columns[0].len();
+        match rtrn {
+            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, dw_sum.sum()).as_slice().unwrap())),
+            _ => (),
+        }
+        let kbs: Array1<f64> = dw_sum.iter().map(|x|x.abs()).collect();
+        match rtrn {
+            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.sum()).as_slice().unwrap())),
+            _ => (),
+        }
 
         let mut gamma = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma );
         let zeros = Array::zeros(dw_sum.len() );
         gamma.diag_mut().assign(&zeros);
 
-        // 21.4.5 sum { gamma * Sc }
-        let x = dw_sum.t().dot(&gamma);
-
-        // 21.4.5 sum { Sb*x}
-        let y = dw_sum.dot(&x);
-
-        // 21.4.5 sum { Kb^2}
-        let z = dw_sum.dot(&dw_sum);
-
-        //21.4.5
-        let sum = y+z;
-        
-        //21.4.5 since |dw_sum| == kb => sb_alt == dw_sum == sb 
-        let res = sum.sqrt();
-        // The function is supposed to return a series of same len as the input, hence we broadcast the result
-        let res_arr = Array::from_elem(columns[0].len(), res);
-        // if option panics on .unwrap() implement match and use .iter() and then Series from iter
-        Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
+        across_bucket_agg(kbs, dw_sum.to_owned(), &gamma, res_len, SBMChargeType::DeltaVega)
     }, 
     &[ col("RiskClass"), col("BucketBCBS"), fx_delta_sens_weighted ], 
         GetOutput::from_type(DataType::Float64))

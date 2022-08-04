@@ -25,6 +25,9 @@ pub fn execute(req: DataRequestS, data: &DataSet, measure_map: Arc<MM>)
 
     info!("f1 with HMS, attr and prepared: {:?}", 
     data.f1.clone().lazy().collect());
+    let a = data.build_params.clone();
+    let b = a.get("offshore_onshore_fx").unwrap();
+    let c = serde_json::from_str::<HashMap<String,String>>(b);
 
     // Step 1.0 SELECT columns required for current request
     // In case of SQL data source we need to create DF from 

@@ -11,6 +11,9 @@ use serde::{Serialize, Deserialize};
 use std::time::Instant;
 #[cfg(feature = "FRTB")]
 use frtb_engine::prelude::*;
+#[cfg(target_os = "linux")]
+use jemallocator::Jemalloc;
+#[cfg(not(target_os = "linux"))]
 use mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -227,6 +230,20 @@ const JSON: &str = r#"
 ["FX_VegaCharge_Medium", "first"],
 ["FX_VegaCharge_High", "first"],
 
+["FX_CurvatureDelta", "sum"],
+["FX_CurvatureDelta_Weighted", "sum"],
+["FX_PnLup", "sum"],
+["FX_PnLdown", "sum"],
+["FX_CVRup", "sum"],
+["FX_CVRdown", "sum"],
+["FX_Curvature_KbPlus", "first"],
+["FX_Curvature_KbMinus", "first"],
+["FX_Curvature_Kb", "first"],
+["FX_Curvature_Sb", "first"],
+["FX_CurvatureCharge_Low", "first"],
+["FX_CurvatureCharge_Medium", "first"],
+["FX_CurvatureCharge_High", "first"]
+
 
 ["GIRR_DeltaSens", "sum"],
 ["GIRR_DeltaSens_Weighted", "sum"],
@@ -279,20 +296,16 @@ const JSON: &str = r#"
     "method": "SEND", 
     "params": {
         "measures": [
-            ["FX_DeltaSens", "sum"],
-["FX_DeltaSens_Weighted", "sum"],
-["FX_DeltaSb", "first"],
-["FX_DeltaKb", "first"],
-["FX_DeltaCharge_Low", "first"],
-["FX_DeltaCharge_Medium", "first"],
-["FX_DeltaCharge_High", "first"]
+            ["GIRR_CurvatureCharge_Low", "first"],
+["GIRR_CurvatureCharge_Medium", "first"],
+["GIRR_CurvatureCharge_High", "first"]
         ],
-        "groupby": ["Desk", "BucketBCBS"],
-        "filters": [{"Eq": [["Desk","FXOptions"]]}],
+        "groupby": ["Desk"],
+        "filters": [{"Eq": [["Desk","RatesEM"]]}],
         "optional_params": {
             "hide_zeros": true,
             "calc_params": {"jurisdiction": "BCBS",
-            "apply_fx_curv_divisor": "true"}
+            "apply_fx_curv_div": "true"}
         }
     }
 }"#;

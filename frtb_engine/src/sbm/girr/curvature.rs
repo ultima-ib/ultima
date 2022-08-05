@@ -1,4 +1,4 @@
-use crate::{prelude::*, sbm::common::{cvr_up, cvr_down, CVR, rc_cvr, rc_rcat_sens, across_bucket_agg, SBMChargeType}};
+use crate::{prelude::*, sbm::common::{cvr_up, cvr_down, CVR, rc_cvr, rc_rcat_sens, across_bucket_agg, SBMChargeType, phi}};
 
 use base_engine::prelude::OCP;
 use polars::prelude::*;
@@ -20,7 +20,6 @@ pub fn girr_cvr_down(_: &OCP) -> Expr {
     rc_cvr("GIRR", CVR::Down)
 }
 
-/// Helper functions
 pub fn girr_cvr_up(_: &OCP) -> Expr {
     rc_cvr("GIRR", CVR::Up)
 }
@@ -129,10 +128,16 @@ fn girr_curvature_charge(girr_curv_gamma: f64, erm2_gamma: f64,
             .zip(df["cvr_up"].f64()?.into_iter())
             .zip(df["cvr_down"].f64()?.into_iter())
             .map(|(((kb_p, kb_m), cv_up), cv_down)|
-            if kb_p>=kb_m{
+            if kb_p>kb_m{
                 (kb_p, cv_up.unwrap_or_else(||0.))
-            } else {
+            } else if kb_m>kb_p {
                 (kb_m, cv_down.unwrap_or_else(||0.))
+            } else { // 21.5.3.a.iii
+                if cv_up>cv_down{
+                    (kb_p, cv_up.unwrap_or_else(||0.))
+                } else {
+                    (kb_m, cv_down.unwrap_or_else(||0.))
+                }
             }
         )
         .collect::<Vec<(f64, f64)>>();
@@ -167,23 +172,4 @@ fn girr_curvature_charge(girr_curv_gamma: f64, erm2_gamma: f64,
         cvr_up(),
         cvr_down()],
         GetOutput::from_type(DataType::Float64))
-}
-
-fn phi(sbs: &Vec<f64>) -> Array2<f64> {
-    let mut arr = Array2::ones((sbs.len(), sbs.len()));
-
-    arr.axis_iter_mut(Axis(0)) // Iterate over rows
-    .enumerate()
-    .for_each(|(i, mut row)|{
-        let sb1 = unsafe{sbs.get_unchecked(i)};
-        if  sb1.signum()==-1f64{ // check if sign of sb is < 0
-            row.indexed_iter_mut().for_each(|(j, x)|{
-                let sb2 = unsafe{sbs.get_unchecked(j)};
-                if sb2.signum()==-1f64{ 
-                    *x = 0.;
-                }
-            })
-        }
-    });
-    arr
 }

@@ -7,14 +7,10 @@ use crate::{prelude::*, helpers::get_jurisdiction, sbm::common::{SBMChargeType, 
 use polars::prelude::*;
 use ndarray::prelude::*;
 
-/// Returns a Series equal to SensitivitySpot with RiskClass == FX and RiskFactor == ...CCY
-/// !where CCY is either provided as part of optional parameters,
-/// !and if not, then is based on Jurisdiction
-pub(crate) fn fx_delta_sens_repccy (op: &OCP) -> Expr {
+/// This works for cases like GBP reporting with BCBS params
+pub(crate) fn ccy_regex(op: &OCP) -> String {
     let juri: Jurisdiction = get_jurisdiction(op);
-
-    // This works for cases like GBP reporting with BCBS params
-    let ccy_regex = op.as_ref()
+    op.as_ref()
         .and_then(|map| map.get("reporting_ccy"))
         .and_then(|s| { if s.len() == 3 { Some(format!("^...{s}$")) } else { None } })
         .unwrap_or_else(||{
@@ -23,9 +19,15 @@ pub(crate) fn fx_delta_sens_repccy (op: &OCP) -> Expr {
                 Jurisdiction::CRR2 => "^...EUR$".to_string(),
                 _=>"^...USD$".to_string()
             }
-        });
-    
+        })
+}
 
+/// Returns a Series equal to SensitivitySpot with RiskClass == FX and RiskFactor == ...CCY
+/// !where CCY is either provided as part of optional parameters,
+/// !and if not, then is based on Jurisdiction
+pub(crate) fn fx_delta_sens_repccy (op: &OCP) -> Expr {
+    let ccy_regex = ccy_regex(op);
+    
     apply_multiple( move |columns| {
         let mask1 = columns[0]
             .utf8()?

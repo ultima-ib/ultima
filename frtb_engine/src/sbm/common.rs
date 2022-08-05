@@ -1,7 +1,7 @@
 use base_engine::prelude::*;
 
 use log::warn;
-use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order};
+use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, Axis};
 use polars::prelude::*;
 use rayon::iter::{ParallelBridge, ParallelIterator, IntoParallelRefMutIterator};
 use std::sync::Mutex;
@@ -315,4 +315,20 @@ pub fn option_maturity_rho() -> Array2<f64> {
 fn vega_rho_element(m1: f64, m2: f64) -> f64 {
     let alpha = 0.01;
     f64::exp(-alpha*f64::abs(m1-m2)/f64::min(m1,m2))
+}
+
+///21.5.3.b
+pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
+    let mut arr = Array2::ones((sbs.len(), sbs.len()));
+    let mut tmp: Vec<usize> = Vec::with_capacity(sbs.len());
+    for (i, v) in sbs.iter().enumerate() {
+        if *v<0.{
+            for t in &tmp {
+                unsafe{*arr.uget_mut((i,*t)) = 0.};
+                unsafe{*arr.uget_mut((*t,i)) = 0.};
+            }
+            tmp.push(i);
+        }
+    }
+    arr
 }

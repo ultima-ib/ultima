@@ -18,3 +18,4 @@ TradeId,BookId,Product
 17,FO001,Swaption
 20,FO002,Swaption
 21,BO002,Swaption
+22,BO002,FXOption

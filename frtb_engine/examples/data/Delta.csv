@@ -1,4 +1,8 @@
 COB,TradeId,RiskCategory,RiskClass,RiskFactor,RiskFactorType,CommodityLocation,GirrVegaUnderlyingMaturity,BucketBCBS,BucketCRR2,PnL_Up,PnL_Down,SensitivitySpot,Sensitivity_025Y,Sensitivity_05Y,Sensitivity_1Y,Sensitivity_2Y,Sensitivity_3Y,Sensitivity_5Y,Sensitivity_10Y,Sensitivity_15Y,Sensitivity_20Y,Sensitivity_30Y,SensitivityCcy,CoveredBondReducedWeight,CsrSector,CsrCreditQuality,FxCurvDivEligibility
+2022-07-22,22,Delta,FX,GBPUSD,,,,,,1000,-1000,123000,,,,,,,,,,,,,,,TRUE
+2022-07-22,22,Delta,FX,BRLUSD,,,,,,1000,-1000,123000,,,,,,,,,,,,,,,TRUE
+2022-07-22,22,Delta,FX,BRLUSD,,,,,,1000,-1000,123000,,,,,,,,,,,,,,,
+2022-07-22,22,Delta,FX,JPYEUR,,,,,,1000,-1000,123000,,,,,,,,,,,,,,,
 2022-07-22,1,Vega,FX,GBPUSD,,,,,,,,,,5000,5000,,5000,5000,5000,,,,,,,,
 2022-07-22,1,Vega,FX,GBPUSD,,,,,,,,,,5000,5000,,5000,5000,5000,,,,,,,,
 2022-07-22,1,Vega,FX,THOUSD,,,,,,,,,,1000,1000,,1000,,,,,,,,,,

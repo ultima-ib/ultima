@@ -317,6 +317,7 @@ static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
 
             fx_delta_rho: 1.,
             fx_gamma: 0.6,
+            fx_curv_gamma: 0.6f64.powi(2),
 
             base_com_rho_cty: base_commodity_bucket_rho,
             base_com_rho_basis_diff: 0.999,
@@ -416,6 +417,7 @@ pub struct ScenarioConfig{
 
     pub fx_delta_rho: f64,
     pub fx_gamma: f64,
+    pub fx_curv_gamma: f64,
     // Commodity rho cannot be precomputed since too many options:
     // 21.83.1 same commodity or diff commodity(depends on per bucket)
     pub base_com_rho_cty: [f64; 11],
@@ -531,6 +533,7 @@ impl ScenarioConfig {
 
                 fx_delta_rho: function(self.fx_delta_rho),
                 fx_gamma: function(self.fx_gamma),
+                fx_curv_gamma: function(self.fx_curv_gamma),
 
                 base_com_rho_tenor,
                 com_gamma,

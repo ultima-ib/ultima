@@ -1,7 +1,7 @@
 use base_engine::prelude::*;
 use crate::prelude::*;
 use crate::helpers::{ReturnMetric, get_optional_parameter_array, get_optional_parameter};
-use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg, total_delta_sens, SBMChargeType};
+use crate::sbm::common::{rc_rcat_sens, across_bucket_agg, total_delta_sens, SBMChargeType};
 
 use polars::prelude::*;
 
@@ -50,7 +50,6 @@ pub(crate) fn fx_vega_charge_high(op: &OCP) -> Expr {
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn fx_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
-    let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
     
     let fx_vega_rho = get_optional_parameter_array(op, format!("fx_vega_rho{_suffix}").as_str(), &scenario.vega_rho);

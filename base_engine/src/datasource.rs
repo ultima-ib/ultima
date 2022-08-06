@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
 use polars::prelude::*;
-use log::{warn, debug};
+use log::warn;
 use serde::{Serialize, Deserialize};
-use toml::Value;
 
 use crate::dataset::*;
 
@@ -70,7 +69,7 @@ pub enum DataSourceConfig {
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
-    pub fn build(self) -> DataSet {
+    pub fn build(self) -> (Vec<DataFrame>, Vec<String>, HashMap<String, String>) {
 
         match self{
             DataSourceConfig::CSV{
@@ -178,7 +177,7 @@ impl DataSourceConfig {
                     let build_params = 
                     if let Some(bp) = build_params.take() { bp } else { HashMap::default()};
 
-                    DataSet{f1: df1, f2: df2, f3: df3, measure_cols, build_params}
+                    (vec![df1, df2, df3], measure_cols, build_params)
                 },
         }
     }

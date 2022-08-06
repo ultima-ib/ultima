@@ -17,6 +17,10 @@ use jemallocator::Jemalloc;
 use mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
+#[cfg(feature = "FRTB")]
+type DataSetType = frtb_engine::FRTBDataSet;
+#[cfg(not(feature = "FRTB"))]
+type DataSetType = base_engine::DataSetBase;
 
 fn main() {
     // Read .env
@@ -28,12 +32,9 @@ fn main() {
     info!("Data SetUp: {:?}", conf);
 
     // Build data
-    let mut data: DataSet = conf.build();
+    let mut data = DataSetType::build(conf);
     // Pre build some columns, which you wish to store in memory alongside the original data
-    #[cfg(feature = "FRTB")]
-    if cfg!(feature = "FRTB") {
-        data = data.prepare();
-    }
+    data.prepare();
 
     ////owner of column names
     let numer_cols = data.numeric_columns_owned(vec![]); 
@@ -41,7 +42,7 @@ fn main() {
 
     //### Measures Struct ###
     //Owner of the measures which point to numer_cols
-    let measures_vec = derive_basic_measures_vec(&data.measure_cols);
+    let measures_vec = derive_basic_measures_vec(data.measure_cols());
     //Vec of pointers to owner(s) of the measures
     let mut ptrs_measures_vecs = vec![&measures_vec];
     #[cfg(feature = "FRTB")]
@@ -296,7 +297,17 @@ const JSON: &str = r#"
     "method": "SEND", 
     "params": {
         "measures": [
-            ["GIRR_CurvatureCharge_Low", "first"],
+            ["GIRR_CurvatureDelta", "sum"],
+["GIRR_PnLup", "sum"],
+["GIRR_PnLdown", "sum"],
+["GIRR_CurvatureDelta_Weighted", "sum"],
+["GIRR_CVRup", "sum"],
+["GIRR_CVRdown", "sum"],
+["GIRR_Curvature_KbPlus", "first"],
+["GIRR_Curvature_KbMinus", "first"],
+["GIRR_Curvature_Kb", "first"],
+["GIRR_Curvature_Sb", "first"],
+["GIRR_CurvatureCharge_Low", "first"],
 ["GIRR_CurvatureCharge_Medium", "first"],
 ["GIRR_CurvatureCharge_High", "first"]
         ],

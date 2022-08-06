@@ -1,6 +1,6 @@
 pub mod prelude;
 mod filters;
-mod dataset;
+pub mod dataset;
 mod datarequest;
 mod datasource;
 mod measure;
@@ -10,76 +10,34 @@ use log::{warn, debug, info};
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
-use crate::prelude::*;
+pub use crate::prelude::*;
 use crate::filters::*;
 //use crate::dataset::*;
 //use crate::datarequest::*;
 
 /// main function which returns a Result DataFrame
-pub fn execute(req: DataRequestS, data: &DataSet, measure_map: Arc<MM>)
+pub fn execute(req: DataRequestS, data: &impl DataSet, measure_map: Arc<MM>)
  -> Result<DataFrame>{ 
     // Step 0 Validate Filters - server to hold list of params availiable as 
     // measures(agg), agg, group, filters
     // All these would be based on columns of DataSet. Measures would be most challenging
     // Recall within same Filter columns should be from the same file
 
-    info!("f1 with HMS, attr and prepared: {:?}", 
-    data.f1.clone().lazy().collect());
-    let a = data.build_params.clone();
-    let b = a.get("offshore_onshore_fx").unwrap();
-    let c = serde_json::from_str::<HashMap<String,String>>(b);
+    info!("f1 with HMS, attr and prepared: {:?}", data.frames()[0].clone().lazy().collect());
 
     // Step 1.0 SELECT columns required for current request
     // In case of SQL data source we need to create DF from 
     // This way we minimize total cloning by selecting only relevant columns
-    let (f1_cols, f2_cols, f3_cols) = (
-        data.f1.get_column_names(),
-        data.f2.get_column_names(),
-        data.f3.get_column_names()  
-        );
+    let f1 = &data.frames()[0];
+    let f1_cols = f1.get_column_names();
+    let mut f1 = f1.clone().lazy();
     
     // No need to select since DataFrame clones are super cheap
     //let mut f1_select: Vec<&str> = vec![]; 
     //let mut f2_select: Vec<&str> = vec![]; 
     //let mut f3_select: Vec<&str> = vec![];
     let f1_select = f1_cols;
-
-    /*
-    //let (req_cols, bespoke_m) = req.required_columns(measure_col);
-    //debug!("Required columns: {:?}", req_cols);
-    for col in req_cols.iter() {
-        let mut present = false;
-
-        if f1_cols.contains(&col.as_str()) {
-            f1_select.push(col);
-            present = true;
-        } ;
-
-        if f2_cols.contains(&col.as_str()) {
-            f2_select.push(col);
-            present = true;
-        } ;
-        
-        if f3_cols.contains(&col.as_str()) {
-            f3_select.push(col);
-            present = true;
-        } ;
-
-        // this is additional level of check, making sure each of required cols
-        // is present in the DataSet.
-        //if not we should skip measure
-        if !present {
-            warn!("Column {} must be present due to Request selection.", col)
-            // return Anyhow error here(converts into polarsError) 
-        }
-    };
-    */
-    
-    //this clones (but only selected) part of the Frame
-    //let mut f1 = data.f1.select(f1_select.clone())?.lazy();
-    //let mut f2 = data.f2.select(f2_select)?.lazy();
-    //let mut f3 = data.f3.select(f3_select)?.lazy();
-    let mut f1 = data.f1().lazy();
+     
 
     //Step 1.1 Applying FILTERS:
 

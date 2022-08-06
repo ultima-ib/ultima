@@ -12,7 +12,6 @@ pub struct Measure<'a>{
     pub name: &'a str,
     /// Main function which performs the calculation
     #[derivative(Debug="ignore")]
-    //pub calculator: Box<dyn FnMut(Option<&CalcParams>)->Expr + Send + Sync + 'a>,
     pub calculator: Box<dyn Fn(&Option<CalcParams>)->Expr + Send + Sync + 'a>,
     /// Bespoke measures assumes presence of these columns
     /// This field is used to validate the DataSet

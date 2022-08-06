@@ -1,7 +1,7 @@
 use base_engine::prelude::*;
 
 use log::warn;
-use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, Axis};
+use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order};
 use polars::prelude::*;
 use rayon::iter::{ParallelBridge, ParallelIterator, IntoParallelRefMutIterator};
 use std::sync::Mutex;
@@ -331,4 +331,37 @@ pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
         }
     }
     arr
+}
+
+pub(crate) fn kb_plus_minus(srs: &Series) -> Result<Vec<f64>>{
+    Ok(srs
+    .f64()?
+    .into_iter()
+    .map(|cv_up|
+        f64::max(cv_up.unwrap_or_else(||0.), 0.)
+    )
+    .collect())
+}
+
+pub(crate) fn kbs_sbs_f(kb_plus: Vec<f64>,kb_minus: Vec<f64>, cvr_up: &Series, cvr_down: &Series) -> Result<(Vec<f64>, Vec<f64>)> {
+    let kbs_sbs: Vec<(f64, f64)> = kb_plus.into_iter()
+        .zip(kb_minus.into_iter())
+        .zip(cvr_up.f64()?.into_iter())
+        .zip(cvr_down.f64()?.into_iter())
+        .map(|(((kb_p, kb_m), cv_up), cv_down)|
+            if kb_p>kb_m{
+                (kb_p, cv_up.unwrap_or_else(||0.))
+            } else if kb_m>kb_p {
+                (kb_m, cv_down.unwrap_or_else(||0.))
+            } else { // 21.5.3.a.iii
+                if cv_up>cv_down{
+                    (kb_p, cv_up.unwrap_or_else(||0.))
+                } else {
+                    (kb_m, cv_down.unwrap_or_else(||0.))
+                }
+            }
+        )
+        .collect::<Vec<(f64, f64)>>();
+    let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
+    Ok((kbs, sbs))
 }

@@ -1,6 +1,7 @@
-use crate::{prelude::*, sbm::common::{cvr_up, cvr_down, CVR, rc_cvr, rc_rcat_sens, across_bucket_agg, SBMChargeType, phi}};
+use crate::{prelude::*, sbm::common::{cvr_up, cvr_down, CVR, rc_cvr, rc_rcat_sens, across_bucket_agg, SBMChargeType, phi, kb_plus_minus, kbs_sbs_f}};
 
 use base_engine::prelude::OCP;
+use ndarray::{Array1, Array2};
 use polars::prelude::*;
 
 use crate::{sbm::common::curv_delta, helpers::ReturnMetric};
@@ -95,59 +96,25 @@ fn girr_curvature_charge(girr_curv_gamma: f64, erm2_gamma: f64,
             .fill_null(lit::<f64>(0.))
             .collect()?;
 
-        let res_len = columns[0].len();
+            let res_len = columns[0].len();
         
-        let kb_plus: Vec<f64> = df["cvr_up"]
-            .f64()?
-            .into_iter()
-            .map(|cv_up|
-                f64::max(cv_up.unwrap_or_else(||0.), 0.)
-            )
-            .collect();
-
-        match return_metric {
-            ReturnMetric::KbPlus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_plus.iter().sum()).as_slice().unwrap())),
-            _ => (),
-        }
-
-        let kb_minus: Vec<f64> = df["cvr_down"]
-            .f64()?
-            .into_iter()
-            .map(|cv_down|
-                f64::max(cv_down.unwrap_or_else(||0.), 0.)
-            )
-            .collect();
-
-        match return_metric {
-            ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
-            _ => (),
-        }
-
-        let kbs_sbs: Vec<(f64, f64)> = kb_plus.into_iter()
-            .zip(kb_minus.into_iter())
-            .zip(df["cvr_up"].f64()?.into_iter())
-            .zip(df["cvr_down"].f64()?.into_iter())
-            .map(|(((kb_p, kb_m), cv_up), cv_down)|
-            if kb_p>kb_m{
-                (kb_p, cv_up.unwrap_or_else(||0.))
-            } else if kb_m>kb_p {
-                (kb_m, cv_down.unwrap_or_else(||0.))
-            } else { // 21.5.3.a.iii
-                if cv_up>cv_down{
-                    (kb_p, cv_up.unwrap_or_else(||0.))
-                } else {
-                    (kb_m, cv_down.unwrap_or_else(||0.))
-                }
+            let kb_plus: Vec<f64> = kb_plus_minus(&df["cvr_up"])?;
+            match return_metric {
+                ReturnMetric::KbPlus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_plus.iter().sum()).as_slice().unwrap())),
+                _ => (), }
+    
+            let kb_minus: Vec<f64> = kb_plus_minus(&df["cvr_down"])?;
+            match return_metric {
+                ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
+                _ => (), }
+    
+            
+            let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_f(kb_plus, kb_minus,&df["cvr_up"],&df["cvr_down"])?;
+            match return_metric {
+                ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
+                ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+                _ => (),
             }
-        )
-        .collect::<Vec<(f64, f64)>>();
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
-
-        match return_metric {
-            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
-            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
-            _ => (),
-        }
 
         let buckets: Vec<&str> = df["b"].utf8()?.into_iter().map(|s| s.unwrap_or_else(||"Default")).collect();
 

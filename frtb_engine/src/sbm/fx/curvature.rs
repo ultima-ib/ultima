@@ -1,6 +1,6 @@
 use crate::prelude::*;
+use ndarray::{Array1, Array2};
 use sbm::common::*;
-use crate::helpers::*;
 
 use super::delta::ccy_regex;
 
@@ -120,7 +120,6 @@ pub(crate) fn fx_curvature_charge_high(op: &OCP) -> Expr {
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn fx_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
-    let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
 
     let fx_curv_gamma = get_optional_parameter(op, format!("fx_curv_gamma{_suffix}").as_str(), &scenario.fx_curv_gamma);
@@ -149,52 +148,18 @@ fn fx_curvature_charge(gamma: f64, return_metric: ReturnMetric, op: &OCP) -> Exp
 
         let res_len = columns[0].len();
         
-        let kb_plus: Vec<f64> = df["cvr_up"]
-            .f64()?
-            .into_iter()
-            .map(|cv_up|
-                f64::max(cv_up.unwrap_or_else(||0.), 0.)
-            )
-            .collect();
-
+        let kb_plus: Vec<f64> = kb_plus_minus(&df["cvr_up"])?;
         match return_metric {
             ReturnMetric::KbPlus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_plus.iter().sum()).as_slice().unwrap())),
-            _ => (),
-        }
+            _ => (), }
 
-        let kb_minus: Vec<f64> = df["cvr_down"]
-            .f64()?
-            .into_iter()
-            .map(|cv_down|
-                f64::max(cv_down.unwrap_or_else(||0.), 0.)
-            )
-            .collect();
-
+        let kb_minus: Vec<f64> = kb_plus_minus(&df["cvr_down"])?;
         match return_metric {
             ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
-            _ => (),
-        }
+            _ => (), }
 
-        let kbs_sbs: Vec<(f64, f64)> = kb_plus.into_iter()
-            .zip(kb_minus.into_iter())
-            .zip(df["cvr_up"].f64()?.into_iter())
-            .zip(df["cvr_down"].f64()?.into_iter())
-            .map(|(((kb_p, kb_m), cv_up), cv_down)|
-            if kb_p>kb_m{
-                (kb_p, cv_up.unwrap_or_else(||0.))
-            } else if kb_m>kb_p {
-                (kb_m, cv_down.unwrap_or_else(||0.))
-            } else { // 21.5.3.a.iii
-                if cv_up>cv_down{
-                    (kb_p, cv_up.unwrap_or_else(||0.))
-                } else {
-                    (kb_m, cv_down.unwrap_or_else(||0.))
-                }
-            }
-        )
-        .collect::<Vec<(f64, f64)>>();
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
-
+        
+        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_f(kb_plus, kb_minus,&df["cvr_up"],&df["cvr_down"])?;
         match return_metric {
             ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
             ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
@@ -203,8 +168,6 @@ fn fx_curvature_charge(gamma: f64, return_metric: ReturnMetric, op: &OCP) -> Exp
 
         // 325ag
         let mut gamma = Array2::from_elem((kbs.len(), kbs.len()), gamma );
-
-
         let phi = phi(&sbs);
         gamma = gamma*phi;
 

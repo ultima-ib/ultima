@@ -1,9 +1,9 @@
 use base_engine::prelude::*;
 use crate::prelude::*;
 use crate::helpers::{ReturnMetric, get_optional_parameter_array, get_optional_parameter};
-use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg, total_delta_sens, SBMChargeType};
+use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg, total_delta_sens, SBMChargeType, option_maturity_rho};
 
-use ndarray::{Array2, Array1};
+use ndarray::{Array2, Array1, s};
 use polars::prelude::*;
 use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 #[cfg(feature = "CRR2")]

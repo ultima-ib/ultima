@@ -1,4 +1,6 @@
 
+//! This file defines all the measures, associated with this library
+
 use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high};
@@ -21,10 +23,6 @@ use once_cell::sync::Lazy;
 
 /// Export measures
 pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
-
-    //let all_sens_cols = vec!["SensitivitySpot", "Sensitivity_025Y", "Sensitivity_05Y", "Sensitivity_1Y",
-    //"Sensitivity_2Y", "Sensitivity_3Y", "Sensitivity_5Y", "Sensitivity_10Y", 
-    //"Sensitivity_15Y", "Sensitivity_20Y", "Sensitivity_30Y"];
 
     vec![
         //                             ############################## FX Delta ##############################

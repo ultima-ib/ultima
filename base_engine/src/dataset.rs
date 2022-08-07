@@ -2,14 +2,14 @@ use std::collections::HashMap;
 
 use polars::prelude::*;
 
-use crate::DataSourceConfig;
+use crate::{DataSourceConfig, Measure, MM, derive_measure_map};
 
 /// This is the default Dataset
 /// Usually a client/user would overwrite it with their own DataSet
 #[derive(Debug)]
-pub struct DataSetBase {
+pub struct DataSetBase<'a> {
     pub frames: Vec<DataFrame>,
-    pub measure_cols: Vec<String>, 
+    pub measures: MM<'a>, 
     pub build_params: HashMap<String, String>,
 }
 
@@ -17,7 +17,7 @@ pub struct DataSetBase {
 /// If you have your own DataSet, implement this
 pub trait DataSet{
     fn frames(&self) -> &Vec<DataFrame>;
-    fn measure_cols(&self) -> &Vec<String>;
+    fn measures(&self) -> &MM;
     fn build(conf: DataSourceConfig) -> Self;
 
     fn columns_owned(&self, mut buf: Vec<String>) -> Vec<String> {
@@ -27,7 +27,6 @@ pub trait DataSet{
                 buf.push(i)
             }
         };
-        // Convert to hash set?
         buf.sort_unstable();
         buf.dedup();
         buf
@@ -57,17 +56,18 @@ pub trait DataSet{
     
 }
 
-impl DataSet for DataSetBase{
+impl<'a> DataSet for DataSetBase<'a>{
     fn frames(&self) -> &Vec<DataFrame>{
         &self.frames
     }
-    fn measure_cols(&self) -> &Vec<String>{
-        &self.measure_cols
+    fn measures(&self) -> &MM{
+        &self.measures
     }
 
     fn build(conf: DataSourceConfig) -> Self{
         let (frames, measure_cols, build_params) = conf.build();
-        Self{frames, measure_cols, build_params}
+        let mm: MM = derive_measure_map(measure_cols);
+        Self{frames, measures: mm, build_params}
     }
     
 
@@ -81,7 +81,7 @@ impl DataSet for DataSetBase{
 //    fn validate(&self) {}
 }
 
-impl DataSetBase {
+impl<'a> DataSetBase<'a> {
     pub fn f1(&self) -> &DataFrame {
         // Polars DataFrame clones are super cheap:
         //https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
@@ -104,9 +104,4 @@ pub fn is_numeric(s: &Series) -> bool {
         DataType::Utf8 | DataType::List(_) | DataType::Boolean | DataType::Null | DataType::Categorical(_) => false,
         _ => true,
     }
-}
-
-#[cfg(feature = "FRTB")]
-impl frtb_engine::FRTBDataSetT for DataSetBase {
-    //prebuild() - pre calculate common columns such as ..SensWeighted
 }

@@ -4,12 +4,13 @@ use derivative::Derivative;
 use serde::{Serialize, Deserialize};
 
 //MeasureMap
-pub type MM<'a, 'b> = HashMap<&'a str, &'a Measure<'b>>;
+pub type MM<'b> = HashMap<String, Measure<'b>>;
 
+/// Measure is the 
 #[derive(Derivative)]
 #[derivative(Debug)]
 pub struct Measure<'a>{
-    pub name: &'a str,
+    pub name: String,
     /// Main function which performs the calculation
     #[derivative(Debug="ignore")]
     pub calculator: Box<dyn Fn(&Option<CalcParams>)->Expr + Send + Sync + 'a>,
@@ -27,32 +28,26 @@ pub struct Measure<'a>{
     // Measure to store cached requests and results
 }
 
-pub fn derive_basic_measures_vec<'a> (dataset_numer_cols: &'a Vec<String>) -> Vec<Measure<'a>> {
+pub fn derive_basic_measures_vec<'a> (dataset_numer_cols: Vec<String>) -> Vec<Measure<'a>> {
     dataset_numer_cols
     .iter()
-    .map(|x|
+    .map(|x|{
+        let y = x.clone();
         Measure {
-            name: x,
-            // If we want to take params:
-            calculator: Box::new(|_|col(x)),
-            //req_columns: vec![x],
+            name: x.clone(),
+            calculator: Box::new(move |_| col(y.as_str())),
             aggregation: None,
-        }
+        }}
     )
     .collect::<Vec<Measure>>()
 }
 
-pub fn derive_measures_map<'a, 'b> (measures_vecs: Vec<&'a Vec<Measure<'b>>>)
- -> HashMap<&'a str, &'a Measure<'b>> {
-    let mut measure_map: HashMap<&str, &Measure> = HashMap::default();
-    for m_vec in measures_vecs {
+pub fn derive_measure_map<'a> (measures_vecs: Vec<Measure<'a>>)
+ -> MM {
+    let mut measure_map: MM = HashMap::default();
+    for m in measures_vecs {
         measure_map
-        .extend(
-            m_vec
-            .iter()
-            .map(|m| (m.name, m))
-            .collect::<HashMap<&str, &Measure>>()
-        );
+        .insert( m.name.to_string(), m );
     };
     measure_map
 }

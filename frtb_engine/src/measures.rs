@@ -19,228 +19,226 @@ use crate::sbm::girr::vega::{total_ir_vega_sens, girr_vega_sens_weighted, girr_v
 
 use base_engine::prelude::*;
 
-use once_cell::sync::Lazy;
-
 /// Export measures
-pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
+pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
 
     vec![
         //                             ############################## FX Delta ##############################
         Measure{
-            name: "FX_DeltaSens",
+            name: "FX_DeltaSens".to_string(),
             calculator: Box::new(fx_delta_sens_repccy),
             aggregation: None,
         },
 
         Measure{
-            name: "FX_DeltaSens_Weighted",
+            name: "FX_DeltaSens_Weighted".to_string(),
             calculator: Box::new(fx_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure{
-            name: "FX_DeltaSb",
+            name: "FX_DeltaSb".to_string(),
             calculator: Box::new(fx_delta_sb),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "FX_DeltaKb",
+            name: "FX_DeltaKb".to_string(),
             calculator: Box::new(fx_delta_kb),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "FX_DeltaCharge_Low",
+            name: "FX_DeltaCharge_Low".to_string(),
             calculator: Box::new(fx_delta_charge_low),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "FX_DeltaCharge_Medium",
+            name: "FX_DeltaCharge_Medium".to_string(),
             calculator: Box::new(fx_delta_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "FX_DeltaCharge_High",
+            name: "FX_DeltaCharge_High".to_string(),
             calculator: Box::new(fx_delta_charge_high),
             aggregation: Some("first"),
         },
         //        ################################# FX Vega ######################################
         Measure{
-            name: "FX_VegaSens",
+            name: "FX_VegaSens".to_string(),
             calculator: Box::new(total_fx_vega_sens),
             aggregation: None,
         },
         Measure{
-            name: "FX_VegaSens_Weighted",
+            name: "FX_VegaSens_Weighted".to_string(),
             calculator: Box::new(total_fx_vega_sens_weighted),
             aggregation: None,
         },
         Measure{
-            name: "FX_VegaSb",
+            name: "FX_VegaSb".to_string(),
             calculator: Box::new(fx_vega_sb),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_VegaKb_Low",
+            name: "FX_VegaKb_Low".to_string(),
             calculator: Box::new(fx_vega_kb_low),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_VegaKb_Medium",
+            name: "FX_VegaKb_Medium".to_string(),
             calculator: Box::new(fx_vega_kb_medium),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_VegaKb_High",
+            name: "FX_VegaKb_High".to_string(),
             calculator: Box::new(fx_vega_kb_high),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_VegaCharge_Low",
+            name: "FX_VegaCharge_Low".to_string(),
             calculator: Box::new(fx_vega_charge_low),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_VegaCharge_Medium",
+            name: "FX_VegaCharge_Medium".to_string(),
             calculator: Box::new(fx_vega_charge_medium),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_VegaCharge_High",
+            name: "FX_VegaCharge_High".to_string(),
             calculator: Box::new(fx_vega_charge_high),
             aggregation: Some("first"),
         },
         //        ################################ FX Curvature ##############################
         Measure{
-            name: "FX_CurvatureDelta",
+            name: "FX_CurvatureDelta".to_string(),
             calculator: Box::new(fx_curv_delta),
             aggregation: None,
         },
         Measure{
-            name: "FX_CurvatureDelta_Weighted",
+            name: "FX_CurvatureDelta_Weighted".to_string(),
             calculator: Box::new(fx_curv_delta_weighted),
             aggregation: None,
         },
         Measure{
-            name: "FX_PnLup",
+            name: "FX_PnLup".to_string(),
             calculator: Box::new(fx_pnl_up),
             aggregation: None,
         },
 
         Measure{
-            name: "FX_PnLdown",
+            name: "FX_PnLdown".to_string(),
             calculator: Box::new(fx_pnl_down),
             aggregation: None,
         },
         Measure{
-            name: "FX_CVRup",
+            name: "FX_CVRup".to_string(),
             calculator: Box::new(fx_cvr_up),
             aggregation: None,
         },
 
         Measure{
-            name: "FX_CVRdown",
+            name: "FX_CVRdown".to_string(),
             calculator: Box::new(fx_cvr_down),
             aggregation: None,
         },
         Measure{
-            name: "FX_Curvature_KbPlus",
+            name: "FX_Curvature_KbPlus".to_string(),
             calculator: Box::new(fx_curvature_kb_plus),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "FX_Curvature_KbMinus",
+            name: "FX_Curvature_KbMinus".to_string(),
             calculator: Box::new(fx_curvature_kb_minus),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_Curvature_Kb",
+            name: "FX_Curvature_Kb".to_string(),
             calculator: Box::new(fx_curvature_kb),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_Curvature_Sb",
+            name: "FX_Curvature_Sb".to_string(),
             calculator: Box::new(fx_curvature_sb),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_CurvatureCharge_Low",
+            name: "FX_CurvatureCharge_Low".to_string(),
             calculator: Box::new(fx_curvature_charge_low),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_CurvatureCharge_Medium",
+            name: "FX_CurvatureCharge_Medium".to_string(),
             calculator: Box::new(fx_curvature_charge_medium),
             aggregation: Some("first"),
         },
         Measure{
-            name: "FX_CurvatureCharge_High",
+            name: "FX_CurvatureCharge_High".to_string(),
             calculator: Box::new(fx_curvature_charge_high),
             aggregation: Some("first"),
         },
 
         //        ################################ Commodity Delta ##############################
         Measure {
-            name: "Commodity_DeltaSens",
+            name: "Commodity_DeltaSens".to_string(),
             calculator: Box::new(total_commodity_delta_sens),
             aggregation: None,
         },
 
         Measure {
-            name: "Commodity_DeltaSens_Weighted",
+            name: "Commodity_DeltaSens_Weighted".to_string(),
             calculator: Box::new(commodity_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure {
-            name: "Commodity_DeltaCharge_Low",
+            name: "Commodity_DeltaCharge_Low".to_string(),
             calculator: Box::new(commodity_delta_charge_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Commodity_DeltaCharge_Medium",
+            name: "Commodity_DeltaCharge_Medium".to_string(),
             calculator: Box::new(commodity_delta_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Commodity_DeltaCharge_High",
+            name: "Commodity_DeltaCharge_High".to_string(),
             calculator: Box::new(commodity_delta_charge_high),
             aggregation: Some("first"),
         },
 
         // Equity
         Measure {
-            name: "Equity_DeltaSens",
+            name: "Equity_DeltaSens".to_string(),
             calculator: Box::new(equity_delta_sens),
             aggregation: None
         },
 
         Measure {
-            name: "Equity_DeltaSens_Weighted",
+            name: "Equity_DeltaSens_Weighted".to_string(),
             calculator: Box::new(equity_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure {
-            name: "Equity_DeltaCharge_Low",
+            name: "Equity_DeltaCharge_Low".to_string(),
             calculator: Box::new(equity_delta_charge_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaCharge_Medium",
+            name: "Equity_DeltaCharge_Medium".to_string(),
             calculator: Box::new(equity_delta_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaCharge_High",
+            name: "Equity_DeltaCharge_High".to_string(),
             calculator: Box::new(equity_delta_charge_high),
             aggregation: Some("first"),
         },
@@ -248,275 +246,275 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
         //CSR non-Sec
 
         Measure {
-            name: "CSR_nonSec_DeltaSens",
+            name: "CSR_nonSec_DeltaSens".to_string(),
             calculator: Box::new(total_csr_nonsec_delta_sens),
             aggregation: None
         },
 
         Measure {
-            name: "CSR_nonSec_DeltaSens_Weighted",
+            name: "CSR_nonSec_DeltaSens_Weighted".to_string(),
             calculator: Box::new(csr_nonsec_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure {
-            name: "CSR_nonSec_DeltaCharge_Low",
+            name: "CSR_nonSec_DeltaCharge_Low".to_string(),
             calculator: Box::new(csr_nonsec_delta_charge_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "CSR_nonSec_DeltaCharge_Medium",
+            name: "CSR_nonSec_DeltaCharge_Medium".to_string(),
             calculator: Box::new(csr_nonsec_delta_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "CSR_nonSec_DeltaCharge_High",
+            name: "CSR_nonSec_DeltaCharge_High".to_string(),
             calculator: Box::new(csr_nonsec_delta_charge_high),
             aggregation: Some("first"),
         },
 
         //CSR sec-CTP
         Measure {
-            name: "CSR_secCTP_DeltaSens",
+            name: "CSR_secCTP_DeltaSens".to_string(),
             calculator: Box::new(total_csr_sec_ctp_delta_sens),
             aggregation: None
         },
 
         Measure {
-            name: "CSR_secCTP_DeltaSens_Weighted",
+            name: "CSR_secCTP_DeltaSens_Weighted".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure {
-            name: "CSR_secCTP_DeltaCharge_Low",
+            name: "CSR_secCTP_DeltaCharge_Low".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "CSR_secCTP_DeltaCharge_Medium",
+            name: "CSR_secCTP_DeltaCharge_Medium".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "CSR_secCTP_DeltaCharge_High",
+            name: "CSR_secCTP_DeltaCharge_High".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_high),
             aggregation: Some("first"),
         },
         //CSR Sec non-CTP
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaSens",
+            name: "CSR_Sec_nonCTP_DeltaSens".to_string(),
             calculator: Box::new(total_csr_sec_nonctp_delta_sens),
             aggregation: None
         },
 
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaSens_Weighted",
+            name: "CSR_Sec_nonCTP_DeltaSens_Weighted".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaCharge_Low",
+            name: "CSR_Sec_nonCTP_DeltaCharge_Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_charge_low),
             aggregation: None
         },
 
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaCharge_Medium",
+            name: "CSR_Sec_nonCTP_DeltaCharge_Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_charge_medium),
             aggregation: None,
         },
 
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaCharge_High",
+            name: "CSR_Sec_nonCTP_DeltaCharge_High".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_charge_high),
             aggregation: None,
         },
         //                      ################################ GIRR Delta #######################################
         Measure{
-            name: "GIRR_DeltaSens",
+            name: "GIRR_DeltaSens".to_string(),
             calculator: Box::new(total_ir_delta_sens),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_DeltaSens_Weighted",
+            name: "GIRR_DeltaSens_Weighted".to_string(),
             calculator: Box::new(girr_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_DeltaSb",
+            name: "GIRR_DeltaSb".to_string(),
             calculator: Box::new(girr_delta_sb),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_DeltaCharge_Low",
+            name: "GIRR_DeltaCharge_Low".to_string(),
             calculator: Box::new(girr_delta_charge_low),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_DeltaKb_Low",
+            name: "GIRR_DeltaKb_Low".to_string(),
             calculator: Box::new(girr_delta_kb_low),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_DeltaCharge_Medium",
+            name: "GIRR_DeltaCharge_Medium".to_string(),
             calculator: Box::new(girr_delta_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_DeltaKb_Medium",
+            name: "GIRR_DeltaKb_Medium".to_string(),
             calculator: Box::new(girr_delta_kb_medium),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_DeltaCharge_High",
+            name: "GIRR_DeltaCharge_High".to_string(),
             calculator: Box::new(girr_delta_charge_high),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_DeltaKb_High",
+            name: "GIRR_DeltaKb_High".to_string(),
             calculator: Box::new(girr_delta_kb_high),
             aggregation: Some("first"),
         },
 
         //                      ################################ GIRR Vega ####################################### 
         Measure{
-            name: "GIRR_VegaSens",
+            name: "GIRR_VegaSens".to_string(),
             calculator: Box::new(total_ir_vega_sens),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_VegaSens_Weighted",
+            name: "GIRR_VegaSens_Weighted".to_string(),
             calculator: Box::new(girr_vega_sens_weighted),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_VegaSb",
+            name: "GIRR_VegaSb".to_string(),
             calculator: Box::new(girr_vega_sb),
             aggregation: Some("first"),
         },
         
         Measure{
-            name: "GIRR_VegaCharge_Low",
+            name: "GIRR_VegaCharge_Low".to_string(),
             calculator: Box::new(girr_vega_charge_low),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_VegaKb_Low",
+            name: "GIRR_VegaKb_Low".to_string(),
             calculator: Box::new(girr_vega_kb_low),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_VegaCharge_Medium",
+            name: "GIRR_VegaCharge_Medium".to_string(),
             calculator: Box::new(girr_vega_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_VegaKb_Medium",
+            name: "GIRR_VegaKb_Medium".to_string(),
             calculator: Box::new(girr_vega_kb_medium),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_VegaCharge_High",
+            name: "GIRR_VegaCharge_High".to_string(),
             calculator: Box::new(girr_vega_charge_high),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_VegaKb_High",
+            name: "GIRR_VegaKb_High".to_string(),
             calculator: Box::new(girr_vega_kb_high),
             aggregation: Some("first"),
         },
 
         //                      ################################ GIRR Curvature #######################################
         Measure{
-            name: "GIRR_CurvatureDelta",
+            name: "GIRR_CurvatureDelta".to_string(),
             calculator: Box::new(ir_curv_delta),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_PnLup",
+            name: "GIRR_PnLup".to_string(),
             calculator: Box::new(girr_pnl_up),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_PnLdown",
+            name: "GIRR_PnLdown".to_string(),
             calculator: Box::new(girr_pnl_down),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_CurvatureDelta_Weighted",
+            name: "GIRR_CurvatureDelta_Weighted".to_string(),
             calculator: Box::new(girr_curv_delta_weighted),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_CVRup",
+            name: "GIRR_CVRup".to_string(),
             calculator: Box::new(girr_cvr_up),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_CVRdown",
+            name: "GIRR_CVRdown".to_string(),
             calculator: Box::new(girr_cvr_down),
             aggregation: None,
         },
 
         Measure{
-            name: "GIRR_Curvature_KbPlus",
+            name: "GIRR_Curvature_KbPlus".to_string(),
             calculator: Box::new(girr_curvature_kb_plus),
             aggregation: Some("first"),
         },
 
         Measure{
-            name: "GIRR_Curvature_KbMinus",
+            name: "GIRR_Curvature_KbMinus".to_string(),
             calculator: Box::new(girr_curvature_kb_minus),
             aggregation: Some("first"),
         },
         Measure{
-            name: "GIRR_Curvature_Kb",
+            name: "GIRR_Curvature_Kb".to_string(),
             calculator: Box::new(girr_curvature_kb),
             aggregation: Some("first"),
         },
         Measure{
-            name: "GIRR_Curvature_Sb",
+            name: "GIRR_Curvature_Sb".to_string(),
             calculator: Box::new(girr_curvature_sb),
             aggregation: Some("first"),
         },
         Measure{
-            name: "GIRR_CurvatureCharge_Low",
+            name: "GIRR_CurvatureCharge_Low".to_string(),
             calculator: Box::new(girr_curvature_charge_low),
             aggregation: Some("first"),
         },
         Measure{
-            name: "GIRR_CurvatureCharge_Medium",
+            name: "GIRR_CurvatureCharge_Medium".to_string(),
             calculator: Box::new(girr_curvature_charge_medium),
             aggregation: Some("first"),
         },
         Measure{
-            name: "GIRR_CurvatureCharge_High",
+            name: "GIRR_CurvatureCharge_High".to_string(),
             calculator: Box::new(girr_curvature_charge_high),
             aggregation: Some("first"),
         },
@@ -526,9 +524,9 @@ pub static FRTB_MEASURE_VEC: Lazy<Vec<Measure>>  = Lazy::new(|| {
         //Risk Weight view only makes sence at Bucket level
         //With exception of CSR non Sec where it is bucket and potentially CoveredBondReducedWeight
         Measure{
-            name: "RiskWeights",
+            name: "RiskWeights".to_string(),
             calculator: Box::new(sens_weights),
             aggregation: Some("first"),
         },
     ]
-});
+}

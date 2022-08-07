@@ -15,65 +15,65 @@ use crate::filters::*;
 //use crate::dataset::*;
 //use crate::datarequest::*;
 
-/// main function which returns a Result DataFrame
-pub fn execute(req: DataRequestS, data: &impl DataSet, measure_map: Arc<MM>)
+/// main function which returns a Result of the calculation
+/// currently support only the first element of frames
+pub fn execute(req: DataRequestS, data: &impl DataSet)
  -> Result<DataFrame>{ 
     // Step 0 Validate Filters - server to hold list of params availiable as 
     // measures(agg), agg, group, filters
     // All these would be based on columns of DataSet. Measures would be most challenging
     // Recall within same Filter columns should be from the same file
 
-    info!("f1 with HMS, attr and prepared: {:?}", data.frames()[0].clone().lazy().collect());
+    //info!("f1 with HMS, attr and prepared: {:?}", data.frames()[0].clone().lazy().collect());
 
-    // Step 1.0 SELECT columns required for current request
-    // In case of SQL data source we need to create DF from 
-    // This way we minimize total cloning by selecting only relevant columns
+    // Step 0.1
     let f1 = &data.frames()[0];
     let f1_cols = f1.get_column_names();
     let mut f1 = f1.clone().lazy();
-    
-    // No need to select since DataFrame clones are super cheap
-    //let mut f1_select: Vec<&str> = vec![]; 
-    //let mut f2_select: Vec<&str> = vec![]; 
-    //let mut f3_select: Vec<&str> = vec![];
-    let f1_select = f1_cols;
+    let measure_map = data.measures();
      
 
-    //Step 1.1 Applying FILTERS:
-
+    //Step 1.0 Applying FILTERS:
     for f in req.filters() {
         match f {
 
             FilterS::In(ref fltrs) => {
-                if f1_select.contains(&&*fltrs[0].0) {
+                if f1_cols.contains(&&*fltrs[0].0) {
                     f1 = f1.filter(fltr_in_or_builder(fltrs));
                 };
             },
 
             FilterS::NotIn(ref fltrs) => {
-                if f1_select.contains(&&*fltrs[0].0) {
+                if f1_cols.contains(&&*fltrs[0].0) {
                     f1 = f1.filter(fltr_not_in_or_builder(fltrs));
                 };
             },
 
             FilterS::Eq(ref fltrs) => {
-                if f1_select.contains(&&*fltrs[0].0) {
+                if f1_cols.contains(&&*fltrs[0].0) {
                     f1 = f1.filter(fltr_eq_or_builder(fltrs));
                 };
             } ,
 
             FilterS::Neq(ref fltrs) => {
-                if f1_select.contains(&&*fltrs[0].0) {
+                if f1_cols.contains(&&*fltrs[0].0) {
                     f1 = f1.filter(fltr_neq_or_builder(fltrs));
                 };
             },
         }
     }
+    //TODO Step 2.0 Check that unique count based on groups is not larger than the MAX number
+    //This helps avoid problems like groupby TradeId
+    //let check_df = f1.clone().unique(Some(req._groupby().to_owned()), UniqueKeepStrategy::First).collect()?;
+    //if check_df.height() > 100 {
+    //    return Err(PolarsError::InvalidOperation("Requested operation results in over 100 groups. Please make sure number of groups does not exceed 100".into()))
+    //}
+    //This is expensive and slow. Feature raised:
+    //https://github.com/pola-rs/polars/issues/4305
+
+    
 
     // Step 2.1 GROUPBY and 2.2 Calculate Measures
-    // Need measure -> file mapping:
-    // can be derived based on columns for basic measures
-    // for bespoke need assumptions (eg "Delta")
 
     //AGGREGATE
     //Potentially rayon spawn here, for each measure-df
@@ -86,24 +86,20 @@ pub fn execute(req: DataRequestS, data: &impl DataSet, measure_map: Arc<MM>)
         Some(x) => &x.calc_params,
         _ => &None,
     };
-    
     // Build AGG
     let (aggregateions, newnames) = agg_builder(m, measure_map, &calc_p);
-
-    // Build Filter here to filter out lines where all measures are exactly 0
     
     //Build GROUPBY
     let groups: Vec<Expr> = req._groupby()
         .iter()
         .map(|x| { col(x) })
         .collect();
-    
+
     // GROUPBY and AGGREGATE
     f1 = f1.groupby(groups)
         .agg(aggregateions);
 
     // POSTPROCESSING
-
     // Remove zeros, optional
     if req.optiona_params().as_ref()
         .and_then(|x|Some(x.hide_zeros))
@@ -124,9 +120,10 @@ pub fn execute(req: DataRequestS, data: &impl DataSet, measure_map: Arc<MM>)
 
 
 /// This fn to be called per DataFrame
-/// Builds aggregation expressions
+/// Builds aggregation expression + the new name
+/// If requested measure does not exist in all_measures_map it will be simply skipped
 fn agg_builder(measures_requested: &[(String, String)], 
-    all_measures_map: Arc<MM>,
+    all_measures_map: &MM,
     op: &OCP ) -> (Vec<Expr>, Vec<String>) {
     let mut res_exprs: Vec<Expr> = Vec::with_capacity(measures_requested.len());
     let mut res_alias: Vec<String> = Vec::with_capacity(measures_requested.len());
@@ -154,6 +151,8 @@ fn agg_builder(measures_requested: &[(String, String)],
 
 
 lazy_static!(
+    /// This static exists because we need to map aggregation request to a function
+    /// There doesn't seem to be a better way than keeping a HashMap
     pub static ref BASE_CALCS: HashMap<&'static str, fn(Expr, &str) -> (Expr, String)> = HashMap::from(
         [
         ("sum", sum as fn(Expr, &str) -> (Expr, String)),
@@ -163,7 +162,9 @@ lazy_static!(
         ("var", var),
         ("quantile95low", quantile_95_lower),
         ("first", first),
-        ("list", list)
+        //("list", list), <-> not needed
+        ("count", count),
+        ("count_unique", count_unique)
         ]
     );
 );
@@ -192,15 +193,23 @@ fn quantile_95_lower(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_quantile95lower");
     ( c.quantile(0.95, QuantileInterpolOptions::Lower).alias(alias.as_ref()), alias )
 }
-fn first(c: Expr, newname: &str) -> (Expr, String) {
-    // Not including "_first" alias to avoid confusion 
-    // First is usually used by measures such as Capital or RiskWeight
-    // Which are calculated at a level of a certain column such as RiskFactor 
+/// Not including "_first" alias to avoid confusion 
+/// First is usually used by measures such as Capital or RiskWeight
+/// Which are calculated at a level of a certain column such as RiskFactor
+fn first(c: Expr, newname: &str) -> (Expr, String) { 
     ( c.first().alias(newname), newname.to_string() )
 }
-fn list(c: Expr, newname: &str) -> (Expr, String) {
+//fn list(c: Expr, newname: &str) -> (Expr, String) {
+//    let alias = format!("{newname}_list");
+//    ( c.list().alias(alias.as_ref()), alias)
+//}
+fn count(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_list");
-    ( c.list().alias(alias.as_ref()), alias)
+    ( c.count().alias(alias.as_ref()), alias)
+}
+fn count_unique(c: Expr, newname: &str) -> (Expr, String) {
+    let alias = format!("{newname}_list");
+    ( c.n_unique().alias(alias.as_ref()), alias)
 }
 
 #[cfg(test)]

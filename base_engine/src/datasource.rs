@@ -4,7 +4,7 @@ use polars::prelude::*;
 use log::warn;
 use serde::{Serialize, Deserialize};
 
-use crate::dataset::*;
+use crate::{dataset::*, Measure, derive_basic_measures_vec};
 
 /// reads setup.toml 
 /// # Panics
@@ -36,12 +36,12 @@ where T: serde::de::DeserializeOwned,
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum DataSourceConfig {
-    CSV{#[serde(default, rename = "file_1_path")]
-        file_1: Option<String>,
-        #[serde(default, rename = "file_2_path")]
-        file_2: Option<String>,
-        #[serde(default, rename = "file_3_path")]
-        file_3: Option<String>,
+    CSV{#[serde(default, rename = "files")]
+        file_paths: Vec<String>,
+        //#[serde(default, rename = "file_2_path")]
+        //file_2: Option<String>,
+        //#[serde(default, rename = "file_3_path")]
+        //file_3: Option<String>,
         #[serde(default, rename = "attributes_path")]
         attr: Option<String>,
         #[serde(default, rename = "hierarchy_path")]
@@ -51,11 +51,11 @@ pub enum DataSourceConfig {
         #[serde(default)]
         attributes_join_hierarchy: Vec<String>,
         #[serde(default)]
-        f1_measure_cols: Option<Vec<String>>,
-        #[serde(default)]
-        f2_measure_cols: Option<Vec<String>>,
-        #[serde(default)]
-        f3_measure_cols: Option<Vec<String>>,
+        measures: Option<Vec<String>>,
+        //#[serde(default)]
+        //f2_measure_cols: Option<Vec<String>>,
+        //#[serde(default)]
+        //f3_measure_cols: Option<Vec<String>>,
         #[serde(default)]
         f1_numeric_cols: Option<Vec<String>>,
         #[serde(default)]
@@ -69,35 +69,33 @@ pub enum DataSourceConfig {
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
-    pub fn build(self) -> (Vec<DataFrame>, Vec<String>, HashMap<String, String>) {
+    pub fn build<'a>(self) -> (Vec<DataFrame>, Vec<Measure<'a>>, HashMap<String, String>) {
 
         match self{
             DataSourceConfig::CSV{
-                file_1, 
-                file_2: v,
-                file_3: c,
+                file_paths: files,
                 attr: ta,
                 hms,
                 files_join_attributes: f2a,
                 attributes_join_hierarchy: a2h,
-                f1_measure_cols: f1_m,
-                f2_measure_cols: f2_m,
-                f3_measure_cols: f3_m,
+                measures: ms,
                 f1_cast_to_str: cast_to_str_vec,
                 f1_numeric_cols,
                 mut build_params} => {
                     // in order to convert to categorical, f2a columns have to be Utf8
-                    let mut str_cols: Vec<String> = match cast_to_str_vec {
-                        Some(v) => v.clone(),
-                        _ => vec![]
-                    };
+
+                    let mut str_cols: Vec<String> = cast_to_str_vec.unwrap_or_default();
                     str_cols.extend(f2a.clone());
-                    let f64_cols: Vec<String> = match f1_numeric_cols {
-                        Some(v) => v.clone(),
-                        _ => vec![]
+
+                    let f64_cols: Vec<String> = f1_numeric_cols.unwrap_or_default();
+
+                    let mut frames = Vec::with_capacity(files.len());
+
+                    for f in files {
+                        frames.push(path_to_df(f.as_str(),&str_cols, &f64_cols))
                     };
 
-
+                    /*
                     let mut df1 = match  file_1 {
                         Some(y) => path_to_df(&y, &str_cols, &f64_cols),
                         _ => empty_frame(&f2a) };
@@ -109,6 +107,7 @@ impl DataSourceConfig {
                     let mut df3 = match  c{
                         Some(y) => path_to_df(&y, &f2a, &f64_cols),
                         _ => empty_frame(&f2a) };
+                    */
                     
                     
                     let mut tmp = f2a.clone();
@@ -144,40 +143,50 @@ impl DataSourceConfig {
                     for i in f2a.iter() {
                         df_attr.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
+                        for df in &mut frames {
+                            df.try_apply(i, |s| 
+                                s.cast(&DataType::Categorical(None))).unwrap();
+                        }
+                        /*
                         df1.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         df2.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
                         df3.try_apply(i, |s| 
                             s.cast(&DataType::Categorical(None))).unwrap();
-
+                            */
                     }
 
                     // join with hms if a2h was provided
                     if !a2h.is_empty() {
                         df_attr = df_attr.join(&df_hms, a2h.clone(), a2h.clone(), JoinType::Left, None).unwrap();
                     }
+                    for df in &mut frames {
+                        *df =  df.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
+                    }
+                    /*
                     df1 = df1.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
                     df2 = df2.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
                     df3 = df3.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
+                    */
                     
                     
-                    let mut measure_cols = vec![];
-                    for (o, df) in [(f1_m, &df1), 
-                        (f2_m, &df2),  (f3_m, &df3)] {
-                        match o {
-                            //TODO Check here if each of f1_m is present in the df1
-                            Some(measures) =>{ measure_cols.extend(measures.clone()); },
-                            // If not provided return all columns
-                            None =>{ measure_cols.extend(numeric_columns(df)); },
-                        };
-
+                    //let mut measures = vec![];
+                    let measures = match ms {
+                        //TODO Check here if each of f1_m is present in the df1
+                        Some(measures) =>{ derive_basic_measures_vec(measures) },
+                        // If not provided return all numeric columns
+                        None =>{ 
+                            let mut num_cols = vec![];
+                            frames.iter()
+                                .for_each(|df|{num_cols.extend(numeric_columns(df))});
+                            derive_basic_measures_vec(num_cols) },
                     };
 
                     let build_params = 
                     if let Some(bp) = build_params.take() { bp } else { HashMap::default()};
 
-                    (vec![df1, df2, df3], measure_cols, build_params)
+                    (frames, measures, build_params)
                 },
         }
     }

@@ -6,6 +6,7 @@ pub mod docs;
 pub mod measures;
 mod statics;
 
+use prelude::frtb_measure_vec;
 use sbm::buckets;
 use sbm::risk_weights::*;
 use base_engine::prelude::*;
@@ -17,22 +18,38 @@ pub trait FRTBDataSetT {
     fn prepare(self) -> Self;
 }
 #[derive(Debug)]
-pub struct FRTBDataSet {
+pub struct FRTBDataSet<'a> {
     frames: Vec<DataFrame>,
-    measure_cols: Vec<String>, 
+    measures: MM<'a>,  
     build_params: HashMap<String, String>,
 }
+impl<'a> FRTBDataSet<'a> {
+    
+    fn with_measures(&mut self, bespoke: Vec<Measure<'static>>)
+    where Self: Sized, {
+        let self_measures = &mut self.measures;
+        self_measures
+       .extend(bespoke.into_iter()
+            .map(|m|(m.name.clone(), m))
+        );
+       //self
+    }
+}
 
-impl DataSet for FRTBDataSet {
+impl<'a> DataSet for FRTBDataSet<'a> {
     fn frames(&self) -> &Vec<DataFrame>{
         &self.frames
     }
-    fn measure_cols(&self) -> &Vec<String>{
-        &self.measure_cols
+    fn measures(&self) -> &MM{
+        &self.measures
     }
+    
     fn build(conf: DataSourceConfig) -> Self{
         let (frames, measure_cols, build_params) = conf.build();
-        Self{frames, measure_cols, build_params}
+        let mm: MM = derive_measure_map(measure_cols);
+        let mut res = Self{frames, measures: mm, build_params};
+        res.with_measures(frtb_measure_vec());
+        res
     }
     /// prepares DataSet by pre building columns.
     /// Useful when we don't want to build columns at each request

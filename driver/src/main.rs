@@ -2,15 +2,12 @@
 //! This to be conversted into server
 
 use base_engine::prelude::*;
-use toml::Value;
 
 use std::process;
 use std::sync::Arc;
 use log::info;
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
-#[cfg(feature = "FRTB")]
-use frtb_engine::prelude::*;
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
 #[cfg(not(target_os = "linux"))]
@@ -18,7 +15,7 @@ use mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 #[cfg(feature = "FRTB")]
-type DataSetType = frtb_engine::FRTBDataSet;
+type DataSetType = frtb_engine::FRTBDataSet<'static>;
 #[cfg(not(feature = "FRTB"))]
 type DataSetType = base_engine::DataSetBase;
 
@@ -36,31 +33,12 @@ fn main() {
     // Pre build some columns, which you wish to store in memory alongside the original data
     data.prepare();
 
-    ////owner of column names
-    let numer_cols = data.numeric_columns_owned(vec![]); 
-    println!("numeric columns: {:?}", numer_cols);
-
-    //### Measures Struct ###
-    //Owner of the measures which point to numer_cols
-    let measures_vec = derive_basic_measures_vec(data.measure_cols());
-    //Vec of pointers to owner(s) of the measures
-    let mut ptrs_measures_vecs = vec![&measures_vec];
-    #[cfg(feature = "FRTB")]
-    if cfg!(feature = "FRTB") {
-        //Extend the Vec with another pointer to an owner
-        ptrs_measures_vecs.push(&*FRTB_MEASURE_VEC)
-    }
-    //measures_map holds pointers to data owned by measures_vec and frtb_engine::MEASURE_VEC
-    let measures_map = derive_measures_map(ptrs_measures_vecs);
-    let arc_measures_map = Arc::new(measures_map);
-    //### ### ###
-
     let message: Message = serde_json::from_str(JSON).unwrap();
     info!("{:?}", message);
     let now = Instant::now();
     match message {
         Message::Request{ params: conf, ..} => {
-            match base_engine::execute(conf, &data, Arc::clone(&arc_measures_map)){
+            match base_engine::execute(conf, &data){
                 Err(e) =>{ // eventually will be tokio::spawn_blocking
                     eprintln!("Application error: {:#?}", e);
                     process::exit(1);
@@ -297,22 +275,18 @@ const JSON: &str = r#"
     "method": "SEND", 
     "params": {
         "measures": [
-            ["GIRR_CurvatureDelta", "sum"],
-["GIRR_PnLup", "sum"],
-["GIRR_PnLdown", "sum"],
-["GIRR_CurvatureDelta_Weighted", "sum"],
-["GIRR_CVRup", "sum"],
-["GIRR_CVRdown", "sum"],
-["GIRR_Curvature_KbPlus", "first"],
-["GIRR_Curvature_KbMinus", "first"],
-["GIRR_Curvature_Kb", "first"],
-["GIRR_Curvature_Sb", "first"],
-["GIRR_CurvatureCharge_Low", "first"],
-["GIRR_CurvatureCharge_Medium", "first"],
-["GIRR_CurvatureCharge_High", "first"]
+            ["GIRR_DeltaSens", "sum"],
+            ["GIRR_DeltaSens_Weighted", "sum"],
+            ["GIRR_DeltaSb", "sum"],
+            ["GIRR_DeltaKb_Low", "first"],
+            ["GIRR_DeltaKb_Medium", "first"],
+            ["GIRR_DeltaKb_High", "first"],
+            ["GIRR_DeltaCharge_Low", "first"],
+            ["GIRR_DeltaCharge_Medium", "first"],
+            ["GIRR_DeltaCharge_High", "first"]
         ],
         "groupby": ["Desk"],
-        "filters": [{"Eq": [["Desk","RatesEM"]]}],
+        "filters": [{"Eq": [["Desk", "FXOptions"]]}],
         "optional_params": {
             "hide_zeros": true,
             "calc_params": {"jurisdiction": "BCBS",

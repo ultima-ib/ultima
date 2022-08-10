@@ -77,6 +77,7 @@ pub(crate) enum ReturnMetric {
     CapitalCharge,
     Kb,
     Sb,
+    #[allow(dead_code)]
     SbAlt,
     /// Curvature
     KbPlus,

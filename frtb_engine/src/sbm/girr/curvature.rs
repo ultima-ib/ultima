@@ -26,11 +26,11 @@ pub fn girr_cvr_up(_: &OCP) -> Expr {
 }
 
 pub fn girr_pnl_up(_: &OCP) -> Expr {
-    rc_rcat_sens("GIRR", "Delta", col("PnL_Up"))
+    rc_rcat_sens("Delta", "GIRR", col("PnL_Up"))
 }
 
 pub fn girr_pnl_down(_: &OCP) -> Expr {
-    rc_rcat_sens("GIRR", "Delta", col("PnL_Down"))    
+    rc_rcat_sens("Delta", "GIRR", col("PnL_Down"))    
 }
 
 // Kb, Sb, KbPlus, KbMinus is same across all scenarios for GIRR
@@ -68,30 +68,41 @@ fn girr_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig
     let girr_vega_gamma_crr2_erm2 = get_optional_parameter(op, format!("girr_curv_gamma_crr2_erm2{_suffix}").as_str(), &scenario.girr_curv_gamma_crr2_erm2);
     let erm2ccys =  get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_crr2);
 
-
     girr_curvature_charge(girr_curv_gamma,girr_vega_gamma_crr2_erm2,  rtrn, juri, erm2ccys)
 }
 
 /// https://www.clarusft.com/frtb-curvature-risk-charge/
 /// Note: single Curvature Risk Charge (in Rates), ie CVR up/down, per currency
 /// We therefore simply sum (no rho) CVR_Up/CVR_Down within a bucket
-fn girr_curvature_charge(girr_curv_gamma: f64, erm2_gamma: f64,
-    return_metric: ReturnMetric, juri: Jurisdiction, erm2ccys: Vec<String>) -> Expr {
+fn girr_curvature_charge(girr_curv_gamma: f64, _erm2_gamma: f64,
+    return_metric: ReturnMetric, juri: Jurisdiction, _erm2ccys: Vec<String>) -> Expr {
 
     apply_multiple( move |columns| {
 
         let df = df![
             "rc"       => columns[0].clone(),
             "b"        => columns[1].clone(),
-            "cvr_up"   => columns[2].clone(),
-            "cvr_down" => columns[3].clone(),
+            "PnL_Up"   => columns[2].clone(),
+            "PnL_Down" => columns[3].clone(),
+            "SensitivitySpot" => columns[4].clone(),
+            "Sensitivity_025Y"=> columns[5].clone(),
+            "Sensitivity_05Y" => columns[5].clone(),
+            "Sensitivity_1Y"  => columns[6].clone(),
+            "Sensitivity_2Y"  => columns[7].clone(),
+            "Sensitivity_3Y"  => columns[8].clone(),
+            "Sensitivity_5Y"  => columns[9].clone(),
+            "Sensitivity_10Y" => columns[10].clone(),
+            "Sensitivity_15Y" => columns[11].clone(),
+            "Sensitivity_20Y" => columns[12].clone(),
+            "Sensitivity_30Y" => columns[13].clone(),
+            "CurvatureRiskWeight"=>columns[14].clone(),
         ]?;
         let df = df.lazy()
-            .filter(col("rc").eq(lit("GIRR")).and(col("cvr_up").is_not_null().or(col("cvr_down").is_not_null())))
+            .filter(col("rc").eq(lit("GIRR")).and(col("PnL_Up").is_not_null().or(col("PnL_Down").is_not_null())))
             .groupby([col("b")])
             .agg([
-                col("cvr_up").sum(),
-                col("cvr_down").sum()
+                cvr_up().sum().alias("cvr_up"),
+                cvr_down().sum().alias("cvr_down"),
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
@@ -116,13 +127,13 @@ fn girr_curvature_charge(girr_curv_gamma: f64, erm2_gamma: f64,
                 _ => (),
             }
 
-        let buckets: Vec<&str> = df["b"].utf8()?.into_iter().map(|s| s.unwrap_or_else(||"Default")).collect();
+        let _buckets: Vec<&str> = df["b"].utf8()?.into_iter().map(|s| s.unwrap_or_else(||"Default")).collect();
 
         // 325ag
         let mut gamma = match juri {
             #[cfg(feature = "CRR2")]
-            Jurisdiction::CRR2 => { build_girr_crr2_gamma(&buckets, &erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
-                girr_curv_gamma, erm2_gamma ) },
+            Jurisdiction::CRR2 => { build_girr_crr2_gamma(&_buckets, &_erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
+                girr_curv_gamma, _erm2_gamma ) },
             _ => Array2::from_elem((kbs.len(), kbs.len()), girr_curv_gamma ),
         };
 
@@ -136,7 +147,19 @@ fn girr_curvature_charge(girr_curv_gamma: f64, erm2_gamma: f64,
         across_bucket_agg(kbs, sbs, &gamma, res_len, SBMChargeType::Curvature)
     },
         &[col("RiskClass"), col("BucketBCBS"),
-        cvr_up(),
-        cvr_down()],
+        col("PnL_Up"),
+        col("PnL_Down"),
+        col("SensitivitySpot"),
+        col("Sensitivity_025Y"),
+        col("Sensitivity_05Y"),
+        col("Sensitivity_1Y"),
+        col("Sensitivity_2Y"),
+        col("Sensitivity_3Y"),
+        col("Sensitivity_5Y"),
+        col("Sensitivity_10Y"),
+        col("Sensitivity_15Y"),
+        col("Sensitivity_20Y"),
+        col("Sensitivity_30Y"),
+        col("CurvatureRiskWeight")],
         GetOutput::from_type(DataType::Float64))
 }

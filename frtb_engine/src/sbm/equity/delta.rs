@@ -10,11 +10,28 @@ use ndarray::prelude::*;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Equity", "Delta", total_delta_sens())
+    rc_rcat_sens("Delta", "Equity", total_delta_sens())
 }
 
 pub(crate) fn equity_delta_sens_weighted (_: &OCP) -> Expr {
     equity_delta_sens_weighted_spot()
+}
+
+/// Interm Result: Equity Delta Sb <--> Sb Low == Sb Medium == Sb High
+pub(crate) fn eq_delta_sb(op: &OCP) -> Expr {
+    equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
+}
+/// Interm Result: Equity Kb Low
+pub(crate) fn eq_delta_kb_low(op: &OCP) -> Expr {
+    equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
+}
+/// Interm Result: Equity Kb Medium
+pub(crate) fn eq_delta_kb_medium(op: &OCP) -> Expr {
+    equity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)  
+}
+/// Interm Result: Equity Kb High
+pub(crate) fn eq_delta_kb_high(op: &OCP) -> Expr {
+    equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)  
 }
 
 /// Returns NULL for non Delta risk
@@ -24,27 +41,32 @@ pub(crate) fn equity_delta_sens_weighted_spot() -> Expr {
 
 ///calculate Equity Delta High Capital charge
 pub(crate) fn equity_delta_charge_high(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO)
+    equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate Equity Delta Medium Capital charge
 pub(crate) fn equity_delta_charge_medium(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO)
+    equity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 
-///calculate Equity Delta Medium Capital charge
+///calculate Equity Delta Low Capital charge
 pub(crate) fn equity_delta_charge_low(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO)
+    equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
-fn equity_delta_charge_distributor(_: &OCP, scenario: &'static ScenarioConfig) -> Expr {
-    equity_delta_charge(&scenario.eq_gamma, scenario.base_eq_rho_bucket, scenario.base_eq_rho_mult, scenario.scenario_fn)
+fn equity_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
+    let _suffix = scenario.as_str();
+    let eq_gamma = get_optional_parameter_array(op, format!("eq_gamma{_suffix}").as_str(), &scenario.eq_gamma);
+    let base_eq_rho_bucket = get_optional_parameter(op, format!("base_eq_rho_bucket{_suffix}").as_str(), &scenario.base_eq_rho_bucket);
+    let eq_rho_diff_type =  get_optional_parameter(op, format!("eq_rho_diff_type{_suffix}").as_str(), &scenario.base_eq_rho_mult);
+
+    equity_delta_charge(eq_gamma, base_eq_rho_bucket, eq_rho_diff_type, scenario.scenario_fn, rtrn)
 }
 
 ///calculate FX Delta Capital charge
-fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13], 
-    eq_rho_mult: f64, scenario_fn: F) -> Expr 
+fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13], 
+    eq_rho_diff_type: f64, scenario_fn: F, rtrn: ReturnMetric) -> Expr 
     where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,{
     // inner function
     apply_multiple( move |columns| {
@@ -75,23 +97,34 @@ fn equity_delta_charge<F>(gamma: &'static Array2<f64>, eq_rho_bucket: [f64; 13],
         .into_par_iter()
         .map(|bucket| {
             eq_bucket_kb_sb(df.clone(), bucket, eq_rho_bucket, 
-            eq_rho_mult, scenario_fn)
+            eq_rho_diff_type, scenario_fn)
         })
         .collect();
 
         let kbs_sbs = reskbs_sbs?;
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
+        // Early return Kb or Sb is that is the required metric
+        let res_len = columns[0].len();
+        match rtrn {
+            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
+            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+            _ => (),
+        }
+
         across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
 
     }, 
-    &[ col("BucketBCBS"), equity_delta_sens_weighted_spot(), col("RiskFactorType"), col("RiskFactor") ], 
+    &[ col("BucketBCBS"), 
+    equity_delta_sens_weighted_spot(),
+    col("RiskFactorType"),
+    col("RiskFactor") ], 
         GetOutput::from_type(DataType::Float64))
 }
 
 
 fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13], 
-    eq_rho_mult: f64, scenario_fn: F) 
+    eq_rho_type: f64, scenario_fn: F) 
     -> Result<(f64, f64)> 
     where F: Fn(f64) -> f64 + Sync + Send + 'static,{
     
@@ -114,8 +147,7 @@ fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13],
 
         let buck_rho = eq_rho_bucket[bucket_id-1];
 
-        let mut rho = build_eq_rho(&bucket_df["rf"], &bucket_df["rft"], buck_rho, eq_rho_mult)?;
-        dbg!(rho.clone());
+        let mut rho = build_eq_rho(&bucket_df["rf"], &bucket_df["rft"], buck_rho, eq_rho_type)?;
         rho.par_mapv_inplace(|el| {scenario_fn(el)});
 
         //21.4.4

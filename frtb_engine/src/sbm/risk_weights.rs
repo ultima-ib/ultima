@@ -261,6 +261,7 @@ pub struct SensWeightsConfig {
 }
 
 /// Ammends BCBS risk weights into CRR2 compliance where required
+#[cfg(feature = "CRR2")]
 pub fn weights_assign_crr2() -> Expr {
     let x:Option<f64> = None;
     //let not_yet_implemented = Series::new("null", &[x]).lit().list();

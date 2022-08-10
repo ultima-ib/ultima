@@ -1,0 +1,28 @@
+{"type": "Request",
+    "id": "123", 
+    "method": "SEND", 
+    "params": {
+        "measures": [
+            ["FX_CurvatureDelta", "sum"],
+            ["FX_CurvatureDelta_Weighted", "sum"],
+            ["FX_PnLup", "sum"],
+            ["FX_PnLdown", "sum"],
+            ["FX_CVRup", "sum"],
+            ["FX_CVRdown", "sum"],
+            ["FX_Curvature_KbPlus", "first"],
+            ["FX_Curvature_KbMinus", "first"],
+            ["FX_Curvature_Kb", "first"],
+            ["FX_Curvature_Sb", "first"],
+            ["FX_CurvatureCharge_Low", "first"],
+            ["FX_CurvatureCharge_Medium", "first"],
+            ["FX_CurvatureCharge_High", "first"]
+        ],
+        "groupby": ["Desk"],
+        "filters": [{"Eq":[["Desk", "RatesEM"]]}],
+        "optional_params": {
+            "hide_zeros": true,
+            "calc_params": {"jurisdiction": "BCBS",
+            "apply_fx_curv_div": "true"}
+        }
+    }
+}

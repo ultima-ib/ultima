@@ -9,7 +9,7 @@ use polars::prelude::*;
 use ndarray::prelude::*;
 
 pub fn total_commodity_delta_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Commodity", "Delta", total_delta_sens())
+    rc_rcat_sens("Delta", "Commodity", total_delta_sens())
 }
 /// Helper functions
 pub(crate) fn commodity_delta_sens_weighted_spot() -> Expr {

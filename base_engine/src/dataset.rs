@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use polars::prelude::*;
 
-use crate::{DataSourceConfig, Measure, MM, derive_measure_map};
+use crate::{DataSourceConfig, MM, derive_measure_map};
 
 /// This is the default Dataset
 /// Usually a client/user would overwrite it with their own DataSet

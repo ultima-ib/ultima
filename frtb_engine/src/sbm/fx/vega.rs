@@ -7,7 +7,7 @@ use crate::sbm::common::{rc_rcat_sens, across_bucket_agg, total_delta_sens, SBMC
 use polars::prelude::*;
 
 pub fn total_fx_vega_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("FX", "Vega", total_delta_sens())
+    rc_rcat_sens("Vega", "FX", total_delta_sens())
 }
 
 pub fn total_fx_vega_sens_weighted (op: &OCP) -> Expr {
@@ -71,17 +71,18 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
             "y3" =>   columns[5].clone(),
             "y5" =>   columns[6].clone(),
             "y10" =>  columns[7].clone(),
+            "wght" => columns[8].clone()
         ]?;
 
         let df = df.lazy()
             .filter(col("rc").eq(lit("FX")).and(col("rcat").eq(lit("Vega"))))
             .groupby([col("b") ])
             .agg([
-                col("y05").sum(),
-                col("y1").sum(),
-                col("y3").sum(),
-                col("y5").sum(),
-                col("y10").sum()           
+                (col("y05")*col("wght")).sum(),
+                (col("y1")*col("wght")).sum(),
+                (col("y3")*col("wght")).sum(),
+                (col("y5")*col("wght")).sum(),
+                (col("y10")*col("wght")).sum()           
             ])
             .select(&[col("*").exclude(&["b"])])
             .fill_null(lit::<f64>(0.))
@@ -122,11 +123,12 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
         across_bucket_agg(kbs, sbs, &gamma, res_len, SBMChargeType::DeltaVega)
     },
     &[col("RiskCategory"), col("RiskClass"), col("BucketBCBS"),
-    col("Sensitivity_05Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_1Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_3Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_5Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_10Y")*col("SensWeights").arr().get(0),],
+    col("Sensitivity_05Y"),
+    col("Sensitivity_1Y"),
+    col("Sensitivity_3Y"),
+    col("Sensitivity_5Y"),
+    col("Sensitivity_10Y"),
+    col("SensWeights").arr().get(0)],
     GetOutput::from_type(DataType::Float64)
     )
 }

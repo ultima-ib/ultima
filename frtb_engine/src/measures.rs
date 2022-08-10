@@ -14,7 +14,7 @@ use crate::sbm::girr::delta::{total_ir_delta_sens, girr_delta_sens_weighted,
 use crate::sbm::commodity::delta::{total_commodity_delta_sens, commodity_delta_sens_weighted, 
     commodity_delta_charge_low, commodity_delta_charge_medium, commodity_delta_charge_high};
 use crate::sbm::equity::delta::{equity_delta_sens, equity_delta_sens_weighted,
-        equity_delta_charge_low, equity_delta_charge_medium, equity_delta_charge_high};
+        equity_delta_charge_low, equity_delta_charge_medium, equity_delta_charge_high, eq_delta_kb_low, eq_delta_kb_medium, eq_delta_kb_high, eq_delta_sb};
 use crate::sbm::girr::vega::{total_ir_vega_sens, girr_vega_sens_weighted, girr_vega_charge_medium, girr_vega_kb_medium, girr_vega_kb_high, girr_vega_charge_high, girr_vega_charge_low, girr_vega_kb_low, girr_vega_sb};
 
 use base_engine::prelude::*;
@@ -212,7 +212,7 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             aggregation: Some("first"),
         },
 
-        // Equity
+        // ######################### Equity Delta #######################################
         Measure {
             name: "Equity_DeltaSens".to_string(),
             calculator: Box::new(equity_delta_sens),
@@ -223,6 +223,30 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             name: "Equity_DeltaSens_Weighted".to_string(),
             calculator: Box::new(equity_delta_sens_weighted),
             aggregation: None,
+        },
+
+        Measure {
+            name: "Equity_DeltaSb".to_string(),
+            calculator: Box::new(eq_delta_sb),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Equity_DeltaKb_Low".to_string(),
+            calculator: Box::new(eq_delta_kb_low),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Equity_DeltaKb_Medium".to_string(),
+            calculator: Box::new(eq_delta_kb_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Equity_DeltaKb_High".to_string(),
+            calculator: Box::new(eq_delta_kb_high),
+            aggregation: Some("first"),
         },
 
         Measure {

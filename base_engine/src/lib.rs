@@ -6,8 +6,9 @@ mod datasource;
 mod measure;
 
 use polars::prelude::*;
-use log::{warn, debug, info};
-use lazy_static::lazy_static;
+use log::warn;
+
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
 pub use crate::prelude::*;
@@ -19,10 +20,7 @@ use crate::filters::*;
 /// currently support only the first element of frames
 pub fn execute(req: DataRequestS, data: &impl DataSet)
  -> Result<DataFrame>{ 
-    // Step 0 Validate Filters - server to hold list of params availiable as 
-    // measures(agg), agg, group, filters
-    // All these would be based on columns of DataSet. Measures would be most challenging
-    // Recall within same Filter columns should be from the same file
+    // Assuming Front End knows which columns can be in groupby, agg etc
 
     //info!("f1 with HMS, attr and prepared: {:?}", data.frames()[0].clone().lazy().collect());
 
@@ -31,6 +29,7 @@ pub fn execute(req: DataRequestS, data: &impl DataSet)
     let f1_cols = f1.get_column_names();
     let mut f1 = f1.clone().lazy();
     let measure_map = data.measures();
+    
      
 
     //Step 1.0 Applying FILTERS:
@@ -96,8 +95,19 @@ pub fn execute(req: DataRequestS, data: &impl DataSet)
         .collect();
 
     // GROUPBY and AGGREGATE
-    f1 = f1.groupby(groups)
-        .agg(aggregateions);
+    // Note .limit doesn't work with standard groupby on large frames
+    // hence use groupby_stable
+    f1 = f1.groupby_stable(groups)
+        .agg(aggregateions)
+        .limit(1000);
+    
+    //f1 = f1.groupby([col("TradeId")]).agg([
+    //    col("SensitivitySpot").sum()
+    //]).limit(1);
+
+    //use frtb_engine::sbm::common::total_delta_sens;
+    
+    //dbg!(f1.clone().collect());
 
     // POSTPROCESSING
     // Remove zeros, optional
@@ -113,7 +123,8 @@ pub fn execute(req: DataRequestS, data: &impl DataSet)
             }
             f1 = f1.filter(predicate);
         };
-    
+    // Fetch limits the number of computed groups
+    // required to make sure server does hang up
     f1.collect()
  }
 
@@ -150,24 +161,24 @@ fn agg_builder(measures_requested: &[(String, String)],
 }
 
 
-lazy_static!(
-    /// This static exists because we need to map aggregation request to a function
-    /// There doesn't seem to be a better way than keeping a HashMap
-    pub static ref BASE_CALCS: HashMap<&'static str, fn(Expr, &str) -> (Expr, String)> = HashMap::from(
-        [
-        ("sum", sum as fn(Expr, &str) -> (Expr, String)),
-        ("min", min),
-        ("max", max),
-        ("mean", mean),
-        ("var", var),
-        ("quantile95low", quantile_95_lower),
-        ("first", first),
-        //("list", list), <-> not needed
-        ("count", count),
-        ("count_unique", count_unique)
-        ]
-    );
-);
+
+/// This static exists because we need to map aggregation request to a function
+/// There doesn't seem to be a better way than keeping a HashMap
+pub static BASE_CALCS: Lazy<HashMap<&'static str, fn(Expr, &str) -> (Expr, String)>> = Lazy::new( || { HashMap::from(
+    [
+    ("sum", sum as fn(Expr, &str) -> (Expr, String)),
+    ("min", min),
+    ("max", max),
+    ("mean", mean),
+    ("var", var),
+    ("quantile95low", quantile_95_lower),
+    ("first", first),
+    //("list", list), <-> not needed
+    ("count", count),
+    ("count_unique", count_unique)
+    ]
+    )
+});
 
 fn sum(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_sum");

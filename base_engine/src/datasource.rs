@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
 use polars::prelude::*;
 use log::warn;
@@ -12,9 +12,8 @@ use crate::{dataset::*, Measure, derive_basic_measures_vec};
 pub fn read_toml2<'de, T>(path: &'de str) -> std::result::Result<T, Box<dyn std::error::Error>>
 where T: serde::de::DeserializeOwned,
  {
-    
     let result_string: std::result::Result<String, std::io::Error> = std::fs::read_to_string(path);
-
+    
     match result_string {
         Ok(f) => {
             let x = toml::from_str::<T>(&f);
@@ -38,10 +37,6 @@ where T: serde::de::DeserializeOwned,
 pub enum DataSourceConfig {
     CSV{#[serde(default, rename = "files")]
         file_paths: Vec<String>,
-        //#[serde(default, rename = "file_2_path")]
-        //file_2: Option<String>,
-        //#[serde(default, rename = "file_3_path")]
-        //file_3: Option<String>,
         #[serde(default, rename = "attributes_path")]
         attr: Option<String>,
         #[serde(default, rename = "hierarchy_path")]
@@ -52,10 +47,6 @@ pub enum DataSourceConfig {
         attributes_join_hierarchy: Vec<String>,
         #[serde(default)]
         measures: Option<Vec<String>>,
-        //#[serde(default)]
-        //f2_measure_cols: Option<Vec<String>>,
-        //#[serde(default)]
-        //f3_measure_cols: Option<Vec<String>>,
         #[serde(default)]
         f1_numeric_cols: Option<Vec<String>>,
         #[serde(default)]
@@ -93,22 +84,7 @@ impl DataSourceConfig {
 
                     for f in files {
                         frames.push(path_to_df(f.as_str(),&str_cols, &f64_cols))
-                    };
-
-                    /*
-                    let mut df1 = match  file_1 {
-                        Some(y) => path_to_df(&y, &str_cols, &f64_cols),
-                        _ => empty_frame(&f2a) };
-
-                    let mut df2 = match  v{
-                        Some(y) => path_to_df(&y, &f2a, &f64_cols),
-                        _ => empty_frame(&f2a) };
-
-                    let mut df3 = match  c{
-                        Some(y) => path_to_df(&y, &f2a, &f64_cols),
-                        _ => empty_frame(&f2a) };
-                    */
-                    
+                    };                    
                     
                     let mut tmp = f2a.clone();
                     tmp.extend(a2h.clone());
@@ -147,14 +123,6 @@ impl DataSourceConfig {
                             df.try_apply(i, |s| 
                                 s.cast(&DataType::Categorical(None))).unwrap();
                         }
-                        /*
-                        df1.try_apply(i, |s| 
-                            s.cast(&DataType::Categorical(None))).unwrap();
-                        df2.try_apply(i, |s| 
-                            s.cast(&DataType::Categorical(None))).unwrap();
-                        df3.try_apply(i, |s| 
-                            s.cast(&DataType::Categorical(None))).unwrap();
-                            */
                     }
 
                     // join with hms if a2h was provided
@@ -164,11 +132,6 @@ impl DataSourceConfig {
                     for df in &mut frames {
                         *df =  df.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
                     }
-                    /*
-                    df1 = df1.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
-                    df2 = df2.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
-                    df3 = df3.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
-                    */
                     
                     
                     //let mut measures = vec![];
@@ -223,7 +186,7 @@ fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> Dat
         //.with_ignore_parser_errors(ignore)
         .finish()
         .and_then(|lf| lf.collect())
-        .unwrap();
+        .expect(format!("Error reading file: {path}").as_str());
     
     df
 }

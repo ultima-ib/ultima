@@ -121,7 +121,7 @@ impl<'a> DataSet for FRTBDataSet<'a> {
 
                     .otherwise(col("GirrVegaUnderlyingMaturity"))
             );
-
+            
             *f1 = lf1.collect().unwrap();
         }
     }

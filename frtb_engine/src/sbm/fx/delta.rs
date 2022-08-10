@@ -84,36 +84,50 @@ pub(crate) fn fx_delta_charge_low(op: &OCP) -> Expr {
 }
 
 fn fx_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
-    let fx_delta_sens_weighted_with_rep_ccy = fx_delta_sens_weighted(op);
+    //let fx_delta_sens_weighted_with_rep_ccy = fx_delta_sens_weighted(op);
+    let ccy_regex = ccy_regex(op);
 
     let _suffix = scenario.as_str();
 
     let fx_delta_gamma = get_optional_parameter(op, format!("fx_delta_gamma{_suffix}").as_ref() as &str, &scenario.fx_gamma);
 
-    fx_delta_charge(fx_delta_gamma, fx_delta_sens_weighted_with_rep_ccy, rtrn)
+    fx_delta_charge(fx_delta_gamma, rtrn, ccy_regex)
 }
 
 ///calculate FX Delta Capital charge
-fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr, rtrn: ReturnMetric) -> Expr {
+fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
     // inner function
     apply_multiple( move |columns| {
 
         let df = df![
-            "rc" => columns[0].clone(), 
-            //FX Bucket is RiskFactor
-            "rf" => columns[1].clone(),
-            "dw" => columns[2].clone(),
+            "rcat" => columns[0].clone(), 
+            "rc"   => columns[1].clone(),
+            "b"    => columns[2].clone(),
+            "d"    => columns[3].clone(),
+            "w"    => columns[4].clone(),
         ]?;
-        
 
+        let ccy_regex = ccy_regex.clone();
         let df = df.lazy()
             .filter(
-                // filtering out NULLs here, as non FX non Delta were set to NULL
-                col("dw").is_not_null()
+                col("rc").eq(lit("FX"))
+                .and(col("rcat").eq(lit("Delta")))
+                .and(col("b").apply(move |col|{
+                    Ok( col
+                    .utf8()?
+                    .contains(&ccy_regex)?
+                    .into_series() )
+                },
+                    GetOutput::from_type(DataType::Boolean)))
             )
-            .groupby([col("rf")])
-            .agg([col("dw").sum().alias("dw_sum")])
+            .groupby([col("b")])
+            .agg([
+                (col("d")*col("w")).sum().alias("dw_sum")
+                ])
+            // Drop nulls (ie other reporting ccys)
+            .drop_nulls(Some(vec![col("dw_sum")]))
             .collect()?;
+        dbg!(df.clone());
         
         //21.4.4 |dw_sum| == kb for FX
         //21.4.5.a sb == dw_sum
@@ -137,6 +151,11 @@ fn fx_delta_charge(gamma: f64, fx_delta_sens_weighted: Expr, rtrn: ReturnMetric)
 
         across_bucket_agg(kbs, dw_sum.to_owned(), &gamma, res_len, SBMChargeType::DeltaVega)
     }, 
-    &[ col("RiskClass"), col("BucketBCBS"), fx_delta_sens_weighted ], 
-        GetOutput::from_type(DataType::Float64))
+    &[ 
+    col("RiskCategory"),
+    col("RiskClass"),
+    col("BucketBCBS"), 
+    col("SensitivitySpot"),
+    col("SensWeights").arr().get(0) ], 
+    GetOutput::from_type(DataType::Float64))
 }

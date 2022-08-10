@@ -10,7 +10,7 @@ use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 use super::delta::build_girr_crr2_gamma;
 
 pub fn total_ir_vega_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("GIRR", "Vega", total_delta_sens())
+    rc_rcat_sens("Vega", "GIRR", total_delta_sens())
 }
 
 fn girr_vega_sens_weighted_05y() -> Expr {
@@ -89,7 +89,7 @@ fn girr_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtr
 }
 
 fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metric: ReturnMetric, juri: Jurisdiction,
-    erm2_gamma: f64, erm2ccys: Vec<String>) -> Expr {
+    _erm2_gamma: f64, _erm2ccys: Vec<String>) -> Expr {
 
     apply_multiple( move |columns| {
 
@@ -103,17 +103,18 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
             "y3" =>   columns[6].clone(),
             "y5" =>   columns[7].clone(),
             "y10" =>  columns[8].clone(),
+            "weight" =>  columns[9].clone(), 
         ]?;
 
         let df = df.lazy()
             .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Vega"))))
             .groupby([col("b"), col("um")])
             .agg([
-                col("y05").sum(),
-                col("y1").sum(),
-                col("y3").sum(),
-                col("y5").sum(),
-                col("y10").sum()           
+                (col("y05")*col("weight")).sum(),
+                (col("y1")*col("weight")).sum(),
+                (col("y3")*col("weight")).sum(),
+                (col("y5")*col("weight")).sum(),
+                (col("y10")*col("weight")).sum()           
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
@@ -128,7 +129,7 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
 
         let buckets_kbs_sbs = res_buckets_kbs_sbs?;
         let (buckets_kbs, sbs): (Vec<(&str, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
-        let (buckets, kbs): (Vec<&str>, Vec<f64>) = buckets_kbs.into_iter().unzip();
+        let (_buckets, kbs): (Vec<&str>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
         // Early return Kb or Sb, ie the required metric
         let res_len = columns[0].len();
@@ -141,8 +142,8 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
         // 325ag
         let mut gamma = match juri {
             #[cfg(feature = "CRR2")]
-            Jurisdiction::CRR2 => { build_girr_crr2_gamma(&buckets, &erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
-                girr_gamma, erm2_gamma ) },
+            Jurisdiction::CRR2 => { build_girr_crr2_gamma(&_buckets, &_erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
+                girr_gamma, _erm2_gamma ) },
             _ => Array2::from_elem((kbs.len(), kbs.len()), girr_gamma ),
         };
         let zeros = Array1::zeros(kbs.len() );
@@ -152,11 +153,12 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
     }, 
     &[ col("RiskCategory"), col("RiskClass"), col("BucketBCBS"), 
     col("GirrVegaUnderlyingMaturity"), 
-    col("Sensitivity_05Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_1Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_3Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_5Y")*col("SensWeights").arr().get(0),
-    col("Sensitivity_10Y")*col("SensWeights").arr().get(0),
+    col("Sensitivity_05Y"),
+    col("Sensitivity_1Y"),
+    col("Sensitivity_3Y"),
+    col("Sensitivity_5Y"),
+    col("Sensitivity_10Y"),
+    col("SensWeights").arr().get(0),
     ], 
         GetOutput::from_type(DataType::Float64))
 }

@@ -2,9 +2,10 @@
 //! This to be conversted into server
 
 use base_engine::prelude::*;
+use polars::prelude::*;
 
-use std::process;
-use std::sync::Arc;
+use std::{process, fs};
+//use std::sync::Arc;
 use log::info;
 use serde::{Serialize, Deserialize};
 use std::time::Instant;
@@ -19,6 +20,9 @@ type DataSetType = frtb_engine::FRTBDataSet<'static>;
 #[cfg(not(feature = "FRTB"))]
 type DataSetType = base_engine::DataSetBase;
 
+//to be passed as a command line argument
+const SETUP: &str = r"frtb_engine/tests/data/datasource_config.toml";
+
 fn main() {
     // Read .env
     dotenv::dotenv().ok();
@@ -30,16 +34,24 @@ fn main() {
 
     // Build data
     let mut data = DataSetType::build(conf);
+    //let f1 = &data.frames()[0];
+    //let lf = f1.clone().lazy().groupby([col("TradeId")]).agg([
+    //    col("SensitivitySpot").sum()
+    //]).limit(1);
+    //let df = lf.collect().unwrap();
+    //dbg!(df);
     // Pre build some columns, which you wish to store in memory alongside the original data
     data.prepare();
+    
+    let json = fs::read_to_string("./driver/src/request.json").expect("Unable to read request file");
 
-    let message: Message = serde_json::from_str(JSON).unwrap();
+    let message: Message = serde_json::from_str(&json).unwrap();
     info!("{:?}", message);
     let now = Instant::now();
     match message {
         Message::Request{ params: conf, ..} => {
             match base_engine::execute(conf, &data){
-                Err(e) =>{ // eventually will be tokio::spawn_blocking
+                Err(e) =>{ 
                     eprintln!("Application error: {:#?}", e);
                     process::exit(1);
                 },
@@ -152,8 +164,7 @@ const JSON: &str = r#"
     }
 }"#;
 
-["Equity_DeltaSens", "sum"],
-["Equity_DeltaSens_Weighted", "sum"],
+
 
 ["Commodity_DeltaSens", "sum"],
 ["Commodity_DeltaSens_Weighted", "sum"],
@@ -175,6 +186,12 @@ const JSON: &str = r#"
 ["Commodity_DeltaCharge_Medium", "first"],
 ["Commodity_DeltaCharge_High", "first"],
 
+["Equity_DeltaSens", "sum"],
+["Equity_DeltaSens_Weighted", "sum"],
+["Equity_DeltaSb", "first"],
+["Equity_DeltaKb_Low", "first"],
+["Equity_DeltaKb_Medium", "first"],
+["Equity_DeltaKb_High", "first"],
 ["Equity_DeltaCharge_Low", "first"],
 ["Equity_DeltaCharge_Medium", "first"],
 ["Equity_DeltaCharge_High", "first"],
@@ -269,31 +286,4 @@ const JSON: &str = r#"
 ["Desk","FXCash"],["Desk","RatesEM"]
 */
 
-const JSON: &str = r#"
-{"type": "Request",
-    "id": "123", 
-    "method": "SEND", 
-    "params": {
-        "measures": [
-            ["GIRR_DeltaSens", "sum"],
-            ["GIRR_DeltaSens_Weighted", "sum"],
-            ["GIRR_DeltaSb", "sum"],
-            ["GIRR_DeltaKb_Low", "first"],
-            ["GIRR_DeltaKb_Medium", "first"],
-            ["GIRR_DeltaKb_High", "first"],
-            ["GIRR_DeltaCharge_Low", "first"],
-            ["GIRR_DeltaCharge_Medium", "first"],
-            ["GIRR_DeltaCharge_High", "first"]
-        ],
-        "groupby": ["Desk"],
-        "filters": [{"Eq": [["Desk", "FXOptions"]]}],
-        "optional_params": {
-            "hide_zeros": true,
-            "calc_params": {"jurisdiction": "BCBS",
-            "apply_fx_curv_div": "true"}
-        }
-    }
-}"#;
 
-//to be passed as a command line argument
-const SETUP: &str = r"frtb_engine/examples/data/datasource_config.toml";

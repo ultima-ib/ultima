@@ -12,7 +12,7 @@ use std::sync::Mutex;
 pub fn total_delta_sens() -> Expr {
     // When adding Exprs NULLs have to be filled
     // Otherwise returns NULL
-    col("SensitivitySpot").fill_null(0.)
+    ( col("SensitivitySpot").fill_null(0.)
     +col("Sensitivity_025Y").fill_null(0.)
     +col("Sensitivity_05Y").fill_null(0.)
     +col("Sensitivity_1Y").fill_null(0.)
@@ -22,29 +22,41 @@ pub fn total_delta_sens() -> Expr {
     +col("Sensitivity_10Y").fill_null(0.)
     +col("Sensitivity_15Y").fill_null(0.)
     +col("Sensitivity_20Y").fill_null(0.)
-    +col("Sensitivity_30Y").fill_null(0.)
+    +col("Sensitivity_30Y").fill_null(0.) )
+    // To be removed after this fixed is published on crates
+    //https://github.com/pola-rs/polars/issues/4326
+    .cast(DataType::Float64)
 }
 
 pub(crate) fn total_sens_curv_weighted() -> Expr {
     total_delta_sens()*col("CurvatureRiskWeight")
 }
 pub(crate) fn cvr_up() -> Expr {
-    lit::<f64>(0.) - (col("PnL_Up") - total_sens_curv_weighted() )
+    lit::<f64>(0.) - ( col("PnL_Up") - total_sens_curv_weighted() )
 }
 
 pub(crate) fn cvr_down() -> Expr {
-    lit::<f64>(0.) - (col("PnL_Down") + total_sens_curv_weighted() )
+    lit::<f64>(0.) - ( col("PnL_Down") + total_sens_curv_weighted() )
+}
+/// This is for Risk Classes where only Spot Delta constitutes risk, ie FX, Eq
+pub(crate) fn spot_sens_curv_weighted() -> Expr {
+    col("SensitivitySpot")*col("CurvatureRiskWeight")
+}
+/// This is for Risk Classes where only Spot Delta constitutes risk, ie FX, Eq
+pub(crate) fn cvr_up_spot() -> Expr {
+    lit::<f64>(0.) - ( col("PnL_Up") - spot_sens_curv_weighted() )
+}
+/// This is for Risk Classes where only Spot Delta constitutes risk, ie FX, Eq
+pub(crate) fn cvr_down_spot() -> Expr {
+    lit::<f64>(0.) - ( col("PnL_Down") + spot_sens_curv_weighted() )
 }
 
-pub(crate) fn rc_cvr(rc: &str, dir: CVR)->Expr{
+pub(crate) fn rc_cvr(rc: &'static str, dir: CVR)->Expr{
     let cvr = match dir {
         CVR::Up  => cvr_up(),
         CVR::Down => cvr_down(),
     };
-
-    when(col("RiskClass").eq(lit(rc)))
-    .then(cvr)
-    .otherwise(lit::<f64>(0.))
+    rc_sens(rc, cvr)
 }
 
 pub(crate) enum CVR {
@@ -52,27 +64,79 @@ pub(crate) enum CVR {
     Down
 }
 
-pub fn curv_delta(rc: &str) -> Expr {
-    when(col("RiskClass").eq(lit(rc)).and(
-        col("PnL_Up").is_not_null().or(col("PnL_Down").is_not_null())
-        )
-    )
-    .then(total_delta_sens())
-    .otherwise(lit::<f64>(0.0) )
+/// Filtering total delta on risk class and PnL Up or PnL Down is not null
+/// giving us Curvature Delta
+pub fn curv_delta(rc: &'static str) -> Expr {
+
+    apply_multiple(  move |columns| {
+         
+        //RiskClass
+        let mask = columns[0]
+            .utf8()?
+            .equal(rc);
+        
+        let mask1 = columns[1]
+            .f64()?
+            .is_not_null();
+
+        let mask2 = columns[2]
+            .f64()?
+            .is_not_null();
+        
+        let pnl_up_or_down_is_not_null = mask1|mask2;
+        
+        let risk_filtered = columns[3]
+            .f64()?
+            .set(&!(mask&pnl_up_or_down_is_not_null), None)?;
+
+        Ok(risk_filtered.into_series())
+    }, 
+        &[col("RiskClass"), col("PnL_Up"), col("PnL_Down"), total_delta_sens()], 
+        GetOutput::from_type(DataType::Float64))
 }
 
-//pub fn rc_pnl
+/// Filtering risk on rcat and risk class
+pub fn rc_rcat_sens(rcat: &'static str, rc: &'static str, risk: Expr) -> Expr {
 
-/// WhenThen shouldn't be used inside groupby
-/// this works so far
-/// but must be VERY careful with this function in calculation
-pub fn rc_rcat_sens(rc: &str, rcat: &str, risk: Expr) -> Expr {
-    when(
-        col("RiskClass").eq(lit(rc)).and(
-            col("RiskCategory").eq(lit(rcat)))
-    )
-    .then(risk) 
-    .otherwise(lit::<f64>(0.0))
+    apply_multiple(  move |columns| {
+         
+        //RiskClass
+        let mask = columns[0]
+            .utf8()?
+            .equal(rc);
+        //RiskCategory
+        let mask1 = columns[1]
+            .utf8()?
+            .equal(rcat);
+        
+        let risk_filtered = columns[2]
+            .f64()?
+            .set(&!(mask&mask1), None)?;
+
+        Ok(risk_filtered.into_series())
+    }, 
+        &[col("RiskClass"), col("RiskCategory"), risk], 
+        GetOutput::from_type(DataType::Float64))
+}
+
+/// Filtering risk on risk class
+pub fn rc_sens(rc: &'static str, risk: Expr) -> Expr {
+
+    apply_multiple(  move |columns| {
+         
+        //RiskClass
+        let mask = columns[0]
+            .utf8()?
+            .equal(rc);
+        
+        let risk_filtered = columns[1]
+            .f64()?
+            .set(&!mask, None)?;
+
+        Ok(risk_filtered.into_series())
+    }, 
+        &[col("RiskClass"), risk], 
+        GetOutput::from_type(DataType::Float64))
 }
 
 /// Helper function to derive weighted delta,

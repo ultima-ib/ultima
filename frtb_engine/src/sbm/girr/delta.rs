@@ -10,7 +10,7 @@ use ndarray::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
 
 pub fn total_ir_delta_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("GIRR", "Delta", total_delta_sens())
+    rc_rcat_sens("Delta", "GIRR", total_delta_sens())
 }
 /// Helper functions
 fn girr_delta_sens_weighted_spot() -> Expr {
@@ -120,13 +120,13 @@ fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rt
 fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f64>, 
     girr_delta_rho_diff_curve: Array2<f64>, 
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,
-    return_metric: ReturnMetric, juri: Jurisdiction, erm2_gamma: f64,
-    erm2ccys: Vec<String>) -> Expr {
+    return_metric: ReturnMetric, juri: Jurisdiction, _erm2_gamma: f64,
+    _erm2ccys: Vec<String>) -> Expr {
 
     apply_multiple( move |columns| {
 
         let df = df![
-            "rcat" =>   columns[15].clone(),
+            "rcat" => columns[15].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
             "rft" =>  columns[2].clone(),
@@ -142,23 +142,34 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f6
             "y15" =>  columns[12].clone(),
             "y20" =>  columns[13].clone(),
             "y30" =>  columns[14].clone(),
+            "w0" =>   columns[16].clone(),
+            "w025" => columns[17].clone(),
+            "w05" =>  columns[18].clone(),
+            "w1" =>   columns[19].clone(),
+            "w2" =>   columns[20].clone(),
+            "w3" =>   columns[21].clone(),
+            "w5" =>   columns[22].clone(),
+            "w10" =>  columns[23].clone(),
+            "w15" =>  columns[24].clone(),
+            "w20" =>  columns[25].clone(),
+            "w30" =>  columns[26].clone(),
         ]?;
 
         let df = df.lazy()
             .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Delta"))))
             .groupby([col("b"), col("rf"), col("rft")])
             .agg([
-                col("y0").sum(),
-                col("y025").sum(),
-                col("y05").sum(),
-                col("y1").sum(),
-                col("y2").sum(),
-                col("y3").sum(),
-                col("y5").sum(),
-                col("y10").sum(),
-                col("y15").sum(),
-                col("y20").sum(),
-                col("y30").sum()            
+                (col("y0")*col("w0")).sum(),
+                (col("y025")*col("w025")).sum(),
+                (col("y05")*col("w05")).sum(),
+                (col("y1")*col("w1")).sum(),
+                (col("y2")*col("w2")).sum(),
+                (col("y3")*col("w3")).sum(),
+                (col("y5")*col("w5")).sum(),
+                (col("y10")*col("w10")).sum(),
+                (col("y15")*col("w15")).sum(),
+                (col("y20")*col("w20")).sum(),
+                (col("y30")*col("w30")).sum()            
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
@@ -175,7 +186,7 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f6
 
         let buckets_kbs_sbs = res_buckets_kbs_sbs?;
         let (buckets_kbs, sbs): (Vec<(&str, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
-        let (buckets, kbs): (Vec<&str>, Vec<f64>) = buckets_kbs.into_iter().unzip();
+        let (_buckets, kbs): (Vec<&str>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
         // Early return Kb or Sb is that is the required metric
         let res_len = columns[0].len();
@@ -188,8 +199,8 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f6
         // 325ag
         let mut gamma = match juri {
             #[cfg(feature = "CRR2")]
-            Jurisdiction::CRR2 => { build_girr_crr2_gamma(&buckets, &erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
-                girr_delta_gamma, erm2_gamma ) },
+            Jurisdiction::CRR2 => { build_girr_crr2_gamma(&_buckets, &_erm2ccys.iter().map(|s| &**s).collect::<Vec<&str>>(),
+                girr_delta_gamma, _erm2_gamma ) },
             _ => Array2::from_elem((kbs.len(), kbs.len()), girr_delta_gamma ),
             };
 
@@ -199,18 +210,30 @@ fn girr_delta_charge(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f6
         across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
     }, 
     &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), col("BucketBCBS"), 
-    col("SensitivitySpot")*col("SensWeights").arr().get(0),
-    col("Sensitivity_025Y")*col("SensWeights").arr().get(1),
-    col("Sensitivity_05Y")*col("SensWeights").arr().get(2),
-    col("Sensitivity_1Y")*col("SensWeights").arr().get(3),
-    col("Sensitivity_2Y")*col("SensWeights").arr().get(4),
-    col("Sensitivity_3Y")*col("SensWeights").arr().get(5),
-    col("Sensitivity_5Y")*col("SensWeights").arr().get(6),
-    col("Sensitivity_10Y")*col("SensWeights").arr().get(7),
-    col("Sensitivity_15Y")*col("SensWeights").arr().get(8),
-    col("Sensitivity_20Y")*col("SensWeights").arr().get(9), 
-    col("Sensitivity_30Y")*col("SensWeights").arr().get(10),
-    col("RiskCategory")], 
+    col("SensitivitySpot"),
+    col("Sensitivity_025Y"),
+    col("Sensitivity_05Y"),
+    col("Sensitivity_1Y"),
+    col("Sensitivity_2Y"),
+    col("Sensitivity_3Y"),
+    col("Sensitivity_5Y"),
+    col("Sensitivity_10Y"),
+    col("Sensitivity_15Y"),
+    col("Sensitivity_20Y"),
+    col("Sensitivity_30Y"),
+    col("RiskCategory"),
+    col("SensWeights").arr().get(0),
+    col("SensWeights").arr().get(1),
+    col("SensWeights").arr().get(2),
+    col("SensWeights").arr().get(3),
+    col("SensWeights").arr().get(4),
+    col("SensWeights").arr().get(5),
+    col("SensWeights").arr().get(6),
+    col("SensWeights").arr().get(7),
+    col("SensWeights").arr().get(8),
+    col("SensWeights").arr().get(9), 
+    col("SensWeights").arr().get(10),
+    ], 
         GetOutput::from_type(DataType::Float64))
 }
 

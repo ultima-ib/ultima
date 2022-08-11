@@ -140,8 +140,9 @@ fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: &'static Arra
         let n_buckets = 11; // Commodity has 11 buckets
         
         let kbs_sbs = all_kbs_sbs(df, tenor_cols, n_buckets, &rho_tenor,
-            &bucket_rho_cty, com_rho_base_diff_loc, scenario_fn,
-            "rf", "loc", None)?;
+            "rf", &bucket_rho_cty,
+            Some("loc"), Some(com_rho_base_diff_loc),
+             scenario_fn, None)?;
 
         
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();

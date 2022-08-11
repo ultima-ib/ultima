@@ -105,12 +105,12 @@ fn fx_curvature() {
 
 #[test]
 fn girr_delta() {
-    let expected_res = arr1(&[2581.0, 35.925432, 2155.525895, 28.072696, 29.023816, 29.941875, 26.770639, 28.0824, 29.335659]);
+    let expected_res = arr1(&[2581.0, 35.925432, 35.925432, 28.072696, 29.023816, 29.941875, 26.770639, 28.0824, 29.335659]);
     let request = r#"
     {"measures": [
         ["GIRR_DeltaSens", "sum"],
 ["GIRR_DeltaSens_Weighted", "sum"],
-["GIRR_DeltaSb", "sum"],
+["GIRR_DeltaSb", "first"],
 ["GIRR_DeltaKb_Low", "first"],
 ["GIRR_DeltaKb_Medium", "first"],
 ["GIRR_DeltaKb_High", "first"],
@@ -124,7 +124,7 @@ fn girr_delta() {
                 "calc_params": {"jurisdiction": "BCBS"}
             }
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, dbg!(expected_res).sum(), Some(1e-4))
 }
 
 #[test]
@@ -206,6 +206,33 @@ fn eq_delta() {
             }
     }"#;
     assert_results(request, expected_res.sum(), None)
+}
+
+#[test]
+fn eq_vega() {
+    let expected_res = arr1(&[
+        60000.0, 55556.349186, 55556.349186, 46233.467601, 46669.280435, 47098.051013, 28620.521491, 29224.393971, 29816.038563]);
+    let request = r#"
+    {"measures": [
+        ["Equity_VegaSens", "sum"],
+        ["Equity_VegaSens_Weighted", "sum"],
+        ["Equity_VegaSb", "first"],
+        ["Equity_VegaKb_Low", "first"],
+        ["Equity_VegaKb_Medium", "first"],
+        ["Equity_VegaKb_High", "first"],
+        ["Equity_VegaCharge_Low", "first"],
+        ["Equity_VegaCharge_Medium", "first"],
+        ["Equity_VegaCharge_High", "first"]
+    ],
+    "groupby": ["Desk"],
+    "filters": [],
+    "optional_params": {
+        "hide_zeros": true,
+        "calc_params": {"jurisdiction": "BCBS",
+        "apply_fx_curv_div": "true"}
+        }
+    }"#;
+    assert_results(request, dbg!(expected_res).sum()*2., None)
 }
 
 

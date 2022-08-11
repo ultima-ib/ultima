@@ -28,6 +28,20 @@ pub fn total_delta_sens() -> Expr {
     .cast(DataType::Float64)
 }
 
+pub fn total_vega_sens() -> Expr {
+    // When adding Exprs NULLs have to be filled
+    // Otherwise returns NULL
+    ( 
+    col("Sensitivity_05Y").fill_null(0.)
+    +col("Sensitivity_1Y").fill_null(0.)
+    +col("Sensitivity_3Y").fill_null(0.)
+    +col("Sensitivity_5Y").fill_null(0.)
+    +col("Sensitivity_10Y").fill_null(0.) )
+    // To be removed after this fixed is published on crates
+    //https://github.com/pola-rs/polars/issues/4326
+    .cast(DataType::Float64)
+}
+
 pub(crate) fn total_sens_curv_weighted() -> Expr {
     total_delta_sens()*col("CurvatureRiskWeight")
 }
@@ -231,11 +245,17 @@ pub(crate) fn alt_sbs(sbs_arr: ArrayView1<f64>, kbs_arr: ArrayView1<f64>) -> Arr
    sbs_alt
 }
 
-/// Common function used for CSR Sec, Commodity
+/// Common function used for CSR, Commodity and EquityVega
+/// 
+/// We compare name_col(RF), and where not equal we multiply rho_tenor by rho_diff_rf_bucket[bucket_id]
+/// 
+/// Equity case is special, as we only need to compare name(RiskFactor) and not basis(RiskFactorType or Location).
+/// Hence basis_col(RFT) arg is optional, and if provided then rho_diff_rft is expected as well.
+/// 
 /// Computes kb and sb efficiently via uninit
-pub(crate) fn bucket_kb_sb_chunks<F>(df: LazyFrame, bucket_id: usize, special_bucket: Option<usize>, 
-    rho_tenor: &Array2<f64>, rho_diff_rf_bucket: Vec<f64>, rho_diff_rft: f64, scenario_fn: F,
-    tenor_cols:Vec<&str>,name_col: &str, basis_col: &str) 
+pub(crate) fn bucket_kb_sb<F>(df: LazyFrame, bucket_id: usize, special_bucket: Option<usize>, 
+    rho_tenor: &Array2<f64>, name_col: &str, rho_diff_rf_bucket: &[f64], 
+    basis_col: Option<&str>, rho_diff_rft: Option<f64>,  scenario_fn: F, tenor_cols:Vec<&str>, ) 
 -> Result<(f64, f64)> 
 where F: Fn(f64) -> f64 + Sync + Send,
 {
@@ -258,11 +278,18 @@ where F: Fn(f64) -> f64 + Sync + Send,
         },
         _ => (),
     };
-
+    // Array used for name(RF) comparison
     let name_arr = bucket_df[name_col].utf8()?;
-    let curve_type_arr = bucket_df[basis_col].utf8()?;
+    // Array used for (optional) RFT comparison
+    let empty_arr = Utf8Chunked::default();
+    let curve_type_arr = match basis_col{
+            Some(basis_col_name) => bucket_df[basis_col_name].utf8()?,
+            _ => &empty_arr,
+    };
 
-    let rho_name_bucket = rho_diff_rf_bucket[bucket_id-1];
+    let rho_name_bucket = rho_diff_rf_bucket.get(bucket_id-1)
+        .map(|x|*x)
+        .unwrap_or_else(||0.);
 
     let mut arr = Array2::<f64>::uninit((n_curves*n_tenors, n_curves*n_tenors));
     arr
@@ -275,22 +302,27 @@ where F: Fn(f64) -> f64 + Sync + Send,
         let col_id = i%n_curves; //eg 27usize % 10usize = 7usize
         
         let name_rho = if 
-        unsafe{ name_arr.get_unchecked(row_id).unwrap_or_else(||"Default") } 
-        == unsafe{ name_arr.get_unchecked(col_id).unwrap_or_else(||"Default") }{
-            1.
-        } else {
-            rho_name_bucket
+            unsafe{ name_arr.get_unchecked(row_id).unwrap_or_else(||"Default") } 
+            == unsafe{ name_arr.get_unchecked(col_id).unwrap_or_else(||"Default") }{
+                1.
+            } else {
+                rho_name_bucket
+            };
+
+        let basis_rho = match basis_col{
+            // if basis_col was provided, then we compare curve_type_arr(RFT array)
+            Some(_) =>{ if
+                unsafe{ curve_type_arr.get_unchecked(row_id).unwrap_or_else(||"Default") } 
+                == unsafe{ curve_type_arr.get_unchecked(col_id).unwrap_or_else(||"Default") } {
+                    1.
+                } else {
+                    rho_diff_rft.expect("basis_col was provided, hence expect rho_diff_rft")
+                }
+            },
+            _ => 1.
         };
 
-        let basis_rho = if
-         unsafe{ curve_type_arr.get_unchecked(row_id).unwrap_or_else(||"Default") } 
-         == unsafe{ curve_type_arr.get_unchecked(col_id).unwrap_or_else(||"Default") } {
-            1.
-        } else {
-            rho_diff_rft
-        };
         (rho_tenor*name_rho*basis_rho).move_into_uninit(chunk);
-        //chunk.assign(&(rho_tenor*name_rho*basis_rho));
     });
     let mut rho: Array2<f64>;
     unsafe {
@@ -298,36 +330,43 @@ where F: Fn(f64) -> f64 + Sync + Send,
     }
 
     rho.par_mapv_inplace(|el| {scenario_fn(el)});
-    // Get rid of NaNs/Zeros before multiplying
-    let csr_shaped = ws_arr
+    // Stretch out the array into a single vector
+    let arr_shaped = ws_arr
             .to_shape((ws_arr.len(), Order::RowMajor) )
             .map_err(|_| PolarsError::ShapeMisMatch("Could not reshape csr arr".into()) )?;
     //21.4.4
-    let a = csr_shaped.dot(&rho);
+    let a = arr_shaped.dot(&rho);
     //21.4.4
-    let kb = a.dot(&csr_shaped)
+    let kb = a.dot(&arr_shaped)
         .max(0.)
         .sqrt();
 
     //21.4.5.a
-    let sb = csr_shaped.sum();
+    let sb = arr_shaped.sum();
     
     Ok((kb,sb))
 }
 
+/// Column "b" expected. Value in col "b" is expected to be parsable into usize
+/// 
+/// Internally calls [bucket_kb_sb].
+/// 
 /// Common way of calculating Kbs and Sbs for all buckets
-/// Used for CSR and Commodity
+/// Used for CSR, Commodity, Equity Vega
+/// 
 /// df must contain column "b", which represent a bucket
 pub(crate) fn all_kbs_sbs<F>(df: DataFrame, tenor_cols:Vec<&str>, n_buckets: usize, 
-rho_tenor:&Array2<f64>, bucket_rho_diff_rf: &[f64], rho_base_diff_rft_or_loc: f64, scenario_fn: F,
-name_col: &str, basis_col: &str, special_bucket: Option<usize>) 
+rho_tenor:&Array2<f64>, name_col: &str, bucket_rho_diff_rf: &[f64], basis_col: Option<&str>, rho_base_diff_rft_or_loc: Option<f64>, 
+scenario_fn: F, special_bucket: Option<usize>) 
 -> Result<Vec<(f64, f64)>>
 where F: Fn(f64) -> f64 + Sync + Send + Copy{
 
     let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
     for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
+
     let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
+    // 
     df["b"]// We know column "b" exists, so will never panic here
     .utf8()?
     .unique()?
@@ -344,9 +383,10 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
                     b_as_idx = 1usize;
                 }
                 // CALCULATE Kb Sb for a bucket
-                let a = bucket_kb_sb_chunks(df.clone().lazy(), b_as_idx, special_bucket,
-                    rho_tenor, bucket_rho_diff_rf.to_vec(), rho_base_diff_rft_or_loc, scenario_fn,
-                    tenor_cols.clone(), name_col, basis_col);
+                let a = bucket_kb_sb(df.clone().lazy(), b_as_idx, special_bucket,
+                    rho_tenor, name_col, bucket_rho_diff_rf, basis_col,
+                     rho_base_diff_rft_or_loc, scenario_fn,
+                    tenor_cols.clone() );
                 let mut res = arc_mtx.lock().unwrap();
                 res[b_as_idx-1] = a;
             },
@@ -354,11 +394,11 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
         }
     });
     let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
-    .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
-    .into_inner()
-    .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
-    .into_iter()
-    .collect();
+        .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
+        .into_inner()
+        .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
+        .into_iter()
+        .collect();
     reskbs_sbs
 }
 

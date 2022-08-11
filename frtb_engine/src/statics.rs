@@ -192,7 +192,8 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     let mut base_csr_sec_nonctp_gamma_row25col25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,24]);
     base_csr_sec_nonctp_gamma_row25col25_slice.fill(0.);
 
-    let vega_rho = option_maturity_rho();
+    let base_vega_rho = option_maturity_rho();
+    let fx_vega_rho = base_vega_rho.clone();
 
     let girr_vega_rho = girr_vega_rho();
 
@@ -255,7 +256,9 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         csr_sec_nonctp_gamma,
 
         // Vega
-        vega_rho,
+        base_vega_rho,
+
+        fx_vega_rho,
         girr_vega_rho,
 
     }}
@@ -360,8 +363,9 @@ pub base_csr_sec_nonctp_rho_diff_basis: f64,
 pub csr_sec_nonctp_gamma: Array2<f64>,
 
 //Vega
-pub vega_rho: Array2<f64>,
+pub base_vega_rho: Array2<f64>,
 pub girr_vega_rho: Array2<f64>,
+pub fx_vega_rho: Array2<f64>,
 
 }
 
@@ -382,7 +386,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     //First, apply function to matrixes 
     let mut matrixes: [Array2<f64>; 7] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
     self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
-    self.vega_rho.to_owned()];
+    self.fx_vega_rho.to_owned()];
 
     matrixes.iter_mut()
     .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
@@ -390,7 +394,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     //Unzip matrixes into individual components
     let[girr_delta_rho_same_curve, girr_delta_rho_diff_curve,
     com_gamma, eq_gamma, csr_sec_nonctp_gamma,
-    girr_vega_rho, vega_rho] = matrixes;
+    girr_vega_rho, fx_vega_rho] = matrixes;
 
     //objects which do not implement copy
     let base_com_rho_tenor = self.base_com_rho_tenor.to_owned();
@@ -409,6 +413,8 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     let base_csr_ctp_gamma_sector_crr2 = self.base_csr_ctp_gamma_sector_crr2.to_owned();
 
     let base_csr_sec_nonctp_rho_tenor = self.base_csr_sec_nonctp_rho_tenor.to_owned();
+
+    let base_vega_rho = self.base_vega_rho.clone();
 
     let erm2_crr2 = self.erm2_crr2.clone();
 
@@ -452,7 +458,8 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 
             csr_sec_nonctp_gamma,
 
-            vega_rho,
+            base_vega_rho,
+            fx_vega_rho,
             girr_vega_rho,
 
             ..*self }

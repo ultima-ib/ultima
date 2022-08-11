@@ -2,7 +2,6 @@
 //! This to be conversted into server
 
 use base_engine::prelude::*;
-use polars::prelude::*;
 
 use std::{process, fs};
 //use std::sync::Arc;
@@ -13,8 +12,15 @@ use std::time::Instant;
 use jemallocator::Jemalloc;
 #[cfg(not(target_os = "linux"))]
 use mimalloc::MiMalloc;
+
 #[global_allocator]
-static GLOBAL: MiMalloc = MiMalloc;
+#[cfg(target_os = "linux")]
+static ALLOC: Jemalloc = Jemalloc;
+
+#[global_allocator]
+#[cfg(not(target_os = "linux"))]
+static ALLOC: MiMalloc = MiMalloc;
+
 #[cfg(feature = "FRTB")]
 type DataSetType = frtb_engine::FRTBDataSet<'static>;
 #[cfg(not(feature = "FRTB"))]
@@ -34,12 +40,6 @@ fn main() {
 
     // Build data
     let mut data = DataSetType::build(conf);
-    //let f1 = &data.frames()[0];
-    //let lf = f1.clone().lazy().groupby([col("TradeId")]).agg([
-    //    col("SensitivitySpot").sum()
-    //]).limit(1);
-    //let df = lf.collect().unwrap();
-    //dbg!(df);
     // Pre build some columns, which you wish to store in memory alongside the original data
     data.prepare();
     
@@ -186,16 +186,6 @@ const JSON: &str = r#"
 ["Commodity_DeltaCharge_Medium", "first"],
 ["Commodity_DeltaCharge_High", "first"],
 
-["Equity_DeltaSens", "sum"],
-["Equity_DeltaSens_Weighted", "sum"],
-["Equity_DeltaSb", "first"],
-["Equity_DeltaKb_Low", "first"],
-["Equity_DeltaKb_Medium", "first"],
-["Equity_DeltaKb_High", "first"],
-["Equity_DeltaCharge_Low", "first"],
-["Equity_DeltaCharge_Medium", "first"],
-["Equity_DeltaCharge_High", "first"],
-
 ["CSR_nonSec_DeltaCharge_Low", "first"],
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
 ["CSR_nonSec_DeltaCharge_High", "first"],
@@ -207,6 +197,26 @@ const JSON: &str = r#"
 ["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_High", "first"],
+
+["Equity_DeltaSens", "sum"],
+["Equity_DeltaSens_Weighted", "sum"],
+["Equity_DeltaSb", "first"],
+["Equity_DeltaKb_Low", "first"],
+["Equity_DeltaKb_Medium", "first"],
+["Equity_DeltaKb_High", "first"],
+["Equity_DeltaCharge_Low", "first"],
+["Equity_DeltaCharge_Medium", "first"],
+["Equity_DeltaCharge_High", "first"],
+
+["Equity_VegaSens", "sum"],
+["Equity_VegaSens_Weighted", "sum"],
+["Equity_VegaSb", "first"],
+["Equity_VegaKb_Low", "first"],
+["Equity_VegaKb_Medium", "first"],
+["Equity_VegaKb_High", "first"],
+["Equity_VegaCharge_Low", "first"],
+["Equity_VegaCharge_Medium", "first"],
+["Equity_VegaCharge_High", "first"],
 
 ["FX_DeltaSens", "sum"],
 ["FX_DeltaSens_Weighted", "sum"],

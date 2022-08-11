@@ -2,12 +2,12 @@ use base_engine::prelude::*;
 use ndarray::{Array2, Array1, Axis};
 use crate::prelude::*;
 use crate::helpers::{ReturnMetric, get_optional_parameter_array, get_optional_parameter};
-use crate::sbm::common::{rc_rcat_sens, across_bucket_agg, total_delta_sens, SBMChargeType};
+use crate::sbm::common::{rc_rcat_sens, across_bucket_agg, total_vega_sens, SBMChargeType};
 
 use polars::prelude::*;
 
 pub fn total_fx_vega_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Vega", "FX", total_delta_sens())
+    rc_rcat_sens("Vega", "FX", total_vega_sens())
 }
 
 pub fn total_fx_vega_sens_weighted (op: &OCP) -> Expr {
@@ -53,7 +53,7 @@ pub(crate) fn fx_vega_charge_high(op: &OCP) -> Expr {
 fn fx_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
     let _suffix = scenario.as_str();
     
-    let fx_vega_rho = get_optional_parameter_array(op, format!("fx_vega_rho{_suffix}").as_str(), &scenario.vega_rho);
+    let fx_vega_rho = get_optional_parameter_array(op, format!("fx_vega_rho{_suffix}").as_str(), &scenario.fx_vega_rho);
     let fx_vega_gamma = get_optional_parameter(op, format!("fx_vega_gamma{_suffix}").as_str(), &scenario.fx_gamma);
 
     fx_vega_charge( fx_vega_rho, fx_vega_gamma, rtrn)
@@ -106,7 +106,6 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
         _kbs.axis_iter(Axis(0))
         .enumerate()
         .for_each(|(i, arr)|{
-            //let r = arr.dot( &sens.row(i) );
             let a = unsafe{kbs.uget_mut(i)};
             *a = f64::max( arr.dot( &sens.row(i) ), 0. ).sqrt();
         });

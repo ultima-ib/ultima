@@ -94,7 +94,9 @@ fn fx_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn
     fx_delta_charge(fx_delta_gamma, rtrn, ccy_regex)
 }
 
-///calculate FX Delta Capital charge
+/// calculate FX Delta Capital charge
+/// Note, we don't want to run a regex on the whole column
+/// Hence it makes sence to run regex after filtering
 fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
     // inner function
     apply_multiple( move |columns| {

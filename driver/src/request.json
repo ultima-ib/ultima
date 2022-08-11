@@ -3,26 +3,20 @@
     "method": "SEND", 
     "params": {
         "measures": [
-            ["FX_CurvatureDelta", "sum"],
-            ["FX_CurvatureDelta_Weighted", "sum"],
-            ["FX_PnLup", "sum"],
-            ["FX_PnLdown", "sum"],
-            ["FX_CVRup", "sum"],
-            ["FX_CVRdown", "sum"],
-            ["FX_Curvature_KbPlus", "first"],
-            ["FX_Curvature_KbMinus", "first"],
-            ["FX_Curvature_Kb", "first"],
-            ["FX_Curvature_Sb", "first"],
-            ["FX_CurvatureCharge_Low", "first"],
-            ["FX_CurvatureCharge_Medium", "first"],
-            ["FX_CurvatureCharge_High", "first"]
-        ],
+            ["GIRR_DeltaSens", "sum"],
+    ["GIRR_DeltaSens_Weighted", "sum"],
+    ["GIRR_DeltaSb", "first"],
+    ["GIRR_DeltaKb_Low", "first"],
+    ["GIRR_DeltaKb_Medium", "first"],
+    ["GIRR_DeltaKb_High", "first"],
+    ["GIRR_DeltaCharge_Low", "first"],
+    ["GIRR_DeltaCharge_Medium", "first"],
+    ["GIRR_DeltaCharge_High", "first"]
+                ],
         "groupby": ["Desk"],
-        "filters": [{"Eq":[["Desk", "RatesEM"]]}],
+        "filters": [{"Eq":[["Desk", "FXOptions"]]}],
         "optional_params": {
-            "hide_zeros": true,
-            "calc_params": {"jurisdiction": "BCBS",
-            "apply_fx_curv_div": "true"}
-        }
+                    "calc_params": {"jurisdiction": "BCBS"}
+                }
     }
 }

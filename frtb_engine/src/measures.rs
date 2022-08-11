@@ -5,6 +5,7 @@ use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high};
 use crate::sbm::csr_sec_nonctp::delta::{total_csr_sec_nonctp_delta_sens, csr_sec_nonctp_delta_sens_weighted, csr_sec_nonctp_delta_charge_low, csr_sec_nonctp_delta_charge_medium, csr_sec_nonctp_delta_charge_high};
+use crate::sbm::equity::vega::{total_eq_vega_sens, total_eq_vega_sens_weighted, equity_vega_charge_medium, equity_vega_sb, equity_vega_kb_medium, equity_vega_kb_low, equity_vega_charge_low, equity_vega_kb_high, equity_vega_charge_high};
 use crate::sbm::fx::curvature::{fx_curv_delta, fx_pnl_up, fx_pnl_down, fx_curv_delta_weighted, fx_cvr_up, fx_cvr_down, fx_curvature_kb_plus, fx_curvature_kb_minus, fx_curvature_kb, fx_curvature_sb, fx_curvature_charge_low, fx_curvature_charge_medium, fx_curvature_charge_high};
 use crate::sbm::fx::delta::{fx_delta_sens_repccy, fx_delta_sens_weighted, fx_delta_charge_low, fx_delta_charge_medium, fx_delta_charge_high, fx_delta_sb, fx_delta_kb};
 use crate::sbm::fx::vega::{total_fx_vega_sens, total_fx_vega_sens_weighted, fx_vega_sb, fx_vega_kb_medium, fx_vega_kb_low, fx_vega_kb_high, fx_vega_charge_low, fx_vega_charge_medium, fx_vega_charge_high};
@@ -267,8 +268,60 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             aggregation: Some("first"),
         },
 
-        //CSR non-Sec
+        // ######################### Equity Vega #######################################
+        Measure {
+            name: "Equity_VegaSens".to_string(),
+            calculator: Box::new(total_eq_vega_sens),
+            aggregation: None
+        },
 
+        Measure {
+            name: "Equity_VegaSens_Weighted".to_string(),
+            calculator: Box::new(total_eq_vega_sens_weighted),
+            aggregation: None,
+        },
+
+        Measure {
+            name: "Equity_VegaSb".to_string(),
+            calculator: Box::new(equity_vega_sb),
+            aggregation: Some("first"),
+        },
+        Measure {
+            name: "Equity_VegaKb_Low".to_string(),
+            calculator: Box::new(equity_vega_kb_low),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Equity_VegaCharge_Low".to_string(),
+            calculator: Box::new(equity_vega_charge_low),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Equity_VegaKb_Medium".to_string(),
+            calculator: Box::new(equity_vega_kb_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Equity_VegaCharge_Medium".to_string(),
+            calculator: Box::new(equity_vega_charge_medium),
+            aggregation: Some("first"),
+        },
+        Measure {
+            name: "Equity_VegaKb_High".to_string(),
+            calculator: Box::new(equity_vega_kb_high),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Equity_VegaCharge_High".to_string(),
+            calculator: Box::new(equity_vega_charge_high),
+            aggregation: Some("first"),
+        },
+
+        //CSR non-Sec
         Measure {
             name: "CSR_nonSec_DeltaSens".to_string(),
             calculator: Box::new(total_csr_nonsec_delta_sens),

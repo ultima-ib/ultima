@@ -184,7 +184,9 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
         let tenor_cols = vec!["y05", "y1", "y3", "y5", "y10"];
         
         let kbs_sbs = all_kbs_sbs(df, tenor_cols, n_buckets, &base_tenor_rho,
-            &rho_name, rho_basis, scenario_fn, "rf", "rft", special_bucket)?;
+            "rf", &rho_name,
+            Some("rft"), Some(rho_basis),
+             scenario_fn, special_bucket)?;
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
         

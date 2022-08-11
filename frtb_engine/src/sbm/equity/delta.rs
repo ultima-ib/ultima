@@ -10,13 +10,16 @@ use ndarray::prelude::*;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Delta", "Equity", total_delta_sens())
+    rc_rcat_sens("Delta", "Equity", col("SensitivitySpot"))
 }
-
+// wrapper of equity_delta_sens_weighted_spot which takes a param o
 pub(crate) fn equity_delta_sens_weighted (_: &OCP) -> Expr {
     equity_delta_sens_weighted_spot()
 }
-
+/// 
+pub(crate) fn equity_delta_sens_weighted_spot() -> Expr {
+    rc_tenor_weighted_sens("Delta", "Equity", "SensitivitySpot","SensWeights", 0)
+}
 /// Interm Result: Equity Delta Sb <--> Sb Low == Sb Medium == Sb High
 pub(crate) fn eq_delta_sb(op: &OCP) -> Expr {
     equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
@@ -34,10 +37,6 @@ pub(crate) fn eq_delta_kb_high(op: &OCP) -> Expr {
     equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)  
 }
 
-/// Returns NULL for non Delta risk
-pub(crate) fn equity_delta_sens_weighted_spot() -> Expr {
-    rc_tenor_weighted_sens("Delta", "Equity", "SensitivitySpot","SensWeights", 0)
-}
 
 ///calculate Equity Delta High Capital charge
 pub(crate) fn equity_delta_charge_high(op: &OCP) -> Expr {
@@ -57,7 +56,7 @@ pub(crate) fn equity_delta_charge_low(op: &OCP) -> Expr {
 
 fn equity_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
     let _suffix = scenario.as_str();
-    let eq_gamma = get_optional_parameter_array(op, format!("eq_gamma{_suffix}").as_str(), &scenario.eq_gamma);
+    let eq_gamma = get_optional_parameter_array(op, format!("eq_delta_gamma{_suffix}").as_str(), &scenario.eq_gamma);
     let base_eq_rho_bucket = get_optional_parameter(op, format!("base_eq_rho_bucket{_suffix}").as_str(), &scenario.base_eq_rho_bucket);
     let eq_rho_diff_type =  get_optional_parameter(op, format!("eq_rho_diff_type{_suffix}").as_str(), &scenario.base_eq_rho_mult);
 
@@ -115,14 +114,15 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
 
     }, 
-    &[ col("BucketBCBS"), 
+    &[ 
+        col("BucketBCBS"), 
     equity_delta_sens_weighted_spot(),
     col("RiskFactorType"),
     col("RiskFactor") ], 
         GetOutput::from_type(DataType::Float64))
 }
 
-
+/// Eq Delta Bucket has only one tenor==Spot
 fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13], 
     eq_rho_type: f64, scenario_fn: F) 
     -> Result<(f64, f64)> 
@@ -147,7 +147,7 @@ fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13],
 
         let buck_rho = eq_rho_bucket[bucket_id-1];
 
-        let mut rho = build_eq_rho(&bucket_df["rf"], &bucket_df["rft"], buck_rho, eq_rho_type)?;
+        let mut rho = build_eq_delta_rho(&bucket_df["rf"], &bucket_df["rft"], buck_rho, eq_rho_type)?;
         rho.par_mapv_inplace(|el| {scenario_fn(el)});
 
         //21.4.4
@@ -164,7 +164,7 @@ fn eq_bucket_kb_sb<F>(df: DataFrame, bucket_id: usize, eq_rho_bucket: [f64; 13],
 /// 21.78
 /// Used to build both RF based rho and RFT based rho
 /// This function is similar to helpers::build_basis_rho but is for a scalar value
-fn build_eq_rho(names: &Series, types: &Series, rho_name: f64, rho_type: f64) -> Result<Array2<f64>> {
+fn build_eq_delta_rho(names: &Series, types: &Series, rho_name: f64, rho_type: f64) -> Result<Array2<f64>> {
     // Note: we never have same type AND same issuer since these were netted
     // ie never APPspot APPspot
     // APPLspot APPLrepo is 0.999*1 because spot != repo(0.999), and APP APP (1)
@@ -176,17 +176,16 @@ fn build_eq_rho(names: &Series, types: &Series, rho_name: f64, rho_type: f64) ->
     let ln = names.len();
     let chunkarr_name = names.utf8()?;
     let chunkarr_type = types.utf8()?;
-    
-    //let mut all_rhos_vec: Vec<f64> = Vec::with_capacity(ln*ln);
+
     let mut all_rhos_vec: Vec<f64> = vec![0.;ln*ln];
 
     all_rhos_vec
     .par_chunks_exact_mut(ln)
     .enumerate()
     .for_each(|(i, res)| {
-        // First curve
+        // First curve - risk factor
         let rf_i = unsafe{ chunkarr_name.get_unchecked(i).unwrap_or_else(||"Default") };
-        //Similarly, second curve
+        //Similarly, second curve - risk factor type
         let rft_i = unsafe{ chunkarr_type.get_unchecked(i).unwrap_or_else(||"Default") };
 
         res.iter_mut()

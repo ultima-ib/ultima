@@ -5,7 +5,7 @@ use polars::prelude::*;
 use ndarray::prelude::*;
 
 pub fn total_eq_vega_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Vega", "Equity", total_vega_sens())
+    rc_rcat_sens("Vega", "Equity", total_vega_curv_sens())
 }
 
 pub fn total_eq_vega_sens_weighted (op: &OCP) -> Expr {

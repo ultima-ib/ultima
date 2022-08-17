@@ -98,9 +98,9 @@ impl<'a> DataSet for FRTBDataSet<'a> {
             };
 
            // Now, we need to also ammend CRR2 weights  
-            #[cfg(feature = "CRR2")]
-            // Bucket 10 as per
-            // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776 
+           // Bucket 10 as per
+           // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776 
+           #[cfg(feature = "CRR2")]
             if cfg!(feature = "CRR2") & csrnonsec_covered_bond_15 {
                 lf1 = lf1.with_column(
                     when(col("RiskClass").eq(lit("CSR_nonSec"))
@@ -137,7 +137,7 @@ impl<'a> DataSet for FRTBDataSet<'a> {
     // Commodity bucket can be strictly an int in 1..11 inclusive (and non empty)
     // Commodity location empty replaced with "Default_Location"
     // Equity bucket can be strictly an int in 1..13 inclusive (and non empty)
-    // Equity Risk Factor Type has to be one of: EqSpot, EqRepo (and non empty)
+    // Equity Risk Factor Type has to be one of: EqSpot, EqRepo (and non empty) for Delta
     //
     // CSR_nonSec BCBS buckets
     // CSR_nonSec CRR2 buckets

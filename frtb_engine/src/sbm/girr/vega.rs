@@ -1,7 +1,7 @@
 use base_engine::prelude::*;
 use crate::prelude::*;
 use crate::helpers::{ReturnMetric, get_optional_parameter_array, get_optional_parameter};
-use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg, total_vega_sens, SBMChargeType, option_maturity_rho};
+use crate::sbm::common::{rc_rcat_sens, rc_tenor_weighted_sens, across_bucket_agg, total_vega_curv_sens, SBMChargeType, option_maturity_rho};
 
 use ndarray::{Array2, Array1, s};
 use polars::prelude::*;
@@ -10,7 +10,7 @@ use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 use super::delta::build_girr_crr2_gamma;
 
 pub fn total_ir_vega_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Vega", "GIRR", total_vega_sens())
+    rc_rcat_sens("Vega", "GIRR", total_vega_curv_sens())
 }
 
 fn girr_vega_sens_weighted_05y() -> Expr {

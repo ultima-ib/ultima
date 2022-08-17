@@ -166,27 +166,78 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             "y5" =>   columns[7].clone(),
             "y10" =>  columns[8].clone()
         ]?;
-
+        
+        
         let df = df.lazy()
             .filter(col("rc").eq(lit(risk_class))
                 .and(col("rcat").eq(lit(risk_cat))))
-            .groupby([col("b"), col("rf"), col("rft")])
+            .with_columns([
+
+                when(col("rft").eq(lit("Bond")))
+                .then(col("y05").alias("Bond_y05"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("CDS")))
+                .then(col("y05").alias("CDS_y05"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("Bond")))
+                .then(col("y1").alias("Bond_y1"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("CDS")))
+                .then(col("y1").alias("CDS_y1"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("Bond")))
+                .then(col("y3").alias("Bond_y3"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("CDS")))
+                .then(col("y3").alias("CDS_y3"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("Bond")))
+                .then(col("y5").alias("Bond_y5"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("CDS")))
+                .then(col("y5").alias("CDS_y5"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("Bond")))
+                .then(col("y10").alias("Bond_y10"))
+                .otherwise(NULL.lit()),
+
+                when(col("rft").eq(lit("CDS")))
+                .then(col("y10").alias("CDS_y10"))
+                .otherwise(NULL.lit()),
+
+            ])
+            .groupby([col("b"), col("rf")])
             .agg([
-                col("y05").sum(),
-                col("y1").sum(),
-                col("y3").sum(),
-                col("y5").sum(),
-                col("y10").sum()           
+                col("Bond_y05").sum(),
+                col("CDS_y05").sum(),
+                col("Bond_y1").sum(),
+                col("CDS_y1").sum(),
+                col("Bond_y3").sum(),
+                col("CDS_y3").sum(),
+                col("Bond_y5").sum(),
+                col("CDS_y5").sum(),
+                col("Bond_y10").sum(),
+                col("CDS_y10").sum()          
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
-        // 21.4.4 - 21.5.a
-        let tenor_cols = vec!["y05", "y1", "y3", "y5", "y10"];
-        
-        let kbs_sbs = all_kbs_sbs(df, tenor_cols, n_buckets, &base_tenor_rho,
-            "rf", &rho_name,
-            Some("rft"), Some(rho_basis),
-             scenario_fn, special_bucket)?;
+
+        let kbs_sbs = all_kbs_sbs_eq(df, n_buckets, 
+            &rho_name,
+            rho_basis, 
+            scenario_fn, 
+            special_bucket,
+            &[("Bond_y05", "CDS_y05"), ("Bond_y1", "CDS_y1"), ("Bond_y3", "CDS_y3"), ("Bond_y5", "CDS_y5"), ("Bond_y10", "CDS_y10")],
+            Some(0.65)
+        )?; 
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
         

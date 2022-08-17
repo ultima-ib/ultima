@@ -4,18 +4,19 @@
     "params": {
         "measures": [
             ["GIRR_DeltaSens", "sum"],
-    ["GIRR_DeltaSens_Weighted", "sum"],
-    ["GIRR_DeltaSb", "first"],
-    ["GIRR_DeltaKb_Low", "first"],
-    ["GIRR_DeltaKb_Medium", "first"],
-    ["GIRR_DeltaKb_High", "first"],
-    ["GIRR_DeltaCharge_Low", "first"],
-    ["GIRR_DeltaCharge_Medium", "first"],
-    ["GIRR_DeltaCharge_High", "first"]
+            ["GIRR_DeltaSens_Weighted", "sum"],
+            ["GIRR_DeltaSb", "first"],
+            ["GIRR_DeltaKb_Low", "first"],
+            ["GIRR_DeltaKb_Medium", "first"],
+            ["GIRR_DeltaKb_High", "first"],
+            ["GIRR_DeltaCharge_Low", "first"],
+            ["GIRR_DeltaCharge_Medium", "first"],
+            ["GIRR_DeltaCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],
         "optional_params": {
+                    "hide_zeros": true,
                     "calc_params": {"jurisdiction": "BCBS"}
                 }
     }

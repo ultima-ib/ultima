@@ -100,17 +100,11 @@ pub fn execute(req: DataRequestS, data: &impl DataSet)
     f1 = f1.groupby_stable(groups)
         .agg(aggregateions)
         .limit(1000);
-    
-    //f1 = f1.groupby([col("TradeId")]).agg([
-    //    col("SensitivitySpot").sum()
-    //]).limit(1);
-
-    //use frtb_engine::sbm::common::total_delta_sens;
-    
-    //dbg!(f1.clone().collect());
 
     // POSTPROCESSING
     // Remove zeros, optional
+    // TODO Note: Comparing with 0. doesn't work with list columns
+    // TODO Need to check column type and based on that compare against 0. or not
     if req.optiona_params().as_ref()
         .and_then(|x|Some(x.hide_zeros))
         .unwrap_or_default() {

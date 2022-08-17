@@ -1,15 +1,15 @@
-use crate::{prelude::*, sbm::common::{cvr_up, cvr_down, CVR, rc_cvr, rc_rcat_sens, across_bucket_agg, SBMChargeType, phi, kb_plus_minus, kbs_sbs_f}};
+use crate::{prelude::*, sbm::common::{cvr_up, cvr_down, CVR, rc_cvr, rc_rcat_sens, across_bucket_agg, SBMChargeType, phi, kb_plus_minus, kbs_sbs_curvature}};
 
 use base_engine::prelude::OCP;
 use ndarray::{Array1, Array2};
 use polars::prelude::*;
 
-use crate::{sbm::common::curv_delta, helpers::ReturnMetric};
+use crate::helpers::ReturnMetric;
 #[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;
 
 pub fn ir_curv_delta (_: &OCP) -> Expr {
-    curv_delta("GIRR")
+    curv_delta_total("GIRR")
 }
 
 /// Helper functions
@@ -120,7 +120,7 @@ fn girr_curvature_charge(girr_curv_gamma: f64, _erm2_gamma: f64,
                 _ => (), }
     
             
-            let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_f(kb_plus, kb_minus,&df["cvr_up"],&df["cvr_down"])?;
+            let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus,&df["cvr_up"],&df["cvr_down"])?;
             match return_metric {
                 ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
                 ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),

@@ -218,6 +218,13 @@ const JSON: &str = r#"
 ["Equity_VegaCharge_Medium", "first"],
 ["Equity_VegaCharge_High", "first"],
 
+["Equity_CurvatureDelta", "sum"],
+["Equity_CurvatureDelta_Weighted", "sum"],
+["Equity_PnLup", "sum"],
+["Equity_PnLdown", "sum"],
+["Equity_CVRup", "sum"],
+["Equity_CVRdown", "sum"],
+
 ["FX_DeltaSens", "sum"],
 ["FX_DeltaSens_Weighted", "sum"],
 ["FX_DeltaSb", "first"],
@@ -253,7 +260,7 @@ const JSON: &str = r#"
 
 ["GIRR_DeltaSens", "sum"],
 ["GIRR_DeltaSens_Weighted", "sum"],
-["GIRR_DeltaSb", "sum"],
+["GIRR_DeltaSb", "first"],
 ["GIRR_DeltaKb_Low", "first"],
 ["GIRR_DeltaKb_Medium", "first"],
 ["GIRR_DeltaKb_High", "first"],

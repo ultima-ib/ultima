@@ -199,7 +199,7 @@ fn eq_delta() {
 ["Equity_DeltaCharge_High", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
     "optional_params": {
                 "hide_zeros":true,
                 "calc_params": {"jurisdiction": "CRR2"}

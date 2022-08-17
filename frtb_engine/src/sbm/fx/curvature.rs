@@ -23,11 +23,11 @@ fn risk_filtered_by_ccy(op: &OCP, risk: Expr) -> Expr {
 }
 /// FX Curvature Delta, filtered by reporting ccy
 pub fn fx_curv_delta (op: &OCP) -> Expr {
-    risk_filtered_by_ccy(op, curv_delta("FX") )
+    risk_filtered_by_ccy(op, curv_delta_spot("FX") )
 }
 // FX CurvatureDelta Weighted, filtered by reporting ccy
 pub fn fx_curv_delta_weighted (op: &OCP) -> Expr {
-    risk_filtered_by_ccy(op, curv_delta("FX") )*col("CurvatureRiskWeight")
+    risk_filtered_by_ccy(op, curv_delta_spot("FX") )*col("CurvatureRiskWeight")
 }
 /// FX PnL Up, filtered by reporting ccy
 pub fn fx_pnl_up(op: &OCP) -> Expr {
@@ -61,12 +61,12 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
 
 pub fn fx_cvr_up(op: &OCP) -> Expr{
     let div = get_optional_parameter(op, "apply_fx_curv_div", &false);
-    let risk = risk_filtered_by_ccy(op,rc_cvr("FX", CVR::Up));
+    let risk = risk_filtered_by_ccy(op,rc_cvr_spot("FX", CVR::Up));
     fx_cvr_up_down(div, risk)
 } 
 pub fn fx_cvr_down(op: &OCP) -> Expr{
     let div = get_optional_parameter(op, "apply_fx_curv_div", &false);
-    let risk = risk_filtered_by_ccy(op,rc_cvr("FX", CVR::Down));
+    let risk = risk_filtered_by_ccy(op,rc_cvr_spot("FX", CVR::Down));
     fx_cvr_up_down(div, risk)
 }
 
@@ -155,7 +155,7 @@ fn fx_curvature_charge(gamma: f64, return_metric: ReturnMetric, ccy_regex: Strin
             _ => (), }
 
         
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_f(kb_plus, kb_minus,&df["cvr_up"],&df["cvr_down"])?;
+        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus,&df["cvr_up"],&df["cvr_down"])?;
         match return_metric {
             ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
             ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),

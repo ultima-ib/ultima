@@ -2,12 +2,12 @@ use base_engine::prelude::*;
 use ndarray::{Array2, Array1, Axis};
 use crate::prelude::*;
 use crate::helpers::{ReturnMetric, get_optional_parameter_array, get_optional_parameter};
-use crate::sbm::common::{rc_rcat_sens, across_bucket_agg, total_vega_sens, SBMChargeType};
+use crate::sbm::common::{rc_rcat_sens, across_bucket_agg, total_vega_curv_sens, SBMChargeType};
 
 use polars::prelude::*;
 
 pub fn total_fx_vega_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Vega", "FX", total_vega_sens())
+    rc_rcat_sens("Vega", "FX", total_vega_curv_sens())
 }
 
 pub fn total_fx_vega_sens_weighted (op: &OCP) -> Expr {
@@ -102,7 +102,9 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
         // Interm step
         let _kbs = sens.dot(&fx_vega_rho);
         // Actual kbs
+        // TODO use uninit here
         let mut kbs = Array1::<f64>::zeros(sbs.len());
+        
         _kbs.axis_iter(Axis(0))
         .enumerate()
         .for_each(|(i, arr)|{

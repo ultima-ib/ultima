@@ -718,19 +718,40 @@ dtenor: Option<f64> )
 /// * `srs1` and `srs2` are expected to be ".f64()"
 pub(crate) fn var_covar_sum_fn(srs1: &Series, srs2: &Series, rho_case1: f64, rho_case2: f64, rho_case3: f64) -> (f64, f64) {
 
-    let (spot_sum, spot_f1) = var_covar_sum_single(srs1, rho_case1);
-    let (repo_sum, repo_f1) = var_covar_sum_single(srs2, rho_case1);
+    //let (spot_sum, spot_f1) = var_covar_sum_single(srs1, rho_case1);
+    //let (repo_sum, repo_f1) = var_covar_sum_single(srs2, rho_case1);
+
+    let mut spot_sum = 0.;
+    let mut spot_sum_of_sq = 0.;
+ 
+    let mut repo_sum = 0.;
+    let mut repo_sum_of_sq = 0.;
+ 
+    let mut spot_times_repo_sum = 0.;
+
+    srs1.f64().unwrap().into_iter()
+    .zip(srs2.f64().unwrap().into_iter())
+    .for_each(|(x,y)|{
+        let x = x.unwrap_or_default();
+        let y = y.unwrap_or_default();
+        spot_sum+=x;
+        spot_sum_of_sq+=x.powi(2);
+        repo_sum+=y;
+        repo_sum_of_sq+=y.powi(2);
+        spot_times_repo_sum = spot_times_repo_sum + x*y;
+
+    });
     let pre_sb = repo_sum + spot_sum;
+
+    let formula1 = spot_sum_of_sq + repo_sum_of_sq + rho_case1*(spot_sum.powi(2) - spot_sum_of_sq + repo_sum.powi(2) - repo_sum_of_sq );
+    //let formula1 = spot_f1 + repo_f1;
     
-    let formula1 = spot_f1 + repo_f1;
-    
+    let formula2_pt1 = spot_sum*repo_sum*rho_case3;
     // .sum() returns None if array is empty or all NULLs
-    let spot_times_repo_sum = (srs1*srs2).f64().unwrap().sum().unwrap_or_else(||0.);
-    
-    let formula2_pt1 = rho_case3*spot_sum*repo_sum;
+    //let spot_times_repo_sum = (srs1*srs2).f64().unwrap().sum().unwrap_or_default();//.unwrap_or_else(||0.);
+
     let formula2_pt2 = rho_case2*spot_times_repo_sum;
-    let formula2_pt3 = - rho_case3*spot_times_repo_sum;
-     
+    let formula2_pt3 = - rho_case3*spot_times_repo_sum; 
     let formula2 = formula2_pt1+formula2_pt2+formula2_pt3;   
     
     let pre_kb = formula1+2f64*formula2;

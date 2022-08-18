@@ -680,7 +680,7 @@ dtenor: Option<f64> )
                 arr_tenor.indexed_iter_mut()
                 .par_bridge()
                 .for_each(|((i, j), v)|{
-                    let anti_j: usize = if j==0{1}else{0};
+                    let anti_j: usize = if j==0{1}else{0}; // j is either 0 or 1
                     let mut uninit_rho = Array2::<f64>::uninit(dim);
                     let  (mut diff_name_same_type1, mut diff_name_diff_type1, 
                     mut same_name_same_type, mut same_name_diff_type,
@@ -724,12 +724,13 @@ pub(crate) fn var_covar_sum_fn(srs1: &Series, srs2: &Series, rho_case1: f64, rho
     
     let formula1 = spot_f1 + repo_f1;
     
-    let formula2_pt1 = spot_sum*repo_sum*rho_case3;
     // .sum() returns None if array is empty or all NULLs
     let spot_times_repo_sum = (srs1*srs2).f64().unwrap().sum().unwrap_or_else(||0.);
-
+    
+    let formula2_pt1 = rho_case3*spot_sum*repo_sum;
     let formula2_pt2 = rho_case2*spot_times_repo_sum;
-    let formula2_pt3 = - rho_case3*spot_times_repo_sum; 
+    let formula2_pt3 = - rho_case3*spot_times_repo_sum;
+     
     let formula2 = formula2_pt1+formula2_pt2+formula2_pt3;   
     
     let pre_kb = formula1+2f64*formula2;
@@ -742,16 +743,11 @@ pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64)->(f64, f64){
     let mut sum_of_sq=0.;
     let mut sum=0.;
     srs.f64().unwrap()
-    .into_iter()
-    .for_each(|x|
-        match x{
-            Some(y) => {
-                sum_of_sq += y.powi(2);
-                sum += y;
-            },
-            _=>(),
-        }
-    );
+    .into_no_null_iter()
+    .for_each(|x|{
+        sum_of_sq += x.powi(2);
+        sum += x;
+    });
     
     let f1 = 
     sum_of_sq

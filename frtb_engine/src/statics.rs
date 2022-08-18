@@ -10,7 +10,7 @@ use ndarray::{Array2, Array1, Axis, s};
 
 pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     let girr_delta_rho_same_curve = girr_corr_matrix();
-    let girr_delta_rho_diff_curve = girr_delta_rho_same_curve.clone()*0.999;
+    let girr_delta_rho_diff_curve = 0.999;
 
     //21.83
     let n_com_tenors: usize = 11;
@@ -305,7 +305,7 @@ pub scenario_fn: fn(f64) -> f64,
 pub erm2_crr2: Vec<String>,
 
 pub girr_delta_rho_same_curve: Array2<f64>,
-pub girr_delta_rho_diff_curve: Array2<f64>,
+pub girr_delta_rho_diff_curve: f64,
 pub girr_delta_rho_infl: f64,
 pub girr_delta_rho_xccy: f64,
 pub girr_gamma: f64,
@@ -384,7 +384,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 //where F: Fn(f64) -> f64 + Sync,
 {
     //First, apply function to matrixes 
-    let mut matrixes: [Array2<f64>; 7] = [self.girr_delta_rho_same_curve.to_owned(), self.girr_delta_rho_diff_curve.to_owned(),
+    let mut matrixes: [Array2<f64>; 6] = [self.girr_delta_rho_same_curve.to_owned(),
     self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
     self.fx_vega_rho.to_owned()];
 
@@ -392,7 +392,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
     );
     //Unzip matrixes into individual components
-    let[girr_delta_rho_same_curve, girr_delta_rho_diff_curve,
+    let[girr_delta_rho_same_curve,
     com_gamma, eq_gamma, csr_sec_nonctp_gamma,
     girr_vega_rho, fx_vega_rho] = matrixes;
 
@@ -425,7 +425,6 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
             erm2_crr2,
 
             girr_delta_rho_same_curve,
-            girr_delta_rho_diff_curve, 
             girr_delta_rho_infl: function(self.girr_delta_rho_infl), 
             girr_delta_rho_xccy: function(self.girr_delta_rho_xccy), 
             girr_gamma: function(self.girr_gamma), 

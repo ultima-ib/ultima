@@ -99,87 +99,26 @@ fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rt
     let _suffix = scenario.as_str();
 
     // Take MEDIUM scenario here because scenario_fn is to be applied post factum
-    let girr_delta_rho_same_curve = get_optional_parameter_array(op, format!("girr_delta_rho_same_curve{_suffix}").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_same_curve);
-    //let girr_delta_rho_diff_curve = get_optional_parameter_array(op, format!("girr_delta_rho_diff_curve{_suffix}").as_str(), &scenario.girr_delta_rho_diff_curve);
-    let girr_delta_rho_infl = get_optional_parameter(op,format!("girr_delta_rho_infl{_suffix}").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_infl);
-    let girr_delta_rho_xccy = get_optional_parameter(op,format!("girr_delta_rho_xccy{_suffix}").as_str(), &MEDIUM_CORR_SCENARIO.girr_delta_rho_xccy);
+    let girr_delta_rho_same_curve = get_optional_parameter_array(op, format!("girr_delta_rho_same_curve").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_same_curve);
+    let girr_delta_rho_diff_curve = get_optional_parameter(op, format!("girr_delta_rho_diff_curve").as_str(), &MEDIUM_CORR_SCENARIO.girr_delta_rho_diff_curve);
+    let girr_delta_rho_infl = get_optional_parameter(op,format!("girr_delta_rho_infl").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_infl);
+    let girr_delta_rho_xccy = get_optional_parameter(op,format!("girr_delta_rho_xccy").as_str(), &MEDIUM_CORR_SCENARIO.girr_delta_rho_xccy);
 
     let girr_delta_gamma = get_optional_parameter(op, format!("girr_delta_gamma{_suffix}").as_str(), &scenario.girr_gamma);
     let girr_delta_gamma_crr2_erm2 = get_optional_parameter(op, format!("girr_delta_gamma_erm2{_suffix}").as_str(), &scenario.girr_gamma_crr2_erm2);
     let erm2ccys =  get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_crr2);
 
-    girr_delta_charge(girr_delta_gamma, girr_delta_rho_same_curve, girr_delta_rho_infl, girr_delta_rho_xccy, rtrn, juri, girr_delta_gamma_crr2_erm2, erm2ccys, scenario.scenario_fn)
+    girr_delta_charge(girr_delta_gamma, girr_delta_rho_same_curve, girr_delta_rho_diff_curve, girr_delta_rho_infl, girr_delta_rho_xccy, rtrn, juri, girr_delta_gamma_crr2_erm2, erm2ccys, scenario.scenario_fn)
 }
 
 fn girr_delta_charge<F>(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f64>, 
-    //girr_delta_rho_diff_curve: Array2<f64>, 
+    girr_delta_rho_diff_curve: f64, 
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,
     return_metric: ReturnMetric, juri: Jurisdiction, _erm2_gamma: f64,
     _erm2ccys: Vec<String>, scenario_fn: F) -> Expr
     where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,{
 
     apply_multiple( move |columns| {
-        
-/*
-        let df = df![
-            "rcat" => columns[15].clone(),
-            "rc" =>   columns[0].clone(), 
-            "rf" =>   columns[1].clone(),
-            "rft" =>  columns[2].clone(),
-            "b" =>    columns[3].clone(),
-            "y0" =>   columns[4].clone(),
-            "y025" => columns[5].clone(),
-            "y05" =>  columns[6].clone(),
-            "y1" =>   columns[7].clone(),
-            "y2" =>   columns[8].clone(),
-            "y3" =>   columns[9].clone(),
-            "y5" =>   columns[10].clone(),
-            "y10" =>  columns[11].clone(),
-            "y15" =>  columns[12].clone(),
-            "y20" =>  columns[13].clone(),
-            "y30" =>  columns[14].clone(),
-
-            "w0" =>   columns[16].clone(),
-            "w025" => columns[17].clone(),
-            "w05" =>  columns[18].clone(),
-            "w1" =>   columns[19].clone(),
-            "w2" =>   columns[20].clone(),
-            "w3" =>   columns[21].clone(),
-            "w5" =>   columns[22].clone(),
-            "w10" =>  columns[23].clone(),
-            "w15" =>  columns[24].clone(),
-            "w20" =>  columns[25].clone(),
-            "w30" =>  columns[26].clone(),
-        ]?;
-
-        let df = df.lazy()
-            .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Delta"))))
-            .groupby([col("b"), col("rf"), col("rft")])
-            .agg([
-                (col("y0")*col("w0")).sum(),
-                (col("y025")*col("w025")).sum(),
-                (col("y05")*col("w05")).sum(),
-                (col("y1")*col("w1")).sum(),
-                (col("y2")*col("w2")).sum(),
-                (col("y3")*col("w3")).sum(),
-                (col("y5")*col("w5")).sum(),
-                (col("y10")*col("w10")).sum(),
-                (col("y15")*col("w15")).sum(),
-                (col("y20")*col("w20")).sum(),
-                (col("y30")*col("w30")).sum()            
-            ])
-            .fill_null(lit::<f64>(0.))
-            .collect()?;
-
-        let part = df.partition_by(["b"])?;
-        let res_buckets_kbs_sbs: Result<Vec<((&str,f64),f64)>> = part
-        .par_iter()
-        .map(|bdf|{
-            girr_bucket_kb_sb(bdf, 
-                &girr_delta_rho_same_curve, &girr_delta_rho_diff_curve, 
-                girr_delta_rho_infl, girr_delta_rho_xccy)
-        })
-        .collect();*/
         
         let df = df![
             "rcat" => columns[15].clone(),
@@ -243,7 +182,6 @@ fn girr_delta_charge<F>(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2
         
         let part = df.partition_by(["b"])?;
 
-        let girr_delta_rho_diff_curve = 0.999;
         let res_buckets_kbs_sbs: Result<Vec<((String,f64),f64)>> = part
         .into_par_iter()
         .map(|bdf|{

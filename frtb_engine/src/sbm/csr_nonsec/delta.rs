@@ -93,34 +93,27 @@ pub(crate) fn csr_nonsec_delta_charge_high(op: &OCP) -> Expr {
 fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
     let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
-    
-    let (y05, y1, y3, y5, y10, bucket_col, name_rho_vec, 
-        gamma_rating, gamma_sector,
-        n_buckets, special_bucket) =
-         match juri{
-        #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => (csr_nonsec_delta_sens_weighted_05y_crr2(),
-        csr_nonsec_delta_sens_weighted_1y_crr2(),
-        csr_nonsec_delta_sens_weighted_3y_crr2(),
-        csr_nonsec_delta_sens_weighted_5y_crr2(),
-        csr_nonsec_delta_sens_weighted_10y_crr2(),
-        col("BucketCRR2"),
-        Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
-        &scenario.base_csr_nonsec_gamma_rating_crr2, &scenario.base_csr_nonsec_gamma_sector_crr2,
-        20usize, Some(18usize)
-        ),
-        Jurisdiction::BCBS=>
-        (csr_nonsec_delta_sens_weighted_05y_bcbs(),
-        csr_nonsec_delta_sens_weighted_1y_bcbs(),
-        csr_nonsec_delta_sens_weighted_3y_bcbs(),
-        csr_nonsec_delta_sens_weighted_5y_bcbs(),
-        csr_nonsec_delta_sens_weighted_10y_bcbs(),
-        col("BucketBCBS"),
-        Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
-        &scenario.base_csr_nonsec_gamma_rating, &scenario.base_csr_nonsec_gamma_sector,
-        18, Some(16)
-        )
-        };
+        let (weight, bucket_col, name_rho_vec, 
+            gamma_rating, gamma_sector,
+            n_buckets, special_bucket) =
+             match juri{
+            #[cfg(feature = "CRR2")]
+            Jurisdiction::CRR2 => (
+            col("SensWeightsCRR2").arr().get(0),
+            col("BucketCRR2"),
+            Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
+            &scenario.base_csr_nonsec_gamma_rating_crr2, &scenario.base_csr_nonsec_gamma_sector_crr2,
+            20usize, Some(18usize)
+            ),
+            Jurisdiction::BCBS=>
+            (
+            col("SensWeights").arr().get(0),
+            col("BucketBCBS"),
+            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
+            &scenario.base_csr_nonsec_gamma_rating, &scenario.base_csr_nonsec_gamma_sector,
+            18, Some(16)
+            )
+            };
 
     let base_csr_nonsec_rho_tenor = get_optional_parameter_array(op,"base_csr_nonsec_tenor_rho", 
     &scenario.base_csr_nonsec_rho_tenor);
@@ -137,7 +130,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
     let gamma_sector = get_optional_parameter_array(op,"base_csr_nonsec_sector_gamma", 
     gamma_sector);
 
-    csr_nonsec_delta_charge(y05, y1, y3, y5, y10, 
+    csr_nonsec_delta_charge(//y05, y1, y3, y5, y10, 
+weight,
         base_csr_nonsec_rho_tenor,
          name_rho_vec,
         base_csr_nonsec_rho_basis, 
@@ -146,7 +140,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
         n_buckets, special_bucket, "CSR_nonSec", "Delta")
 }
 
-pub(crate) fn csr_nonsec_delta_charge<F>(y05: Expr, y1: Expr, y3: Expr, y5: Expr, y10: Expr,
+pub(crate) fn csr_nonsec_delta_charge<F>(//y05: Expr, y1: Expr, y3: Expr, y5: Expr, y10: Expr,
+    weight: Expr,
     base_tenor_rho: Array2<f64>, rho_name: Vec<f64>, rho_basis: f64,
     bucket_col: Expr, scenario_fn: F, gamma_rating: Array2<f64>, gamma_sector: Array2<f64>,
     n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str) -> Expr
@@ -155,7 +150,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
     apply_multiple( move |columns| {
         //let now = Instant::now();
         let df = df![
-            "rcat" =>   columns[9].clone(),
+            "rcat" =>   columns[10].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
             "rft" =>  columns[2].clone(),
@@ -164,13 +159,22 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             "y1" =>   columns[5].clone(),
             "y3" =>   columns[6].clone(),
             "y5" =>   columns[7].clone(),
-            "y10" =>  columns[8].clone()
+            "y10" =>  columns[8].clone(),
+            "w" =>  columns[9].clone()
         ]?;
         
         
+        // concat_lst is actually slower than 
         let df = df.lazy()
             .filter(col("rc").eq(lit(risk_class))
                 .and(col("rcat").eq(lit(risk_cat))))
+            .with_columns([
+                col("y05")*col("w"),
+                col("y1")*col("w"),
+                col("y3")*col("w"),
+                col("y5")*col("w"),
+                col("y10")*col("w"),
+            ])
             .with_columns([
 
                 when(col("rft").eq(lit("Bond")))
@@ -212,7 +216,6 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
                 when(col("rft").eq(lit("CDS")))
                 .then(col("y10").alias("CDS_y10"))
                 .otherwise(NULL.lit()),
-
             ])
             .groupby([col("b"), col("rf")])
             .agg([
@@ -225,7 +228,8 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
                 col("Bond_y5").sum(),
                 col("CDS_y5").sum(),
                 col("Bond_y10").sum(),
-                col("CDS_y10").sum()          
+                col("CDS_y10").sum()         
+                
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
@@ -250,7 +254,15 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
     }, 
     
     &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), bucket_col, 
-    y05, y1, y3, y5, y10, col("RiskCategory")], 
+    //y05, y1, y3, y5, y10,
+    col("Sensitivity_05Y"),
+    col("Sensitivity_1Y"),
+    col("Sensitivity_3Y"),
+    col("Sensitivity_5Y"),
+    col("Sensitivity_10Y"),
+    // risk weight
+    weight,
+     col("RiskCategory")], 
     
     GetOutput::from_type(DataType::Float64))
 

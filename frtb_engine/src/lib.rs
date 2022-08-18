@@ -65,6 +65,8 @@ impl<'a> DataSet for FRTBDataSet<'a> {
             #[cfg(feature = "CRR2")]
             if cfg!(feature = "CRR2") { lf1 = lf1.with_column(buckets::sbm_buckets_crr2())};
 
+            
+
             // Then assign risk weights based on buckets
             lf1 = lf1.with_column( weights_assign(&self.build_params).alias("SensWeights") )
                 // Curvature risk weight
@@ -96,7 +98,8 @@ impl<'a> DataSet for FRTBDataSet<'a> {
             if !other_cols.is_empty(){
                 lf1 = lf1.with_columns(&other_cols)
             };
-
+            
+            //dbg!("###################", lf1.clone().collect());
            // Now, we need to also ammend CRR2 weights  
            // Bucket 10 as per
            // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776 
@@ -105,24 +108,28 @@ impl<'a> DataSet for FRTBDataSet<'a> {
                 lf1 = lf1.with_column(
                     when(col("RiskClass").eq(lit("CSR_nonSec"))
                         .and(col("RiskCategory").eq(lit("Delta")))
-                        .and(col("BucketBCBS").eq(lit("10")))
-                        .and(col("CoveredBondReducedWeight").eq(lit::<bool>(true))))
+                        .and(col("BucketCRR2").eq(lit("10")))
+                        .and(col("CoveredBondReducedWeight").eq(lit::<bool>(true)))
+                    )
                     .then(Series::new("",&[0.015]).lit().list())
                     .otherwise(col("SensWeightsCRR2"))
                     .alias("SensWeightsCRR2")
                 )
             }
 
-            lf1 = lf1.with_column(
+            // Have to collect into a tmp df, as the code panics otherwise
+            let tmp_frame = lf1.collect().expect("Failed to unwrap while .prepare()");
+            let lf2 = tmp_frame.lazy().with_column(
                 when(col("RiskClass").eq(lit("GIRR"))
                         .and(col("RiskCategory").eq(lit("Vega"))))
 
                     .then(col("GirrVegaUnderlyingMaturity").fill_null(col("RiskFactorType")))
 
-                    .otherwise(col("GirrVegaUnderlyingMaturity"))
+                    .otherwise(NULL.lit())
             );
+            let tmp2_frame = lf2.collect().unwrap();
             
-            *f1 = lf1.collect().unwrap();
+            *f1 = tmp2_frame;
         }
     }
 

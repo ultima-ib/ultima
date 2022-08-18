@@ -40,6 +40,7 @@ fn main() {
 
     // Build data
     let mut data = DataSetType::build(conf);
+    //dbg!(&data);
     // Pre build some columns, which you wish to store in memory alongside the original data
     data.prepare();
     

@@ -612,7 +612,7 @@ pub(crate) fn all_kbs_sbs_eq_csr<F>(df: DataFrame, n_buckets: usize, bucket_rho_
     }
 
 /// This function assumes two RFTs
-/// * `df` - A "pivoted" Dataframe. Rows are names(RFs), columns are 2(for each RFT) x ntenors
+/// * `df` - A "pivoted" Dataframe. Rows are names(RFs), columns are 2(for each RFT) x ntenors. Expecting no NULLs
 /// * `tenor_cols` , all columns are expected to .f64(), otherwise we will panic
 pub(crate) fn bucket_kb_sb_eq_csr<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
     rho_diff_rf_bucket: &[f64], rho_diff_rft: f64, scenario_fn: F, cols_by_tenor: &[(&str, &str)],
@@ -659,59 +659,54 @@ dtenor: Option<f64> )
             sb += pre_sb;
             var_covar_sum += pre_kb;
             // Now, if there are any other tenors, we need to account for them
+            if cols_by_tenor[(t+1)..].is_empty(){continue};
             // First, check dtenor was provided
-            match dtenor {
-                Some(dt)=>{
-                    let case1 =  scenario_fn(dt);
-                    let case2 =  scenario_fn(dt*rho_diff_rft);
-                    let case3 =  scenario_fn(dt*rho_name_bucket);
-                    let case4 =  scenario_fn(dt*rho_diff_rft*rho_name_bucket);
+            if let Some(dt) = dtenor {
+                let case1 =  scenario_fn(dt);
+                let case2 =  scenario_fn(dt*rho_diff_rft);
+                let case3 =  scenario_fn(dt*rho_name_bucket);
+                let case4 =  scenario_fn(dt*rho_diff_rft*rho_name_bucket);
 
-                    if cols_by_tenor[(t+1)..].is_empty(){continue}else{
-                        let mut arr_tenor = df.select([*c1, *c2]).unwrap()
-                            .fill_null(FillNullStrategy::Zero)?
-                            .to_ndarray::<Float64Type>()?;
-                        let dim = arr_tenor.raw_dim();
-                        let mut next_tenors_sum = Array2::<f64>::zeros(dim);
-                        for (c3, c4) in cols_by_tenor[(t+1)..].iter(){
-                            let next_tenor = df.select([*c3, *c4]).unwrap()
-                            .fill_null(FillNullStrategy::Zero)?
-                            .to_ndarray::<Float64Type>()?;
-                            next_tenors_sum = next_tenors_sum + next_tenor;
-                        }
-                        arr_tenor.indexed_iter_mut()
-                        .par_bridge()
-                        .for_each(|((i, j), v)|{
-                            let anti_j: usize = if j==0{1}else{0};
-                            let mut uninit_rho = Array2::<f64>::uninit(dim);
-                            let  (mut diff_name_same_type1, mut diff_name_diff_type1, 
-                            mut same_name_same_type, mut same_name_diff_type,
-                            mut diff_name_same_type2, mut diff_name_diff_type2) =
-                            uninit_rho.multi_slice_mut((
-                                    s![0..i,j],    s![0..i,anti_j],
-                                    s![i, j],      s![i, anti_j],
-                                    s![(i+1)..,j], s![(i+1)..,anti_j]
-                                    ));
-                            
-                            diff_name_same_type1.fill(MU::new(case3));
-                            diff_name_diff_type1.fill(MU::new(case4));
-                            same_name_same_type.fill(MU::new(case1));
-                            same_name_diff_type.fill(MU::new(case2));
-                            diff_name_same_type2.fill(MU::new(case3));
-                            diff_name_diff_type2.fill(MU::new(case4));
-
-                            let rho: Array2<f64>;
-                            unsafe {
-                                rho = uninit_rho.assume_init();
-                            }
-                            let a = 2.*(rho*next_tenors_sum.view()*(*v)).sum();
-                            *v = a;
-                        });
+                
+                let mut arr_tenor = df.select([*c1, *c2]).unwrap()
+                    .to_ndarray::<Float64Type>()?; // Nulls must've been filled
+                let dim = arr_tenor.raw_dim();
+                let mut next_tenors_sum = Array2::<f64>::zeros(dim);
+                for (c3, c4) in cols_by_tenor[(t+1)..].iter(){
+                    let next_tenor = df.select([*c3, *c4]).unwrap()
+                    .to_ndarray::<Float64Type>()?; // Nulls must've been filled
+                    next_tenors_sum = next_tenors_sum + next_tenor;
+                }
+                arr_tenor.indexed_iter_mut()
+                .par_bridge()
+                .for_each(|((i, j), v)|{
+                    let anti_j: usize = if j==0{1}else{0};
+                    let mut uninit_rho = Array2::<f64>::uninit(dim);
+                    let  (mut diff_name_same_type1, mut diff_name_diff_type1, 
+                    mut same_name_same_type, mut same_name_diff_type,
+                    mut diff_name_same_type2, mut diff_name_diff_type2) =
+                    uninit_rho.multi_slice_mut((
+                            s![0..i,j],    s![0..i,anti_j],
+                            s![i, j],      s![i, anti_j],
+                            s![(i+1)..,j], s![(i+1)..,anti_j]
+                            ));
                     
-                        cross_tenor += arr_tenor.sum();
+                    diff_name_same_type1.fill(MU::new(case3));
+                    diff_name_diff_type1.fill(MU::new(case4));
+                    same_name_same_type.fill(MU::new(case1));
+                    same_name_diff_type.fill(MU::new(case2));
+                    diff_name_same_type2.fill(MU::new(case3));
+                    diff_name_diff_type2.fill(MU::new(case4));
+
+                    let rho: Array2<f64>;
+                    unsafe {
+                        rho = uninit_rho.assume_init();
                     }
-                },
-                _=>(),
+                    let a = 2.*(rho*next_tenors_sum.view()*(*v)).sum();
+                    *v = a;
+                });
+            
+                cross_tenor += arr_tenor.sum();        
             }
         };
 
@@ -742,6 +737,7 @@ pub(crate) fn var_covar_sum_fn(srs1: &Series, srs2: &Series, rho_case1: f64, rho
     (pre_kb, pre_sb)
 } 
 
+/// Rho represents rho between risk factors where name/rf is different
 pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64)->(f64, f64){
     let mut sum_of_sq=0.;
     let mut sum=0.;

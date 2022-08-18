@@ -109,13 +109,14 @@ pub fn execute(req: DataRequestS, data: &impl DataSet)
         .and_then(|x|Some(x.hide_zeros))
         .unwrap_or_default() {
             let mut it = newnames.iter();
-            let c = it.next().unwrap(); // Request should contain at least one measure
-            // Filter where col is Not Eq 0 AND Not Eq Null
-            let mut predicate = col(c).neq(lit::<f64>(0.)) .and(col(c).neq(NULL.lit()));
-            for c in  it {
-                predicate = predicate.or(col(c).neq(lit::<f64>(0.)). and(col(c).neq(NULL.lit())))
+            if let Some(c) = it.next() {
+                // Filter where col is Not Eq 0 AND Not Eq Null
+                let mut predicate = col(c).neq(lit::<f64>(0.)) .and(col(c).neq(NULL.lit()));
+                for c in  it {
+                    predicate = predicate.or(col(c).neq(lit::<f64>(0.)). and(col(c).neq(NULL.lit())))
+                }
+                f1 = f1.filter(predicate);
             }
-            f1 = f1.filter(predicate);
         };
     // Fetch limits the number of computed groups
     // required to make sure server does hang up

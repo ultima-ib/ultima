@@ -4,11 +4,11 @@
     "params": {
         "measures": [
             ["CSR_nonSec_DeltaCharge_Low", "first"],
-["CSR_nonSec_DeltaCharge_Medium", "first"],
-["CSR_nonSec_DeltaCharge_High", "first"]
+            ["CSR_nonSec_DeltaCharge_Medium", "first"],
+            ["CSR_nonSec_DeltaCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
-        "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+        "filters": [],
         "optional_params": {
                     "hide_zeros": true,
                     "calc_params": {"jurisdiction": "BCBS"}

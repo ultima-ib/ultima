@@ -96,27 +96,20 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
     let juri: Jurisdiction = get_jurisdiction(op);
     
     // First, obtaining parameters specific to jurisdiciton
-    let (y05, y1, y3, y5, y10, bucket_col, name_rho_vec, 
+    let (weight, bucket_col, name_rho_vec, 
         gamma_rating, gamma_sector,
         n_buckets, special_bucket) =
          match juri{
         #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => (csr_sec_ctp_delta_sens_weighted_05y_crr2(),
-        csr_sec_ctp_delta_sens_weighted_1y_crr2(),
-        csr_sec_ctp_delta_sens_weighted_3y_crr2(),
-        csr_sec_ctp_delta_sens_weighted_5y_crr2(),
-        csr_sec_ctp_delta_sens_weighted_10y_crr2(),
+        Jurisdiction::CRR2 => (col("SensWeightsCRR2"),
         col("BucketCRR2"),
         Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
         &scenario.base_csr_ctp_gamma_rating_crr2, &scenario.base_csr_ctp_gamma_sector_crr2,
         18usize, Option::<usize>::None,
         ),
         Jurisdiction::BCBS=>
-        (csr_sec_ctp_delta_sens_weighted_05y_bcbs(),
-        csr_sec_ctp_delta_sens_weighted_1y_bcbs(),
-        csr_sec_ctp_delta_sens_weighted_3y_bcbs(),
-        csr_sec_ctp_delta_sens_weighted_5y_bcbs(),
-        csr_sec_ctp_delta_sens_weighted_10y_bcbs(),
+        (
+        col("SensWeights"),
         col("BucketBCBS"),
         Vec::from(scenario.base_csr_ctp_rho_name_bcbs),
         &scenario.base_csr_ctp_gamma_rating, &scenario.base_csr_ctp_gamma_sector,
@@ -140,8 +133,9 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
     let gamma_sector = get_optional_parameter_array(op,"base_csr_ctp_sector_gamma", 
     gamma_sector);
 
+
     // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets
-    csr_nonsec_delta_charge(y05, y1, y3, y5, y10, 
+    csr_nonsec_delta_charge(weight, 
         base_csr_ctp_rho_tenor,
      name_rho_vec,
     base_csr_ctp_rho_basis, bucket_col, scenario.scenario_fn,

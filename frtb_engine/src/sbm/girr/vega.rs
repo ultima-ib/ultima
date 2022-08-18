@@ -178,6 +178,7 @@ fn girr_vega_bucket_kb_sb<'a>(bucket_df: &'a DataFrame, girr_vega_rho: &Array2<f
     let mut a = Array1::<f64>::uninit(yield_05um.len() + yield_1um.len() + yield_3um.len()
         + yield_5um.len() + yield_10um.len() + infl.len() + xccy.len());
 
+    // better than concat and stack
     let mut i = 0usize;
     for arr in [yield_05um, yield_1um, yield_3um, yield_5um, yield_10um, infl, xccy] {
         let len = arr.len();
@@ -208,7 +209,6 @@ pub(crate) fn girr_underlying_maturity_arr(df: &DataFrame, mat: &str, _: &str) -
     Ok( df.filter(&mask)?.select(["y05", "y1", "y3", "y5", "y10"])?
         .to_ndarray::<Float64Type>()?
         .into_shape(5).unwrap_or_else(|_|{
-            //warn!("For bucket: {b}, GirrVegaUnderlyingMaturity {mat} not found. Zero's will be used");
             Array1::<f64>::zeros(5)
         })
     )

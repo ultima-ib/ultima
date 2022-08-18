@@ -9,10 +9,7 @@
 //! Hence, it's sufficient to build two matrixes:
 //! 1 based on rft and 2 based on rf 
 
-use std::sync::Mutex;
-
 use base_engine::prelude::*;
-use rayon::prelude::{ParallelIterator, IntoParallelRefIterator, ParallelBridge};
 use crate::sbm::common::*;
 use crate::prelude::*;
 
@@ -114,7 +111,7 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         };
 
         // 21.78
-        let kbs_sbs = all_kbs_sbs_eq(
+        let kbs_sbs = all_kbs_sbs_eq_csr(
             df,
             13,
             &eq_rho_bucket,

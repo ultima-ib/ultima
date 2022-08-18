@@ -230,7 +230,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             .fill_null(lit::<f64>(0.))
             .collect()?;
 
-        let kbs_sbs = all_kbs_sbs_eq(df, n_buckets, 
+        let kbs_sbs = all_kbs_sbs_eq_csr(df, n_buckets, 
             &rho_name,
             rho_basis, 
             scenario_fn, 

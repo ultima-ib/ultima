@@ -24,7 +24,7 @@ static ALLOC: MiMalloc = MiMalloc;
 #[cfg(feature = "FRTB")]
 type DataSetType = frtb_engine::FRTBDataSet<'static>;
 #[cfg(not(feature = "FRTB"))]
-type DataSetType = base_engine::DataSetBase;
+type DataSetType = base_engine::DataSetBase<'static>;
 
 //to be passed as a command line argument
 const SETUP: &str = r"frtb_engine/tests/data/datasource_config.toml";

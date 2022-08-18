@@ -7,11 +7,11 @@ type = "CSV"
 # "C:/rust/DeltaEq.csv"
 # "C:/rust/DeltaCSR.csv"
 # "C:/rust/DeltaEqMini.csv"
-files = ["C:/rust/DeltaGirr100_100_400000.csv"]
+files = ["C:/rust/DeltaCSR.csv"]
 # trade attributes
 # "C:/rust/TradeAttributes2.csv"
 #"C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"
-attributes_path = "C:/rust/TradeAttributes2.csv"
+attributes_path = "C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"
 # HMS
 hierarchy_path = "C:/rust/ultima/frtb_engine/tests/data/hms.csv"
 # file_1/file_2/file_3 <-> trade attributes

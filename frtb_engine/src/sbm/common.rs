@@ -1,7 +1,7 @@
 use base_engine::prelude::*;
 
 use log::warn;
-use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, s};
+use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, s, Axis};
 use polars::prelude::*;
 use rayon::{iter::{ParallelBridge, ParallelIterator, IntoParallelRefMutIterator}, prelude::IntoParallelRefIterator};
 use std::{sync::Mutex, iter};
@@ -567,8 +567,11 @@ where F: Fn(f64) -> f64 + Sync + Send,
     Ok((kb,sb))
 }
 
-
-pub(crate) fn all_kbs_sbs_eq<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
+/// Equity and CSRnonSec and CSR sec CTP share common approach
+/// They have 2 variants for RFT, and many different names
+/// The difference between them is only in number of tenors 
+/// *df is expected to have "b" column representing bucket
+pub(crate) fn all_kbs_sbs_eq_csr<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
     rho_base_diff_rft_or_loc: f64, 
     scenario_fn: F, special_bucket: Option<usize>,
     cols_by_tenor: &[(&str, &str)],
@@ -577,7 +580,6 @@ pub(crate) fn all_kbs_sbs_eq<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff
     -> Result<Vec<(f64, f64)>>
     where F: Fn(f64) -> f64 + Sync + Send + Copy{
     
-        // vec![Ok((0., 0.)); n_buckets]
         let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
         for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
     
@@ -594,7 +596,7 @@ pub(crate) fn all_kbs_sbs_eq<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff
             ,   _=>1};
 
             // CALCULATE Kb Sb for a bucket
-            let buck_kb_sb = bucket_kb_sb_eq(bucket_df, b_as_idx_plus_1, special_bucket,
+            let buck_kb_sb = bucket_kb_sb_eq_csr(bucket_df, b_as_idx_plus_1, special_bucket,
                 bucket_rho_diff_rf,  rho_base_diff_rft_or_loc, scenario_fn, cols_by_tenor, dtenor );
             let mut res = arc_mtx.lock().unwrap();
             res[b_as_idx_plus_1-1] = buck_kb_sb;
@@ -612,7 +614,7 @@ pub(crate) fn all_kbs_sbs_eq<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff
 /// This function assumes two RFTs
 /// * `df` - A "pivoted" Dataframe. Rows are names(RFs), columns are 2(for each RFT) x ntenors
 /// * `tenor_cols` , all columns are expected to .f64(), otherwise we will panic
-pub(crate) fn bucket_kb_sb_eq<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
+pub(crate) fn bucket_kb_sb_eq_csr<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
     rho_diff_rf_bucket: &[f64], rho_diff_rft: f64, scenario_fn: F, cols_by_tenor: &[(&str, &str)],
 dtenor: Option<f64> ) 
     -> Result<(f64, f64)> 
@@ -761,4 +763,94 @@ pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64)->(f64, f64){
     + rho*sum.powi(2);
 
     (sum, f1)
+}
+
+
+/// Girr Delta and Eq Vega share common approach.
+/// They have tenors and no RFT (in case of GIRR Infl and XCCY become columns)
+pub (crate)fn girr_bucket_kb_sb<F>(bucket_df: DataFrame, 
+    girr_delta_rho_same_curve: &Array2<f64>, 
+    girr_delta_rho_diff_curve: f64,
+    girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64, scenario_fn: F) -> Result<((String, f64), f64)> 
+    where F: Fn(f64) -> f64 + Sync + Send + Copy{
+
+    let bucket = unsafe{bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or_else(||"Default")}.to_string();
+    let mut sb = 0.; //this is Sb
+    let mut var_covar_sum = 0.; // this is pre Kb(var-covar sum) for a single tenor
+    let mut cross_tenor = 0.;
+    let case1 = scenario_fn(girr_delta_rho_diff_curve); //Same tenor, diff curve
+    let case2 = scenario_fn(girr_delta_rho_infl); // Yield (any tenor) vs Infl
+    let case3 = scenario_fn(girr_delta_rho_xccy); // Yield (any tenor) vs XCCY
+        
+    let xccy: f64 = bucket_df["XCCY"].sum().unwrap_or_else(||0.);
+    // 21.8.2.b
+    let infl: f64 = bucket_df["Inflation"].sum().unwrap_or_else(||0.);
+
+    sb = sb + xccy+infl;
+    var_covar_sum = var_covar_sum + xccy.powi(2) + infl.powi(2);
+       
+    let yield_df = bucket_df.lazy().filter(col("Inflation").is_null().and(col("XCCY").is_null())).collect()?;
+    
+    let columns = ["y025", "y05", "y1", "y2", "y3", "y5", "y10", "y15", "y20", "y30"];
+    let all_yield_arr = yield_df.select(&columns)?
+        .fill_null(FillNullStrategy::Zero)?
+        .to_ndarray::<Float64Type>()?;
+
+    var_covar_sum += case2*2f64*infl*all_yield_arr.sum();
+    var_covar_sum += case3*2f64*xccy*all_yield_arr.sum();
+
+        
+    for (i, c1) in columns.iter().enumerate() {
+        let _i = 1;
+        let (sum, var_covar) = var_covar_sum_single(&yield_df[*c1], case1);
+        sb+=sum;
+        var_covar_sum += var_covar;
+
+        if columns[(i+1)..].is_empty(){continue};
+        let mut current_yield_arr = yield_df[*c1].f64()?.to_ndarray()?.to_owned();
+        let next_yields_arr = all_yield_arr.slice(s![..,(i+1)..]);
+
+        let mut tenor_rho = Array2::<f64>::zeros(next_yields_arr.raw_dim());
+        tenor_rho.axis_iter_mut(Axis(1))
+        .enumerate()
+        .for_each(|(col, mut x)|{
+            let cross_tenor_rho = unsafe{ girr_delta_rho_same_curve.uget((i, i+1+col)) };
+            x.fill(*cross_tenor_rho);
+        });
+        
+
+        current_yield_arr.indexed_iter_mut()
+        .par_bridge()
+        .for_each(|(j, v)|{
+            if *v != 0f64 {
+            let mut uninit_curve_rho = Array2::<f64>::uninit(next_yields_arr.raw_dim());
+            let(mut diff_curve1, mut same_curve, mut diff_curve2)
+             = uninit_curve_rho.multi_slice_mut((
+                s![0..j,..],   
+                s![j, ..],     
+                s![(j+1)..,..],
+                ));
+            //assign rho same/diff curve
+            diff_curve1.fill(MU::new(girr_delta_rho_diff_curve));
+            same_curve.fill(MU::new(1f64));
+            diff_curve2.fill(MU::new(girr_delta_rho_diff_curve));
+            //initialise
+            let curve_rho: Array2<f64>;
+            unsafe {
+                curve_rho = uninit_curve_rho.assume_init();
+            }
+            //mult with tenor_rho
+            let mut tenor_curve_rho = curve_rho*tenor_rho.view();
+            //apply scenario fn
+            tenor_curve_rho.par_mapv_inplace(scenario_fn);
+            //Now, multiply rho with weighted sensis
+            let rho_weighted_next_sens = tenor_curve_rho*next_yields_arr;
+            let a = 2f64*(rho_weighted_next_sens*(*v)).sum();
+            *v = a;
+        }
+        });
+        cross_tenor += current_yield_arr.sum();
+    }
+    let kb = (var_covar_sum+cross_tenor).max(0.).sqrt();
+    Ok(((bucket, kb), sb))
 }

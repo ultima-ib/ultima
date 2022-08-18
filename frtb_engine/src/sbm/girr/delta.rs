@@ -1,15 +1,11 @@
 use base_engine::prelude::*;
-use ndarray::Order;
-use rayon::iter::{ParallelBridge, IntoParallelRefIterator};
 use rayon::prelude::IntoParallelIterator;
 use crate::sbm::common::*;
 use crate::prelude::*;
-use std::mem::MaybeUninit;
 
 use polars::prelude::*;
 use ndarray::prelude::*;
 use ndarray::parallel::prelude::ParallelIterator;
-use std::mem::MaybeUninit as MU;
 
 pub fn total_ir_delta_sens (_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "GIRR", total_delta_sens())
@@ -102,8 +98,9 @@ fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rt
     let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
 
+    // Take MEDIUM scenario here because scenario_fn is to be applied post factum
     let girr_delta_rho_same_curve = get_optional_parameter_array(op, format!("girr_delta_rho_same_curve{_suffix}").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_same_curve);
-    let girr_delta_rho_diff_curve = get_optional_parameter_array(op, format!("girr_delta_rho_diff_curve{_suffix}").as_str(), &scenario.girr_delta_rho_diff_curve);
+    //let girr_delta_rho_diff_curve = get_optional_parameter_array(op, format!("girr_delta_rho_diff_curve{_suffix}").as_str(), &scenario.girr_delta_rho_diff_curve);
     let girr_delta_rho_infl = get_optional_parameter(op,format!("girr_delta_rho_infl{_suffix}").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_infl);
     let girr_delta_rho_xccy = get_optional_parameter(op,format!("girr_delta_rho_xccy{_suffix}").as_str(), &MEDIUM_CORR_SCENARIO.girr_delta_rho_xccy);
 
@@ -111,16 +108,11 @@ fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rt
     let girr_delta_gamma_crr2_erm2 = get_optional_parameter(op, format!("girr_delta_gamma_erm2{_suffix}").as_str(), &scenario.girr_gamma_crr2_erm2);
     let erm2ccys =  get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_crr2);
 
-    girr_delta_charge(girr_delta_gamma, girr_delta_rho_same_curve, girr_delta_rho_diff_curve, girr_delta_rho_infl, girr_delta_rho_xccy, rtrn, juri, girr_delta_gamma_crr2_erm2, erm2ccys, scenario.scenario_fn)
+    girr_delta_charge(girr_delta_gamma, girr_delta_rho_same_curve, girr_delta_rho_infl, girr_delta_rho_xccy, rtrn, juri, girr_delta_gamma_crr2_erm2, erm2ccys, scenario.scenario_fn)
 }
 
-/// References moved into apply_multiple have to be 'static. Hence we can't pass a ref to a newly created Array2
-/// The only solution is to clone Array2 and make this function take ownership of it
-/// This allows for flexibility with overriding ScenarioConfig, but the drawback is cloning
-/// girr_delta_charge is called up to 3 times(1 for each scenario) FOR EACH group in outer groupby(say N) per request
-/// in total 3xN clones. Performance of such many clones has to be carefully accessed
 fn girr_delta_charge<F>(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f64>, 
-    girr_delta_rho_diff_curve: Array2<f64>, 
+    //girr_delta_rho_diff_curve: Array2<f64>, 
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,
     return_metric: ReturnMetric, juri: Jurisdiction, _erm2_gamma: f64,
     _erm2ccys: Vec<String>, scenario_fn: F) -> Expr
@@ -255,7 +247,7 @@ fn girr_delta_charge<F>(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2
         let res_buckets_kbs_sbs: Result<Vec<((String,f64),f64)>> = part
         .into_par_iter()
         .map(|bdf|{
-            girr_bucket_kb_sb_alt(bdf, 
+            girr_bucket_kb_sb(bdf, 
                 &girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
                 girr_delta_rho_infl, girr_delta_rho_xccy, scenario_fn)
         })
@@ -477,89 +469,3 @@ fn girr_bucket_kb_sb<'a>(bucket_df: &'a DataFrame,
 }
 */
 
-fn girr_bucket_kb_sb_alt<F>(bucket_df: DataFrame, 
-    girr_delta_rho_same_curve: &Array2<f64>, 
-    girr_delta_rho_diff_curve: f64,
-    girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64, scenario_fn: F) -> Result<((String, f64), f64)> 
-    where F: Fn(f64) -> f64 + Sync + Send + Copy{
-
-    let bucket = unsafe{bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or_else(||"Default")}.to_string();
-    let mut sb = 0.; //this is Sb
-    let mut var_covar_sum = 0.; // this is pre Kb(var-covar sum) for a single tenor
-    let mut cross_tenor = 0.;
-    let case1 = scenario_fn(girr_delta_rho_diff_curve); //Same tenor, diff curve
-    let case2 = scenario_fn(girr_delta_rho_infl); // Yield (any tenor) vs Infl
-    let case3 = scenario_fn(girr_delta_rho_xccy); // Yield (any tenor) vs XCCY
-        
-    let xccy: f64 = bucket_df["XCCY"].sum().unwrap_or_else(||0.);
-    // 21.8.2.b
-    let infl: f64 = bucket_df["Inflation"].sum().unwrap_or_else(||0.);
-
-    sb = sb + xccy+infl;
-    var_covar_sum = var_covar_sum + xccy.powi(2) + infl.powi(2);
-       
-    let yield_df = bucket_df.lazy().filter(col("Inflation").is_null().and(col("XCCY").is_null())).collect()?;
-    
-    let columns = ["y025", "y05", "y1", "y2", "y3", "y5", "y10", "y15", "y20", "y30"];
-    let all_yield_arr = yield_df.select(&columns)?
-        .fill_null(FillNullStrategy::Zero)?
-        .to_ndarray::<Float64Type>()?;
-
-    var_covar_sum += case2*2f64*infl*all_yield_arr.sum();
-    var_covar_sum += case3*2f64*xccy*all_yield_arr.sum();
-
-        
-    for (i, c1) in columns.iter().enumerate() {
-        let _i = 1;
-        let (sum, var_covar) = var_covar_sum_single(&yield_df[*c1], case1);
-        sb+=sum;
-        var_covar_sum += var_covar;
-
-        if columns[(i+1)..].is_empty(){continue};
-        let mut current_yield_arr = yield_df[*c1].f64()?.to_ndarray()?.to_owned();
-        let next_yields_arr = all_yield_arr.slice(s![..,(i+1)..]);
-
-        let mut tenor_rho = Array2::<f64>::zeros(next_yields_arr.raw_dim());
-        tenor_rho.axis_iter_mut(Axis(1))
-        .enumerate()
-        .for_each(|(col, mut x)|{
-            let cross_tenor_rho = unsafe{ girr_delta_rho_same_curve.uget((i, i+1+col)) };
-            x.fill(*cross_tenor_rho);
-        });
-        
-
-        current_yield_arr.indexed_iter_mut()
-        .par_bridge()
-        .for_each(|(j, v)|{
-            if *v != 0f64 {
-            let mut uninit_curve_rho = Array2::<f64>::uninit(next_yields_arr.raw_dim());
-            let(mut diff_curve1, mut same_curve, mut diff_curve2)
-             = uninit_curve_rho.multi_slice_mut((
-                s![0..j,..],   
-                s![j, ..],     
-                s![(j+1)..,..],
-                ));
-            //assign rho same/diff curve
-            diff_curve1.fill(MU::new(girr_delta_rho_diff_curve));
-            same_curve.fill(MU::new(1f64));
-            diff_curve2.fill(MU::new(girr_delta_rho_diff_curve));
-            //initialise
-            let curve_rho: Array2<f64>;
-            unsafe {
-                curve_rho = uninit_curve_rho.assume_init();
-            }
-            //mult with tenor_rho
-            let mut tenor_curve_rho = curve_rho*tenor_rho.view();
-            //apply scenario fn
-            tenor_curve_rho.par_mapv_inplace(scenario_fn);
-            //Now, multiply rho with weighted sensis
-            let rho_weighted_next_sens = tenor_curve_rho*next_yields_arr;
-            let a = 2f64*(rho_weighted_next_sens*(*v)).sum();
-            *v = a;
-            }
-        });
-        cross_tenor += current_yield_arr.sum();
-    }
-    let kb = (var_covar_sum+cross_tenor).max(0.).sqrt();
-    Ok(((bucket, kb), sb))
-}

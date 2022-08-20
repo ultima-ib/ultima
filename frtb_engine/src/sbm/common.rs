@@ -2,9 +2,9 @@ use base_engine::prelude::*;
 
 use log::warn;
 use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, s, Axis};
-use polars::prelude::*;
+use polars::{prelude::*, export::num::Signed};
 use rayon::{iter::{ParallelBridge, ParallelIterator, IntoParallelRefMutIterator}, prelude::IntoParallelRefIterator};
-use std::{sync::Mutex, iter};
+use std::{sync::Mutex};
 use std::mem::MaybeUninit as MU;
 
 /// Sum of all delta sensis, from spot to 30Y tenor
@@ -271,6 +271,7 @@ pub(crate) fn alt_sbs(sbs_arr: ArrayView1<f64>, kbs_arr: ArrayView1<f64>) -> Arr
 /// Hence basis_col(RFT/Loc) arg is optional, and if provided then rho_diff_rft is expected as well.
 /// 
 /// Computes kb and sb efficiently via uninit
+#[deprecated(note = "Initialises massive matrix which is not practical with large portfolios")]
 pub(crate) fn bucket_kb_sb<F>(df: LazyFrame, bucket_id: usize, special_bucket: Option<usize>, 
     rho_tenor: &Array2<f64>, name_col: &str, rho_diff_rf_bucket: &[f64], 
     basis_col: Option<&str>, rho_diff_rft: Option<f64>,  scenario_fn: F, tenor_cols:Vec<&str>, ) 
@@ -281,8 +282,6 @@ where F: Fn(f64) -> f64 + Sync + Send,
             .filter(col("b").eq(lit(bucket_id.to_string())))
             .collect()?;
         
-    dbg!(bucket_id);
-
     let n_curves = bucket_df.height();
     if bucket_df.height() == 0 { return Ok((0.,0.)) };
 
@@ -375,6 +374,7 @@ where F: Fn(f64) -> f64 + Sync + Send,
 /// Used for CSR, Commodity, Equity Vega
 /// 
 /// df must contain column "b", which represent a bucket
+#[deprecated(note = "wrapper around bucket_kb_sb which is being deprecated")]
 pub(crate) fn all_kbs_sbs<F>(df: DataFrame, tenor_cols:Vec<&str>, n_buckets: usize, 
 rho_tenor:&Array2<f64>, name_col: &str, bucket_rho_diff_rf: &[f64], basis_col: Option<&str>, rho_base_diff_rft_or_loc: Option<f64>, 
 scenario_fn: F, special_bucket: Option<usize>) 
@@ -444,7 +444,7 @@ fn vega_rho_element(m1: f64, m2: f64) -> f64 {
 ///21.5.3.b
 pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
     let mut arr = Array2::ones((sbs.len(), sbs.len()));
-    let mut tmp: Vec<usize> = Vec::with_capacity(sbs.len());
+    let mut tmp: Vec<usize> = Vec::with_capacity(sbs.len()); // To keep track on negative Sbs
     for (i, v) in sbs.iter().enumerate() {
         if *v<0.{
             for t in &tmp {
@@ -457,22 +457,114 @@ pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
     arr
 }
 
-pub(crate) fn kb_plus_minus(srs: &Series) -> Result<Vec<f64>>{
-    Ok(srs
+
+/// Calculates simple Kb plus or minus, IE only one cvr_up/down per bucket(and therefore Rho is 0) 
+/// 
+/// For multiple buckets at the same time.
+/// 
+/// Used for Eq, Girr curvature.
+pub(crate) fn kb_plus_minus_simple(cvr_up_or_down: &Series) -> Result<Vec<f64>>{
+    Ok(
+    cvr_up_or_down
     .f64()?
     .into_iter()
-    .map(|cv_up|
-        f64::max(cv_up.unwrap_or_else(||0.), 0.)
+    .map(|cvr|
+        // No need to ^2 and SQRT since below is just one positive(or 0) number
+        f64::max(cvr.unwrap_or_else(||0.), 0.)
     )
-    .collect())
+    .collect()
+    )
 }
 
-pub(crate) fn kbs_sbs_curvature(kb_plus: Vec<f64>,kb_minus: Vec<f64>, cvr_up: &Series, cvr_down: &Series) -> Result<(Vec<f64>, Vec<f64>)> {
+/// calculates kb plus, kb minus, sb, kb per bucket simultaniously 
+/// * `df` expected to have columns "b", "cvr_up", "cvr_down"
+pub(crate) fn curvature_kb_plus_minus(
+    df: DataFrame,
+    n_buckets: usize, 
+    bucket_rho: &[f64],
+    special_bucket: Option<usize>
+    ) 
+    -> Result<(Vec<(f64, f64)>, Vec<(f64, f64)>)> {
+    
+        let mut res_kb_cvr: Vec< (Result<(f64, f64)>, Result<(f64, f64)>) > = Vec::with_capacity(n_buckets);
+        //let mut res_kbminus_cvrdown: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
+        for _ in 0..n_buckets{res_kb_cvr.push(( Ok((0., 0.)), Ok((0., 0.)) )) };
+    
+        let arc_mtx_kbpm_cvr = Arc::new(Mutex::new(res_kb_cvr));
+
+        // Do not iterate over each bukcet. Instead, only iterate over unique buckets
+        df.partition_by(["b"])?
+        .par_iter()
+        .for_each(|bucket_df|{
+            // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
+            let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
+            let b_as_idx_plus_1 = match b_as_idx_plus_1 {
+                AnyValue::Utf8(st)=>{ st.parse::<usize>().ok().and_then(|b_id|{if b_id<n_buckets{Some(b_id)}else{None}}).unwrap_or_else(||1)}
+            ,   _=>1};
+
+            let is_special_bucket = match special_bucket {
+                Some(b) if b == b_as_idx_plus_1 => true,
+                _=>false,
+            };
+            let rho = bucket_rho[b_as_idx_plus_1-1];
+            // CALCULATE Kb Sb for a bucket
+            let buck_kb_plus_cvr_up_sum = kb_plus_minus(&bucket_df["cvr_up"], rho, is_special_bucket);
+            let buck_kb_minus_cvr_down_sum = kb_plus_minus(&bucket_df["cvr_down"], rho, is_special_bucket);
+            arc_mtx_kbpm_cvr.lock().unwrap()[b_as_idx_plus_1-1] = (buck_kb_plus_cvr_up_sum, buck_kb_minus_cvr_down_sum);
+            }
+        );
+        //Result<Vec<(f64, f64)>>
+        let (res_kbp_cvrup, res_kbm_cvrdown): (Vec<Result<(f64, f64)>>, Vec<Result<(f64, f64)>>)  = Arc::try_unwrap(arc_mtx_kbpm_cvr)
+            .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
+            .into_inner()
+            .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
+            .into_iter()
+            .unzip();
+
+        let res_kbp_cvrup: Result<Vec<(f64, f64)>> = res_kbp_cvrup.into_iter().collect();
+        let res_kbm_cvrdown: Result<Vec<(f64, f64)>> = res_kbm_cvrdown.into_iter().collect();
+        Ok( (res_kbp_cvrup?,res_kbm_cvrdown?) )
+    }
+
+
+/// ( Curvature Kb Plus/Minus , CVR_UP_DOWN Sum )
+/// * `special_bucket` indicates if CVR Up/Down to be calculated accordingly to 21.79
+pub(crate) fn kb_plus_minus(cvr_up_or_down: &Series, rho: f64, special_bucket: bool) -> Result<(f64, f64)>{
+    // If special bucket, we simply sum positive values for Kb puls/minus
+    if special_bucket {
+        let sum_positive: f64 = cvr_up_or_down.f64()?.into_no_null_iter()
+        .filter(|x|{
+            x.is_positive()
+        }).sum();
+        let sum = cvr_up_or_down.f64()?.sum().unwrap_or_default();
+        return Ok((sum_positive, sum))
+    }
+    //First, calculate as if normal var covar sum
+    let (sum, full) = var_covar_sum_single(cvr_up_or_down, rho)?;
+    //Then, subtract squares where max(CVR,0)^2 would be 0 (ie squares of negative numbers)
+    //And Correlations of negative numbers. For this first get srs of negative items
+    let neg_srs = cvr_up_or_down.f64()?.into_iter()
+        .filter(|o|{
+            if let Some(x) = o {
+                x.is_negative()
+            }  else {false}
+        })
+        .collect::<Series>();
+    let (_, neg) = var_covar_sum_single(&neg_srs, rho)?;
+
+    Ok( ( (full - neg).max(0.).sqrt(), sum) )
+}
+
+/// Computes Kb, Sb from kb_plus, kb_minus, sum_cvr_up, sum_cvr_down.
+/// TODO take cre of special bucket
+pub(crate) fn kbs_sbs_curvature<I>(kb_plus: Vec<f64>,kb_minus: Vec<f64>, cvr_up: I, cvr_down: I) -> Result<(Vec<f64>, Vec<f64>)> 
+where I: Iterator<Item = Option<f64>>
+{
     let kbs_sbs: Vec<(f64, f64)> = kb_plus.into_iter()
         .zip(kb_minus.into_iter())
-        .zip(cvr_up.f64()?.into_iter())
-        .zip(cvr_down.f64()?.into_iter())
-        .map(|(((kb_p, kb_m), cv_up), cv_down)|
+        .zip(cvr_up)
+        .zip(cvr_down)
+        .map(| (((kb_p, kb_m), cv_up), cv_down)|
             if kb_p>kb_m{
                 (kb_p, cv_up.unwrap_or_else(||0.))
             } else if kb_m>kb_p {
@@ -490,88 +582,13 @@ pub(crate) fn kbs_sbs_curvature(kb_plus: Vec<f64>,kb_minus: Vec<f64>, cvr_up: &S
     Ok((kbs, sbs))
 }
 
-/// ALternative to [bucket_kb_sb]
-/// Instead of iterating over each chunk, for each i in rf.zip(rft) , iterate over rf.zip(rft),skip(i)
-/// This reduces number of iterations by factor of 2, but can't use par_iter. Hence:
-/// TODO test on a large portfolio
-pub(crate) fn bucket_kb_sb_alt<F>(df: LazyFrame, bucket_id: usize, special_bucket: Option<usize>, 
-    rho_tenor: &Array2<f64>, name_col: &str, rho_diff_rf_bucket: &[f64], 
-    basis_col: Option<&str>, rho_diff_rft: Option<f64>,  scenario_fn: F, tenor_cols:Vec<&str>, ) 
--> Result<(f64, f64)> 
-where F: Fn(f64) -> f64 + Sync + Send,
-{
-    let bucket_df = df
-            .filter(col("b").eq(lit(bucket_id.to_string())))
-            .collect()?;
-
-    let n_curves = bucket_df.height();
-    if bucket_df.height() == 0 { return Ok((0.,0.)) };
-
-    let n_tenors = tenor_cols.len();
-    let mut ws_arr = bucket_df
-                .select(tenor_cols)?
-                .to_ndarray::<Float64Type>()?;
-    // 21.56 
-    match special_bucket {
-        Some(x) if x==bucket_id => {
-            ws_arr.par_iter_mut().for_each(|x|*x=x.abs());
-            return Ok((ws_arr.sum(),ws_arr.sum()))
-        },
-        _ => (),
-    };
-    // Array used for name(RF) comparison
-    let name_arr = bucket_df[name_col].utf8()?;
-    // Array used for (optional) RFT/Loc comparison
-    let empty_arr = Utf8Chunked::default();
-    let curve_type_arr = match basis_col{
-            Some(basis_col_name) => bucket_df[basis_col_name].utf8()?,
-            _ => &empty_arr,
-    };
-    let ws_arr1 = bucket_df["dw_sum"].f64()?;
-
-    let kb_arc_mtx = Arc::new(Mutex::new(0.));
-
-    let rho_name_bucket = rho_diff_rf_bucket.get(bucket_id-1)
-        .map(|x|*x)
-        .unwrap_or_else(||0.);
-
-    name_arr.into_iter()
-    .zip(curve_type_arr.into_iter().chain(iter::repeat(None)))
-    .zip(ws_arr1.into_iter())
-    .enumerate()
-    .par_bridge()
-    .for_each(|(i, ((rf, rft), val))|{
-        let val = val.unwrap_or_default();
-        let mut res = val.powi(2);
-        for  ((rf1, rft1), val1) in name_arr.into_iter()
-            .zip(curve_type_arr.into_iter().chain(iter::repeat(None)))
-            .zip(ws_arr1.into_iter())
-            .skip(i) {
-                let val1 = val1.unwrap_or_default();
-                let name_rho = if rf == rf1 { 1.} else { rho_name_bucket };
-                let basis_rho = if rft == rft1 { 1. } else { rho_diff_rft.expect("basis_col was provided, hence expect rho_diff_rft") } ;
-                let rho_val_val1 = 2.*scenario_fn(name_rho*basis_rho)*val*val1;
-                res += rho_val_val1;
-            }
-        *kb_arc_mtx.lock().unwrap() += res;
-    });let sb = ws_arr1.sum().unwrap_or_default();
-    
-
-    let kb = Arc::try_unwrap(kb_arc_mtx)
-        .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
-        .into_inner()
-        .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
-        .max(0.)
-        .sqrt();    
-    
-    Ok((kb,sb))
-}
-
 /// Equity and CSRnonSec and CSR sec CTP share common approach
+/// They have limited number of buckets.
 /// They have 2 variants for RFT, and many different names
 /// The difference between them is only in number of tenors 
 /// *df is expected to have "b" column representing bucket
-pub(crate) fn all_kbs_sbs_eq_csr<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
+/// TODO use bucket_rho_diff_rf.len() instead of n_buckets
+pub(crate) fn all_kbs_sbs_two_types_w_tenors<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
     rho_base_diff_rft_or_loc: f64, 
     scenario_fn: F, special_bucket: Option<usize>,
     cols_by_tenor: &[(&str, &str)],
@@ -579,7 +596,7 @@ pub(crate) fn all_kbs_sbs_eq_csr<F>(df: DataFrame, n_buckets: usize, bucket_rho_
     ) 
     -> Result<Vec<(f64, f64)>>
     where F: Fn(f64) -> f64 + Sync + Send + Copy{
-    
+        
         let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
         for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
     
@@ -591,12 +608,13 @@ pub(crate) fn all_kbs_sbs_eq_csr<F>(df: DataFrame, n_buckets: usize, bucket_rho_
         .for_each(|bucket_df|{
             // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
             let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
+            // validating also bucket is not greater than max index of bucket_rho_diff_rf
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st)=>{ st.parse::<usize>().unwrap_or_else(|_|1)}
+                AnyValue::Utf8(st)=>{ st.parse::<usize>().ok().and_then(|b_id|{if b_id<n_buckets{Some(b_id)}else{None}}).unwrap_or_else(||1)}
             ,   _=>1};
 
             // CALCULATE Kb Sb for a bucket
-            let buck_kb_sb = bucket_kb_sb_eq_csr(bucket_df, b_as_idx_plus_1, special_bucket,
+            let buck_kb_sb = bucket_kb_sb_two_types_w_tenors(bucket_df, b_as_idx_plus_1, special_bucket,
                 bucket_rho_diff_rf,  rho_base_diff_rft_or_loc, scenario_fn, cols_by_tenor, dtenor );
             let mut res = arc_mtx.lock().unwrap();
             res[b_as_idx_plus_1-1] = buck_kb_sb;
@@ -614,7 +632,7 @@ pub(crate) fn all_kbs_sbs_eq_csr<F>(df: DataFrame, n_buckets: usize, bucket_rho_
 /// This function assumes two RFTs
 /// * `df` - A "pivoted" Dataframe. Rows are names(RFs), columns are 2(for each RFT) x ntenors. Expecting no NULLs
 /// * `tenor_cols` , all columns are expected to .f64(), otherwise we will panic
-pub(crate) fn bucket_kb_sb_eq_csr<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
+pub(crate) fn bucket_kb_sb_two_types_w_tenors<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
     rho_diff_rf_bucket: &[f64], rho_diff_rft: f64, scenario_fn: F, cols_by_tenor: &[(&str, &str)],
 dtenor: Option<f64> ) 
     -> Result<(f64, f64)> 
@@ -654,7 +672,7 @@ dtenor: Option<f64> )
         let mut cross_tenor = 0.;
         
         for (t, (c1, c2)) in cols_by_tenor.iter().enumerate() {
-            
+            //println!("{t}");
             let (pre_kb, pre_sb) = var_covar_sum_fn(&df[*c1], &df[*c2], rho_case1, rho_case2, rho_case3);
             sb += pre_sb;
             var_covar_sum += pre_kb;
@@ -662,18 +680,18 @@ dtenor: Option<f64> )
             if cols_by_tenor[(t+1)..].is_empty(){continue};
             // First, check dtenor was provided
             if let Some(dt) = dtenor {
-                let case1 =  scenario_fn(dt);
-                let case2 =  scenario_fn(dt*rho_diff_rft);
-                let case3 =  scenario_fn(dt*rho_name_bucket);
-                let case4 =  scenario_fn(dt*rho_diff_rft*rho_name_bucket);
+                let rho_case4 =  scenario_fn(dt);
+                let rho_case5 =  scenario_fn(dt*rho_diff_rft);
+                let rho_case6 =  scenario_fn(dt*rho_name_bucket);
+                let rho_case7 =  scenario_fn(dt*rho_diff_rft*rho_name_bucket);
 
                 
-                let mut arr_tenor = df.select([*c1, *c2]).unwrap()
+                let mut arr_tenor = df.select([*c1, *c2])?
                     .to_ndarray::<Float64Type>()?; // Nulls must've been filled
                 let dim = arr_tenor.raw_dim();
                 let mut next_tenors_sum = Array2::<f64>::zeros(dim);
                 for (c3, c4) in cols_by_tenor[(t+1)..].iter(){
-                    let next_tenor = df.select([*c3, *c4]).unwrap()
+                    let next_tenor = df.select([*c3, *c4])?
                     .to_ndarray::<Float64Type>()?; // Nulls must've been filled
                     next_tenors_sum = next_tenors_sum + next_tenor;
                 }
@@ -691,12 +709,12 @@ dtenor: Option<f64> )
                             s![(i+1)..,j], s![(i+1)..,anti_j]
                             ));
                     
-                    diff_name_same_type1.fill(MU::new(case3));
-                    diff_name_diff_type1.fill(MU::new(case4));
-                    same_name_same_type.fill(MU::new(case1));
-                    same_name_diff_type.fill(MU::new(case2));
-                    diff_name_same_type2.fill(MU::new(case3));
-                    diff_name_diff_type2.fill(MU::new(case4));
+                    diff_name_same_type1.fill(MU::new(rho_case6));
+                    diff_name_diff_type1.fill(MU::new(rho_case7));
+                    same_name_same_type.fill(MU::new(rho_case4));
+                    same_name_diff_type.fill(MU::new(rho_case5));
+                    diff_name_same_type2.fill(MU::new(rho_case6));
+                    diff_name_diff_type2.fill(MU::new(rho_case7));
 
                     let rho: Array2<f64>;
                     unsafe {
@@ -716,6 +734,9 @@ dtenor: Option<f64> )
 
 /// Calculates Var-Covar Matrix in O(N) for !two distinct risk types!
 /// * `srs1` and `srs2` are expected to be ".f64()"
+/// * `rho_case1` Diff name, same type (diff name, non-nn)
+/// * `rho_case2` Same name, diff type (same name, non-nn)
+/// * `rho_case3` Diff name, diff type (_, nn)
 pub(crate) fn var_covar_sum_fn(srs1: &Series, srs2: &Series, rho_case1: f64, rho_case2: f64, rho_case3: f64) -> (f64, f64) {
 
     //let (spot_sum, spot_f1) = var_covar_sum_single(srs1, rho_case1);
@@ -760,10 +781,12 @@ pub(crate) fn var_covar_sum_fn(srs1: &Series, srs2: &Series, rho_case1: f64, rho
 } 
 
 /// Rho represents rho between risk factors where name/rf is different
-pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64)->(f64, f64){
+/// 
+/// Returns: (sum(for Sb), formula1(Kb) )
+pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64)->Result<(f64, f64)>{
     let mut sum_of_sq=0.;
     let mut sum=0.;
-    srs.f64().unwrap()
+    srs.f64()?
     .into_no_null_iter()
     .for_each(|x|{
         sum_of_sq += x.powi(2);
@@ -775,47 +798,118 @@ pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64)->(f64, f64){
     - rho*sum_of_sq
     + rho*sum.powi(2);
 
-    (sum, f1)
+    Ok( (sum, f1) )
 }
 
+pub(crate) fn all_kbs_sbs_single_type<F>(
+    df: DataFrame, 
+    n_buckets: usize, 
+    rho_same_curve: &Array2<f64>, 
+    rho_diff_curve: &[f64],
+    scenario_fn: F,
+    columns: &[&'static str],
+    special_bucket: Option<&'static str>
+    ) 
+    -> Result<Vec<(f64, f64)>>
+    where F: Fn(f64) -> f64 + Sync + Send + Copy{
+    
+        let mut reskbs_sbs: Vec<Result<((String, f64), f64)> > = Vec::with_capacity(n_buckets);
+        for _ in 0..n_buckets{reskbs_sbs.push( Ok( (("".to_string(), 0.), 0.) ))};
+    
+        let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
+        // Do not iterate over each bukcet. Instead, only iterate over unique buckets
+        // 
+        df.partition_by(["b"])?
+        .par_iter()
+        .for_each(|bucket_df|{
+            // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
+            let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
+            let b_as_idx_plus_1 = match b_as_idx_plus_1 {
+                AnyValue::Utf8(st)=>{ st.parse::<usize>()
+                    //.map(|r| if r<rho_diff_curve.len() {Ok(r)}else{Ok(1)})
+                    .unwrap_or_else(|_|1)}
+            ,   _=>1};
+            let rho_diff_curve = rho_diff_curve.get(b_as_idx_plus_1-1).unwrap_or_else(||&0.);
+
+            // CALCULATE Kb Sb for a bucket
+            let buck_kb_sb = bucket_kb_sb_single_type(
+                bucket_df,
+                rho_same_curve,
+                *rho_diff_curve,
+                scenario_fn,
+                columns,
+                None,
+                special_bucket
+                 );
+            let mut res = arc_mtx.lock().unwrap();
+            res[b_as_idx_plus_1-1] = buck_kb_sb;
+            }
+        );
+        let reskbs_sbs: Result<Vec<((String, f64), f64)>> = Arc::try_unwrap(arc_mtx)
+            .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
+            .into_inner()
+            .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
+            .into_iter()
+            .collect();
+        
+        let buckets_kbs_sbs = reskbs_sbs?;
+        let (buckets_kbs, sbs): (Vec<(String, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
+        let (_buckets, kbs): (Vec<String>, Vec<f64>) = buckets_kbs.into_iter().unzip();
+
+        Ok( kbs.into_iter().zip(sbs.into_iter()).collect() )
+    }
 
 /// Girr Delta and Eq Vega share common approach.
 /// They have tenors and no RFT (in case of GIRR Infl and XCCY become columns)
-pub (crate)fn girr_bucket_kb_sb<F>(bucket_df: DataFrame, 
-    girr_delta_rho_same_curve: &Array2<f64>, 
-    girr_delta_rho_diff_curve: f64,
-    girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64, scenario_fn: F) -> Result<((String, f64), f64)> 
+pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame, 
+    rho_same_curve: &Array2<f64>, 
+    rho_diff_curve: f64,
+    scenario_fn: F,
+    columns: &[&'static str],
+    girr: Option<(f64, f64)>,
+    special_bucket: Option<&'static str>
+) -> Result<((String, f64), f64)> 
     where F: Fn(f64) -> f64 + Sync + Send + Copy{
 
     let bucket = unsafe{bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or_else(||"Default")}.to_string();
     let mut sb = 0.; //this is Sb
     let mut var_covar_sum = 0.; // this is pre Kb(var-covar sum) for a single tenor
     let mut cross_tenor = 0.;
-    let case1 = scenario_fn(girr_delta_rho_diff_curve); //Same tenor, diff curve
-    let case2 = scenario_fn(girr_delta_rho_infl); // Yield (any tenor) vs Infl
-    let case3 = scenario_fn(girr_delta_rho_xccy); // Yield (any tenor) vs XCCY
+    let case1 = scenario_fn(rho_diff_curve); //Same tenor, diff curve
+    let yield_df = bucket_df.select(columns)?;
+    let all_yield_arr = yield_df
+    .fill_null(FillNullStrategy::Zero)?
+    .to_ndarray::<Float64Type>()?;
+
+    // EQ Vega, take care of special bucket
+    match special_bucket {
+        Some(x) if x==bucket.as_str() => {
+            let abs_sum = all_yield_arr.iter()
+            .map(|x|x.abs())
+            .sum::<f64>();
+            return Ok(((x.to_string(), abs_sum),abs_sum))
+        },
+        _ => (),
+    };
+
+
+    if let Some((rho_infl, rho_xccy)) = girr{
+        let xccy: f64 = bucket_df["XCCY"].sum().unwrap_or_else(||0.);
+        // 21.8.2.b
+        let infl: f64 = bucket_df["Inflation"].sum().unwrap_or_else(||0.);
+        sb = sb + xccy+infl;
         
-    let xccy: f64 = bucket_df["XCCY"].sum().unwrap_or_else(||0.);
-    // 21.8.2.b
-    let infl: f64 = bucket_df["Inflation"].sum().unwrap_or_else(||0.);
-
-    sb = sb + xccy+infl;
-    var_covar_sum = var_covar_sum + xccy.powi(2) + infl.powi(2);
-       
-    let yield_df = bucket_df.lazy().filter(col("Inflation").is_null().and(col("XCCY").is_null())).collect()?;
-    
-    let columns = ["y025", "y05", "y1", "y2", "y3", "y5", "y10", "y15", "y20", "y30"];
-    let all_yield_arr = yield_df.select(&columns)?
-        .fill_null(FillNullStrategy::Zero)?
-        .to_ndarray::<Float64Type>()?;
-
-    var_covar_sum += case2*2f64*infl*all_yield_arr.sum();
-    var_covar_sum += case3*2f64*xccy*all_yield_arr.sum();
+        var_covar_sum = var_covar_sum + xccy.powi(2) + infl.powi(2);
+        let case2 = scenario_fn(rho_infl); // Yield (any tenor) vs Infl
+        let case3 = scenario_fn(rho_xccy); // Yield (any tenor) vs XCCY
+        var_covar_sum += case2*2f64*infl*all_yield_arr.sum();
+        var_covar_sum += case3*2f64*xccy*all_yield_arr.sum();
+    }
 
         
     for (i, c1) in columns.iter().enumerate() {
         let _i = 1;
-        let (sum, var_covar) = var_covar_sum_single(&yield_df[*c1], case1);
+        let (sum, var_covar) = var_covar_sum_single(&yield_df[*c1], case1)?;
         sb+=sum;
         var_covar_sum += var_covar;
 
@@ -827,7 +921,7 @@ pub (crate)fn girr_bucket_kb_sb<F>(bucket_df: DataFrame,
         tenor_rho.axis_iter_mut(Axis(1))
         .enumerate()
         .for_each(|(col, mut x)|{
-            let cross_tenor_rho = unsafe{ girr_delta_rho_same_curve.uget((i, i+1+col)) };
+            let cross_tenor_rho = unsafe{ rho_same_curve.uget((i, i+1+col)) };
             x.fill(*cross_tenor_rho);
         });
         
@@ -844,9 +938,9 @@ pub (crate)fn girr_bucket_kb_sb<F>(bucket_df: DataFrame,
                 s![(j+1)..,..],
                 ));
             //assign rho same/diff curve
-            diff_curve1.fill(MU::new(girr_delta_rho_diff_curve));
+            diff_curve1.fill(MU::new(rho_diff_curve));
             same_curve.fill(MU::new(1f64));
-            diff_curve2.fill(MU::new(girr_delta_rho_diff_curve));
+            diff_curve2.fill(MU::new(rho_diff_curve));
             //initialise
             let curve_rho: Array2<f64>;
             unsafe {

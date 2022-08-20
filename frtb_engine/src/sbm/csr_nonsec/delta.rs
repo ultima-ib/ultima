@@ -115,7 +115,7 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
             )
             };
 
-    let base_csr_nonsec_rho_tenor = get_optional_parameter_array(op,"base_csr_nonsec_tenor_rho", 
+    let base_csr_nonsec_rho_tenor = get_optional_parameter(op,"base_csr_nonsec_tenor_rho", 
     &scenario.base_csr_nonsec_rho_tenor);
 
     let name_rho_vec = get_optional_parameter_vec(op,"base_csr_nonsec_diff_name_rho_per_bucket", 
@@ -130,8 +130,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
     let gamma_sector = get_optional_parameter_array(op,"base_csr_nonsec_sector_gamma", 
     gamma_sector);
 
-    csr_nonsec_delta_charge(//y05, y1, y3, y5, y10, 
-weight,
+    csr_nonsec_delta_charge(
+        weight,
         base_csr_nonsec_rho_tenor,
          name_rho_vec,
         base_csr_nonsec_rho_basis, 
@@ -140,9 +140,9 @@ weight,
         n_buckets, special_bucket, "CSR_nonSec", "Delta")
 }
 
-pub(crate) fn csr_nonsec_delta_charge<F>(//y05: Expr, y1: Expr, y3: Expr, y5: Expr, y10: Expr,
+pub(crate) fn csr_nonsec_delta_charge<F>(
     weight: Expr,
-    base_tenor_rho: Array2<f64>, rho_name: Vec<f64>, rho_basis: f64,
+    base_tenor_rho: f64, rho_name: Vec<f64>, rho_basis: f64,
     bucket_col: Expr, scenario_fn: F, gamma_rating: Array2<f64>, gamma_sector: Array2<f64>,
     n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str) -> Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
@@ -150,7 +150,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
     apply_multiple( move |columns| {
         //let now = Instant::now();
         let df = df![
-            "rcat" =>   columns[10].clone(),
+            "rcat" => columns[10].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
             "rft" =>  columns[2].clone(),
@@ -160,7 +160,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             "y3" =>   columns[6].clone(),
             "y5" =>   columns[7].clone(),
             "y10" =>  columns[8].clone(),
-            "w" =>  columns[9].clone()
+            "w" =>    columns[9].clone()
         ]?;
         
         
@@ -234,13 +234,14 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             .fill_null(lit::<f64>(0.))
             .collect()?;
 
-        let kbs_sbs = all_kbs_sbs_eq_csr(df, n_buckets, 
+        let kbs_sbs = all_kbs_sbs_two_types_w_tenors(df, n_buckets, 
             &rho_name,
             rho_basis, 
             scenario_fn, 
             special_bucket,
             &[("Bond_y05", "CDS_y05"), ("Bond_y1", "CDS_y1"), ("Bond_y3", "CDS_y3"), ("Bond_y5", "CDS_y5"), ("Bond_y10", "CDS_y10")],
-            Some(0.65)
+            //Some(0.65),
+            Some(base_tenor_rho)
         )?; 
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();

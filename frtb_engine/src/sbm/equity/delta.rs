@@ -65,7 +65,7 @@ pub(crate) fn equity_delta_charge_low(op: &OCP) -> Expr {
 fn equity_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
     let _suffix = scenario.as_str();
     let eq_gamma = get_optional_parameter_array(op, format!("eq_delta_gamma{_suffix}").as_str(), &scenario.eq_gamma);
-    let base_eq_rho_bucket = get_optional_parameter(op, format!("base_eq_rho_bucket{_suffix}").as_str(), &scenario.base_eq_rho_bucket);
+    let base_eq_rho_bucket = get_optional_parameter(op, format!("base_eq_rho_bucket{_suffix}").as_str(), &scenario.base_delta_eq_rho_bucket);
     let eq_rho_diff_type =  get_optional_parameter(op, format!("eq_rho_diff_type{_suffix}").as_str(), &scenario.base_eq_rho_mult);
 
     equity_delta_charge(eq_gamma, base_eq_rho_bucket, eq_rho_diff_type, scenario.scenario_fn, rtrn)
@@ -104,14 +104,14 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
             ])
             .groupby([col("b"), col("rf")])
             .agg([col("Spot").sum(), col("Repo").sum()])
-            .collect().unwrap(); //unwrap since we do not dpeend on user input. The only source of error is the developer
+            .collect()?; 
 
         if df.height() == 0 {
             return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )
         };
 
         // 21.78
-        let kbs_sbs = all_kbs_sbs_eq_csr(
+        let kbs_sbs = all_kbs_sbs_two_types_w_tenors(
             df,
             13,
             &eq_rho_bucket,
@@ -141,6 +141,7 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         col("RiskFactor"),
         col("RiskFactorType"),
         col("SensitivitySpot"),
-        col("SensWeights").arr().get(0) ], 
+        col("SensWeights").arr().get(0) 
+        ], 
         GetOutput::from_type(DataType::Float64))
 }

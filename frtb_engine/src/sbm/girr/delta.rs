@@ -185,9 +185,12 @@ fn girr_delta_charge<F>(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2
         let res_buckets_kbs_sbs: Result<Vec<((String,f64),f64)>> = part
         .into_par_iter()
         .map(|bdf|{
-            girr_bucket_kb_sb(bdf, 
-                &girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
-                girr_delta_rho_infl, girr_delta_rho_xccy, scenario_fn)
+            bucket_kb_sb_single_type(&bdf, 
+                &girr_delta_rho_same_curve, girr_delta_rho_diff_curve,
+                 scenario_fn,
+                &["y025", "y05", "y1", "y2", "y3", "y5", "y10", "y15", "y20", "y30"],
+                Some((girr_delta_rho_infl, girr_delta_rho_xccy)),
+                None)
         })
         .collect();
 

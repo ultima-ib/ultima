@@ -3,15 +3,9 @@
     "method": "SEND", 
     "params": {
         "measures": [
-            ["Equity_DeltaSens", "sum"],
-["Equity_DeltaSens_Weighted", "sum"],
-["Equity_DeltaSb", "first"],
-["Equity_DeltaKb_Low", "first"],
-["Equity_DeltaKb_Medium", "first"],
-["Equity_DeltaKb_High", "first"],
-["Equity_DeltaCharge_Low", "first"],
-["Equity_DeltaCharge_Medium", "first"],
-["Equity_DeltaCharge_High", "first"]
+            ["EQ_CurvatureCharge_Low", "first"],
+            ["EQ_CurvatureCharge_Medium", "first"],
+            ["EQ_CurvatureCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [],

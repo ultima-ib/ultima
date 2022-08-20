@@ -36,6 +36,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     let eq_rho_bucket: [f64; 13] = [0.15, 0.15, 0.15, 0.15, 
         0.25, 0.25, 0.25, 0.25,
         0.075, 0.125, 0., 0.8, 0.8];
+    let base_curv_eq_rho_bucket: [f64; 13] = eq_rho_bucket.iter().map(|x|x.powi(2)).collect::<Vec<f64>>().try_into().unwrap();
     
     let eq_rho_mult = 0.999;
 
@@ -52,10 +53,14 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     eq_gamma.push_column(Array1::from_vec(vec![0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0., 0.75]).view()).unwrap();
     eq_gamma.push_row(Array1::from_vec(vec![0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0., 0.75, 0.]).view()).unwrap();
 
+    let mut eq_gamma_curv = eq_gamma.clone();
+    eq_gamma_curv.mapv_inplace(|x|{x.powi(2)});
+
     // CSR non Sec 21.54.2 and 21.55.2
-    let mut base_csr_nonsec_rho_tenor = Array2::from_elem((5, 5), 0.65 );
-    let ones = Array1::<f64>::ones(5);
-    base_csr_nonsec_rho_tenor.diag_mut().assign(&ones);
+    //let mut base_csr_nonsec_rho_tenor = Array2::from_elem((5, 5), 0.65 );
+    //let ones = Array1::<f64>::ones(5);
+    //base_csr_nonsec_rho_tenor.diag_mut().assign(&ones);
+    let base_csr_nonsec_rho_tenor = 0.65;
     let base_csr_nonsec_rho_name_bcbs = [0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
@@ -138,7 +143,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
 
 
     // CSR Sec CTP 21.54.2 and 21.55.2
-    let base_csr_ctp_rho_tenor = base_csr_nonsec_rho_tenor.clone();
+    let base_csr_ctp_rho_tenor = base_csr_nonsec_rho_tenor;
     // TODO check what's the Rho for bucket 16 here(ie CSR sec CTP)
     let base_csr_ctp_rho_name_bcbs = [0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
@@ -220,9 +225,11 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         base_com_rho_tenor,
         com_gamma,
 
-        base_eq_rho_bucket: eq_rho_bucket,
+        base_delta_eq_rho_bucket: eq_rho_bucket,
+        eq_curv_rho_bucket: base_curv_eq_rho_bucket,
         base_eq_rho_mult: eq_rho_mult,
         eq_gamma,
+        eq_gamma_curv,
 
         //CSR nonSec
         base_csr_nonsec_rho_tenor,
@@ -327,15 +334,21 @@ pub base_com_rho_basis_diff: f64,
 // Just keep just base where index is Bucket number, value is intra-bucket rho
 // 21.85
 pub com_gamma: Array2<f64>,
+
 // Equity rho cannot be precomputed since depeds on RF and RFT:
 // 21.78.2
-pub base_eq_rho_bucket: [f64; 13],
-// 21.78.1 and 21.78.4
+pub base_delta_eq_rho_bucket: [f64; 13],
+pub eq_curv_rho_bucket: [f64; 13],
+/// 21.78.1 and 21.78.4
+/// multiplier used when rft is not equal(spot vs repo)
 pub base_eq_rho_mult: f64,
-// 21.80
+/// 21.80
 pub eq_gamma: Array2<f64>,
+/// 21.101
+pub eq_gamma_curv: Array2<f64>,
+
 // CSRnonSec 21.54.2 and 21.55.2
-pub base_csr_nonsec_rho_tenor: Array2<f64>,
+pub base_csr_nonsec_rho_tenor: f64,
 pub base_csr_nonsec_rho_name_bcbs: [f64; 18],
 pub base_csr_nonsec_rho_basis: f64,
 pub base_csr_nonsec_gamma_rating: Array2<f64>,
@@ -345,7 +358,7 @@ pub base_csr_nonsec_rho_name_crr2: [f64; 20],
 pub base_csr_nonsec_gamma_rating_crr2: Array2<f64>,
 pub base_csr_nonsec_gamma_sector_crr2: Array2<f64>,
 //CSR CTP
-pub base_csr_ctp_rho_tenor: Array2<f64>,
+pub base_csr_ctp_rho_tenor: f64,
 pub base_csr_ctp_rho_name_bcbs: [f64; 16],
 pub base_csr_ctp_rho_basis: f64,
 pub base_csr_ctp_gamma_rating: Array2<f64>,
@@ -384,9 +397,9 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 //where F: Fn(f64) -> f64 + Sync,
 {
     //First, apply function to matrixes 
-    let mut matrixes: [Array2<f64>; 6] = [self.girr_delta_rho_same_curve.to_owned(),
+    let mut matrixes: [Array2<f64>; 7] = [self.girr_delta_rho_same_curve.to_owned(),
     self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
-    self.fx_vega_rho.to_owned()];
+    self.fx_vega_rho.to_owned(), self.eq_gamma_curv.to_owned()];
 
     matrixes.iter_mut()
     .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
@@ -394,18 +407,19 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     //Unzip matrixes into individual components
     let[girr_delta_rho_same_curve,
     com_gamma, eq_gamma, csr_sec_nonctp_gamma,
-    girr_vega_rho, fx_vega_rho] = matrixes;
+    girr_vega_rho, fx_vega_rho, eq_gamma_curv] = matrixes;
+
+    let mut eq_curv_rho_bucket = self.eq_curv_rho_bucket;
+    eq_curv_rho_bucket.iter_mut().for_each(|x|{*x = function(*x);});
 
     //objects which do not implement copy
     let base_com_rho_tenor = self.base_com_rho_tenor.to_owned();
-
-    let base_csr_nonsec_rho_tenor = self.base_csr_nonsec_rho_tenor.to_owned();
     let base_csr_nonsec_gamma_rating = self.base_csr_nonsec_gamma_rating.to_owned();
     let base_csr_nonsec_gamma_sector = self.base_csr_nonsec_gamma_sector.to_owned();
     let base_csr_nonsec_gamma_rating_crr2 = self.base_csr_nonsec_gamma_rating_crr2.to_owned();
     let base_csr_nonsec_gamma_sector_crr2 = self.base_csr_nonsec_gamma_sector_crr2.to_owned();
 
-    let base_csr_ctp_rho_tenor = self.base_csr_ctp_rho_tenor.to_owned();
+    //let base_csr_ctp_rho_tenor = self.base_csr_ctp_rho_tenor.to_owned();
     let base_csr_ctp_gamma_rating = self.base_csr_ctp_gamma_rating.to_owned();
     let base_csr_ctp_gamma_sector = self.base_csr_ctp_gamma_sector.to_owned();
 
@@ -438,15 +452,17 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
             base_com_rho_tenor,
             com_gamma,
 
+            eq_curv_rho_bucket,
             eq_gamma,
+            eq_gamma_curv,
 
-            base_csr_nonsec_rho_tenor,
+            //base_csr_nonsec_rho_tenor,
             base_csr_nonsec_gamma_rating,
             base_csr_nonsec_gamma_sector,
             base_csr_nonsec_gamma_rating_crr2,
             base_csr_nonsec_gamma_sector_crr2,
 
-            base_csr_ctp_rho_tenor,
+            //base_csr_ctp_rho_tenor,
             base_csr_ctp_gamma_rating,
             base_csr_ctp_gamma_sector,
 

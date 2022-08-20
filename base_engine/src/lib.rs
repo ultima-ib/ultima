@@ -94,6 +94,7 @@ pub fn execute(req: DataRequestS, data: &impl DataSet)
         .map(|x| { col(x) })
         .collect();
 
+
     // GROUPBY and AGGREGATE
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable

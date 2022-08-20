@@ -5,7 +5,7 @@ use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high};
 use crate::sbm::csr_sec_nonctp::delta::{total_csr_sec_nonctp_delta_sens, csr_sec_nonctp_delta_sens_weighted, csr_sec_nonctp_delta_charge_low, csr_sec_nonctp_delta_charge_medium, csr_sec_nonctp_delta_charge_high};
-use crate::sbm::equity::curvature::{eq_curv_delta, eq_curv_delta_weighted, eq_pnl_up, eq_pnl_down, eq_cvr_down, eq_cvr_up};
+use crate::sbm::equity::curvature::{eq_curv_delta, eq_curv_delta_weighted, eq_pnl_up, eq_pnl_down, eq_cvr_down, eq_cvr_up, eq_curvature_charge_medium, eq_curvature_sb_medium, eq_curvature_kb_medium, eq_curvature_kb_minus_medium, eq_curvature_kb_plus_medium, eq_curvature_kb_plus_low, eq_curvature_kb_minus_low, eq_curvature_kb_low, eq_curvature_sb_low, eq_curvature_charge_low, eq_curvature_kb_plus_high, eq_curvature_kb_minus_high, eq_curvature_kb_high, eq_curvature_sb_high, eq_curvature_charge_high};
 use crate::sbm::equity::vega::{total_eq_vega_sens, total_eq_vega_sens_weighted, equity_vega_charge_medium, equity_vega_sb, equity_vega_kb_medium, equity_vega_kb_low, equity_vega_charge_low, equity_vega_kb_high, equity_vega_charge_high};
 use crate::sbm::fx::curvature::{fx_curv_delta, fx_pnl_up, fx_pnl_down, fx_curv_delta_weighted, fx_cvr_up, fx_cvr_down, fx_curvature_kb_plus, fx_curvature_kb_minus, fx_curvature_kb, fx_curvature_sb, fx_curvature_charge_low, fx_curvature_charge_medium, fx_curvature_charge_high};
 use crate::sbm::fx::delta::{fx_delta_sens_repccy, fx_delta_sens_weighted, fx_delta_charge_low, fx_delta_charge_medium, fx_delta_charge_high, fx_delta_sb, fx_delta_kb};
@@ -216,151 +216,225 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
 
         // ######################### Equity Delta #######################################
         Measure {
-            name: "Equity_DeltaSens".to_string(),
+            name: "EQ_DeltaSens".to_string(),
             calculator: Box::new(equity_delta_sens),
             aggregation: None
         },
 
         Measure {
-            name: "Equity_DeltaSens_Weighted".to_string(),
+            name: "EQ_DeltaSens_Weighted".to_string(),
             calculator: Box::new(equity_delta_sens_weighted),
             aggregation: None,
         },
 
         Measure {
-            name: "Equity_DeltaSb".to_string(),
+            name: "EQ_DeltaSb".to_string(),
             calculator: Box::new(eq_delta_sb),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaKb_Low".to_string(),
+            name: "EQ_DeltaKb_Low".to_string(),
             calculator: Box::new(eq_delta_kb_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaKb_Medium".to_string(),
+            name: "EQ_DeltaKb_Medium".to_string(),
             calculator: Box::new(eq_delta_kb_medium),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaKb_High".to_string(),
+            name: "EQ_DeltaKb_High".to_string(),
             calculator: Box::new(eq_delta_kb_high),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaCharge_Low".to_string(),
+            name: "EQ_DeltaCharge_Low".to_string(),
             calculator: Box::new(equity_delta_charge_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaCharge_Medium".to_string(),
+            name: "EQ_DeltaCharge_Medium".to_string(),
             calculator: Box::new(equity_delta_charge_medium),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_DeltaCharge_High".to_string(),
+            name: "EQ_DeltaCharge_High".to_string(),
             calculator: Box::new(equity_delta_charge_high),
             aggregation: Some("first"),
         },
 
         // ######################### Equity Vega #######################################
         Measure {
-            name: "Equity_VegaSens".to_string(),
+            name: "EQ_VegaSens".to_string(),
             calculator: Box::new(total_eq_vega_sens),
             aggregation: None
         },
 
         Measure {
-            name: "Equity_VegaSens_Weighted".to_string(),
+            name: "EQ_VegaSens_Weighted".to_string(),
             calculator: Box::new(total_eq_vega_sens_weighted),
             aggregation: None,
         },
 
         Measure {
-            name: "Equity_VegaSb".to_string(),
+            name: "EQ_VegaSb".to_string(),
             calculator: Box::new(equity_vega_sb),
             aggregation: Some("first"),
         },
         Measure {
-            name: "Equity_VegaKb_Low".to_string(),
+            name: "EQ_VegaKb_Low".to_string(),
             calculator: Box::new(equity_vega_kb_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_VegaCharge_Low".to_string(),
+            name: "EQ_VegaCharge_Low".to_string(),
             calculator: Box::new(equity_vega_charge_low),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_VegaKb_Medium".to_string(),
+            name: "EQ_VegaKb_Medium".to_string(),
             calculator: Box::new(equity_vega_kb_medium),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_VegaCharge_Medium".to_string(),
+            name: "EQ_VegaCharge_Medium".to_string(),
             calculator: Box::new(equity_vega_charge_medium),
             aggregation: Some("first"),
         },
         Measure {
-            name: "Equity_VegaKb_High".to_string(),
+            name: "EQ_VegaKb_High".to_string(),
             calculator: Box::new(equity_vega_kb_high),
             aggregation: Some("first"),
         },
 
         Measure {
-            name: "Equity_VegaCharge_High".to_string(),
+            name: "EQ_VegaCharge_High".to_string(),
             calculator: Box::new(equity_vega_charge_high),
             aggregation: Some("first"),
         },
         // ######################### Equity Curvature ###################################
         Measure{
-            name: "Equity_CurvatureDelta".to_string(),
+            name: "EQ_CurvatureDelta".to_string(),
             calculator: Box::new(eq_curv_delta),
             aggregation: None,
         },
         Measure{
-            name: "Equity_CurvatureDelta_Weighted".to_string(),
+            name: "EQ_CurvatureDelta_Weighted".to_string(),
             calculator: Box::new(eq_curv_delta_weighted),
             aggregation: None,
         },
         Measure{
-            name: "Equity_PnLup".to_string(),
+            name: "EQ_PnLup".to_string(),
             calculator: Box::new(eq_pnl_up),
             aggregation: None,
         },
 
         Measure{
-            name: "Equity_PnLdown".to_string(),
+            name: "EQ_PnLdown".to_string(),
             calculator: Box::new(eq_pnl_down),
             aggregation: None,
         },
         Measure{
-            name: "Equity_CVRup".to_string(),
+            name: "EQ_CVRup".to_string(),
+            calculator: Box::new(eq_cvr_up),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "EQ_CVRdown".to_string(),
             calculator: Box::new(eq_cvr_down),
             aggregation: None,
         },
 
         Measure{
-            name: "Equity_CVRdown".to_string(),
-            calculator: Box::new(eq_cvr_up),
-            aggregation: None,
+            name: "EQ_Curvature_KbPlus_Medium".to_string(),
+            calculator: Box::new(eq_curvature_kb_plus_medium),
+            aggregation: Some("first"),
         },
 
+        Measure{
+            name: "EQ_Curvature_KbMinus_Medium".to_string(),
+            calculator: Box::new(eq_curvature_kb_minus_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_Curvature_Kb_Medium".to_string(),
+            calculator: Box::new(eq_curvature_kb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_Curvature_Sb_Medium".to_string(),
+            calculator: Box::new(eq_curvature_sb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(eq_curvature_charge_medium),
+            aggregation: Some("first"),
+        },
 
+        Measure{
+            name: "EQ_Curvature_KbPlus_Low".to_string(),
+            calculator: Box::new(eq_curvature_kb_plus_low),
+            aggregation: Some("first"),
+        },
 
+        Measure{
+            name: "EQ_Curvature_KbMinus_Low".to_string(),
+            calculator: Box::new(eq_curvature_kb_minus_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_Curvature_Kb_Low".to_string(),
+            calculator: Box::new(eq_curvature_kb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_Curvature_Sb_Low".to_string(),
+            calculator: Box::new(eq_curvature_sb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(eq_curvature_charge_low),
+            aggregation: Some("first"),
+        },
 
+        Measure{
+            name: "EQ_Curvature_KbPlus_High".to_string(),
+            calculator: Box::new(eq_curvature_kb_plus_high),
+            aggregation: Some("first"),
+        },
 
-
-
+        Measure{
+            name: "EQ_Curvature_KbMinus_High".to_string(),
+            calculator: Box::new(eq_curvature_kb_minus_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_Curvature_Kb_High".to_string(),
+            calculator: Box::new(eq_curvature_kb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_Curvature_Sb_High".to_string(),
+            calculator: Box::new(eq_curvature_sb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "EQ_CurvatureCharge_High".to_string(),
+            calculator: Box::new(eq_curvature_charge_high),
+            aggregation: Some("first"),
+        },
 
 
 

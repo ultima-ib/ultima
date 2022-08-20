@@ -52,7 +52,7 @@ where T: Deserialize<'a> + Copy{
     .unwrap_or_else(||{*default})
 }
 
-/// we need to assert vec length, no other way to do it than create a func for vec
+/// we need to assert vec len, no other way to do it than create a func for vec
 pub(crate) fn get_optional_parameter_vec<'a, T>(op: &'a OCP, param: &str, default: &Vec<T>) -> Vec<T>
 where T: Deserialize<'a> + Clone{
     op.as_ref()

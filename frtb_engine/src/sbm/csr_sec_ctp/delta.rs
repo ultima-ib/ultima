@@ -118,7 +118,7 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
         };
 
     // Checking if request contains overrides
-    let base_csr_ctp_rho_tenor = get_optional_parameter_array(op,"base_csr_ctp_tenor_rho", 
+    let base_csr_ctp_rho_tenor = get_optional_parameter(op,"base_csr_ctp_tenor_rho", 
     &scenario.base_csr_ctp_rho_tenor);
 
     let name_rho_vec = get_optional_parameter_vec(op,"base_csr_ctp_diff_name_rho_per_bucket", 

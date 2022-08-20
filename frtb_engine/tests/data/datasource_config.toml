@@ -5,9 +5,9 @@ type = "CSV"
 # "C:/rust/DeltaGirr100_100_400000.csv"
 # "C:/rust/ultima/frtb_engine/tests/data/Delta.csv"
 # "C:/rust/DeltaEq.csv"
+# "C:/rust/VegaEq.csv"
 # "C:/rust/DeltaCSR.csv"
-# "C:/rust/DeltaEqMini.csv"
-files = ["C:/rust/DeltaEq.csv"]
+files = ["C:/rust/ultima/frtb_engine/tests/data/Delta.csv"]
 # trade attributes
 # "C:/rust/TradeAttributes2.csv"
 #"C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"

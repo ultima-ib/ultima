@@ -52,7 +52,7 @@ fn equity_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, r
     let _suffix = scenario.as_str();
     //TODO check
     let eq_gamma = get_optional_parameter_array(op, format!("eq_vega_gamma{_suffix}").as_str(), &scenario.eq_gamma);
-    let base_eq_rho_bucket = get_optional_parameter(op, format!("eq_rho_diff_name_bucket{_suffix}").as_str(), &scenario.base_eq_rho_bucket);
+    let base_eq_rho_bucket = get_optional_parameter(op, format!("eq_rho_diff_name_bucket{_suffix}").as_str(), &scenario.base_delta_eq_rho_bucket);
     let eq_vega_rho = get_optional_parameter_array(op, format!("eq_vega_rho{_suffix}").as_str(), &scenario.base_vega_rho);
 
     equity_vega_charge(eq_vega_rho, eq_gamma, base_eq_rho_bucket, scenario.scenario_fn, rtrn)
@@ -99,10 +99,14 @@ fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>, eq_rho_bu
 
         // USE all_kbs_sbs here, this helps skipping unnecessary
         // iterations over buckets which are not present
-        let kbs_sbs = all_kbs_sbs(df.clone(), vec!["y05", "y1", "y3", "y5", "y10"],
-            13, &opt_mat_rho, "rf",  &eq_rho_bucket,
-        None, None,
-            scenario_fn, Some(11))?;
+        let kbs_sbs = all_kbs_sbs_single_type(
+            df, 
+            13,
+            &opt_mat_rho,
+            &eq_rho_bucket,
+            scenario_fn,
+            &vec!["y05", "y1", "y3", "y5", "y10"],
+            Some("11"))?;
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 

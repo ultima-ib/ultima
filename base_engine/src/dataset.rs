@@ -52,6 +52,7 @@ pub trait DataSet{
     fn prepare(&mut self) {}
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
+    /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
     fn validate(&self) {}
     
 }

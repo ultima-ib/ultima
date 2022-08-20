@@ -188,15 +188,15 @@ fn eq_delta() {
         2800.0, 1089.0, 1089.0, 987.273493, 995.758659, 1004.116547, 665.011398, 683.999424, 702.474388]);
     let request = r#"
     {"measures": [
-        ["Equity_DeltaSens", "sum"],
-["Equity_DeltaSens_Weighted", "sum"],
-["Equity_DeltaSb", "first"],
-["Equity_DeltaKb_Low", "first"],
-["Equity_DeltaKb_Medium", "first"],
-["Equity_DeltaKb_High", "first"],
-["Equity_DeltaCharge_Low", "first"],
-["Equity_DeltaCharge_Medium", "first"],
-["Equity_DeltaCharge_High", "first"]
+        ["EQ_DeltaSens", "sum"],
+["EQ_DeltaSens_Weighted", "sum"],
+["EQ_DeltaSb", "first"],
+["EQ_DeltaKb_Low", "first"],
+["EQ_DeltaKb_Medium", "first"],
+["EQ_DeltaKb_High", "first"],
+["EQ_DeltaCharge_Low", "first"],
+["EQ_DeltaCharge_Medium", "first"],
+["EQ_DeltaCharge_High", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -214,15 +214,15 @@ fn eq_vega() {
         60000.0, 55556.349186, 55556.349186, 46233.467601, 46669.280435, 47098.051013, 28620.521491, 29224.393971, 29816.038563]);
     let request = r#"
     {"measures": [
-        ["Equity_VegaSens", "sum"],
-        ["Equity_VegaSens_Weighted", "sum"],
-        ["Equity_VegaSb", "first"],
-        ["Equity_VegaKb_Low", "first"],
-        ["Equity_VegaKb_Medium", "first"],
-        ["Equity_VegaKb_High", "first"],
-        ["Equity_VegaCharge_Low", "first"],
-        ["Equity_VegaCharge_Medium", "first"],
-        ["Equity_VegaCharge_High", "first"]
+        ["EQ_VegaSens", "sum"],
+        ["EQ_VegaSens_Weighted", "sum"],
+        ["EQ_VegaSb", "first"],
+        ["EQ_VegaKb_Low", "first"],
+        ["EQ_VegaKb_Medium", "first"],
+        ["EQ_VegaKb_High", "first"],
+        ["EQ_VegaCharge_Low", "first"],
+        ["EQ_VegaCharge_Medium", "first"],
+        ["EQ_VegaCharge_High", "first"]
     ],
     "groupby": ["Desk"],
     "filters": [],
@@ -233,6 +233,26 @@ fn eq_vega() {
         }
     }"#;
     assert_results(request, dbg!(expected_res).sum()*2., None)
+}
+
+#[test]
+fn eq_curv() {
+    let expected_res = arr1(&[
+        19559.580453, 19778.428906, 19994.882158]);
+    let request = r#"
+    {"measures": [
+        ["EQ_CurvatureCharge_Low", "first"],
+        ["EQ_CurvatureCharge_Medium", "first"],
+        ["EQ_CurvatureCharge_High", "first"]
+    ],
+    "groupby": ["Desk"],
+    "filters": [],
+    "optional_params": {
+        "hide_zeros": true,
+        "calc_params": {"jurisdiction": "BCBS"}
+        }
+    }"#;
+    assert_results(request, dbg!(expected_res).sum(), None)
 }
 
 

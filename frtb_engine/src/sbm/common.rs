@@ -708,37 +708,7 @@ dtenor: Option<f64> )
                 indexed_iter_mut()
                 .par_bridge()
                 .for_each(|((i, j), v)|{
-                    //let anti_j: usize = if j==0{1}else{0}; // j is either 0 or 1
-                    //let mut uninit_rho = Array2::<f64>::uninit(dim);
-                    //let  (mut diff_name_same_type1, mut diff_name_diff_type1, 
-                    //mut same_name_same_type, mut same_name_diff_type,
-                    //mut diff_name_same_type2, mut diff_name_diff_type2) =
-                    //uninit_rho.multi_slice_mut((
-                    //        s![0..i,j],    s![0..i,anti_j],
-                    //        s![i, j],      s![i, anti_j],
-                    //        s![(i+1)..,j], s![(i+1)..,anti_j]
-                    //        ));
-                    //
-                    //diff_name_same_type1.fill(MU::new(rho_case6));
-                    //diff_name_diff_type1.fill(MU::new(rho_case7));
-                    //same_name_same_type.fill(MU::new(rho_case4));
-                    //same_name_diff_type.fill(MU::new(rho_case5));
-                    //diff_name_same_type2.fill(MU::new(rho_case6));
-                    //diff_name_diff_type2.fill(MU::new(rho_case7));
-//
-                    //let rho: Array2<f64>;
-                    //unsafe {
-                    //    rho = uninit_rho.assume_init();
-                    //} 
                     let anti_j: usize = if j==0{1}else{0}; // j is either 0 or 1
-                        
-                    //let next_tenors_weighted = next_tenors_sum.slice(s![0..i,j]).sum()*rho_case6
-                    //    + next_tenors_sum.slice(s![0..i,anti_j]).sum()*rho_case7
-                    //    + next_tenors_sum.slice(s![i, j]).sum()*rho_case4
-                    //    + next_tenors_sum.slice(s![i, anti_j]).sum()*rho_case5
-                    //    + next_tenors_sum.slice(s![(i+1)..,j]).sum()*rho_case6
-                    //    + next_tenors_sum.slice(s![(i+1)..,anti_j]).sum()*rho_case7;
-                    
                     let same_name_same_type = unsafe{next_tenors_sum.uget((i, j))};
                     let same_name_diff_type = unsafe{next_tenors_sum.uget((i, anti_j))};
                     let same_type_sum = if j==0{type0_sum} else {type1_sum};
@@ -748,8 +718,6 @@ dtenor: Option<f64> )
                         + diff_type_sum*rho_case7 - rho_case7*same_name_diff_type + rho_case5*same_name_diff_type;
                         
 
-
-                    //let a = 2.*(*v)*(rho*next_tenors_sum.view()).sum();
                     let a = 2.*(*v)*next_tenors_weighted;
                     *v = a;
                 });
@@ -948,43 +916,40 @@ pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame,
         let mut current_yield_arr = yield_df[*c1].f64()?.to_ndarray()?.to_owned();
         let next_yields_arr = all_yield_arr.slice(s![..,(i+1)..]);
 
-        let mut tenor_rho = Array2::<f64>::zeros(next_yields_arr.raw_dim());
-        tenor_rho.axis_iter_mut(Axis(1))
+        let mut tenor_rho_uninit = Array2::<f64>::uninit(next_yields_arr.raw_dim());
+        tenor_rho_uninit.axis_iter_mut(Axis(1))
         .enumerate()
         .for_each(|(col, mut x)|{
             let cross_tenor_rho = unsafe{ rho_same_curve.uget((i, i+1+col)) };
-            x.fill(*cross_tenor_rho);
+            x.fill(MU::new(*cross_tenor_rho));
         });
+
+        let mut tenor_rho: Array2<f64>;
+        unsafe{
+            tenor_rho = tenor_rho_uninit.assume_init()
+        };
+
+        let mut diff_curve_diff_tenors = rho_diff_curve*tenor_rho.to_owned();
+        diff_curve_diff_tenors.par_mapv_inplace(scenario_fn);
+        tenor_rho.par_mapv_inplace(scenario_fn);
+        let next_yields_weighted = diff_curve_diff_tenors*next_yields_arr;
+        let next_yields_weighted_sum = next_yields_weighted.sum();
+        let next_yields_weighted_sum_cols = next_yields_weighted.sum_axis(Axis(1));
+        let next_yields_weighted_same_curve = tenor_rho*next_yields_arr;
+        //let next_yields_weighted_same_curve_sum = next_yields_weighted.sum();
+        let next_yields_weighted_same_curve_sum_cols = next_yields_weighted_same_curve.sum_axis(Axis(1));
         
 
         current_yield_arr.indexed_iter_mut()
         .par_bridge()
         .for_each(|(j, v)|{
             if *v != 0f64 {
-            let mut uninit_curve_rho = Array2::<f64>::uninit(next_yields_arr.raw_dim());
-            let(mut diff_curve1, mut same_curve, mut diff_curve2)
-             = uninit_curve_rho.multi_slice_mut((
-                s![0..j,..],   
-                s![j, ..],     
-                s![(j+1)..,..],
-                ));
-            //assign rho same/diff curve
-            diff_curve1.fill(MU::new(rho_diff_curve));
-            same_curve.fill(MU::new(1f64));
-            diff_curve2.fill(MU::new(rho_diff_curve));
-            //initialise
-            let curve_rho: Array2<f64>;
-            unsafe {
-                curve_rho = uninit_curve_rho.assume_init();
-            }
-            //mult with tenor_rho
-            let mut tenor_curve_rho = curve_rho*tenor_rho.view();
-            //apply scenario fn
-            tenor_curve_rho.par_mapv_inplace(scenario_fn);
-            //Now, multiply rho with weighted sensis
-            let rho_weighted_next_sens = tenor_curve_rho*next_yields_arr;
-            let a = 2f64*(rho_weighted_next_sens*(*v)).sum();
-            *v = a;
+
+            let cross_sum = unsafe{next_yields_weighted_sum 
+             - next_yields_weighted_sum_cols.uget(j)
+            + next_yields_weighted_same_curve_sum_cols.uget(j) };
+
+            *v = 2f64*(*v)*cross_sum;
         }
         });
         cross_tenor += current_yield_arr.sum();

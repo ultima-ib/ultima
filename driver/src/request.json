@@ -3,18 +3,18 @@
     "method": "SEND", 
     "params": {
         "measures": [  
-            ["CSR_nonSec_DeltaSens", "sum"],
-            ["CSR_nonSec_DeltaSens_Weighted", "sum"],
-            ["CSR_nonSec_DeltaSb", "first"],
-            ["CSR_nonSec_DeltaKb_Low", "first"],
-            ["CSR_nonSec_DeltaKb_Medium", "first"],
-            ["CSR_nonSec_DeltaKb_High", "first"],
-            ["CSR_nonSec_DeltaCharge_Low", "first"],
-            ["CSR_nonSec_DeltaCharge_Medium", "first"],
-            ["CSR_nonSec_DeltaCharge_High", "first"]
+            ["EQ_VegaSens", "sum"],
+["EQ_VegaSens_Weighted", "sum"],
+["EQ_VegaSb", "first"],
+["EQ_VegaKb_Low", "first"],
+["EQ_VegaKb_Medium", "first"],
+["EQ_VegaKb_High", "first"],
+["EQ_VegaCharge_Low", "first"],
+["EQ_VegaCharge_Medium", "first"],
+["EQ_VegaCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
-        "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+        "filters": [],
         "optional_params": {
                     "hide_zeros": false,
                     "calc_params": {"jurisdiction": "BCBS"}

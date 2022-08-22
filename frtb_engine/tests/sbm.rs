@@ -24,7 +24,7 @@ fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     // Slightly naive, but we assume if the sum is equivallent then the result is accurate
     dbg!(res_arr.sum());
     dbg!(expected_sum);
-    assert!((res_arr.sum()-expected_sum)<ep);
+    assert!((res_arr.sum()-expected_sum).abs()<ep);
 }
 
 #[test]
@@ -253,6 +253,59 @@ fn eq_curv() {
         }
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
+}
+
+#[test]
+fn csr_nonsec_bcbs_delta() {
+    let expected_res = arr1(&[
+        45000.0, 975.0, 975.0, 684.920009, 768.283274, 843.4428, 656.018202, 742.954861, 820.733799]);
+    let request = r#"
+    {"measures": [
+        ["CSR_nonSec_DeltaSens", "sum"],
+["CSR_nonSec_DeltaSens_Weighted", "sum"],
+["CSR_nonSec_DeltaSb", "first"],
+["CSR_nonSec_DeltaKb_Low", "first"],
+["CSR_nonSec_DeltaKb_Medium", "first"],
+["CSR_nonSec_DeltaKb_High", "first"],
+            ["CSR_nonSec_DeltaCharge_Low", "first"],
+["CSR_nonSec_DeltaCharge_Medium", "first"],
+["CSR_nonSec_DeltaCharge_High", "first"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "optional_params": {
+                "hide_zeros":true,
+                "calc_params": {"jurisdiction": "BCBS"}
+            }
+    }"#;
+    assert_results(request, expected_res.sum(), None)
+}
+
+#[test]
+#[cfg(feature = "CRR2")]
+fn csr_nonsec_crr2_delta() {
+    let expected_res = arr1(&[
+        45000.0, 1950.0, 1950.0, 1896.229439, 1907.3086, 1917.346389, 1804.405734, 1804.718141, 1805.030495]);
+    let request = r#"
+    {"measures": [
+        ["CSR_nonSec_DeltaSens", "sum"],
+["CSR_nonSec_DeltaSens_Weighted", "sum"],
+["CSR_nonSec_DeltaSb", "first"],
+["CSR_nonSec_DeltaKb_Low", "first"],
+["CSR_nonSec_DeltaKb_Medium", "first"],
+["CSR_nonSec_DeltaKb_High", "first"],
+            ["CSR_nonSec_DeltaCharge_Low", "first"],
+["CSR_nonSec_DeltaCharge_Medium", "first"],
+["CSR_nonSec_DeltaCharge_High", "first"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "optional_params": {
+                "hide_zeros":true,
+                "calc_params": {"jurisdiction": "CRR2"}
+            }
+    }"#;
+    assert_results(request, expected_res.sum(), Some(1e-4))
 }
 
 

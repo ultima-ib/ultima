@@ -1,7 +1,7 @@
 use base_engine::prelude::*;
 
 use log::warn;
-use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, s, Axis};
+use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, s, Axis, concatenate, stack};
 use polars::{prelude::*, export::num::Signed};
 use rayon::{iter::{ParallelBridge, ParallelIterator, IntoParallelRefMutIterator}, prelude::IntoParallelRefIterator};
 use std::{sync::Mutex};
@@ -10,25 +10,27 @@ use std::mem::MaybeUninit as MU;
 /// Sum of all delta sensis, from spot to 30Y tenor
 /// In practice should be used only with filter on RiskClass
 /// as combining FX and IR sensis is meaningless
+/// 
 pub fn total_delta_sens() -> Expr {
     // When adding Exprs NULLs have to be filled
     // Otherwise returns NULL
     ( col("SensitivitySpot").fill_null(0.)
-    +col("Sensitivity_025Y").fill_null(0.)
-    +col("Sensitivity_05Y").fill_null(0.)
-    +col("Sensitivity_1Y").fill_null(0.)
-    +col("Sensitivity_2Y").fill_null(0.) 
-    +col("Sensitivity_3Y").fill_null(0.)
-    +col("Sensitivity_5Y").fill_null(0.)
-    +col("Sensitivity_10Y").fill_null(0.)
-    +col("Sensitivity_15Y").fill_null(0.)
-    +col("Sensitivity_20Y").fill_null(0.)
-    +col("Sensitivity_30Y").fill_null(0.) )
+    + col("Sensitivity_025Y").fill_null(0.)
+    + col("Sensitivity_05Y").fill_null(0.)
+    + col("Sensitivity_1Y").fill_null(0.)
+    + col("Sensitivity_2Y").fill_null(0.) 
+    + col("Sensitivity_3Y").fill_null(0.)
+    + col("Sensitivity_5Y").fill_null(0.)
+    + col("Sensitivity_10Y").fill_null(0.)
+    + col("Sensitivity_15Y").fill_null(0.)
+    + col("Sensitivity_20Y").fill_null(0.)
+    + col("Sensitivity_30Y").fill_null(0.) )
     // To be removed after this fixed is published on crates
     //https://github.com/pola-rs/polars/issues/4326
     .cast(DataType::Float64)
 }
 
+/// CSR, Vega
 pub fn total_vega_curv_sens() -> Expr {
     // When adding Exprs NULLs have to be filled
     // Otherwise returns NULL
@@ -46,6 +48,8 @@ pub fn total_vega_curv_sens() -> Expr {
 pub(crate) fn total_sens_curv_weighted() -> Expr {
     total_delta_sens()*col("CurvatureRiskWeight")
 }
+
+/// TODO eg GIRR case, we don't need to include SensitivitySpot
 pub(crate) fn cvr_up() -> Expr {
     lit::<f64>(0.) - ( col("PnL_Up") - total_sens_curv_weighted() )
 }
@@ -173,7 +177,6 @@ pub fn rc_sens(rc: &'static str, risk: Expr) -> Expr {
 
 /// Helper function to derive weighted delta,
 /// per tenor, per risk class, per risk Category
-/// TODO allow SensWeights OR SensWeights depending on Reporing.
 pub fn rc_tenor_weighted_sens(rcat: &'static str, rc: &'static str, delta_tenor: &str, weights_col: &str, weight_idx: i64) -> Expr {
 
     apply_multiple(  move |columns| {
@@ -240,9 +243,10 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(kbs: I, sbs: I, gam
     };
 
     // The function is supposed to return a series of same len as the input, hence we broadcast the result
-    let res_arr = Array::from_elem(res_len, res);
+    //let res_arr = Array::from_elem(res_len, res);
     // if option panics on .unwrap() implement match and use .iter() and then Series from iter
-    Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
+    Ok(Float64Chunked::from_vec("Res", vec![res;res_len]).into_series())
+   // Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
 }
 
 pub(crate) enum SBMChargeType{
@@ -499,7 +503,7 @@ pub(crate) fn curvature_kb_plus_minus(
             // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
             let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st)=>{ st.parse::<usize>().ok().and_then(|b_id|{if b_id<n_buckets{Some(b_id)}else{None}}).unwrap_or_else(||1)}
+                AnyValue::Utf8(st)=>{ st.parse::<usize>().ok().and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}}).unwrap_or_else(||1)}
             ,   _=>1};
 
             let is_special_bucket = match special_bucket {
@@ -510,7 +514,9 @@ pub(crate) fn curvature_kb_plus_minus(
             // CALCULATE Kb Sb for a bucket
             let buck_kb_plus_cvr_up_sum = kb_plus_minus(&bucket_df["cvr_up"], rho, is_special_bucket);
             let buck_kb_minus_cvr_down_sum = kb_plus_minus(&bucket_df["cvr_down"], rho, is_special_bucket);
-            arc_mtx_kbpm_cvr.lock().unwrap()[b_as_idx_plus_1-1] = (buck_kb_plus_cvr_up_sum, buck_kb_minus_cvr_down_sum);
+            let res = (buck_kb_plus_cvr_up_sum, buck_kb_minus_cvr_down_sum);
+            let mut r = arc_mtx_kbpm_cvr.lock().unwrap();//[b_as_idx_plus_1-1];// = res;
+            r[b_as_idx_plus_1-1] = res;
             }
         );
         //Result<Vec<(f64, f64)>>
@@ -588,7 +594,7 @@ where I: Iterator<Item = Option<f64>>
 /// The difference between them is only in number of tenors 
 /// *df is expected to have "b" column representing bucket
 /// TODO use bucket_rho_diff_rf.len() instead of n_buckets
-pub(crate) fn all_kbs_sbs_two_types_w_tenors<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
+pub(crate) fn all_kbs_sbs_two_types<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
     rho_base_diff_rft_or_loc: f64, 
     scenario_fn: F, special_bucket: Option<usize>,
     cols_by_tenor: &[(&str, &str)],
@@ -610,14 +616,16 @@ pub(crate) fn all_kbs_sbs_two_types_w_tenors<F>(df: DataFrame, n_buckets: usize,
             let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
             // validating also bucket is not greater than max index of bucket_rho_diff_rf
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st)=>{ st.parse::<usize>().ok().and_then(|b_id|{if b_id<n_buckets{Some(b_id)}else{None}}).unwrap_or_else(||1)}
+                AnyValue::Utf8(st)=>{ st.parse::<usize>().ok()
+                    .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}})
+                    .unwrap_or_else(||1)}
             ,   _=>1};
 
             // CALCULATE Kb Sb for a bucket
-            let buck_kb_sb = bucket_kb_sb_two_types_w_tenors(bucket_df, b_as_idx_plus_1, special_bucket,
+            let buck_kb_sb = bucket_kb_sb_two_types(bucket_df, b_as_idx_plus_1, special_bucket,
                 bucket_rho_diff_rf,  rho_base_diff_rft_or_loc, scenario_fn, cols_by_tenor, dtenor );
-            let mut res = arc_mtx.lock().unwrap();
-            res[b_as_idx_plus_1-1] = buck_kb_sb;
+            let _idx = b_as_idx_plus_1-1;
+            arc_mtx.lock().unwrap()[_idx] = buck_kb_sb;
             }
         );
         let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
@@ -632,7 +640,7 @@ pub(crate) fn all_kbs_sbs_two_types_w_tenors<F>(df: DataFrame, n_buckets: usize,
 /// This function assumes two RFTs
 /// * `df` - A "pivoted" Dataframe. Rows are names(RFs), columns are 2(for each RFT) x ntenors. Expecting no NULLs
 /// * `tenor_cols` , all columns are expected to .f64(), otherwise we will panic
-pub(crate) fn bucket_kb_sb_two_types_w_tenors<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
+pub(crate) fn bucket_kb_sb_two_types<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
     rho_diff_rf_bucket: &[f64], rho_diff_rft: f64, scenario_fn: F, cols_by_tenor: &[(&str, &str)],
 dtenor: Option<f64> ) 
     -> Result<(f64, f64)> 
@@ -684,43 +692,65 @@ dtenor: Option<f64> )
                 let rho_case5 =  scenario_fn(dt*rho_diff_rft);
                 let rho_case6 =  scenario_fn(dt*rho_name_bucket);
                 let rho_case7 =  scenario_fn(dt*rho_diff_rft*rho_name_bucket);
-
-                
                 let mut arr_tenor = df.select([*c1, *c2])?
                     .to_ndarray::<Float64Type>()?; // Nulls must've been filled
                 let dim = arr_tenor.raw_dim();
+        
                 let mut next_tenors_sum = Array2::<f64>::zeros(dim);
                 for (c3, c4) in cols_by_tenor[(t+1)..].iter(){
                     let next_tenor = df.select([*c3, *c4])?
                     .to_ndarray::<Float64Type>()?; // Nulls must've been filled
                     next_tenors_sum = next_tenors_sum + next_tenor;
                 }
-                arr_tenor.indexed_iter_mut()
+                let type0_sum = next_tenors_sum.slice(s![..,0]).sum();
+                let type1_sum = next_tenors_sum.slice(s![..,1]).sum();
+                arr_tenor.
+                indexed_iter_mut()
                 .par_bridge()
                 .for_each(|((i, j), v)|{
+                    //let anti_j: usize = if j==0{1}else{0}; // j is either 0 or 1
+                    //let mut uninit_rho = Array2::<f64>::uninit(dim);
+                    //let  (mut diff_name_same_type1, mut diff_name_diff_type1, 
+                    //mut same_name_same_type, mut same_name_diff_type,
+                    //mut diff_name_same_type2, mut diff_name_diff_type2) =
+                    //uninit_rho.multi_slice_mut((
+                    //        s![0..i,j],    s![0..i,anti_j],
+                    //        s![i, j],      s![i, anti_j],
+                    //        s![(i+1)..,j], s![(i+1)..,anti_j]
+                    //        ));
+                    //
+                    //diff_name_same_type1.fill(MU::new(rho_case6));
+                    //diff_name_diff_type1.fill(MU::new(rho_case7));
+                    //same_name_same_type.fill(MU::new(rho_case4));
+                    //same_name_diff_type.fill(MU::new(rho_case5));
+                    //diff_name_same_type2.fill(MU::new(rho_case6));
+                    //diff_name_diff_type2.fill(MU::new(rho_case7));
+//
+                    //let rho: Array2<f64>;
+                    //unsafe {
+                    //    rho = uninit_rho.assume_init();
+                    //} 
                     let anti_j: usize = if j==0{1}else{0}; // j is either 0 or 1
-                    let mut uninit_rho = Array2::<f64>::uninit(dim);
-                    let  (mut diff_name_same_type1, mut diff_name_diff_type1, 
-                    mut same_name_same_type, mut same_name_diff_type,
-                    mut diff_name_same_type2, mut diff_name_diff_type2) =
-                    uninit_rho.multi_slice_mut((
-                            s![0..i,j],    s![0..i,anti_j],
-                            s![i, j],      s![i, anti_j],
-                            s![(i+1)..,j], s![(i+1)..,anti_j]
-                            ));
+                        
+                    //let next_tenors_weighted = next_tenors_sum.slice(s![0..i,j]).sum()*rho_case6
+                    //    + next_tenors_sum.slice(s![0..i,anti_j]).sum()*rho_case7
+                    //    + next_tenors_sum.slice(s![i, j]).sum()*rho_case4
+                    //    + next_tenors_sum.slice(s![i, anti_j]).sum()*rho_case5
+                    //    + next_tenors_sum.slice(s![(i+1)..,j]).sum()*rho_case6
+                    //    + next_tenors_sum.slice(s![(i+1)..,anti_j]).sum()*rho_case7;
                     
-                    diff_name_same_type1.fill(MU::new(rho_case6));
-                    diff_name_diff_type1.fill(MU::new(rho_case7));
-                    same_name_same_type.fill(MU::new(rho_case4));
-                    same_name_diff_type.fill(MU::new(rho_case5));
-                    diff_name_same_type2.fill(MU::new(rho_case6));
-                    diff_name_diff_type2.fill(MU::new(rho_case7));
+                    let same_name_same_type = unsafe{next_tenors_sum.uget((i, j))};
+                    let same_name_diff_type = unsafe{next_tenors_sum.uget((i, anti_j))};
+                    let same_type_sum = if j==0{type0_sum} else {type1_sum};
+                    let diff_type_sum = if j==1{type0_sum} else {type1_sum};
 
-                    let rho: Array2<f64>;
-                    unsafe {
-                        rho = uninit_rho.assume_init();
-                    }
-                    let a = 2.*(rho*next_tenors_sum.view()*(*v)).sum();
+                    let next_tenors_weighted = same_type_sum*rho_case6 - rho_case6*same_name_same_type + rho_case4*same_name_same_type
+                        + diff_type_sum*rho_case7 - rho_case7*same_name_diff_type + rho_case5*same_name_diff_type;
+                        
+
+
+                    //let a = 2.*(*v)*(rho*next_tenors_sum.view()).sum();
+                    let a = 2.*(*v)*next_tenors_weighted;
                     *v = a;
                 });
             
@@ -826,8 +856,9 @@ pub(crate) fn all_kbs_sbs_single_type<F>(
             let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
                 AnyValue::Utf8(st)=>{ st.parse::<usize>()
-                    //.map(|r| if r<rho_diff_curve.len() {Ok(r)}else{Ok(1)})
-                    .unwrap_or_else(|_|1)}
+                    .ok()
+                    .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}})
+                    .unwrap_or_else(||1)}
             ,   _=>1};
             let rho_diff_curve = rho_diff_curve.get(b_as_idx_plus_1-1).unwrap_or_else(||&0.);
 

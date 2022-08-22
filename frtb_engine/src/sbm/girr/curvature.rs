@@ -86,17 +86,18 @@ fn girr_curvature_charge(girr_curv_gamma: f64, _erm2_gamma: f64,
             "PnL_Down" => columns[3].clone(),
             "SensitivitySpot" => columns[4].clone(),
             "Sensitivity_025Y"=> columns[5].clone(),
-            "Sensitivity_05Y" => columns[5].clone(),
-            "Sensitivity_1Y"  => columns[6].clone(),
-            "Sensitivity_2Y"  => columns[7].clone(),
-            "Sensitivity_3Y"  => columns[8].clone(),
-            "Sensitivity_5Y"  => columns[9].clone(),
-            "Sensitivity_10Y" => columns[10].clone(),
-            "Sensitivity_15Y" => columns[11].clone(),
-            "Sensitivity_20Y" => columns[12].clone(),
-            "Sensitivity_30Y" => columns[13].clone(),
-            "CurvatureRiskWeight"=>columns[14].clone(),
+            "Sensitivity_05Y" => columns[6].clone(),
+            "Sensitivity_1Y"  => columns[7].clone(),
+            "Sensitivity_2Y"  => columns[8].clone(),
+            "Sensitivity_3Y"  => columns[9].clone(),
+            "Sensitivity_5Y"  => columns[10].clone(),
+            "Sensitivity_10Y" => columns[11].clone(),
+            "Sensitivity_15Y" => columns[12].clone(),
+            "Sensitivity_20Y" => columns[13].clone(),
+            "Sensitivity_30Y" => columns[14].clone(),
+            "CurvatureRiskWeight"=>columns[15].clone(),
         ]?;
+
         let df = df.lazy()
             .filter(col("rc").eq(lit("GIRR")).and(col("PnL_Up").is_not_null().or(col("PnL_Down").is_not_null())))
             .groupby([col("b")])
@@ -105,27 +106,27 @@ fn girr_curvature_charge(girr_curv_gamma: f64, _erm2_gamma: f64,
                 cvr_down().sum().alias("cvr_down"),
             ])
             .fill_null(lit::<f64>(0.))
-            .collect()?;
+            .collect().unwrap();
 
-            let res_len = columns[0].len();
+        let res_len = columns[0].len();
+    
+        let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
+        match return_metric {
+            ReturnMetric::KbPlus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_plus.iter().sum()).as_slice().unwrap())),
+            _ => (), }
+
+        let kb_minus: Vec<f64> = kb_plus_minus_simple(&df["cvr_down"])?;
+        match return_metric {
+            ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
+            _ => (), }
+
         
-            let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
-            match return_metric {
-                ReturnMetric::KbPlus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_plus.iter().sum()).as_slice().unwrap())),
-                _ => (), }
-    
-            let kb_minus: Vec<f64> = kb_plus_minus_simple(&df["cvr_down"])?;
-            match return_metric {
-                ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
-                _ => (), }
-    
-            
-            let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus,df["cvr_up"].f64()?.into_iter(),df["cvr_down"].f64()?.into_iter())?;
-            match return_metric {
-                ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
-                ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
-                _ => (),
-            }
+        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus,df["cvr_up"].f64()?.into_iter(),df["cvr_down"].f64()?.into_iter())?;
+        match return_metric {
+            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
+            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+            _ => (),
+        }
 
         let _buckets: Vec<&str> = df["b"].utf8()?.into_iter().map(|s| s.unwrap_or_else(||"Default")).collect();
 

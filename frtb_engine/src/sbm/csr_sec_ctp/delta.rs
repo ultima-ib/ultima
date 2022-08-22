@@ -73,26 +73,44 @@ pub(crate) fn csr_sec_ctp_delta_sens_weighted(op: &OCP) -> Expr {
     } 
 }
 
+//Interm Results
+///Sb is same for each scenario
+pub(crate) fn csr_sec_ctp_delta_sb(op: &OCP) -> Expr {
+    csr_sec_ctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
+}
+
+pub(crate) fn csr_sec_ctp_delta_kb_low(op: &OCP) -> Expr {
+    csr_sec_ctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
+}
+
+pub(crate) fn csr_sec_ctp_delta_kb_medium(op: &OCP) -> Expr {
+    csr_sec_ctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+}
+
+pub(crate) fn csr_sec_ctp_delta_kb_high(op: &OCP) -> Expr {
+    csr_sec_ctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+}
+
 ///calculate CSR non-Sec Delta Low Capital charge
 pub(crate) fn csr_sec_ctp_delta_charge_low(op: &OCP) -> Expr {
-    csr_sec_ctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO)  
+    csr_sec_ctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate CSR non-Sec Delta Medium Capital charge
 pub(crate) fn csr_sec_ctp_delta_charge_medium(op: &OCP) -> Expr {
-    csr_sec_ctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO)  
+    csr_sec_ctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate CSR non-Sec Delta High Capital charge
 pub(crate) fn csr_sec_ctp_delta_charge_high(op: &OCP) -> Expr {
-    csr_sec_ctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO)
+    csr_sec_ctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 /// And pass them to the main Delta Charge calculator accordingly
 /// calls csr_nonsec_delta_charge because the calculation is identical
-fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
+fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
     let juri: Jurisdiction = get_jurisdiction(op);
     
     // First, obtaining parameters specific to jurisdiciton
@@ -139,5 +157,5 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
         base_csr_ctp_rho_tenor,
      name_rho_vec,
     base_csr_ctp_rho_basis, bucket_col, scenario.scenario_fn,
-    gamma_rating, gamma_sector, n_buckets, special_bucket, "CSR_Sec_CTP", "Delta")
+    gamma_rating, gamma_sector, n_buckets, special_bucket, "CSR_Sec_CTP", "Delta", rtrn)
 }

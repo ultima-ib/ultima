@@ -84,6 +84,7 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
             "b"    => columns[2].clone(), 
             "rf"   => columns[3].clone(),
             "rft"  => columns[4].clone(),
+            //"dw"    => columns[5].clone(),
             "d"    => columns[5].clone(),
             "w"    => columns[6].clone(),
         ]?;
@@ -91,14 +92,17 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         // 21.4.3 - Netting
         df = df.lazy()
             .filter(col("rc").eq(lit("Equity")).and(col("rcat").eq(lit("Delta"))))
+            //.filter(col("dw").is_not_null())
             //.with_column(col("d")*col("w").alias("dw"))
             .with_columns([
                 when(col("rft").eq(lit("EqSpot")))
                 .then((col("d")*col("w")).alias("Spot"))
+            //    .then((col("dw")).alias("Spot"))
                 .otherwise(NULL.lit()),
 
                 when(col("rft").eq(lit("EqRepo")))
                 .then((col("d")*col("w")).alias("Repo"))
+                //.then((col("dw")).alias("Repo"))
                 .otherwise(NULL.lit())
 
             ])
@@ -111,7 +115,7 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         };
 
         // 21.78
-        let kbs_sbs = all_kbs_sbs_two_types_w_tenors(
+        let kbs_sbs = all_kbs_sbs_two_types(
             df,
             13,
             &eq_rho_bucket,
@@ -125,9 +129,12 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
 
         // Early return Kb or Sb is that is the required metric
         let res_len = columns[0].len();
+        //let a = Float64Chunked::from_vec("Res", vec![kbs.iter().sum();res_len]);
         match rtrn {
-            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
-            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+            //ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
+            //ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+            ReturnMetric::Kb => return Ok(Float64Chunked::from_vec("Res", vec![kbs.iter().sum();res_len]).into_series()),
+            ReturnMetric::Sb => return Ok(Float64Chunked::from_vec("Res", vec![sbs.iter().sum();res_len]).into_series()),
             _ => (),
         }
 
@@ -141,7 +148,8 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         col("RiskFactor"),
         col("RiskFactorType"),
         col("SensitivitySpot"),
-        col("SensWeights").arr().get(0) 
+        col("SensWeights").arr().get(0),
+        //equity_delta_sens_weighted_spot()
         ], 
         GetOutput::from_type(DataType::Float64))
 }

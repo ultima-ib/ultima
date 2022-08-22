@@ -9,7 +9,7 @@ use ndarray::prelude::*;
 
 
 pub fn total_csr_nonsec_delta_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("CSR_nonSec", "Delta", total_delta_sens())
+    rc_rcat_sens("Delta", "CSR_nonSec", total_vega_curv_sens())
 }
 /// Helper functions
 
@@ -72,48 +72,71 @@ pub(crate) fn csr_nonsec_delta_sens_weighted(op: &OCP) -> Expr {
     } 
 }
 
+//Interm Results
+///Sb is same for each scenario
+pub(crate) fn csr_nonsec_delta_sb(op: &OCP) -> Expr {
+    csr_nonsec_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
+}
+
+pub(crate) fn csr_nonsec_delta_kb_low(op: &OCP) -> Expr {
+    csr_nonsec_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
+}
+
+pub(crate) fn csr_nonsec_delta_kb_medium(op: &OCP) -> Expr {
+    csr_nonsec_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+}
+
+pub(crate) fn csr_nonsec_delta_kb_high(op: &OCP) -> Expr {
+    csr_nonsec_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+}
+
+
 ///calculate CSR non-Sec Delta Low Capital charge
 pub(crate) fn csr_nonsec_delta_charge_low(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*LOW_CORR_SCENARIO)  
+    csr_nonsec_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate CSR non-Sec Delta Medium Capital charge
 pub(crate) fn csr_nonsec_delta_charge_medium(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO)  
+    csr_nonsec_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate CSR non-Sec Delta High Capital charge
 pub(crate) fn csr_nonsec_delta_charge_high(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO)
+    csr_nonsec_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 /// And pass them to the main Delta Charge calculator accordingly
-fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig) -> Expr {
+fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
     let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
-        let (weight, bucket_col, name_rho_vec, 
-            gamma_rating, gamma_sector,
-            n_buckets, special_bucket) =
-             match juri{
-            #[cfg(feature = "CRR2")]
-            Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2").arr().get(0),
-            col("BucketCRR2"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
-            &scenario.base_csr_nonsec_gamma_rating_crr2, &scenario.base_csr_nonsec_gamma_sector_crr2,
-            20usize, Some(18usize)
-            ),
-            Jurisdiction::BCBS=>
-            (
-            col("SensWeights").arr().get(0),
-            col("BucketBCBS"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
-            &scenario.base_csr_nonsec_gamma_rating, &scenario.base_csr_nonsec_gamma_sector,
-            18, Some(16)
-            )
-            };
+    let (weight, bucket_col, name_rho_vec, 
+        gamma_rating, gamma_sector,
+        n_buckets, special_bucket) =
+         match juri{
+
+        #[cfg(feature = "CRR2")]
+        Jurisdiction::CRR2 => (
+        col("SensWeightsCRR2").arr().get(0),
+        col("BucketCRR2"),
+        Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
+        &scenario.base_csr_nonsec_gamma_rating_crr2, &scenario.base_csr_nonsec_gamma_sector_crr2,
+        20usize, 
+        Some(18usize)
+        ),
+
+        Jurisdiction::BCBS=>
+        (
+        col("SensWeights").arr().get(0),
+        col("BucketBCBS"),
+        Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
+        &scenario.base_csr_nonsec_gamma_rating, &scenario.base_csr_nonsec_gamma_sector,
+        18,
+        Some(16)
+        )
+        };
 
     let base_csr_nonsec_rho_tenor = get_optional_parameter(op,"base_csr_nonsec_tenor_rho", 
     &scenario.base_csr_nonsec_rho_tenor);
@@ -137,14 +160,16 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
         base_csr_nonsec_rho_basis, 
         bucket_col, scenario.scenario_fn,
         gamma_rating, gamma_sector,
-        n_buckets, special_bucket, "CSR_nonSec", "Delta")
+        n_buckets, special_bucket, "CSR_nonSec", "Delta",
+        rtrn)
 }
 
 pub(crate) fn csr_nonsec_delta_charge<F>(
     weight: Expr,
     base_tenor_rho: f64, rho_name: Vec<f64>, rho_basis: f64,
     bucket_col: Expr, scenario_fn: F, gamma_rating: Array2<f64>, gamma_sector: Array2<f64>,
-    n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str) -> Expr
+    n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str,
+    rtrn: ReturnMetric) -> Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
     apply_multiple( move |columns| {
@@ -161,8 +186,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             "y5" =>   columns[7].clone(),
             "y10" =>  columns[8].clone(),
             "w" =>    columns[9].clone()
-        ]?;
-        
+        ]?;        
         
         // concat_lst is actually slower than 
         let df = df.lazy()
@@ -234,17 +258,23 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             .fill_null(lit::<f64>(0.))
             .collect()?;
 
-        let kbs_sbs = all_kbs_sbs_two_types_w_tenors(df, n_buckets, 
+        let kbs_sbs = all_kbs_sbs_two_types(df, n_buckets, 
             &rho_name,
             rho_basis, 
             scenario_fn, 
             special_bucket,
             &[("Bond_y05", "CDS_y05"), ("Bond_y1", "CDS_y1"), ("Bond_y3", "CDS_y3"), ("Bond_y5", "CDS_y5"), ("Bond_y10", "CDS_y10")],
-            //Some(0.65),
             Some(base_tenor_rho)
         )?; 
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
+
+        let res_len = columns[0].len();
+        match rtrn {
+            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
+            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+            _ => (),
+        }
         
         // 21.57 OR 325aj
         // Shape of gamma depends on regulation

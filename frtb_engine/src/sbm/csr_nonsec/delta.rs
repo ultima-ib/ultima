@@ -113,29 +113,28 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
     let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
     let (weight, bucket_col, name_rho_vec, 
-        gamma_rating, gamma_sector,
+        gamma,
         n_buckets, special_bucket) =
-         match juri{
+        match juri{
+            #[cfg(feature = "CRR2")]
+            Jurisdiction::CRR2 => (
+            col("SensWeightsCRR2").arr().get(0),
+            col("BucketCRR2"),
+            Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
+            &scenario.csr_nonsec_gamma_crr2,
+            20usize, 
+            Some(18usize)
+            ),
 
-        #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => (
-        col("SensWeightsCRR2").arr().get(0),
-        col("BucketCRR2"),
-        Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
-        &scenario.base_csr_nonsec_gamma_rating_crr2, &scenario.base_csr_nonsec_gamma_sector_crr2,
-        20usize, 
-        Some(18usize)
-        ),
-
-        Jurisdiction::BCBS=>
-        (
-        col("SensWeights").arr().get(0),
-        col("BucketBCBS"),
-        Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
-        &scenario.base_csr_nonsec_gamma_rating, &scenario.base_csr_nonsec_gamma_sector,
-        18,
-        Some(16)
-        )
+            Jurisdiction::BCBS=>
+            (
+            col("SensWeights").arr().get(0),
+            col("BucketBCBS"),
+            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
+            &scenario.csr_nonsec_gamma,
+            18,
+            Some(16)
+            )
         };
 
     let base_csr_nonsec_rho_tenor = get_optional_parameter(op,"base_csr_nonsec_tenor_rho", 
@@ -147,11 +146,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
     let base_csr_nonsec_rho_basis = get_optional_parameter(op,"base_csr_nonsec_diff_basis_rho", 
     &scenario.base_csr_nonsec_rho_basis);
 
-    let gamma_rating = get_optional_parameter_array(op,"base_csr_nonsec_rating_gamma", 
-    gamma_rating);
-
-    let gamma_sector = get_optional_parameter_array(op,"base_csr_nonsec_sector_gamma", 
-    gamma_sector);
+    let gamma = get_optional_parameter_array(op,"base_csr_nonsec_rating_gamma", 
+    gamma);
 
     csr_nonsec_delta_charge(
         weight,
@@ -159,7 +155,7 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
          name_rho_vec,
         base_csr_nonsec_rho_basis, 
         bucket_col, scenario.scenario_fn,
-        gamma_rating, gamma_sector,
+        gamma,
         n_buckets, special_bucket, "CSR_nonSec", "Delta",
         rtrn)
 }
@@ -167,7 +163,8 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
 pub(crate) fn csr_nonsec_delta_charge<F>(
     weight: Expr,
     base_tenor_rho: f64, rho_name: Vec<f64>, rho_basis: f64,
-    bucket_col: Expr, scenario_fn: F, gamma_rating: Array2<f64>, gamma_sector: Array2<f64>,
+    bucket_col: Expr, scenario_fn: F, 
+    gamma: Array2<f64>,
     n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str,
     rtrn: ReturnMetric) -> Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
@@ -275,11 +272,6 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
             _ => (),
         }
-        
-        // 21.57 OR 325aj
-        // Shape of gamma depends on regulation
-        let mut gamma = (&gamma_sector)*(&gamma_rating);
-        gamma.par_mapv_inplace(|el| {scenario_fn(el)});
 
         across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
     }, 
@@ -291,8 +283,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
     col("Sensitivity_3Y"),
     col("Sensitivity_5Y"),
     col("Sensitivity_10Y"),
-    // risk weight
-    weight,
+    weight,// risk weight
      col("RiskCategory")], 
     
     GetOutput::from_type(DataType::Float64))

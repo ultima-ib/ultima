@@ -111,18 +111,19 @@ pub(crate) fn csr_sec_ctp_delta_charge_high(op: &OCP) -> Expr {
 /// And pass them to the main Delta Charge calculator accordingly
 /// calls csr_nonsec_delta_charge because the calculation is identical
 fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
+    //unimplemented!();
     let juri: Jurisdiction = get_jurisdiction(op);
     
     // First, obtaining parameters specific to jurisdiciton
     let (weight, bucket_col, name_rho_vec, 
-        gamma_rating, gamma_sector,
+        gamma, 
         n_buckets, special_bucket) =
          match juri{
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (col("SensWeightsCRR2"),
         col("BucketCRR2"),
         Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
-        &scenario.base_csr_ctp_gamma_rating_crr2, &scenario.base_csr_ctp_gamma_sector_crr2,
+        &scenario.csr_ctp_gamma_crr2,
         18usize, Option::<usize>::None,
         ),
         Jurisdiction::BCBS=>
@@ -130,7 +131,7 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
         col("SensWeights"),
         col("BucketBCBS"),
         Vec::from(scenario.base_csr_ctp_rho_name_bcbs),
-        &scenario.base_csr_ctp_gamma_rating, &scenario.base_csr_ctp_gamma_sector,
+        &scenario.csr_ctp_gamma,
         16usize, Option::<usize>::None,
         )
         };
@@ -145,11 +146,8 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
     let base_csr_ctp_rho_basis = get_optional_parameter(op,"base_csr_ctp_diff_basis_rho", 
     &scenario.base_csr_nonsec_rho_basis);
 
-    let gamma_rating = get_optional_parameter_array(op,"base_csr_ctp_rating_gamma", 
-    gamma_rating);
-
-    let gamma_sector = get_optional_parameter_array(op,"base_csr_ctp_sector_gamma", 
-    gamma_sector);
+    let gamma = get_optional_parameter_array(op,"base_csr_ctp_rating_gamma", 
+    gamma);
 
 
     // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets
@@ -157,5 +155,8 @@ fn csr_sec_ctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioCon
         base_csr_ctp_rho_tenor,
      name_rho_vec,
     base_csr_ctp_rho_basis, bucket_col, scenario.scenario_fn,
-    gamma_rating, gamma_sector, n_buckets, special_bucket, "CSR_Sec_CTP", "Delta", rtrn)
+    gamma, 
+    n_buckets, 
+    special_bucket,
+     "CSR_Sec_CTP", "Delta", rtrn)
 }

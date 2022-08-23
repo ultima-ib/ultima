@@ -874,11 +874,15 @@ pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame,
     let mut sb = 0.; //this is Sb
     let mut var_covar_sum = 0.; // this is pre Kb(var-covar sum) for a single tenor
     let mut cross_tenor = 0.;
+    // TODO here and for every rho, for vega we need to make sure rho = min(rho_delta*rho_opt_mat; 1)
+    // as per 21.94. This can be achieved by passing an additional Vega flag.
+    // However, does this make sence? Every rho in the text is less than or equal to(in case of opt mat same tenor) 1
+    // Hence, can we ever have rho over 1? Doesn't seem so.
     let case1 = scenario_fn(rho_diff_curve); //Same tenor, diff curve
     let yield_df = bucket_df.select(columns)?;
     let all_yield_arr = yield_df
-    .fill_null(FillNullStrategy::Zero)?
-    .to_ndarray::<Float64Type>()?;
+        .fill_null(FillNullStrategy::Zero)?
+        .to_ndarray::<Float64Type>()?;
 
     // EQ Vega, take care of special bucket
     match special_bucket {
@@ -907,7 +911,7 @@ pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame,
 
         
     for (i, c1) in columns.iter().enumerate() {
-        let _i = 1;
+        //let _i = 1;
         let (sum, var_covar) = var_covar_sum_single(&yield_df[*c1], case1)?;
         sb+=sum;
         var_covar_sum += var_covar;
@@ -920,6 +924,10 @@ pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame,
         tenor_rho_uninit.axis_iter_mut(Axis(1))
         .enumerate()
         .for_each(|(col, mut x)|{
+            // i is the index of tenor col (eg 025Y is 0, etc)
+            // tenor_rho is rho matrix against !next! tenors
+            // Hence we look up i+1. If i+1 is non existent we would've exited by now
+            // col is the col of the !next! tenor
             let cross_tenor_rho = unsafe{ rho_same_curve.uget((i, i+1+col)) };
             x.fill(MU::new(*cross_tenor_rho));
         });

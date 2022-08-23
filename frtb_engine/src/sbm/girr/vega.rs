@@ -216,7 +216,6 @@ pub(crate) fn girr_underlying_maturity_arr(df: &DataFrame, mat: &str, _: &str) -
 
 pub(crate) fn girr_vega_rho() -> Array2<f64> {
     let base = option_maturity_rho();
-    let res: Array2<f64>;
     let mut arr = Array2::<f64>::uninit((35, 35));
     arr.exact_chunks_mut((5,5))
     .into_iter()
@@ -238,8 +237,11 @@ pub(crate) fn girr_vega_rho() -> Array2<f64> {
             (&base*mult).move_into_uninit(chunk)
         }
     });
+    let mut res: Array2<f64>;
     unsafe {
         res = arr.assume_init();
     }
+    // 21.93 the min function
+    res.map_inplace(|x|*x = f64::min(*x, 1.));
     res
 }

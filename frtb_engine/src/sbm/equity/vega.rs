@@ -11,12 +11,10 @@ pub fn total_eq_vega_sens (_: &OCP) -> Expr {
 pub fn total_eq_vega_sens_weighted (op: &OCP) -> Expr {
     total_eq_vega_sens(op)*col("SensWeights").arr().get(0)
 }
-
-///calculate Equity Vega Medium Capital charge
+///Interm Result
 pub(crate) fn equity_vega_sb(op: &OCP) -> Expr {
     equity_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)  
 }
-///Interm Result
 pub(crate) fn equity_vega_kb_low(op: &OCP) -> Expr {
     equity_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
 }
@@ -53,7 +51,7 @@ fn equity_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, r
     //TODO check
     let eq_gamma = get_optional_parameter_array(op, format!("eq_vega_gamma{_suffix}").as_str(), &scenario.eq_gamma);
     let base_eq_rho_bucket = get_optional_parameter(op, format!("eq_rho_diff_name_bucket{_suffix}").as_str(), &scenario.base_delta_eq_rho_bucket);
-    let eq_vega_rho = get_optional_parameter_array(op, format!("eq_vega_rho{_suffix}").as_str(), &scenario.base_vega_rho);
+    let eq_vega_rho = get_optional_parameter_array(op, format!("eq_opt_mat_vega_rho{_suffix}").as_str(), &scenario.base_vega_rho);
 
     equity_vega_charge(eq_vega_rho, eq_gamma, base_eq_rho_bucket, scenario.scenario_fn, rtrn)
 }

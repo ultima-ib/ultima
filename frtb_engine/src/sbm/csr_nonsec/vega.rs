@@ -8,10 +8,15 @@ pub fn total_csrnonsec_vega_sens (_: &OCP) -> Expr {
     rc_rcat_sens("Vega", "CSR_nonSec", total_vega_curv_sens())
 }
 
-pub fn total_csrnonsec_vega_sens_weighted (op: &OCP) -> Expr {
-    total_csrnonsec_vega_sens(op)*col("SensWeights").arr().get(0)
+pub fn total_csrnonsec_vega_sens_weighted_bcbs (op: &OCP) -> Expr {
+    let juri: Jurisdiction = get_jurisdiction(op);
+    
+    match juri{
+        #[cfg(feature = "CRR2")]
+        Jurisdiction::CRR2 =>total_csrnonsec_vega_sens(op)*col("SensWeightsCRR2").arr().get(0),
+        Jurisdiction::BCBS =>total_csrnonsec_vega_sens(op)*col("SensWeights").arr().get(0)
+    }
 }
-
 
 ///calculate CSR Non Sec Interm Result
 pub(crate) fn csr_nonsec_vega_sb(op: &OCP) -> Expr {

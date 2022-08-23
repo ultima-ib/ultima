@@ -10,7 +10,7 @@ use polars::prelude::*;
 
 
 pub fn total_csr_sec_ctp_delta_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("CSR_Sec_CTP", "Delta", total_delta_sens())
+    rc_rcat_sens("Delta", "CSR_Sec_CTP", total_delta_sens())
 }
 /// Helper functions
 

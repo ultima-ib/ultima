@@ -198,9 +198,23 @@ const JSON: &str = r#"
 
 ["CSR_secCTP_DeltaSens", "sum"],
 ["CSR_secCTP_DeltaSens_Weighted", "sum"],
+["CSR_secCTP_DeltaSb", "first"],
+["CSR_secCTP_DeltaKb_Low", "first"],
+["CSR_secCTP_DeltaKb_Medium", "first"],
+["CSR_secCTP_DeltaKb_High", "first"],
 ["CSR_secCTP_DeltaCharge_Low", "first"],
 ["CSR_secCTP_DeltaCharge_Medium", "first"],
 ["CSR_secCTP_DeltaCharge_High", "first"],
+
+["CSR_secCTP_VegaSens", "sum"],
+["CSR_secCTP_VegaSens_Weighted", "sum"],
+["CSR_secCTP_VegaSb", "first"],
+["CSR_secCTP_VegaKb_Low", "first"],
+["CSR_secCTP_VegaKb_Medium", "first"],
+["CSR_secCTP_VegaCharge_High", "first"],
+["CSR_secCTP_VegaCharge_Low", "first"],
+["CSR_secCTP_VegaCharge_Medium", "first"],
+["CSR_secCTP_VegaKb_High", "first"],
 
 
 ["CSR_Sec_nonCTP_DeltaSens", "sum"],
@@ -208,8 +222,6 @@ const JSON: &str = r#"
 ["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_High", "first"],
-
-
 
 
 ["EQ_DeltaSens", "sum"],

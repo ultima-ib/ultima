@@ -3,21 +3,21 @@
     "method": "SEND", 
     "params": {
         "measures": [ 
-            ["CSR_nonSec_VegaSens", "sum"],
-            ["CSR_nonSec_VegaSens_Weighted", "sum"],
-            ["CSR_nonSec_VegaSb", "first"],
-            ["CSR_nonSec_VegaKb_Low", "first"],
-            ["CSR_nonSec_VegaKb_Medium", "first"],
-            ["CSR_nonSec_VegaKb_High", "first"],
-            ["CSR_nonSec_VegaCharge_Low", "first"],
-            ["CSR_nonSec_VegaCharge_Medium", "first"],
-            ["CSR_nonSec_VegaCharge_High", "first"]
+            ["CSR_secCTP_VegaSens", "sum"],
+["CSR_secCTP_VegaSens_Weighted", "sum"],
+["CSR_secCTP_VegaSb", "first"],
+["CSR_secCTP_VegaKb_Low", "first"],
+["CSR_secCTP_VegaKb_Medium", "first"],
+["CSR_secCTP_VegaCharge_High", "first"],
+["CSR_secCTP_VegaCharge_Low", "first"],
+["CSR_secCTP_VegaCharge_Medium", "first"],
+["CSR_secCTP_VegaKb_High", "first"]
                 ],
         "groupby": ["Desk"],
-        "filters": [{"Eq":[["Desk", "Rates"]]}],
+        "filters": [],
         "optional_params": {
                     "hide_zeros": true,
-                    "calc_params": {"jurisdiction": "BCBS"}
+                    "calc_params": {"jurisdiction": "CRR2"}
                 }
     }
 }

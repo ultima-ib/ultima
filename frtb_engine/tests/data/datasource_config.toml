@@ -7,7 +7,7 @@ type = "CSV"
 # "C:/rust/DeltaEq.csv"
 # "C:/rust/VegaEq.csv"
 # "C:/rust/DeltaCSR.csv"
-files = ["C:/rust/ultima/frtb_engine/tests/data/Delta.csv"]
+files = [ "C:/rust/ultima/frtb_engine/tests/data/Delta.csv"]
 # trade attributes
 # "C:/rust/TradeAttributes2.csv"
 #"C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"

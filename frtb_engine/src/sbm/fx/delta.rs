@@ -129,8 +129,9 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
             // Drop nulls (ie other reporting ccys)
             .drop_nulls(Some(vec![col("dw_sum")]))
             .collect()?;
-        dbg!(df.clone());
         
+        if df.height() == 0 { return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )};
+
         //21.4.4 |dw_sum| == kb for FX
         //21.4.5.a sb == dw_sum
         let dw_sum = df["dw_sum"].f64()?

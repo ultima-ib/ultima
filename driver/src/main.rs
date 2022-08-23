@@ -185,6 +185,17 @@ const JSON: &str = r#"
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
 ["CSR_nonSec_DeltaCharge_High", "first"],
 
+["CSR_nonSec_VegaSens", "sum"],
+["CSR_nonSec_VegaSens_Weighted", "sum"],
+["CSR_nonSec_VegaSb", "first"],
+["CSR_nonSec_VegaKb_Low", "first"],
+["CSR_nonSec_VegaKb_Medium", "first"],
+["CSR_nonSec_VegaKb_High", "first"],
+["CSR_nonSec_VegaCharge_Low", "first"],
+["CSR_nonSec_VegaCharge_Medium", "first"],
+["CSR_nonSec_VegaCharge_High", "first"],
+
+
 ["CSR_secCTP_DeltaSens", "sum"],
 ["CSR_secCTP_DeltaSens_Weighted", "sum"],
 ["CSR_secCTP_DeltaCharge_Low", "first"],
@@ -197,6 +208,9 @@ const JSON: &str = r#"
 ["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_High", "first"],
+
+
+
 
 ["EQ_DeltaSens", "sum"],
 ["EQ_DeltaSens_Weighted", "sum"],
@@ -230,14 +244,11 @@ const JSON: &str = r#"
 ["EQ_Curvature_Kb_Low", "first"],
 ["EQ_Curvature_Sb_Low", "first"],
 ["EQ_CurvatureCharge_Low", "first"],
-
 ["EQ_Curvature_KbPlus_Medium", "first"],
 ["EQ_Curvature_KbMinus_Medium", "first"],
 ["EQ_Curvature_Kb_Medium", "first"],
 ["EQ_Curvature_Sb_Medium", "first"],
 ["EQ_CurvatureCharge_Medium", "first"],
-
-
 ["EQ_Curvature_KbPlus_High", "first"],
 ["EQ_Curvature_KbMinus_High", "first"],
 ["EQ_Curvature_Kb_High", "first"],
@@ -246,6 +257,9 @@ const JSON: &str = r#"
 ["EQ_CurvatureCharge_Low", "first"],
 ["EQ_CurvatureCharge_Medium", "first"],
 ["EQ_CurvatureCharge_High", "first"]
+
+
+
 
 ["FX_DeltaSens", "sum"],
 ["FX_DeltaSens_Weighted", "sum"],
@@ -278,6 +292,7 @@ const JSON: &str = r#"
 ["FX_CurvatureCharge_Low", "first"],
 ["FX_CurvatureCharge_Medium", "first"],
 ["FX_CurvatureCharge_High", "first"]
+
 
 
 ["GIRR_DeltaSens", "sum"],

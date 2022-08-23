@@ -595,46 +595,46 @@ where I: Iterator<Item = Option<f64>>
 /// *df is expected to have "b" column representing bucket
 /// TODO use bucket_rho_diff_rf.len() instead of n_buckets
 pub(crate) fn all_kbs_sbs_two_types<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
-    rho_base_diff_rft_or_loc: f64, 
-    scenario_fn: F, special_bucket: Option<usize>,
-    cols_by_tenor: &[(&str, &str)],
-    dtenor: Option<f64>,
-    ) 
-    -> Result<Vec<(f64, f64)>>
-    where F: Fn(f64) -> f64 + Sync + Send + Copy{
+rho_base_diff_rft_or_loc: f64, 
+scenario_fn: F, special_bucket: Option<usize>,
+cols_by_tenor: &[(&str, &str)],
+dtenor: Option<f64>,
+) 
+-> Result<Vec<(f64, f64)>>
+where F: Fn(f64) -> f64 + Sync + Send + Copy{
         
-        let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
-        for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
-    
-        let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
-        // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-        // 
-        df.partition_by(["b"])?
-        .par_iter()
-        .for_each(|bucket_df|{
-            // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
-            let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
-            // validating also bucket is not greater than max index of bucket_rho_diff_rf
-            let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st)=>{ st.parse::<usize>().ok()
-                    .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}})
-                    .unwrap_or_else(||1)}
-            ,   _=>1};
+    let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
+    for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
 
-            // CALCULATE Kb Sb for a bucket
+    let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
+    // Do not iterate over each bukcet. Instead, only iterate over unique buckets
+    // 
+    df.partition_by(["b"])?
+    .par_iter()
+    .for_each(|bucket_df|{
+        // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
+        let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
+        // validating also bucket is not greater than max index of bucket_rho_diff_rf
+        let b_as_idx_plus_1 = match b_as_idx_plus_1 {
+            AnyValue::Utf8(st)=> st.parse::<usize>().ok()
+                .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}}),
+            
+            _=>None};
+        // CALCULATE Kb Sb for a bucket
+        if let Some(b_as_idx_plus_1) = b_as_idx_plus_1{
             let buck_kb_sb = bucket_kb_sb_two_types(bucket_df, b_as_idx_plus_1, special_bucket,
                 bucket_rho_diff_rf,  rho_base_diff_rft_or_loc, scenario_fn, cols_by_tenor, dtenor );
             let _idx = b_as_idx_plus_1-1;
             arc_mtx.lock().unwrap()[_idx] = buck_kb_sb;
-            }
-        );
-        let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
-            .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
-            .into_inner()
-            .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
-            .into_iter()
-            .collect();
-        reskbs_sbs
+        }
+    });
+    let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
+        .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
+        .into_inner()
+        .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
+        .into_iter()
+        .collect();
+    reskbs_sbs
     }
 
 /// This function assumes two RFTs
@@ -826,24 +826,31 @@ pub(crate) fn all_kbs_sbs_single_type<F>(
                 AnyValue::Utf8(st)=>{ st.parse::<usize>()
                     .ok()
                     .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}})
-                    .unwrap_or_else(||1)}
-            ,   _=>1};
-            let rho_diff_curve = rho_diff_curve.get(b_as_idx_plus_1-1).unwrap_or_else(||&0.);
+                    //.unwrap_or_else(|| return () )
+                },   
+                // If Bucket is None(ie Empty) then skip
+                _=>None};
 
-            // CALCULATE Kb Sb for a bucket
-            let buck_kb_sb = bucket_kb_sb_single_type(
-                bucket_df,
-                rho_same_curve,
-                *rho_diff_curve,
-                scenario_fn,
-                columns,
-                None,
-                special_bucket
-                 );
-            let mut res = arc_mtx.lock().unwrap();
-            res[b_as_idx_plus_1-1] = buck_kb_sb;
+            // For example if CSR BCBS bucket is 19, then we would have None here
+            // Now, if b_as_idx_plus_1 is None then we simply do nothing
+            if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
+                let rho_diff_curve = rho_diff_curve.get(b_as_idx_plus_1-1).unwrap_or_else(||&0.);
+
+                // CALCULATE Kb Sb for a bucket
+                let buck_kb_sb = bucket_kb_sb_single_type(
+                    bucket_df,
+                    rho_same_curve,
+                    *rho_diff_curve,
+                    scenario_fn,
+                    columns,
+                    None,
+                    special_bucket
+                    );
+                let mut res = arc_mtx.lock().unwrap();
+                res[b_as_idx_plus_1-1] = buck_kb_sb;
             }
-        );
+        });
+
         let reskbs_sbs: Result<Vec<((String, f64), f64)>> = Arc::try_unwrap(arc_mtx)
             .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
             .into_inner()
@@ -960,6 +967,7 @@ pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame,
             *v = 2f64*(*v)*cross_sum;
         }
         });
+
         cross_tenor += current_yield_arr.sum();
     }
     let kb = (var_covar_sum+cross_tenor).max(0.).sqrt();

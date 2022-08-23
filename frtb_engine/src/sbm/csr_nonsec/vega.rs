@@ -5,7 +5,7 @@ use polars::prelude::*;
 use ndarray::prelude::*;
 
 pub fn total_csrnonsec_vega_sens (_: &OCP) -> Expr {
-    rc_rcat_sens("Vega", "Equity", total_vega_curv_sens())
+    rc_rcat_sens("Vega", "CSR_nonSec", total_vega_curv_sens())
 }
 
 pub fn total_csrnonsec_vega_sens_weighted (op: &OCP) -> Expr {
@@ -51,13 +51,119 @@ pub(crate) fn csr_nonsec_vega_charge_high(op: &OCP) -> Expr {
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn csr_nonsec_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
+    let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
-    //TODO check
-    let csr_gamma = get_optional_parameter_array(op, format!("csr_vega_gamma{_suffix}").as_str(), &scenario.csr_nonsec_gamma);
-    let base_csr_rho_bucket = get_optional_parameter(op, format!("csr_rho_diff_name_bucket{_suffix}").as_str(), &scenario.base_delta_eq_rho_bucket);
-    let csr_vega_rho = get_optional_parameter_array(op, format!("csr_opt_mat_vega_rho{_suffix}").as_str(), &scenario.base_vega_rho);
 
-    unimplemented!()
-    //csr_nonsec_vega_charge(eq_vega_rho, eq_gamma, base_eq_rho_bucket, scenario.scenario_fn, rtrn)
+    let (weight, bucket_col, name_rho_vec,
+        rho_opt, 
+        gamma,
+        n_buckets, special_bucket) =
+        match juri{
+            #[cfg(feature = "CRR2")]
+            Jurisdiction::CRR2 => (
+            col("SensWeightsCRR2").arr().get(0),
+            col("BucketCRR2"),
+            Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
+            &scenario.base_vega_rho,
+            &scenario.csr_nonsec_gamma_crr2,
+            20usize, 
+            Some("18")
+            ),
+
+            Jurisdiction::BCBS=>
+            (
+            col("SensWeights").arr().get(0),
+            col("BucketBCBS"),
+            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
+            &scenario.base_vega_rho,
+            &scenario.csr_nonsec_gamma,
+            18,
+            Some("16")
+            )
+        };
+
+    let csr_gamma = get_optional_parameter_array(op, format!("csr_vega_gamma{_suffix}").as_str(), gamma);
+    let base_csr_rho_bucket = get_optional_parameter_vec(op, format!("csr_rho_diff_name_bucket{_suffix}").as_str(), &name_rho_vec);
+    let csr_vega_rho = get_optional_parameter_array(op, format!("csr_opt_mat_vega_rho{_suffix}").as_str(), rho_opt);
+
+    csr_nonsec_vega_charge(weight, bucket_col, &scenario.scenario_fn, 
+        csr_vega_rho, base_csr_rho_bucket, 
+        csr_gamma, n_buckets, special_bucket, "CSR_nonSec", "Vega", rtrn)
 }
+
+pub(crate) fn csr_nonsec_vega_charge<F>(
+    weight: Expr,
+    bucket_col: Expr, scenario_fn: F, 
+    opt_mat_rho: Array2<f64>, rho_diff_curve: Vec<f64>,
+    gamma: Array2<f64>,
+    n_buckets: usize, special_bucket: Option<&'static str>, risk_class: &'static str, risk_cat: &'static str,
+    rtrn: ReturnMetric) -> Expr
+where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
+
+    apply_multiple( move |columns| {
+        let df = df![
+            "rc" =>   columns[0].clone(), 
+            "rf" =>   columns[1].clone(),
+            "b" =>    columns[2].clone(),
+            "y05" =>  columns[3].clone(),
+            "y1" =>   columns[4].clone(),
+            "y3" =>   columns[5].clone(),
+            "y5" =>   columns[6].clone(),
+            "y10" =>  columns[7].clone(),
+            "w" =>    columns[8].clone(),
+            "rcat" => columns[9].clone(),
+        ]?;        
+        
+        // concat_lst is actually slower than 
+        let df = df.lazy()
+            .filter(col("rc").eq(lit(risk_class))
+                .and(col("rcat").eq(lit(risk_cat))))
+            .groupby([col("b"), col("rf")])
+            .agg([
+                (col("y05")*col("w")).sum(),    
+                (col("y1")*col("w")).sum(), 
+                (col("y3")*col("w")).sum(), 
+                (col("y5")*col("w")).sum(), 
+                (col("y10")*col("w")).sum(),    
+            ])
+            .fill_null(lit::<f64>(0.))
+            .collect()?;
+        
+        if df.height() == 0 { return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )};
+
+        let kbs_sbs = all_kbs_sbs_single_type(df, n_buckets, 
+            &opt_mat_rho,
+            &rho_diff_curve, 
+            scenario_fn, 
+            &vec!["y05", "y1", "y3", "y5", "y10"],
+            special_bucket            
+        )?; 
+
+        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
+
+        let res_len = columns[0].len();
+        match rtrn {
+            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
+            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+            _ => (),
+        }
+
+        across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
+    }, 
+    
+    &[ col("RiskClass"), col("RiskFactor"),
+     bucket_col, 
+    //y05, y1, y3, y5, y10,
+    col("Sensitivity_05Y"),
+    col("Sensitivity_1Y"),
+    col("Sensitivity_3Y"),
+    col("Sensitivity_5Y"),
+    col("Sensitivity_10Y"),
+    weight,// risk weight
+     col("RiskCategory")], 
+    
+    GetOutput::from_type(DataType::Float64))
+
+}
+
 

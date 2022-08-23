@@ -308,4 +308,57 @@ fn csr_nonsec_crr2_delta() {
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
 
+#[test]
+fn csr_nonsec_bcbs_vega() {
+    let expected_res = arr1(&[
+        33000.0, 33000.0, 33000.0, 25549.287697, 26896.533904, 28167.670869, 20743.2964, 23075.707625, 25193.098585]);
+    let request = r#"
+    {"measures": [ 
+        ["CSR_nonSec_VegaSens", "sum"],
+        ["CSR_nonSec_VegaSens_Weighted", "sum"],
+        ["CSR_nonSec_VegaSb", "first"],
+        ["CSR_nonSec_VegaKb_Low", "first"],
+        ["CSR_nonSec_VegaKb_Medium", "first"],
+        ["CSR_nonSec_VegaKb_High", "first"],
+        ["CSR_nonSec_VegaCharge_Low", "first"],
+        ["CSR_nonSec_VegaCharge_Medium", "first"],
+        ["CSR_nonSec_VegaCharge_High", "first"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "Rates"]]}],
+    "optional_params": {
+                "hide_zeros": true,
+                "calc_params": {"jurisdiction": "BCBS"}
+            }
+    }"#;
+    assert_results(request, expected_res.sum(), Some(1e-4))
+}
+
+#[test]
+#[cfg(feature = "CRR2")]
+fn csr_nonsec_crr2_vega() {
+    let expected_res = arr1(&[
+        33000.0, 33000.0, 33000.0, 25149.920952, 26389.402294, 27561.245693, 22502.1728, 23106.410208, 23695.244337]);
+    let request = r#"
+    {"measures": [ 
+        ["CSR_nonSec_VegaSens", "sum"],
+        ["CSR_nonSec_VegaSens_Weighted", "sum"],
+        ["CSR_nonSec_VegaSb", "first"],
+        ["CSR_nonSec_VegaKb_Low", "first"],
+        ["CSR_nonSec_VegaKb_Medium", "first"],
+        ["CSR_nonSec_VegaKb_High", "first"],
+        ["CSR_nonSec_VegaCharge_Low", "first"],
+        ["CSR_nonSec_VegaCharge_Medium", "first"],
+        ["CSR_nonSec_VegaCharge_High", "first"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "Rates"]]}],
+    "optional_params": {
+                "hide_zeros": true,
+                "calc_params": {"jurisdiction": "CRR2"}
+            }
+    }"#;
+    assert_results(request, expected_res.sum(), Some(1e-4))
+}
+
 

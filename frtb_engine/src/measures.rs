@@ -3,6 +3,7 @@
 
 use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted, csr_nonsec_delta_sb, csr_nonsec_delta_kb_low, csr_nonsec_delta_kb_medium, csr_nonsec_delta_kb_high};
+use crate::sbm::csr_nonsec::vega::{total_csrnonsec_vega_sens, total_csrnonsec_vega_sens_weighted, csr_nonsec_vega_sb, csr_nonsec_vega_charge_low, csr_nonsec_vega_kb_low, csr_nonsec_vega_charge_medium, csr_nonsec_vega_kb_medium, csr_nonsec_vega_charge_high, csr_nonsec_vega_kb_high};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high};
 use crate::sbm::csr_sec_nonctp::delta::{total_csr_sec_nonctp_delta_sens, csr_sec_nonctp_delta_sens_weighted, csr_sec_nonctp_delta_charge_low, csr_sec_nonctp_delta_charge_medium, csr_sec_nonctp_delta_charge_high};
 use crate::sbm::equity::curvature::{eq_curv_delta, eq_curv_delta_weighted, eq_pnl_up, eq_pnl_down, eq_cvr_down, eq_cvr_up, eq_curvature_charge_medium, eq_curvature_sb_medium, eq_curvature_kb_medium, eq_curvature_kb_minus_medium, eq_curvature_kb_plus_medium, eq_curvature_kb_plus_low, eq_curvature_kb_minus_low, eq_curvature_kb_low, eq_curvature_sb_low, eq_curvature_charge_low, eq_curvature_kb_plus_high, eq_curvature_kb_minus_high, eq_curvature_kb_high, eq_curvature_sb_high, eq_curvature_charge_high};
@@ -491,7 +492,61 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             aggregation: Some("first"),
         },
 
-        //CSR sec-CTP
+        Measure{
+            name: "CSR_nonSec_VegaSens".to_string(),
+            calculator: Box::new(total_csrnonsec_vega_sens),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_nonSec_VegaSens_Weighted".to_string(),
+            calculator: Box::new(total_csrnonsec_vega_sens_weighted),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_nonSec_VegaSb".to_string(),
+            calculator: Box::new(csr_nonsec_vega_sb),
+            aggregation: Some("first"),
+        },
+        
+        Measure{
+            name: "CSR_nonSec_VegaCharge_Low".to_string(),
+            calculator: Box::new(csr_nonsec_vega_charge_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_VegaKb_Low".to_string(),
+            calculator: Box::new(csr_nonsec_vega_kb_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_VegaCharge_Medium".to_string(),
+            calculator: Box::new(csr_nonsec_vega_charge_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_VegaKb_Medium".to_string(),
+            calculator: Box::new(csr_nonsec_vega_kb_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_VegaCharge_High".to_string(),
+            calculator: Box::new(csr_nonsec_vega_charge_high),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_VegaKb_High".to_string(),
+            calculator: Box::new(csr_nonsec_vega_kb_high),
+            aggregation: Some("first"),
+        },
+
+        //      ###########################  CSR sec-CTP
         Measure {
             name: "CSR_secCTP_DeltaSens".to_string(),
             calculator: Box::new(total_csr_sec_ctp_delta_sens),

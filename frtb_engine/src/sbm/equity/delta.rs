@@ -110,9 +110,7 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
             .agg([col("Spot").sum(), col("Repo").sum()])
             .collect()?; 
 
-        if df.height() == 0 {
-            return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )
-        };
+        if df.height() == 0 { return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )};
 
         // 21.78
         let kbs_sbs = all_kbs_sbs_two_types(

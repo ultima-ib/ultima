@@ -2,21 +2,21 @@
     "id": "123", 
     "method": "SEND", 
     "params": {
-        "measures": [  
-            ["EQ_VegaSens", "sum"],
-["EQ_VegaSens_Weighted", "sum"],
-["EQ_VegaSb", "first"],
-["EQ_VegaKb_Low", "first"],
-["EQ_VegaKb_Medium", "first"],
-["EQ_VegaKb_High", "first"],
-["EQ_VegaCharge_Low", "first"],
-["EQ_VegaCharge_Medium", "first"],
-["EQ_VegaCharge_High", "first"]
+        "measures": [ 
+            ["CSR_nonSec_VegaSens", "sum"],
+            ["CSR_nonSec_VegaSens_Weighted", "sum"],
+            ["CSR_nonSec_VegaSb", "first"],
+            ["CSR_nonSec_VegaKb_Low", "first"],
+            ["CSR_nonSec_VegaKb_Medium", "first"],
+            ["CSR_nonSec_VegaKb_High", "first"],
+            ["CSR_nonSec_VegaCharge_Low", "first"],
+            ["CSR_nonSec_VegaCharge_Medium", "first"],
+            ["CSR_nonSec_VegaCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
-        "filters": [],
+        "filters": [{"Eq":[["Desk", "Rates"]]}],
         "optional_params": {
-                    "hide_zeros": false,
+                    "hide_zeros": true,
                     "calc_params": {"jurisdiction": "BCBS"}
                 }
     }

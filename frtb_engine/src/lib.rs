@@ -99,13 +99,12 @@ impl<'a> DataSet for FRTBDataSet<'a> {
                 lf1 = lf1.with_columns(&other_cols)
             };
             
-            //dbg!("###################", lf1.clone().collect());
            // Now, we need to also ammend CRR2 weights  
            // Bucket 10 as per
            // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776 
            #[cfg(feature = "CRR2")]
             if cfg!(feature = "CRR2") & csrnonsec_covered_bond_15 {
-                lf1 = lf1.with_column(
+                lf1 = lf1.with_columns([
                     when(col("RiskClass").eq(lit("CSR_nonSec"))
                         .and(col("RiskCategory").eq(lit("Delta")))
                         .and(col("BucketCRR2").eq(lit("10")))
@@ -113,8 +112,10 @@ impl<'a> DataSet for FRTBDataSet<'a> {
                     )
                     .then(Series::new("",&[0.015]).lit().list())
                     .otherwise(col("SensWeightsCRR2"))
-                    .alias("SensWeightsCRR2")
-                )
+                    .alias("SensWeightsCRR2"),
+
+                    col("SensWeightsCRR2").arr().max().alias("CurvatureRiskWeightCRR2")
+                ])
             }
 
             // Have to collect into a tmp df, as the code panics otherwise

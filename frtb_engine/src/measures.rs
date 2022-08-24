@@ -2,8 +2,10 @@
 //! This file defines all the measures, associated with this library
 
 use crate::sbm::common::sens_weights;
+use crate::sbm::csr_nonsec::curvature::{csrnonsec_curv_delta, csrnonsec_curv_delta_weighted, csrnonsec_pnl_up, csrnonsec_pnl_down, csrnonsec_cvr_up, csrnonsec_cvr_down, csrnonsec_curvature_kb_plus_medium, csrnonsec_curvature_kb_minus_medium, csrnonsec_curvature_kb_medium, csrnonsec_curvature_sb_medium, csrnonsec_curvature_charge_medium, csrnonsec_curvature_kb_plus_low, csrnonsec_curvature_kb_minus_low, csrnonsec_curvature_kb_low, csrnonsec_curvature_sb_low, csrnonsec_curvature_charge_low, csrnonsec_curvature_kb_plus_high, csrnonsec_curvature_kb_minus_high, csrnonsec_curvature_kb_high, csrnonsec_curvature_sb_high, csrnonsec_curvature_charge_high};
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted, csr_nonsec_delta_sb, csr_nonsec_delta_kb_low, csr_nonsec_delta_kb_medium, csr_nonsec_delta_kb_high};
 use crate::sbm::csr_nonsec::vega::{total_csrnonsec_vega_sens, total_csrnonsec_vega_sens_weighted_bcbs, csr_nonsec_vega_sb, csr_nonsec_vega_charge_low, csr_nonsec_vega_kb_low, csr_nonsec_vega_charge_medium, csr_nonsec_vega_kb_medium, csr_nonsec_vega_charge_high, csr_nonsec_vega_kb_high};
+use crate::sbm::csr_sec_ctp::curvature::{csrsecctp_curv_delta, csrsecctp_curv_delta_weighted, csrsecctp_pnl_up, csrsecctp_pnl_down, csrsecctp_cvr_up, csrsecctp_cvr_down, csrsecctp_curvature_kb_plus_medium, csrsecctp_curvature_kb_minus_medium, csrsecctp_curvature_kb_medium, csrsecctp_curvature_sb_medium, csrsecctp_curvature_charge_medium, csrsecctp_curvature_kb_plus_low, csrsecctp_curvature_kb_minus_low, csrsecctp_curvature_kb_low, csrsecctp_curvature_sb_low, csrsecctp_curvature_charge_low, csrsecctp_curvature_kb_plus_high, csrsecctp_curvature_kb_minus_high, csrsecctp_curvature_kb_high, csrsecctp_curvature_sb_high, csrsecctp_curvature_charge_high};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high, csr_sec_ctp_delta_sb, csr_sec_ctp_delta_kb_low, csr_sec_ctp_delta_kb_medium, csr_sec_ctp_delta_kb_high};
 use crate::sbm::csr_sec_ctp::vega::{total_csrsecctp_vega_sens, total_csrsecctp_vega_sens_weighted, csrsecctp_vega_sb, csrsecctp_vega_charge_low, csrsecctp_vega_kb_low, csrsecctp_vega_charge_medium, csrsecctp_vega_kb_medium, csrsecctp_vega_charge_high, csrsecctp_vega_kb_high};
 use crate::sbm::csr_sec_nonctp::delta::{total_csr_sec_nonctp_delta_sens, csr_sec_nonctp_delta_sens_weighted, csr_sec_nonctp_delta_charge_low, csr_sec_nonctp_delta_charge_medium, csr_sec_nonctp_delta_charge_high};
@@ -552,9 +554,121 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
 
 
 
+        Measure{
+            name: "CSR_nonSec_CurvatureDelta".to_string(),
+            calculator: Box::new(csrnonsec_curv_delta),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(csrnonsec_curv_delta_weighted),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_nonSec_PnLup".to_string(),
+            calculator: Box::new(csrnonsec_pnl_up),
+            aggregation: None,
+        },
 
+        Measure{
+            name: "CSR_nonSec_PnLdown".to_string(),
+            calculator: Box::new(csrnonsec_pnl_down),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_nonSec_CVRup".to_string(),
+            calculator: Box::new(csrnonsec_cvr_up),
+            aggregation: None,
+        },
 
-        //      ###########################  CSR sec-CTP
+        Measure{
+            name: "CSR_nonSec_CVRdown".to_string(),
+            calculator: Box::new(csrnonsec_cvr_down),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbPlus_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_plus_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbMinus_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_minus_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Kb_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Sb_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_sb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_charge_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbPlus_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_plus_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbMinus_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_minus_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Kb_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Sb_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_sb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_charge_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbPlus_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_plus_high),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbMinus_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_minus_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Kb_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Sb_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_sb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureCharge_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_charge_high),
+            aggregation: Some("first"),
+        },
+
+        //      ###########################  CSR sec-CTP #################################################
         Measure {
             name: "CSR_secCTP_DeltaSens".to_string(),
             calculator: Box::new(total_csr_sec_ctp_delta_sens),
@@ -661,6 +775,121 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
         Measure{
             name: "CSR_secCTP_VegaKb_High".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_high),
+            aggregation: Some("first"),
+        },
+
+
+        Measure{
+            name: "CSR_secCTP_CurvatureDelta".to_string(),
+            calculator: Box::new(csrsecctp_curv_delta),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_secCTP_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(csrsecctp_curv_delta_weighted),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_secCTP_PnLup".to_string(),
+            calculator: Box::new(csrsecctp_pnl_up),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_secCTP_PnLdown".to_string(),
+            calculator: Box::new(csrsecctp_pnl_down),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_secCTP_CVRup".to_string(),
+            calculator: Box::new(csrsecctp_cvr_up),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_secCTP_CVRdown".to_string(),
+            calculator: Box::new(csrsecctp_cvr_down),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_secCTP_Curvature_KbPlus_Medium".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_plus_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_secCTP_Curvature_KbMinus_Medium".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_minus_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_Curvature_Kb_Medium".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_Curvature_Sb_Medium".to_string(),
+            calculator: Box::new(csrsecctp_curvature_sb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(csrsecctp_curvature_charge_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_secCTP_Curvature_KbPlus_Low".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_plus_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_secCTP_Curvature_KbMinus_Low".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_minus_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_Curvature_Kb_Low".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_Curvature_Sb_Low".to_string(),
+            calculator: Box::new(csrsecctp_curvature_sb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(csrsecctp_curvature_charge_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_secCTP_Curvature_KbPlus_High".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_plus_high),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_secCTP_Curvature_KbMinus_High".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_minus_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_Curvature_Kb_High".to_string(),
+            calculator: Box::new(csrsecctp_curvature_kb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_Curvature_Sb_High".to_string(),
+            calculator: Box::new(csrsecctp_curvature_sb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_secCTP_CurvatureCharge_High".to_string(),
+            calculator: Box::new(csrsecctp_curvature_charge_high),
             aggregation: Some("first"),
         },
 

@@ -169,8 +169,6 @@ const JSON: &str = r#"
 
 ["Commodity_DeltaSens", "sum"],
 ["Commodity_DeltaSens_Weighted", "sum"],
-
-
 ["Commodity_DeltaCharge_Low", "first"],
 ["Commodity_DeltaCharge_Medium", "first"],
 ["Commodity_DeltaCharge_High", "first"],
@@ -195,6 +193,28 @@ const JSON: &str = r#"
 ["CSR_nonSec_VegaCharge_Medium", "first"],
 ["CSR_nonSec_VegaCharge_High", "first"],
 
+["CSR_nonSec_CurvatureDelta", "sum"],
+["CSR_nonSec_CurvatureDelta_Weighted", "sum"],
+["CSR_nonSec_PnLup", "sum"],
+["CSR_nonSec_PnLdown", "sum"],
+["CSR_nonSec_CVRup", "sum"],
+["CSR_nonSec_CVRdown", "sum"],
+["CSR_nonSec_Curvature_KbPlus_Low", "first"],
+["CSR_nonSec_Curvature_KbMinus_Low", "first"],
+["CSR_nonSec_Curvature_Kb_Low", "first"],
+["CSR_nonSec_Curvature_Sb_Low", "first"],
+["CSR_nonSec_CurvatureCharge_Low", "first"],
+["CSR_nonSec_Curvature_KbPlus_Medium", "first"],
+["CSR_nonSec_Curvature_KbMinus_Medium", "first"],
+["CSR_nonSec_Curvature_Kb_Medium", "first"],
+["CSR_nonSec_Curvature_Sb_Medium", "first"],
+["CSR_nonSec_CurvatureCharge_Medium", "first"],
+["CSR_nonSec_Curvature_KbPlus_High", "first"],
+["CSR_nonSec_Curvature_KbMinus_High", "first"],
+["CSR_nonSec_Curvature_Kb_High", "first"],
+["CSR_nonSec_Curvature_Sb_High", "first"]
+
+
 
 ["CSR_secCTP_DeltaSens", "sum"],
 ["CSR_secCTP_DeltaSens_Weighted", "sum"],
@@ -216,12 +236,37 @@ const JSON: &str = r#"
 ["CSR_secCTP_VegaCharge_Medium", "first"],
 ["CSR_secCTP_VegaKb_High", "first"],
 
+["CSR_secCTP_CurvatureDelta", "sum"],
+["CSR_secCTP_CurvatureDelta_Weighted", "sum"],
+["CSR_secCTP_PnLup", "sum"],
+["CSR_secCTP_PnLdown", "sum"],
+["CSR_secCTP_CVRup", "sum"],
+["CSR_secCTP_CVRdown", "sum"],
+["CSR_secCTP_Curvature_KbPlus_Low", "first"],
+["CSR_secCTP_Curvature_KbMinus_Low", "first"],
+["CSR_secCTP_Curvature_Kb_Low", "first"],
+["CSR_secCTP_Curvature_Sb_Low", "first"],
+["CSR_secCTP_CurvatureCharge_Low", "first"],
+["CSR_secCTP_Curvature_KbPlus_Medium", "first"],
+["CSR_secCTP_Curvature_KbMinus_Medium", "first"],
+["CSR_secCTP_Curvature_Kb_Medium", "first"],
+["CSR_secCTP_Curvature_Sb_Medium", "first"],
+["CSR_secCTP_CurvatureCharge_Medium", "first"],
+["CSR_secCTP_Curvature_KbPlus_High", "first"],
+["CSR_secCTP_Curvature_KbMinus_High", "first"],
+["CSR_secCTP_Curvature_Kb_High", "first"],
+["CSR_secCTP_Curvature_Sb_High", "first"]
+
+
+
 
 ["CSR_Sec_nonCTP_DeltaSens", "sum"],
 ["CSR_Sec_nonCTP_DeltaSens_Weighted", "sum"],
 ["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_High", "first"],
+
+
 
 
 ["EQ_DeltaSens", "sum"],
@@ -250,7 +295,6 @@ const JSON: &str = r#"
 ["EQ_PnLdown", "sum"],
 ["EQ_CVRup", "sum"],
 ["EQ_CVRdown", "sum"],
-
 ["EQ_Curvature_KbPlus_Low", "first"],
 ["EQ_Curvature_KbMinus_Low", "first"],
 ["EQ_Curvature_Kb_Low", "first"],

@@ -9,3 +9,4 @@ pub mod csr_sec_nonctp;
 pub mod risk_weights;
 pub mod buckets;
 pub mod common;
+pub mod common_curv;

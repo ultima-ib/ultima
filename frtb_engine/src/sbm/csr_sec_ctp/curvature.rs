@@ -1,7 +1,5 @@
 use base_engine::prelude::OCP;
-use ndarray::{Array2, Array1};
 use crate::{prelude::*, sbm::csr_nonsec::curvature::csrnonsec_curvature_charge};
-//use ndarray::{Array1, Array2};
 use polars::prelude::*;
 
 pub fn csrsecctp_curv_delta (_: &OCP) -> Expr {

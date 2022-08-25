@@ -159,11 +159,13 @@ pub(crate) fn kb_plus_minus_simple(cvr_up_or_down: &Series) -> Result<Vec<f64>>{
 /// * `df` expected to have columns "b", "cvr_up", "cvr_down"
 pub(crate) fn curvature_kb_plus_minus(
     df: DataFrame,
-    n_buckets: usize, 
+    //n_buckets: usize, 
     bucket_rho: &[f64],
     special_bucket: Option<usize>
     ) 
     -> Result<(Vec<(f64, f64)>, Vec<(f64, f64)>)> {
+
+        let n_buckets = bucket_rho.len();
     
         let mut res_kb_cvr: Vec< (Result<(f64, f64)>, Result<(f64, f64)>) > = Vec::with_capacity(n_buckets);
         //let mut res_kbminus_cvrdown: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);

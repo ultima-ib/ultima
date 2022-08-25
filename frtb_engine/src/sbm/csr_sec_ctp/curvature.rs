@@ -82,15 +82,14 @@ fn csrsecctp_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
 
     let (weight, bucket_col, name_rho_vec,
         gamma,
-        nbuckets, special_bucket) =
+        special_bucket) =
         match juri{
             #[cfg(feature = "CRR2")]
             Jurisdiction::CRR2 => (
             col("CurvatureRiskWeightCRR2"),
             col("BucketCRR2"),
-            Vec::from(scenario.base_csr_ctp_rho_name_crr2),
+            Vec::from(scenario.base_csr_ctp_rho_name_crr2_curv),
             &scenario.csr_ctp_gamma_crr2_curv,
-            18usize, 
             None
             ),
 
@@ -98,9 +97,8 @@ fn csrsecctp_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
             (
             col("CurvatureRiskWeight"),
             col("BucketBCBS"),
-            Vec::from(scenario.base_csr_ctp_rho_name_bcbs),
+            Vec::from(scenario.base_csr_ctp_rho_name_bcbs_curv),
             &scenario.csr_ctp_gamma_curv,
-            16,
             None
             )
         };
@@ -110,5 +108,5 @@ fn csrsecctp_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
     
     
     csrnonsec_curvature_charge(csr_secctp_curv_rho, csr_secctp_curv_gamma,
-          rtrn, special_bucket, nbuckets, weight, bucket_col, "CSR_Sec_CTP")
+          rtrn, special_bucket, weight, bucket_col, "CSR_Sec_CTP")
 }

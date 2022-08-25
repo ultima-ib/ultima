@@ -64,7 +64,7 @@ pub(crate) fn equity_delta_charge_low(op: &OCP) -> Expr {
 fn equity_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
     let _suffix = scenario.as_str();
     let eq_gamma = get_optional_parameter_array(op, format!("eq_delta_gamma{_suffix}").as_str(), &scenario.eq_gamma);
-    let base_eq_rho_bucket = get_optional_parameter(op, format!("base_eq_rho_bucket{_suffix}").as_str(), &scenario.base_delta_eq_rho_bucket);
+    let base_eq_rho_bucket = get_optional_parameter(op, format!("base_eq_rho_bucket{_suffix}").as_str(), &scenario.base_eq_delta_rho_bucket);
     let eq_rho_diff_type =  get_optional_parameter(op, format!("eq_rho_diff_type{_suffix}").as_str(), &scenario.base_eq_rho_mult);
 
     equity_delta_charge(eq_gamma, base_eq_rho_bucket, eq_rho_diff_type, scenario.scenario_fn, rtrn)

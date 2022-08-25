@@ -13,12 +13,12 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     let girr_delta_rho_diff_curve = 0.999;
 
     //21.83
-    let n_com_tenors: usize = 11;
-    let base_commodity_bucket_rho = [0.55, 0.95, 0.4, 0.8, 0.6, 0.65, 0.55, 0.45, 0.15, 0.4, 0.15];
+    let base_com_delta_bucket_rho:[f64;11] = [0.55, 0.95, 0.4, 0.8, 0.6, 0.65, 0.55, 0.45, 0.15, 0.4, 0.15];
+    let base_com_curv_rho_cty: [f64;11] = base_com_delta_bucket_rho.iter().map(|x|x.powi(2)).collect::<Vec<f64>>().try_into().unwrap();
 
     // Tenors
     // 1 where tenors match, 0.99 otherwise
-    let mut base_com_rho_tenor = 0.99 ;
+    let base_com_rho_tenor = 0.99 ;
     
     //21.85
     let mut com_gamma = Array2::<f64>::from_elem((10, 10), 0.2);
@@ -29,6 +29,9 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     v_row.push(0.);
     com_gamma.push_column(Array1::from_vec(v_col).view()).unwrap(); //unwrap to indicate something is wrong
     com_gamma.push_row(Array1::from_vec(v_row).view()).unwrap();
+
+    let mut com_gamma_curv = com_gamma.clone();
+    com_gamma_curv.mapv_inplace(|x|{x.powi(2)});
 
     //21.78
     let eq_rho_bucket: [f64; 13] = [0.15, 0.15, 0.15, 0.15, 
@@ -55,19 +58,21 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     eq_gamma_curv.mapv_inplace(|x|{x.powi(2)});
 
     // CSR non Sec 21.54.2 and 21.55.2
-    //let mut base_csr_nonsec_rho_tenor = Array2::from_elem((5, 5), 0.65 );
-    //let ones = Array1::<f64>::ones(5);
-    //base_csr_nonsec_rho_tenor.diag_mut().assign(&ones);
     let base_csr_nonsec_rho_tenor = 0.65;
     let base_csr_nonsec_rho_name_bcbs = [0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.,
     0.8, 0.8];
+    // 21.100.1
+    let base_csr_nonsec_rho_name_bcbs_curv: [f64; 18] = base_csr_nonsec_rho_name_bcbs.iter().map(|x|(*x as f64).powi(2)).collect::<Vec<f64>>().try_into().unwrap();
+
     let base_csr_nonsec_rho_name_crr2 = [0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,];
+    let base_csr_nonsec_rho_name_crr2_curv: [f64; 20] = base_csr_nonsec_rho_name_crr2.iter().map(|x|(*x as f64).powi(2)).collect::<Vec<f64>>().try_into().unwrap();
+
     let base_csr_nonsec_rho_basis = 0.999;
     //21.57 BCBS
     let mut base_csr_nonsec_gamma_rating = Array2::<f64>::ones((18,18));
@@ -153,10 +158,14 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.8]; // <-- TODO CHECK THIS
+    let base_csr_ctp_rho_name_bcbs_curv: [f64; 16] = base_csr_ctp_rho_name_bcbs.iter().map(|x|(*x as f64).powi(2)).collect::<Vec<f64>>().try_into().unwrap();
+
     let base_csr_ctp_rho_name_crr2 = [0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35, 0.35, 0.35,
     0.35, 0.35, 0.35];
+    let base_csr_ctp_rho_name_crr2_curv: [f64; 18] = base_csr_ctp_rho_name_crr2.iter().map(|x|(*x as f64).powi(2)).collect::<Vec<f64>>().try_into().unwrap();
+
     // 325al
     let base_csr_ctp_rho_basis = 0.99;
     // CTP gamma is same nonSec, except buckets 17 and 16
@@ -225,13 +234,15 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         fx_gamma: 0.6,
         fx_curv_gamma: 0.6f64.powi(2),
 
-        base_com_rho_cty: base_commodity_bucket_rho,
+        base_com_delta_rho_cty: base_com_delta_bucket_rho,
+        base_com_curv_rho_cty,
         base_com_rho_basis_diff: 0.999,
         base_com_rho_tenor,
         com_gamma,
+        com_gamma_curv,
 
-        base_delta_eq_rho_bucket: eq_rho_bucket,
-        eq_curv_rho_bucket: base_curv_eq_rho_bucket,
+        base_eq_delta_rho_bucket: eq_rho_bucket,
+        base_eq_curv_rho_bucket: base_curv_eq_rho_bucket,
         base_eq_rho_mult: eq_rho_mult,
         eq_gamma,
         eq_gamma_curv,
@@ -239,24 +250,28 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         //CSR nonSec
         base_csr_nonsec_rho_tenor,
         base_csr_nonsec_rho_name_bcbs,
+        base_csr_nonsec_rho_name_bcbs_curv,
         base_csr_nonsec_rho_basis,
 
         csr_nonsec_gamma,
         csr_nonsec_gamma_curv,
         // CRR2 325aj
         base_csr_nonsec_rho_name_crr2,
+        base_csr_nonsec_rho_name_crr2_curv,
         csr_nonsec_gamma_crr2,
         csr_nonsec_gamma_crr2_curv,
 
         //CSR Sec CTP
         base_csr_ctp_rho_tenor,
         base_csr_ctp_rho_name_bcbs,
+        base_csr_ctp_rho_name_bcbs_curv,
         base_csr_ctp_rho_basis,
 
         csr_ctp_gamma,
         csr_ctp_gamma_curv,
         // CSR Sec CTP CRR2
         base_csr_ctp_rho_name_crr2,
+        base_csr_ctp_rho_name_crr2_curv,
         csr_ctp_gamma_crr2,
         csr_ctp_gamma_crr2_curv,
 
@@ -277,15 +292,15 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
 );
 
 pub(crate) fn high_fn(x: f64) -> f64 {
-(1.25*x).min(1.)
+    (1.25*x).min(1.)
 }
 
 pub(crate) fn med_fn(x: f64) -> f64 {
-x
+    x
 }
 
 pub(crate) fn low_fn(x: f64) -> f64 {
-(2.*x - 1.).max(0.75*x)
+    (2.*x - 1.).max(0.75*x)
 }
 
 //static HIGH_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
@@ -329,21 +344,24 @@ pub struct ScenarioConfig{
     pub fx_gamma: f64,
     pub fx_curv_gamma: f64,
     // Commodity rho cannot be precomputed since too many options:
-    // 21.83.1 same commodity or diff commodity(depends on per bucket)
-    pub base_com_rho_cty: [f64; 11],
-    // 21.83.2 same or diff tenors
+    /// 21.83.1 same commodity or diff commodity(depends on per bucket)
+    pub base_com_delta_rho_cty: [f64; 11],
+    /// 21.101
+    pub base_com_curv_rho_cty: [f64; 11],
+    /// 21.83.2 same or diff tenors
     pub base_com_rho_tenor: f64,
-    // 21.83.3 same or diff location
-    //pub com_rho_basis_same: f64,
+    /// 21.83.3 same or diff location
     pub base_com_rho_basis_diff: f64,
     // Just keep just base where index is Bucket number, value is intra-bucket rho
-    // 21.85
+    /// 21.85
     pub com_gamma: Array2<f64>,
+    pub com_gamma_curv: Array2<f64>,
 
     // Equity rho cannot be precomputed since depeds on RF and RFT:
     // 21.78.2
-    pub base_delta_eq_rho_bucket: [f64; 13],
-    pub eq_curv_rho_bucket: [f64; 13],
+    pub base_eq_delta_rho_bucket: [f64; 13],
+    ///21.100
+    pub base_eq_curv_rho_bucket: [f64; 13],
     /// 21.78.1 and 21.78.4
     /// multiplier used when rft is not equal(spot vs repo)
     pub base_eq_rho_mult: f64,
@@ -355,21 +373,29 @@ pub struct ScenarioConfig{
     // CSRnonSec 21.54.2 and 21.55.2
     pub base_csr_nonsec_rho_tenor: f64,
     pub base_csr_nonsec_rho_name_bcbs: [f64; 18],
+    ///21.100
+    pub base_csr_nonsec_rho_name_bcbs_curv: [f64; 18],
     pub base_csr_nonsec_rho_basis: f64,
     pub csr_nonsec_gamma: Array2<f64>,
     pub csr_nonsec_gamma_curv: Array2<f64>,
-    // CSR non Sec CRR2 325aj
+
+    /// CSR non Sec CRR2 325aj
     pub base_csr_nonsec_rho_name_crr2: [f64; 20],
+    /// 325ay 5
+    pub base_csr_nonsec_rho_name_crr2_curv: [f64; 20],
     pub csr_nonsec_gamma_crr2: Array2<f64>,
     pub csr_nonsec_gamma_crr2_curv: Array2<f64>,
+
     //CSR Sec CTP
     pub base_csr_ctp_rho_tenor: f64,
     pub base_csr_ctp_rho_name_bcbs: [f64; 16],
+    pub base_csr_ctp_rho_name_bcbs_curv: [f64; 16],
     pub base_csr_ctp_rho_basis: f64,
     pub csr_ctp_gamma: Array2<f64>,
     pub csr_ctp_gamma_curv: Array2<f64>,
 
     pub base_csr_ctp_rho_name_crr2: [f64; 18],
+    pub base_csr_ctp_rho_name_crr2_curv: [f64; 18],
     pub csr_ctp_gamma_crr2: Array2<f64>,
     pub csr_ctp_gamma_crr2_curv: Array2<f64>,
 
@@ -404,8 +430,8 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 //where F: Fn(f64) -> f64 + Sync,
 {
     //First, apply function to matrixes 
-    let mut matrixes: [Array2<f64>; 15] = [self.girr_delta_rho_same_curve.to_owned(),
-    self.com_gamma.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
+    let mut matrixes: [Array2<f64>; 16] = [self.girr_delta_rho_same_curve.to_owned(),
+    self.com_gamma.to_owned(), self.com_gamma_curv.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
     self.fx_vega_rho.to_owned(), self.eq_gamma_curv.to_owned(), self.csr_nonsec_gamma.to_owned(), self.csr_nonsec_gamma_crr2.to_owned(),
     self.csr_ctp_gamma.to_owned(), self.csr_ctp_gamma_crr2.to_owned(), self.csr_nonsec_gamma_curv.to_owned(), self.csr_nonsec_gamma_crr2_curv.to_owned(),
     self.csr_ctp_gamma_curv.to_owned(), self.csr_ctp_gamma_crr2_curv.to_owned()];
@@ -415,14 +441,14 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     );
     //Unzip matrixes into individual components
     let[girr_delta_rho_same_curve,
-    com_gamma, eq_gamma, csr_sec_nonctp_gamma,
+    com_gamma, com_gamma_curv, eq_gamma, csr_sec_nonctp_gamma,
     girr_vega_rho, fx_vega_rho, eq_gamma_curv, 
     csr_nonsec_gamma, csr_nonsec_gamma_crr2, 
     csr_ctp_gamma, csr_ctp_gamma_crr2,
     csr_nonsec_gamma_curv, csr_nonsec_gamma_crr2_curv, 
     csr_ctp_gamma_curv, csr_ctp_gamma_crr2_curv] = matrixes;
 
-    let mut eq_curv_rho_bucket = self.eq_curv_rho_bucket;
+    let mut eq_curv_rho_bucket = self.base_eq_curv_rho_bucket;
     eq_curv_rho_bucket.iter_mut().for_each(|x|{*x = function(*x);});
 
     //objects which do not implement copy
@@ -453,8 +479,9 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 
             base_com_rho_tenor,
             com_gamma,
+            com_gamma_curv,
 
-            eq_curv_rho_bucket,
+            base_eq_curv_rho_bucket: eq_curv_rho_bucket,
             eq_gamma,
             eq_gamma_curv,
 

@@ -1,6 +1,7 @@
 
 //! This file defines all the measures, associated with this library
 
+use crate::sbm::commodity::curvature::{com_curvature_charge_high, com_curvature_sb_high, com_curvature_kb_high, com_curvature_kb_minus_high, com_curvature_kb_plus_high, com_curvature_charge_low, com_curvature_sb_low, com_curvature_kb_low, com_curvature_kb_minus_low, com_curvature_kb_plus_low, com_curvature_charge_medium, com_curvature_sb_medium, com_curvature_kb_medium, com_curvature_kb_minus_medium, com_curvature_kb_plus_medium, com_cvr_down, com_cvr_up, com_pnl_down, com_pnl_up, com_curv_delta_weighted, com_curv_delta};
 use crate::sbm::commodity::vega::{total_com_vega_sens, total_com_vega_sens_weighted, com_vega_sb, com_vega_kb_low, com_vega_charge_low, com_vega_kb_medium, com_vega_charge_medium, com_vega_kb_high, com_vega_charge_high};
 use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::curvature::{csrnonsec_curv_delta, csrnonsec_curv_delta_weighted, csrnonsec_pnl_up, csrnonsec_pnl_down, csrnonsec_cvr_up, csrnonsec_cvr_down, csrnonsec_curvature_kb_plus_medium, csrnonsec_curvature_kb_minus_medium, csrnonsec_curvature_kb_medium, csrnonsec_curvature_sb_medium, csrnonsec_curvature_charge_medium, csrnonsec_curvature_kb_plus_low, csrnonsec_curvature_kb_minus_low, csrnonsec_curvature_kb_low, csrnonsec_curvature_sb_low, csrnonsec_curvature_charge_low, csrnonsec_curvature_kb_plus_high, csrnonsec_curvature_kb_minus_high, csrnonsec_curvature_kb_high, csrnonsec_curvature_sb_high, csrnonsec_curvature_charge_high};
@@ -295,6 +296,122 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             calculator: Box::new(com_vega_charge_high),
             aggregation: Some("first"),
         },
+        // ######################### Commodity Curvature ##################################
+
+        Measure{
+            name: "Commodity_CurvatureDelta".to_string(),
+            calculator: Box::new(com_curv_delta),
+            aggregation: None,
+        },
+        Measure{
+            name: "Commodity_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(com_curv_delta_weighted),
+            aggregation: None,
+        },
+        Measure{
+            name: "Commodity_PnLup".to_string(),
+            calculator: Box::new(com_pnl_up),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "Commodity_PnLdown".to_string(),
+            calculator: Box::new(com_pnl_down),
+            aggregation: None,
+        },
+        Measure{
+            name: "Commodity_CVRup".to_string(),
+            calculator: Box::new(com_cvr_up),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "Commodity_CVRdown".to_string(),
+            calculator: Box::new(com_cvr_down),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbPlus_Medium".to_string(),
+            calculator: Box::new(com_curvature_kb_plus_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbMinus_Medium".to_string(),
+            calculator: Box::new(com_curvature_kb_minus_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_Curvature_Kb_Medium".to_string(),
+            calculator: Box::new(com_curvature_kb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_Curvature_Sb_Medium".to_string(),
+            calculator: Box::new(com_curvature_sb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(com_curvature_charge_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbPlus_Low".to_string(),
+            calculator: Box::new(com_curvature_kb_plus_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbMinus_Low".to_string(),
+            calculator: Box::new(com_curvature_kb_minus_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_Curvature_Kb_Low".to_string(),
+            calculator: Box::new(com_curvature_kb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_Curvature_Sb_Low".to_string(),
+            calculator: Box::new(com_curvature_sb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(com_curvature_charge_low),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbPlus_High".to_string(),
+            calculator: Box::new(com_curvature_kb_plus_high),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbMinus_High".to_string(),
+            calculator: Box::new(com_curvature_kb_minus_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_Curvature_Kb_High".to_string(),
+            calculator: Box::new(com_curvature_kb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_Curvature_Sb_High".to_string(),
+            calculator: Box::new(com_curvature_sb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "Commodity_CurvatureCharge_High".to_string(),
+            calculator: Box::new(com_curvature_charge_high),
+            aggregation: Some("first"),
+        },
+
 
         // ######################### Equity Delta #######################################
         Measure {

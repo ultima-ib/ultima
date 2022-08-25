@@ -84,15 +84,14 @@ fn csrnonsec_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
 
     let (weight, bucket_col, name_rho_vec,
         gamma,
-        nbuckets, special_bucket) =
+        special_bucket) =
         match juri{
             #[cfg(feature = "CRR2")]
             Jurisdiction::CRR2 => (
             col("CurvatureRiskWeightCRR2"),
             col("BucketCRR2"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
+            Vec::from(scenario.base_csr_nonsec_rho_name_crr2_curv),
             &scenario.csr_nonsec_gamma_crr2_curv,
-            20usize, 
             Some(18)
             ),
 
@@ -100,9 +99,8 @@ fn csrnonsec_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
             (
             col("CurvatureRiskWeight"),
             col("BucketBCBS"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
+            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs_curv),
             &scenario.csr_nonsec_gamma_curv,
-            18,
             Some(16)
             )
         };
@@ -110,11 +108,11 @@ fn csrnonsec_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
     let csr_nonsec_curv_gamma = get_optional_parameter_array(op, format!("csr_nonsec_curv_gamma{_suffix}").as_str(), &gamma);
     let csr_nonsec_curv_rho = get_optional_parameter_vec(op, format!("csr_nonsec_curv_rho{_suffix}").as_str(), &name_rho_vec);
     csrnonsec_curvature_charge(csr_nonsec_curv_rho, csr_nonsec_curv_gamma,
-          rtrn, special_bucket, nbuckets, weight, bucket_col, "CSR_nonSec")
+          rtrn, special_bucket, weight, bucket_col, "CSR_nonSec")
 }
 
 pub (crate) fn csrnonsec_curvature_charge(csr_curv_rho: Vec<f64>, csr_curv_gamma: Array2<f64>, return_metric: ReturnMetric, 
-special_bucket: Option<usize>, nbuckets: usize, weight: Expr, bucket_col: Expr, rc: &'static str) -> Expr {
+special_bucket: Option<usize>, weight: Expr, bucket_col: Expr, rc: &'static str) -> Expr {
 
     apply_multiple( move |columns| {
 
@@ -145,7 +143,6 @@ special_bucket: Option<usize>, nbuckets: usize, weight: Expr, bucket_col: Expr, 
         let res_len = columns[0].len();
         let (kb_plus_cvr_up, kb_minus_cvr_down): (Vec<(f64, f64)>, Vec<(f64, f64)>) = curvature_kb_plus_minus(
             df, 
-            nbuckets,
             &csr_curv_rho,
             special_bucket,
         )?;

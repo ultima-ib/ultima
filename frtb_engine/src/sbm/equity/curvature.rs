@@ -76,11 +76,11 @@ fn eq_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, 
     let _suffix = scenario.as_str();
 
     let eq_curv_gamma = get_optional_parameter_array(op, format!("equity_curv_gamma{_suffix}").as_str(), &scenario.eq_gamma_curv);
-    let eq_curv_rho = get_optional_parameter(op, format!("equity_curv_gamma{_suffix}").as_str(), &scenario.eq_curv_rho_bucket);
-    eq_curvature_charge(eq_curv_rho,eq_curv_gamma,  rtrn)
+    let eq_curv_rho = get_optional_parameter(op, "base_equity_curv_rho", &scenario.base_eq_curv_rho_bucket);
+    eq_curvature_charge(eq_curv_rho.to_vec(), eq_curv_gamma,  rtrn, "Equity", Some(11))
 }
 
-fn eq_curvature_charge(eq_curv_rho: [f64; 13], eq_curv_gamma: Array2<f64>, return_metric: ReturnMetric) -> Expr {
+pub(crate) fn eq_curvature_charge(eq_curv_rho: Vec<f64>, eq_curv_gamma: Array2<f64>, return_metric: ReturnMetric, rc: &'static str, special_bucket: Option<usize>) -> Expr {
 
     apply_multiple( move |columns| {
 
@@ -95,7 +95,7 @@ fn eq_curvature_charge(eq_curv_rho: [f64; 13], eq_curv_gamma: Array2<f64>, retur
         ]?;
 
         let df = df.lazy()
-            .filter(col("rc").eq(lit("Equity")).and(col("PnL_Up").is_not_null().or(col("PnL_Down").is_not_null())))
+            .filter(col("rc").eq(lit(rc)).and(col("PnL_Up").is_not_null().or(col("PnL_Down").is_not_null())))
             .groupby([col("b"), col("rf")])
             .agg([
                 cvr_up_spot().sum().alias("cvr_up"),
@@ -107,9 +107,8 @@ fn eq_curvature_charge(eq_curv_rho: [f64; 13], eq_curv_gamma: Array2<f64>, retur
         let res_len = columns[0].len();
         let (kb_plus_cvr_up, kb_minus_cvr_down): (Vec<(f64, f64)>, Vec<(f64, f64)>) = curvature_kb_plus_minus(
             df, 
-            13,
             &eq_curv_rho,
-            Some(11),
+            special_bucket,
         )?;
         let (kb_plus, cvr_up): (Vec<f64>, Vec<f64>) = kb_plus_cvr_up.into_iter().unzip();
         let (kb_minus, cvr_down): (Vec<f64>, Vec<f64>) = kb_minus_cvr_down.into_iter().unzip();

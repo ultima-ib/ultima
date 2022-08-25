@@ -18,9 +18,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
 
     // Tenors
     // 1 where tenors match, 0.99 otherwise
-    let mut base_com_rho_tenor = Array2::from_elem((n_com_tenors, n_com_tenors), 0.99 );
-    let ones = Array1::<f64>::ones(n_com_tenors);
-    base_com_rho_tenor.diag_mut().assign(&ones);
+    let mut base_com_rho_tenor = 0.99 ;
     
     //21.85
     let mut com_gamma = Array2::<f64>::from_elem((10, 10), 0.2);
@@ -334,7 +332,7 @@ pub struct ScenarioConfig{
     // 21.83.1 same commodity or diff commodity(depends on per bucket)
     pub base_com_rho_cty: [f64; 11],
     // 21.83.2 same or diff tenors
-    pub base_com_rho_tenor: Array2<f64>,
+    pub base_com_rho_tenor: f64,
     // 21.83.3 same or diff location
     //pub com_rho_basis_same: f64,
     pub base_com_rho_basis_diff: f64,

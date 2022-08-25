@@ -1,7 +1,7 @@
 use base_engine::prelude::*;
 
 use log::warn;
-use ndarray::{Array2, Array1, Zip, ArrayView1, Array, Order, s, Axis, concatenate, stack};
+use ndarray::{Array2, Array1, Zip, ArrayView1, Order, s, Axis, Data};
 use polars::{prelude::*, export::num::Signed};
 use rayon::{iter::{ParallelBridge, ParallelIterator, IntoParallelRefMutIterator}, prelude::IntoParallelRefIterator};
 use std::{sync::Mutex};
@@ -265,8 +265,8 @@ where F: Fn(f64) -> f64 + Sync + Send,
     unsafe {
         rho = arr.assume_init();
     }
-    println!("Rho in bucket {bucket_id} initialised");
     rho.par_mapv_inplace(|el| {scenario_fn(el)});
+
     // Stretch out the array into a single vector
     let arr_shaped = ws_arr
             .to_shape((ws_arr.len(), Order::RowMajor) )
@@ -305,32 +305,36 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
     let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
     // 
-    df["b"]// We know column "b" exists, so will never panic here
-    .utf8()?
-    .unique()?
+    df.partition_by(["b"])?
     .par_iter()
-    .for_each(|b|{
-        match b {
-            Some(_b) => {
-                let mut b_as_idx_plus_1 = _b.parse::<usize>()
-                .unwrap_or_else(|_|{
-                    warn!("{_b} cannot be parsed into an int representing commodity the bucket. Default to 1.");
-                    1usize});
-                if b_as_idx_plus_1 > n_buckets {
-                    warn!("{_b} is larger than the max bucket for this risk class. Default to 1.");
-                    b_as_idx_plus_1 = 1usize;
-                }
-                // CALCULATE Kb Sb for a bucket
-                let a = bucket_kb_sb(df.clone().lazy(), b_as_idx_plus_1, special_bucket,
-                    rho_tenor, name_col, bucket_rho_diff_rf, basis_col,
-                     rho_base_diff_rft_or_loc, scenario_fn,
-                    tenor_cols.clone() );
-                let mut res = arc_mtx.lock().unwrap();
-                res[b_as_idx_plus_1-1] = a;
-            },
-            _=>()
-        }
-    });
+    .for_each(|bucket_df|{
+
+        let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
+        // validating also bucket is not greater than max index of bucket_rho_diff_rf
+        let b_as_idx_plus_1 = match b_as_idx_plus_1 {
+            AnyValue::Utf8(st)=> st.parse::<usize>().ok()
+                .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}}),
+            
+            _=>None};
+        // CALCULATE Kb Sb for a bucket
+        if let Some(b_as_idx_plus_1) = b_as_idx_plus_1{
+            let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1-1];
+            // CALCULATE Kb Sb for a bucket
+            let a = 
+                bucket_kb_sb(df.clone().lazy(), b_as_idx_plus_1, special_bucket,
+                rho_tenor, name_col, bucket_rho_diff_rf, basis_col,
+                 rho_base_diff_rft_or_loc, scenario_fn,
+                tenor_cols.clone() );
+                //bucket_kb_sb_onsq(bucket_df,  b_as_idx_plus_1, special_bucket, 
+                //"tenor", 0.99, 
+            //"rf", name_rho,
+        //"loc", 0.999,
+        //"weighted_sens", scenario_fn);
+            let mut res = arc_mtx.lock().unwrap();
+            res[b_as_idx_plus_1-1] = a;
+            
+        }}
+    );
     let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
         .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
         .into_inner()
@@ -338,6 +342,132 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
         .into_iter()
         .collect();
     reskbs_sbs
+}
+
+/// Column "b" expected. Value in col "b" is expected to be parsable into usize
+/// 
+/// Internally calls [bucket_kb_sb_onsq].
+/// 
+/// Commodity and CSR CTP. Common way of calculating Kbs and Sbs for all buckets, where no optimisation is possible
+/// due to many risk factor types (location/tranche).
+/// 
+pub(crate) fn all_kbs_sbs_onsq<F>(df: DataFrame, 
+    tenor_col:&str, rho_diff_tenor: f64, 
+    name_col: &str, bucket_rho_diff_rf: &[f64], 
+    basis_col: &str, rho_diff_rft: f64,
+    risk_col: &str,
+    scenario_fn: F,
+    special_bucket: Option<usize>) 
+-> Result<Vec<(f64, f64)>>
+where F: Fn(f64) -> f64 + Sync + Send + Copy{
+
+    let n_buckets = bucket_rho_diff_rf.len();
+    let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
+    for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
+
+    let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
+    // Do not iterate over each bukcet. Instead, only iterate over unique buckets
+    // 
+    df.partition_by(["b"])?
+    .par_iter()
+    .for_each(|bucket_df|{
+
+        let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
+        // validating also bucket is not greater than max index of bucket_rho_diff_rf
+        let b_as_idx_plus_1 = match b_as_idx_plus_1 {
+            AnyValue::Utf8(st)=> st.parse::<usize>().ok()
+                .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}}),
+            
+            _=>None};
+
+        // CALCULATE Kb Sb for a bucket
+        if let Some(b_as_idx_plus_1) = b_as_idx_plus_1{
+            let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1-1];
+            // CALCULATE Kb Sb for a bucket
+            let is_special_bucket = Some(b_as_idx_plus_1) == special_bucket;
+            let a = 
+                bucket_kb_sb_onsq(bucket_df,
+                tenor_col, rho_diff_tenor, 
+                name_col, name_rho,
+                basis_col, rho_diff_rft,
+                risk_col, 
+                scenario_fn, is_special_bucket);
+            let mut res = arc_mtx.lock().unwrap();
+            res[b_as_idx_plus_1-1] = a;  
+        }}
+    );
+    let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
+        .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
+        .into_inner()
+        .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
+        .into_iter()
+        .collect();
+    reskbs_sbs
+}
+
+/// Commodity and CSR Sec CTO have potentially unlimited number of locations/tranches.
+/// 
+/// Hence we can't go with any of the optimizations. Have to be computed in O(N^2)
+pub(crate) fn bucket_kb_sb_onsq<F>(df: &DataFrame,
+    tenor_col:&str, rho_diff_tenor: f64, 
+    name_col: &str, rho_diff_name: f64, 
+    basis_col: &str, rho_diff_rft: f64,
+    risk_col: &str,
+    scenario_fn: F, is_special_bucket: bool) 
+-> Result<(f64, f64)> 
+where F: Fn(f64) -> f64 + Sync + Send,
+{
+    let risk_chunked = df[risk_col].f64()?;
+    let sb = risk_chunked.sum().unwrap_or_default();
+    if is_special_bucket{
+        let res = risk_chunked
+        .into_no_null_iter()
+        .map(|x| x.abs())
+        .sum::<f64>();
+        return Ok((res, sb))
+    }
+    let tenor_chunked = df[tenor_col].utf8()?;
+    let name_chunked = df[name_col].utf8()?;
+    let basis_chunked = df[basis_col].utf8()?;
+
+    let mut res = 0.;
+    let it = tenor_chunked
+        .into_iter()
+        .zip(name_chunked.into_iter())
+        .zip(basis_chunked.into_iter())
+        .zip(risk_chunked.into_iter());
+
+        
+    for (i, (((tenor, name),basis), risk)) in it.enumerate() {
+
+        if let Some(risk) = risk{
+            res += risk.powi(2);
+
+            let it2 = tenor_chunked
+                .into_iter()
+                .zip(name_chunked.into_iter())
+                .zip(basis_chunked.into_iter())
+                .zip(risk_chunked.into_iter());
+
+            for (((tenor2, name2),basis2), risk2) in it2.skip(i+1) {
+                if let Some(risk2) = risk2{
+                    let mut rho = 1.;
+                    if tenor != tenor2{
+                        rho = rho*rho_diff_tenor
+                    }
+                    if name != name2 {
+                        rho = rho*rho_diff_name
+                    }
+                    if basis != basis2 {
+                        rho = rho*rho_diff_rft
+                    }
+                    res += 2f64*scenario_fn(rho)*risk*risk2
+                }
+            }
+        }
+    };
+
+    Ok((res.max(0.).sqrt(), sb))
 }
 
 /// 21.93
@@ -674,6 +804,7 @@ pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame,
     };
 
 
+    // If this is a GIRR calculation, then compute XCCY and Inflation
     if let Some((rho_infl, rho_xccy)) = girr{
         let xccy: f64 = bucket_df["XCCY"].sum().unwrap_or_else(||0.);
         // 21.8.2.b

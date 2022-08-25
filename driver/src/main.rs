@@ -169,6 +169,10 @@ const JSON: &str = r#"
 
 ["Commodity_DeltaSens", "sum"],
 ["Commodity_DeltaSens_Weighted", "sum"],
+["Commodity_DeltaSb", "first"],
+["Commodity_DeltaKb_Low", "first"],
+["Commodity_DeltaKb_Medium", "first"],
+["Commodity_DeltaKb_High", "first"],
 ["Commodity_DeltaCharge_Low", "first"],
 ["Commodity_DeltaCharge_Medium", "first"],
 ["Commodity_DeltaCharge_High", "first"],

@@ -18,7 +18,7 @@ use crate::sbm::girr::curvature::{ir_curv_delta, girr_curv_delta_weighted, girr_
 use crate::sbm::girr::delta::{total_ir_delta_sens, girr_delta_sens_weighted,
     girr_delta_charge_low, girr_delta_charge_medium, girr_delta_charge_high, girr_delta_sb, girr_delta_kb_low, girr_delta_kb_medium, girr_delta_kb_high};
 use crate::sbm::commodity::delta::{total_commodity_delta_sens, commodity_delta_sens_weighted, 
-    commodity_delta_charge_low, commodity_delta_charge_medium, commodity_delta_charge_high};
+    commodity_delta_charge_low, commodity_delta_charge_medium, commodity_delta_charge_high, commodity_delta_sb, commodity_delta_kb_low, commodity_delta_kb_medium, commodity_delta_kb_high};
 use crate::sbm::equity::delta::{equity_delta_sens, equity_delta_sens_weighted,
         equity_delta_charge_low, equity_delta_charge_medium, equity_delta_charge_high, eq_delta_kb_low, eq_delta_kb_medium, eq_delta_kb_high, eq_delta_sb};
 use crate::sbm::girr::vega::{total_ir_vega_sens, girr_vega_sens_weighted, girr_vega_charge_medium, girr_vega_kb_medium, girr_vega_kb_high, girr_vega_charge_high, girr_vega_charge_low, girr_vega_kb_low, girr_vega_sb};
@@ -198,6 +198,30 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             name: "Commodity_DeltaSens_Weighted".to_string(),
             calculator: Box::new(commodity_delta_sens_weighted),
             aggregation: None,
+        },
+
+        Measure {
+            name: "Commodity_DeltaSb".to_string(),
+            calculator: Box::new(commodity_delta_sb),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Commodity_DeltaKb_Low".to_string(),
+            calculator: Box::new(commodity_delta_kb_low),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Commodity_DeltaKb_Medium".to_string(),
+            calculator: Box::new(commodity_delta_kb_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Commodity_DeltaKb_High".to_string(),
+            calculator: Box::new(commodity_delta_kb_high),
+            aggregation: Some("first"),
         },
 
         Measure {

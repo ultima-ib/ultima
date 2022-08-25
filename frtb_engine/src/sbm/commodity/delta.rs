@@ -11,85 +11,66 @@ use ndarray::prelude::*;
 pub fn total_commodity_delta_sens (_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "Commodity", total_delta_sens())
 }
-/// Helper functions
-pub(crate) fn commodity_delta_sens_weighted_spot() -> Expr {
-    rc_tenor_weighted_sens("Delta", "Commodity", "SensitivitySpot","SensWeights", 0)
-}
-pub(crate) fn commodity_delta_sens_weighted_025y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_025Y","SensWeights", 1)
-}
-pub(crate) fn commodity_delta_sens_weighted_05y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_05Y","SensWeights", 2)
-}
-pub(crate) fn commodity_delta_sens_weighted_1y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_1Y","SensWeights", 3)
-}
-pub(crate) fn commodity_delta_sens_weighted_2y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_2Y","SensWeights", 4)
-}
-pub(crate) fn commodity_delta_sens_weighted_3y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_3Y","SensWeights", 5)
-}
-pub(crate) fn commodity_delta_sens_weighted_5y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_5Y","SensWeights", 6)
-}
-pub(crate) fn commodity_delta_sens_weighted_10y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_10Y","SensWeights", 7)
-}
-pub(crate) fn commodity_delta_sens_weighted_15y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_15Y","SensWeights", 8)
-}
-pub(crate) fn commodity_delta_sens_weighted_20y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_20Y", "SensWeights",9)
-}
-pub(crate) fn commodity_delta_sens_weighted_30y() -> Expr {
-    rc_tenor_weighted_sens("Delta","Commodity", "Sensitivity_30Y", "SensWeights",10)
-}
+
 /// Total Commodity Delta
-pub(crate) fn commodity_delta_sens_weighted(_: &OCP) -> Expr {
-    commodity_delta_sens_weighted_spot().fill_null(0.)
-    + commodity_delta_sens_weighted_025y().fill_null(0.)
-    + commodity_delta_sens_weighted_05y().fill_null(0.)
-    + commodity_delta_sens_weighted_1y().fill_null(0.)
-    + commodity_delta_sens_weighted_2y().fill_null(0.)
-    + commodity_delta_sens_weighted_3y().fill_null(0.)
-    + commodity_delta_sens_weighted_5y().fill_null(0.)
-    + commodity_delta_sens_weighted_10y().fill_null(0.)
-    + commodity_delta_sens_weighted_15y().fill_null(0.)
-    + commodity_delta_sens_weighted_20y().fill_null(0.)
-    + commodity_delta_sens_weighted_30y().fill_null(0.)
+pub(crate) fn commodity_delta_sens_weighted(op: &OCP) -> Expr {
+    total_commodity_delta_sens(op)*col("SensWeights").arr().get(0)
+}
+
+/// Interm Result: Commodity Delta Sb <--> Sb Low == Sb Medium == Sb High
+pub(crate) fn commodity_delta_sb(op: &OCP) -> Expr {
+    commodity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
+}
+/// Interm Result: Commodity Kb Low
+pub(crate) fn commodity_delta_kb_low(op: &OCP) -> Expr {
+    commodity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
+}
+/// Interm Result: Commodity Kb Medium
+pub(crate) fn commodity_delta_kb_medium(op: &OCP) -> Expr {
+    commodity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)  
+}
+/// Interm Result: Commodity Kb High
+pub(crate) fn commodity_delta_kb_high(op: &OCP) -> Expr {
+    commodity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)  
 }
 
 ///calculate commodity Delta Low Capital charge
 pub(crate) fn commodity_delta_charge_low(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO)  
+    commodity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate commodity Delta Medium Capital charge
 pub(crate) fn commodity_delta_charge_medium(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO)  
+    commodity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate commodity Delta High Capital charge
 pub(crate) fn commodity_delta_charge_high(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO)
+    commodity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
-fn commodity_delta_charge_distributor(_: &OCP, scenario: &'static ScenarioConfig) -> Expr {
-    // TODO Accept optional parameters from op
+fn commodity_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
+    let _suffix = scenario.as_str();
+
+    let com_gamma = get_optional_parameter_array(op, format!("commodity_delta_gamma{_suffix}").as_str(), &scenario.com_gamma);
+    let commodity_rho_bucket = get_optional_parameter(op, format!("commodity_delta_rho_bucket{_suffix}").as_str(), &scenario.base_com_rho_cty);
+    let commodity_rho_diff_loc =  get_optional_parameter(op, format!("commodity_delta_rho_diff_{_suffix}").as_str(), &scenario.base_com_rho_basis_diff);
+    let commodity_rho_diff_tenor =  get_optional_parameter(op, format!("commodity_delta_rho_diff_{_suffix}").as_str(), &scenario.base_com_rho_tenor);
+
+
     commodity_delta_charge( 
-        scenario.base_com_rho_cty,
-         &scenario.com_gamma,
-        scenario.base_com_rho_basis_diff,
-    scenario.base_com_rho_tenor.clone(),
-    scenario.scenario_fn)
+        commodity_rho_bucket,
+        com_gamma,
+        commodity_rho_diff_loc,
+        commodity_rho_diff_tenor,
+        scenario.scenario_fn, rtrn)
 }
 
 
-fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: &'static Array2<f64>, 
-    com_rho_base_diff_loc: f64, rho_tenor: Array2<f64>, scenario_fn: F)
+fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: Array2<f64>, 
+    com_rho_base_diff_loc: f64, rho_tenor: f64, scenario_fn: F, rtrn: ReturnMetric)
     -> Expr 
     where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,{  
     
@@ -97,7 +78,7 @@ fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: &'static Arra
     apply_multiple( move |columns| {
         
         let df = df![
-            "rcat"=>  columns[15].clone(),
+            "rcat"=>  columns[16].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
             "loc" =>  columns[2].clone(),
@@ -113,6 +94,7 @@ fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: &'static Arra
             "y15" =>  columns[12].clone(),
             "y20" =>  columns[13].clone(),
             "y30" =>  columns[14].clone(),
+            "w"   =>  columns[15].clone(),
         ]?;
         
 
@@ -121,39 +103,61 @@ fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: &'static Arra
             .and(col("rcat").eq(lit("Delta"))))
             .groupby([col("b"), col("rf"), col("loc")])
             .agg([
-                col("y0").sum(),
-                col("y025").sum(),
-                col("y05").sum(),
-                col("y1").sum(),
-                col("y2").sum(),
-                col("y3").sum(),
-                col("y5").sum(),
-                col("y10").sum(),
-                col("y15").sum(),
-                col("y20").sum(),
-                col("y30").sum()            
+                (col("y0")*col("w")).sum(),
+                (col("y025")*col("w")).sum(),
+                (col("y05")*col("w")).sum(),
+                (col("y1")*col("w")).sum(),
+                (col("y2")*col("w")).sum(),           
+                (col("y3")*col("w")).sum(),
+                (col("y5")*col("w")).sum(),
+                (col("y10")*col("w")).sum(),
+                (col("y15")*col("w")).sum(),
+                (col("y20")*col("w")).sum(),
+                (col("y30")*col("w")).sum()
             ])
             .fill_null(lit::<f64>(0.))
             .collect()?;
-
-        let tenor_cols = vec!["y0", "y025", "y05", "y1", "y2","y3", "y5", "y10", "y15", "y20", "y30"];
-        let n_buckets = 11; // Commodity has 11 buckets
         
-        let kbs_sbs = all_kbs_sbs(df, tenor_cols, n_buckets, &rho_tenor,
+        let ma = MeltArgs{id_vars: vec!["b".to_string(), "rf".to_string(), "loc".to_string()], 
+        value_vars: vec!["y0".to_string(), "y025".to_string(), "y05".to_string(), "y1".to_string(), "y2".to_string(),"y3".to_string(), "y5".to_string(), "y10".to_string(), "y15".to_string(), "y20".to_string(), "y30".to_string()],
+        variable_name: Some("tenor".to_string()),
+        value_name: Some("weighted_sens".to_string())};
+        let df = df.melt2(ma)?;
+
+        let kbs_sbs = all_kbs_sbs_onsq(df, 
+            "tenor", rho_tenor, 
             "rf", &bucket_rho_cty,
-            Some("loc"), Some(com_rho_base_diff_loc),
+            "loc", com_rho_base_diff_loc,
+            "weighted_sens",
              scenario_fn, None)?;
 
         
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
-        across_bucket_agg(kbs, sbs, &com_gamma, columns[0].len(), SBMChargeType::DeltaVega)
+        let res_len = columns[0].len();
+
+        match rtrn {
+            ReturnMetric::Kb => return Ok(Float64Chunked::from_vec("Res", vec![kbs.iter().sum();res_len]).into_series()),
+            ReturnMetric::Sb => return Ok(Float64Chunked::from_vec("Res", vec![sbs.iter().sum();res_len]).into_series()),
+            _ => (),
+        }
+        across_bucket_agg(kbs, sbs, &com_gamma, res_len, SBMChargeType::DeltaVega)
 
  }, 
     &[ col("RiskClass"), col("RiskFactor"), col("CommodityLocation"), col("BucketBCBS"), 
-    commodity_delta_sens_weighted_spot(), commodity_delta_sens_weighted_025y(), commodity_delta_sens_weighted_05y(),
-    commodity_delta_sens_weighted_1y(), commodity_delta_sens_weighted_2y(), commodity_delta_sens_weighted_3y(),
-    commodity_delta_sens_weighted_5y(), commodity_delta_sens_weighted_10y(), commodity_delta_sens_weighted_15y(),
-    commodity_delta_sens_weighted_20y(), commodity_delta_sens_weighted_30y(), col("RiskCategory")], 
+    col("SensitivitySpot"),
+    col("Sensitivity_025Y"),
+    col("Sensitivity_05Y"),
+    col("Sensitivity_1Y"),
+    col("Sensitivity_2Y"),
+    col("Sensitivity_3Y"),
+    col("Sensitivity_5Y"),
+    col("Sensitivity_10Y"),
+    col("Sensitivity_15Y"),
+    col("Sensitivity_20Y"),
+    col("Sensitivity_30Y"),
+    col("SensWeights").arr().get(0),
+    
+    col("RiskCategory")], 
         GetOutput::from_type(DataType::Float64))
 }
 

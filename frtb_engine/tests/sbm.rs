@@ -361,4 +361,30 @@ fn csr_nonsec_crr2_vega() {
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
 
+#[test]
+fn commodity_delta() {
+    let expected_res = arr1(&[
+        -250.0, -122.5, -122.5, 408.934179, 405.736564, 402.5, 269.704639, 260.4533, 250.861017]);
+    let request = r#"
+    {"measures": [
+        ["Commodity_DeltaSens", "sum"],
+        ["Commodity_DeltaSens_Weighted", "sum"],
+        ["Commodity_DeltaSb", "first"],
+        ["Commodity_DeltaKb_Low", "first"],
+        ["Commodity_DeltaKb_Medium", "first"],
+        ["Commodity_DeltaKb_High", "first"],
+        ["Commodity_DeltaCharge_Low", "first"],
+        ["Commodity_DeltaCharge_Medium", "first"],
+        ["Commodity_DeltaCharge_High", "first"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "optional_params": {
+                "hide_zeros":true,
+                "calc_params": {"jurisdiction": "BCBS"}
+            }
+    }"#;
+    assert_results(request, expected_res.sum(), None)
+}
+
 

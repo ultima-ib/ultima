@@ -45,7 +45,6 @@ pub(crate) fn eq_delta_kb_high(op: &OCP) -> Expr {
     equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)  
 }
 
-
 ///calculate Equity Delta High Capital charge
 pub(crate) fn equity_delta_charge_high(op: &OCP) -> Expr {
     equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
@@ -129,8 +128,6 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         let res_len = columns[0].len();
         //let a = Float64Chunked::from_vec("Res", vec![kbs.iter().sum();res_len]);
         match rtrn {
-            //ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
-            //ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
             ReturnMetric::Kb => return Ok(Float64Chunked::from_vec("Res", vec![kbs.iter().sum();res_len]).into_series()),
             ReturnMetric::Sb => return Ok(Float64Chunked::from_vec("Res", vec![sbs.iter().sum();res_len]).into_series()),
             _ => (),

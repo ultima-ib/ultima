@@ -702,7 +702,6 @@ pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64)->Result<(f64, f64)>{
 
 pub(crate) fn all_kbs_sbs_single_type<F>(
     df: DataFrame, 
-    n_buckets: usize, 
     rho_same_curve: &Array2<f64>, 
     rho_diff_curve: &[f64],
     scenario_fn: F,
@@ -711,6 +710,7 @@ pub(crate) fn all_kbs_sbs_single_type<F>(
     ) 
     -> Result<Vec<(f64, f64)>>
     where F: Fn(f64) -> f64 + Sync + Send + Copy{
+        let n_buckets = rho_diff_curve.len();
     
         let mut reskbs_sbs: Vec<Result<((String, f64), f64)> > = Vec::with_capacity(n_buckets);
         for _ in 0..n_buckets{reskbs_sbs.push( Ok( (("".to_string(), 0.), 0.) ))};
@@ -766,7 +766,7 @@ pub(crate) fn all_kbs_sbs_single_type<F>(
         Ok( kbs.into_iter().zip(sbs.into_iter()).collect() )
     }
 
-/// Girr Delta and Eq Vega share common approach.
+/// Girr Delta and Eq, CSR and Commodity Vega share common approach.
 /// They have tenors and no RFT (in case of GIRR Infl and XCCY become columns)
 pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame, 
     rho_same_curve: &Array2<f64>, 

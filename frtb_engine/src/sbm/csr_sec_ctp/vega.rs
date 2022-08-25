@@ -61,7 +61,7 @@ fn csrsecctp_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig
     let (weight, bucket_col, name_rho_vec,
         rho_opt, 
         gamma,
-        n_buckets, special_bucket) =
+        special_bucket) =
         match juri{
             #[cfg(feature = "CRR2")]
             Jurisdiction::CRR2 => (
@@ -70,7 +70,6 @@ fn csrsecctp_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig
             Vec::from(scenario.base_csr_ctp_rho_name_crr2),
             &scenario.base_vega_rho,
             &scenario.csr_ctp_gamma_crr2,
-            18usize, 
             None
             ),
 
@@ -81,7 +80,6 @@ fn csrsecctp_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig
             Vec::from(scenario.base_csr_ctp_rho_name_bcbs),
             &scenario.base_vega_rho,
             &scenario.csr_ctp_gamma,
-            16,
             None
             )
         };
@@ -92,5 +90,5 @@ fn csrsecctp_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig
 
     csr_nonsec_vega_charge(weight, bucket_col, &scenario.scenario_fn, 
         csr_vega_rho, base_csr_rho_bucket, 
-        csr_gamma, n_buckets, special_bucket, "CSR_Sec_CTP", "Vega", rtrn)
+        csr_gamma, special_bucket, "CSR_Sec_CTP", "Vega", rtrn)
 }

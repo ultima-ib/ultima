@@ -177,6 +177,19 @@ const JSON: &str = r#"
 ["Commodity_DeltaCharge_Medium", "first"],
 ["Commodity_DeltaCharge_High", "first"],
 
+["Commodity_VegaSens", "sum"],
+["Commodity_VegaSens_Weighted", "sum"],
+["Commodity_VegaSb", "first"],
+["Commodity_VegaKb_Low", "first"],
+["Commodity_VegaKb_Medium", "first"],
+["Commodity_VegaKb_High", "first"],
+["Commodity_VegaCharge_Low", "first"],
+["Commodity_VegaCharge_Medium", "first"],
+["Commodity_VegaCharge_High", "first"],
+
+
+
+
 ["CSR_nonSec_DeltaSens", "sum"],
 ["CSR_nonSec_DeltaSens_Weighted", "sum"],
 ["CSR_nonSec_DeltaSb", "first"],
@@ -313,7 +326,6 @@ const JSON: &str = r#"
 ["EQ_Curvature_KbMinus_High", "first"],
 ["EQ_Curvature_Kb_High", "first"],
 ["EQ_Curvature_Sb_High", "first"],
-
 ["EQ_CurvatureCharge_Low", "first"],
 ["EQ_CurvatureCharge_Medium", "first"],
 ["EQ_CurvatureCharge_High", "first"]

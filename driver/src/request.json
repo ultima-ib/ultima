@@ -3,15 +3,15 @@
     "method": "SEND", 
     "params": {
         "measures": [ 
-            ["Commodity_DeltaSens", "sum"],
-["Commodity_DeltaSens_Weighted", "sum"],
-["Commodity_DeltaSb", "first"],
-["Commodity_DeltaKb_Low", "first"],
-["Commodity_DeltaKb_Medium", "first"],
-["Commodity_DeltaKb_High", "first"],
-["Commodity_DeltaCharge_Low", "first"],
-["Commodity_DeltaCharge_Medium", "first"],
-["Commodity_DeltaCharge_High", "first"]
+            ["Commodity_VegaSens", "sum"],
+["Commodity_VegaSens_Weighted", "sum"],
+["Commodity_VegaSb", "first"],
+["Commodity_VegaKb_Low", "first"],
+["Commodity_VegaKb_Medium", "first"],
+["Commodity_VegaKb_High", "first"],
+["Commodity_VegaCharge_Low", "first"],
+["Commodity_VegaCharge_Medium", "first"],
+["Commodity_VegaCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [],

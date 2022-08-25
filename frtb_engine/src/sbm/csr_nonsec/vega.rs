@@ -62,7 +62,7 @@ fn csr_nonsec_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfi
     let (weight, bucket_col, name_rho_vec,
         rho_opt, 
         gamma,
-        n_buckets, special_bucket) =
+        special_bucket) =
         match juri{
             #[cfg(feature = "CRR2")]
             Jurisdiction::CRR2 => (
@@ -71,7 +71,6 @@ fn csr_nonsec_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfi
             Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
             &scenario.base_vega_rho,
             &scenario.csr_nonsec_gamma_crr2,
-            20usize, 
             Some("18")
             ),
 
@@ -82,7 +81,6 @@ fn csr_nonsec_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfi
             Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
             &scenario.base_vega_rho,
             &scenario.csr_nonsec_gamma,
-            18,
             Some("16")
             )
         };
@@ -93,15 +91,16 @@ fn csr_nonsec_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfi
 
     csr_nonsec_vega_charge(weight, bucket_col, &scenario.scenario_fn, 
         csr_vega_rho, base_csr_rho_bucket, 
-        csr_gamma, n_buckets, special_bucket, "CSR_nonSec", "Vega", rtrn)
+        csr_gamma, special_bucket, "CSR_nonSec", "Vega", rtrn)
 }
 
+/// Used by CSR nonSec, CSR secCTP Vegas
 pub(crate) fn csr_nonsec_vega_charge<F>(
     weight: Expr,
     bucket_col: Expr, scenario_fn: F, 
     opt_mat_rho: Array2<f64>, rho_diff_curve: Vec<f64>,
     gamma: Array2<f64>,
-    n_buckets: usize, special_bucket: Option<&'static str>, risk_class: &'static str, risk_cat: &'static str,
+    special_bucket: Option<&'static str>, risk_class: &'static str, risk_cat: &'static str,
     rtrn: ReturnMetric) -> Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
@@ -136,7 +135,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
         
         if df.height() == 0 { return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )};
 
-        let kbs_sbs = all_kbs_sbs_single_type(df, n_buckets, 
+        let kbs_sbs = all_kbs_sbs_single_type(df, 
             &opt_mat_rho,
             &rho_diff_curve, 
             scenario_fn, 

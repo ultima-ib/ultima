@@ -1,6 +1,7 @@
 
 //! This file defines all the measures, associated with this library
 
+use crate::sbm::commodity::vega::{total_com_vega_sens, total_com_vega_sens_weighted, com_vega_sb, com_vega_kb_low, com_vega_charge_low, com_vega_kb_medium, com_vega_charge_medium, com_vega_kb_high, com_vega_charge_high};
 use crate::sbm::common::sens_weights;
 use crate::sbm::csr_nonsec::curvature::{csrnonsec_curv_delta, csrnonsec_curv_delta_weighted, csrnonsec_pnl_up, csrnonsec_pnl_down, csrnonsec_cvr_up, csrnonsec_cvr_down, csrnonsec_curvature_kb_plus_medium, csrnonsec_curvature_kb_minus_medium, csrnonsec_curvature_kb_medium, csrnonsec_curvature_sb_medium, csrnonsec_curvature_charge_medium, csrnonsec_curvature_kb_plus_low, csrnonsec_curvature_kb_minus_low, csrnonsec_curvature_kb_low, csrnonsec_curvature_sb_low, csrnonsec_curvature_charge_low, csrnonsec_curvature_kb_plus_high, csrnonsec_curvature_kb_minus_high, csrnonsec_curvature_kb_high, csrnonsec_curvature_sb_high, csrnonsec_curvature_charge_high};
 use crate::sbm::csr_nonsec::delta::{csr_nonsec_delta_charge_low, csr_nonsec_delta_charge_medium, csr_nonsec_delta_charge_high, total_csr_nonsec_delta_sens, csr_nonsec_delta_sens_weighted, csr_nonsec_delta_sb, csr_nonsec_delta_kb_low, csr_nonsec_delta_kb_medium, csr_nonsec_delta_kb_high};
@@ -239,6 +240,59 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
         Measure {
             name: "Commodity_DeltaCharge_High".to_string(),
             calculator: Box::new(commodity_delta_charge_high),
+            aggregation: Some("first"),
+        },
+
+        // ############################## Commodity Vega #######################
+        Measure {
+            name: "Commodity_VegaSens".to_string(),
+            calculator: Box::new(total_com_vega_sens),
+            aggregation: None
+        },
+
+        Measure {
+            name: "Commodity_VegaSens_Weighted".to_string(),
+            calculator: Box::new(total_com_vega_sens_weighted),
+            aggregation: None,
+        },
+
+        Measure {
+            name: "Commodity_VegaSb".to_string(),
+            calculator: Box::new(com_vega_sb),
+            aggregation: Some("first"),
+        },
+        Measure {
+            name: "Commodity_VegaKb_Low".to_string(),
+            calculator: Box::new(com_vega_kb_low),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Commodity_VegaCharge_Low".to_string(),
+            calculator: Box::new(com_vega_charge_low),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Commodity_VegaKb_Medium".to_string(),
+            calculator: Box::new(com_vega_kb_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Commodity_VegaCharge_Medium".to_string(),
+            calculator: Box::new(com_vega_charge_medium),
+            aggregation: Some("first"),
+        },
+        Measure {
+            name: "Commodity_VegaKb_High".to_string(),
+            calculator: Box::new(com_vega_kb_high),
+            aggregation: Some("first"),
+        },
+
+        Measure {
+            name: "Commodity_VegaCharge_High".to_string(),
+            calculator: Box::new(com_vega_charge_high),
             aggregation: Some("first"),
         },
 

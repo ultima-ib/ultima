@@ -53,12 +53,13 @@ fn equity_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, r
     let base_eq_rho_bucket = get_optional_parameter(op, format!("eq_rho_diff_name_bucket{_suffix}").as_str(), &scenario.base_delta_eq_rho_bucket);
     let eq_vega_rho = get_optional_parameter_array(op, format!("eq_opt_mat_vega_rho{_suffix}").as_str(), &scenario.base_vega_rho);
 
-    equity_vega_charge(eq_vega_rho, eq_gamma, base_eq_rho_bucket, scenario.scenario_fn, rtrn)
+    equity_vega_charge(eq_vega_rho, eq_gamma, base_eq_rho_bucket.to_vec(), 
+    scenario.scenario_fn, rtrn, Some("11"), "Equity")
 }
 
-///calculate Equity Vega Capital charge
-fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
-     scenario_fn: F, rtrn: ReturnMetric) -> Expr 
+/// calculate Equity Vega Capital charge. Used for Commodity also
+pub(crate) fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>, eq_rho_bucket: Vec<f64>,
+     scenario_fn: F, rtrn: ReturnMetric, special_bucket: Option<&'static str>, rc: &'static str) -> Expr 
     where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,{
     // inner function
     apply_multiple( move |columns| {
@@ -78,7 +79,7 @@ fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>, eq_rho_bu
         
         // 21.4.3 - Netting
         let df = df.lazy()
-            .filter(col("rc").eq(lit("Equity")).and(col("rcat").eq(lit("Vega"))))
+            .filter(col("rc").eq(lit(rc)).and(col("rcat").eq(lit("Vega"))))
             .groupby([col("b"), col("rf")])
             .agg([
                 (col("y05")*col("wght")).sum().alias("y05"),
@@ -99,12 +100,11 @@ fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>, eq_rho_bu
         // iterations over buckets which are not present
         let kbs_sbs = all_kbs_sbs_single_type(
             df, 
-            13,
             &opt_mat_rho,
             &eq_rho_bucket,
             scenario_fn,
             &vec!["y05", "y1", "y3", "y5", "y10"],
-            Some("11"))?;
+            special_bucket)?;
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 

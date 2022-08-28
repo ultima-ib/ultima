@@ -88,7 +88,7 @@ fn csrsecctp_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
             Jurisdiction::CRR2 => (
             col("CurvatureRiskWeightCRR2"),
             col("BucketCRR2"),
-            Vec::from(scenario.base_csr_ctp_rho_name_crr2_curv),
+            Vec::from(scenario.csr_ctp_rho_name_crr2_curv),
             &scenario.csr_ctp_gamma_crr2_curv,
             None
             ),
@@ -97,7 +97,7 @@ fn csrsecctp_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
             (
             col("CurvatureRiskWeight"),
             col("BucketBCBS"),
-            Vec::from(scenario.base_csr_ctp_rho_name_bcbs_curv),
+            Vec::from(scenario.csr_ctp_rho_name_bcbs_curv),
             &scenario.csr_ctp_gamma_curv,
             None
             )

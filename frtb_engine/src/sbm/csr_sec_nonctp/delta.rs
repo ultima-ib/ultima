@@ -36,100 +36,140 @@ pub(crate) fn csr_sec_nonctp_delta_sens_weighted(_: &OCP) -> Expr {
     + csr_sec_nonctp_delta_sens_weighted_5y_bcbs().fill_null(0.)
     + csr_sec_nonctp_delta_sens_weighted_10y_bcbs().fill_null(0.)
 }
+//Interm results 
+pub(crate) fn csr_sec_nonctp_delta_sb(op: &OCP) -> Expr {
+    csr_sec_nonctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)  
+}
+
+pub(crate) fn csr_sec_nonctp_delta_kb_low(op: &OCP) -> Expr {
+    csr_sec_nonctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
+}
+
+pub(crate) fn csr_sec_nonctp_delta_kb_medium(op: &OCP) -> Expr {
+    csr_sec_nonctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+}
+
+pub(crate) fn csr_sec_nonctp_delta_kb_high(op: &OCP) -> Expr {
+    csr_sec_nonctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+}
 
 ///calculate CSR non-Sec Delta Low Capital charge
 pub(crate) fn csr_sec_nonctp_delta_charge_low(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO)  
+    csr_sec_nonctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate CSR non-Sec Delta Medium Capital charge
 pub(crate) fn csr_sec_nonctp_delta_charge_medium(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO)  
+    csr_sec_nonctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
 
 ///calculate CSR non-Sec Delta High Capital charge
 pub(crate) fn csr_sec_nonctp_delta_charge_high(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO)
+    csr_sec_nonctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 /// And pass them to the main Delta Charge calculator accordingly
 /// calls csr_nonsec_delta_charge because the calculation is identical
-fn csr_sec_nonctp_delta_charge_distributor(_: &OCP, scenario: &'static ScenarioConfig) -> Expr {
-    
-    let (y05, y1, y3, y5, y10, bucket_col, tranche_rho_vec, 
-        gamma,
-        n_buckets, special_bucket) = 
-        (csr_sec_nonctp_delta_sens_weighted_05y_bcbs(),
-        csr_sec_nonctp_delta_sens_weighted_1y_bcbs(),
-        csr_sec_nonctp_delta_sens_weighted_3y_bcbs(),
-        csr_sec_nonctp_delta_sens_weighted_5y_bcbs(),
-        csr_sec_nonctp_delta_sens_weighted_10y_bcbs(),
-        col("BucketBCBS"),
-        Vec::from(scenario.base_csr_sec_nonctp_rho_diff_tranche),
-        scenario.csr_sec_nonctp_gamma.to_owned(),
-        25usize, Some(25),
-        );
+fn csr_sec_nonctp_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
+    let _suffix = scenario.as_str();
 
-        // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets
-        csr_sec_nonctp_delta_charge(y05, y1, y3, y5, y10, 
-        &scenario.base_csr_sec_nonctp_rho_tenor, tranche_rho_vec,
-        scenario.base_csr_sec_nonctp_rho_diff_basis, bucket_col, scenario.scenario_fn,
-        gamma, n_buckets, special_bucket, "CSR_Sec_nonCTP", "Delta")
+    let rho_tenor = get_optional_parameter(op,"base_csr_sec_nonctp_diff_tenor_rho", 
+    &scenario.base_csr_sec_nonctp_rho_tenor);
+
+    let rho_name = get_optional_parameter_vec(op,"base_csr_sec_nonctp_diff_name_rho", 
+    &scenario.csr_sec_nonctp_rho_diff_name_curv.to_vec());
+
+    let rho_tranche = get_optional_parameter(op,"base_csr_sec_nonctp_diff_tranche_rho", 
+    &scenario.base_csr_sec_nonctp_rho_diff_tranche);
+
+    let gamma = get_optional_parameter_array(op,format!("base_csr_sec_nonctp_gamma{_suffix}").as_str(), 
+    &scenario.csr_sec_nonctp_gamma);
+    
+    // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets
+    csr_sec_nonctp_delta_charge(
+        rho_tenor,
+        rho_name,
+        rho_tranche,
+        &scenario.scenario_fn,
+        gamma,
+        Some(25),
+        "CSR_Sec_nonCTP", "Delta", rtrn)
+        
 }
 
-pub(crate) fn csr_sec_nonctp_delta_charge<F>(y05: Expr, y1: Expr, y3: Expr, y5: Expr, y10: Expr,
-    base_tenor_rho: &'static Array2<f64>, rho_name: Vec<f64>, rho_basis: f64,
-    bucket_col: Expr, scenario_fn: F, gamma: Array2<f64>,
-    n_buckets: usize, special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str) -> Expr
+pub(crate) fn csr_sec_nonctp_delta_charge<F>(
+    rho_tenor: f64, rho_name: Vec<f64>, rho_rft: f64,
+    scenario_fn: F, gamma: Array2<f64>,
+    special_bucket: Option<usize>, risk_class: &'static str, risk_cat: &'static str, rtrn: ReturnMetric) -> Expr
 where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
     apply_multiple( move |columns| {
-        //let now = Instant::now();
         let df = df![
-            "rcat" =>   columns[9].clone(),
+            "rcat" =>   columns[10].clone(),
             "rc" =>   columns[0].clone(), 
             "rf" =>   columns[1].clone(),
-            "rft" =>  columns[2].clone(),
+            "tran"=>  columns[2].clone(),
             "b" =>    columns[3].clone(),
             "y05" =>  columns[4].clone(),
             "y1" =>   columns[5].clone(),
             "y3" =>   columns[6].clone(),
             "y5" =>   columns[7].clone(),
-            "y10" =>  columns[8].clone()
+            "y10" =>  columns[8].clone(),
+            "w"   =>  columns[9].clone()
         ]?;
+        
 
         let df = df.lazy()
             .filter(col("rc").eq(lit(risk_class))
                 .and(col("rcat").eq(lit(risk_cat))))
-            .groupby([col("b"), col("rf"), col("rft")])
+            .groupby([col("b"), col("rf"), col("tran")])
             .agg([
-                col("y05").sum(),
-                col("y1").sum(),
-                col("y3").sum(),
-                col("y5").sum(),
-                col("y10").sum()           
+                (col("y05")*col("w")).sum(),
+                (col("y1")*col("w")).sum(),
+                (col("y3")*col("w")).sum(),
+                (col("y5")*col("w")).sum(),
+                (col("y10")*col("w")).sum()          
             ])
-            .fill_null(lit::<f64>(0.))
+            // No need to fill null here
             .collect()?;
-        // 21.4.4 - 21.5.a
-        let tenor_cols = vec!["y05", "y1", "y3", "y5", "y10"];
         
-        let kbs_sbs = all_kbs_sbs(df, tenor_cols, n_buckets, &base_tenor_rho,
-            "rf", &rho_name, 
-            Some("rft"), Some(rho_basis),
+        
+        let ma = MeltArgs{id_vars: vec!["b".to_string(), "rf".to_string(), "tran".to_string()], 
+        value_vars: vec!["y05".to_string(), "y1".to_string(), "y3".to_string(), "y5".to_string(), "y10".to_string()],
+        variable_name: Some("tenor".to_string()),
+        value_name: Some("weighted_sens".to_string())};
+        let df = df.melt2(ma).unwrap();
+        // 21.4.4 - 21.5.a
+        let kbs_sbs = all_kbs_sbs_onsq(df, 
+            "tenor", rho_tenor, 
+            "rf", &rho_name,
+            "tran", rho_rft,
+            "weighted_sens",
              scenario_fn, special_bucket)?;
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
+        let res_len = columns[0].len();
+        match rtrn {
+            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
+            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
+            _ => (),
+        }
         
         // 21.57 OR 325aj
         // Shape of gamma depends on regulation
-        across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
+        across_bucket_agg(kbs, sbs, &gamma, res_len, SBMChargeType::DeltaVega)
     }, 
     
-    &[ col("RiskClass"), col("RiskFactor"), col("RiskFactorType"), bucket_col, 
-    y05, y1, y3, y5, y10, col("RiskCategory")], 
+    &[ col("RiskClass"), col("RiskFactor"), col("Tranche"), col("BucketBCBS"), 
+    col("Sensitivity_05Y"),
+    col("Sensitivity_1Y"),
+    col("Sensitivity_3Y"),
+    col("Sensitivity_5Y"),
+    col("Sensitivity_10Y"),
+    col("SensWeights").arr().get(0),
+     col("RiskCategory")], 
     
     GetOutput::from_type(DataType::Float64))
 

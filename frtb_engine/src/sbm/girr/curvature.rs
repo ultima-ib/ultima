@@ -106,7 +106,7 @@ fn girr_curvature_charge(girr_curv_gamma: f64, _erm2_gamma: f64,
                 cvr_up().sum().alias("cvr_up"),
                 cvr_down().sum().alias("cvr_down"),
             ])
-            .fill_null(lit::<f64>(0.))
+            //.fill_null(lit::<f64>(0.))
             .collect().unwrap();
 
         let res_len = columns[0].len();

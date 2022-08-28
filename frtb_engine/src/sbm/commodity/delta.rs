@@ -115,7 +115,7 @@ fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: Array2<f64>,
                 (col("y20")*col("w")).sum(),
                 (col("y30")*col("w")).sum()
             ])
-            .fill_null(lit::<f64>(0.))
+            // No need to fill null here
             .collect()?;
         
         let ma = MeltArgs{id_vars: vec!["b".to_string(), "rf".to_string(), "loc".to_string()], 

@@ -1,9 +1,8 @@
 use base_engine::prelude::*;
 
-use log::warn;
-use ndarray::{Array2, Array1, Zip, ArrayView1, Order, s, Axis, Data};
+use ndarray::{Array2, Array1, Zip, ArrayView1, s, Axis};
 use polars::{prelude::*, export::num::Signed};
-use rayon::{iter::{ParallelBridge, ParallelIterator, IntoParallelRefMutIterator}, prelude::IntoParallelRefIterator};
+use rayon::{iter::{ParallelBridge, ParallelIterator}, prelude::IntoParallelRefIterator};
 use std::{sync::Mutex};
 use std::mem::MaybeUninit as MU;
 
@@ -181,169 +180,6 @@ pub(crate) fn alt_sbs(sbs_arr: ArrayView1<f64>, kbs_arr: ArrayView1<f64>) -> Arr
    sbs_alt
 }
 
-/// Common function used for CSR, Commodity and EquityVega
-/// 
-/// We compare name_col(RF), and where not equal we multiply rho_tenor by rho_diff_rf_bucket[bucket_id]
-/// 
-/// Equity case is special, as we only need to compare name(RiskFactor) and not basis(RiskFactorType or Location).
-/// Hence basis_col(RFT/Loc) arg is optional, and if provided then rho_diff_rft is expected as well.
-/// 
-/// Computes kb and sb efficiently via uninit
-#[deprecated(note = "Initialises massive matrix which is not practical with large portfolios")]
-pub(crate) fn bucket_kb_sb<F>(df: LazyFrame, bucket_id: usize, special_bucket: Option<usize>, 
-    rho_tenor: &Array2<f64>, name_col: &str, rho_diff_rf_bucket: &[f64], 
-    basis_col: Option<&str>, rho_diff_rft: Option<f64>,  scenario_fn: F, tenor_cols:Vec<&str>, ) 
--> Result<(f64, f64)> 
-where F: Fn(f64) -> f64 + Sync + Send,
-{
-    let bucket_df = df
-            .filter(col("b").eq(lit(bucket_id.to_string())))
-            .collect()?;
-        
-    let n_curves = bucket_df.height();
-    if bucket_df.height() == 0 { return Ok((0.,0.)) };
-
-    let n_tenors = tenor_cols.len();
-    let mut ws_arr = bucket_df
-                .select(tenor_cols)?
-                .to_ndarray::<Float64Type>()?;
-    // 21.56 
-    match special_bucket {
-        Some(x) if x==bucket_id => {
-            ws_arr.par_iter_mut().for_each(|x|*x=x.abs());
-            return Ok((ws_arr.sum(),ws_arr.sum()))
-        },
-        _ => (),
-    };
-    // Array used for name(RF) comparison
-    let name_arr = bucket_df[name_col].utf8()?;
-    // Array used for (optional) RFT/Loc comparison
-    let empty_arr = Utf8Chunked::default();
-    let curve_type_arr = match basis_col{
-            Some(basis_col_name) => bucket_df[basis_col_name].utf8()?,
-            _ => &empty_arr,
-    };
-
-    let rho_name_bucket = rho_diff_rf_bucket.get(bucket_id-1)
-        .map(|x|*x)
-        .unwrap_or_else(||0.);
-
-    let mut arr = Array2::<f64>::uninit((n_curves*n_tenors, n_curves*n_tenors));
-    arr
-    .exact_chunks_mut((n_tenors, n_tenors))
-    .into_iter()
-    .enumerate()
-    .par_bridge()
-    .for_each(|(i, chunk)|{
-        let row_id = i/n_curves; //eg 27usize/10usize = 2usize
-        let col_id = i%n_curves; //eg 27usize % 10usize = 7usize
-        
-        let name_rho = if 
-            unsafe{ name_arr.get_unchecked(row_id) } 
-            == unsafe{ name_arr.get_unchecked(col_id) }{
-                1.
-            } else {
-                rho_name_bucket
-            };
-
-        let basis_rho = match basis_col{
-            // if basis_col was provided, then we compare curve_type_arr(RFT array)
-            Some(_) =>{ if
-                unsafe{ curve_type_arr.get_unchecked(row_id) } 
-                == unsafe{ curve_type_arr.get_unchecked(col_id) } {
-                    1.
-                } else {
-                    rho_diff_rft.expect("basis_col was provided, hence expect rho_diff_rft")
-                }
-            },
-            _ => 1.
-        };
-
-        (rho_tenor*name_rho*basis_rho).move_into_uninit(chunk);
-    });
-    let mut rho: Array2<f64>;
-    unsafe {
-        rho = arr.assume_init();
-    }
-    rho.par_mapv_inplace(|el| {scenario_fn(el)});
-
-    // Stretch out the array into a single vector
-    let arr_shaped = ws_arr
-            .to_shape((ws_arr.len(), Order::RowMajor) )
-            .map_err(|_| PolarsError::ShapeMisMatch("Could not reshape csr arr".into()) )?;
-    //21.4.4
-    let a = arr_shaped.dot(&rho);
-    //21.4.4
-    let kb = a.dot(&arr_shaped)
-        .max(0.)
-        .sqrt();
-
-    //21.4.5.a
-    let sb = arr_shaped.sum();
-    
-    Ok((kb,sb))
-}
-
-/// Column "b" expected. Value in col "b" is expected to be parsable into usize
-/// 
-/// Internally calls [bucket_kb_sb].
-/// 
-/// Common way of calculating Kbs and Sbs for all buckets
-/// Used for CSR, Commodity, Equity Vega
-/// 
-/// df must contain column "b", which represent a bucket
-#[deprecated(note = "wrapper around bucket_kb_sb which is being deprecated")]
-pub(crate) fn all_kbs_sbs<F>(df: DataFrame, tenor_cols:Vec<&str>, n_buckets: usize, 
-rho_tenor:&Array2<f64>, name_col: &str, bucket_rho_diff_rf: &[f64], basis_col: Option<&str>, rho_base_diff_rft_or_loc: Option<f64>, 
-scenario_fn: F, special_bucket: Option<usize>) 
--> Result<Vec<(f64, f64)>>
-where F: Fn(f64) -> f64 + Sync + Send + Copy{
-
-    let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
-    for _ in 0..n_buckets{reskbs_sbs.push(Ok((0., 0.)))};
-
-    let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
-    // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    // 
-    df.partition_by(["b"])?
-    .par_iter()
-    .for_each(|bucket_df|{
-
-        let b_as_idx_plus_1 = unsafe{ bucket_df["b"].get_unchecked(0)};
-        // validating also bucket is not greater than max index of bucket_rho_diff_rf
-        let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-            AnyValue::Utf8(st)=> st.parse::<usize>().ok()
-                .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}}),
-            
-            _=>None};
-        // CALCULATE Kb Sb for a bucket
-        if let Some(b_as_idx_plus_1) = b_as_idx_plus_1{
-            let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1-1];
-            // CALCULATE Kb Sb for a bucket
-            let a = 
-                bucket_kb_sb(df.clone().lazy(), b_as_idx_plus_1, special_bucket,
-                rho_tenor, name_col, bucket_rho_diff_rf, basis_col,
-                 rho_base_diff_rft_or_loc, scenario_fn,
-                tenor_cols.clone() );
-                //bucket_kb_sb_onsq(bucket_df,  b_as_idx_plus_1, special_bucket, 
-                //"tenor", 0.99, 
-            //"rf", name_rho,
-        //"loc", 0.999,
-        //"weighted_sens", scenario_fn);
-            let mut res = arc_mtx.lock().unwrap();
-            res[b_as_idx_plus_1-1] = a;
-            
-        }}
-    );
-    let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
-        .map_err(|_|PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
-        .into_inner()
-        .map_err(|_|PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
-        .into_iter()
-        .collect();
-    reskbs_sbs
-}
-
 /// Column "b" expected. Value in col "b" is expected to be parsable into usize
 /// 
 /// Internally calls [bucket_kb_sb_onsq].
@@ -408,7 +244,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
 /// Commodity and CSR Sec CTO have potentially unlimited number of locations/tranches.
 /// 
 /// Hence we can't go with any of the optimizations. Have to be computed in O(N^2)
-pub(crate) fn bucket_kb_sb_onsq<F>(df: &DataFrame,
+fn bucket_kb_sb_onsq<F>(df: &DataFrame,
     tenor_col:&str, rho_diff_tenor: f64, 
     name_col: &str, rho_diff_name: f64, 
     basis_col: &str, rho_diff_rft: f64,
@@ -493,6 +329,7 @@ fn vega_rho_element(m1: f64, m2: f64) -> f64 {
 /// They have limited number of buckets.
 /// They have 2 variants for RFT, and many different names
 /// The difference between them is only in number of tenors 
+/// 
 /// *df is expected to have "b" column representing bucket
 /// TODO use bucket_rho_diff_rf.len() instead of n_buckets
 pub(crate) fn all_kbs_sbs_two_types<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
@@ -509,8 +346,9 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
 
     let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    // 
-    df.partition_by(["b"])?
+    df
+    .fill_null(FillNullStrategy::Zero)?
+    .partition_by(["b"])?
     .par_iter()
     .for_each(|bucket_df|{
         // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
@@ -541,7 +379,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
 /// This function assumes two RFTs
 /// * `df` - A "pivoted" Dataframe. Rows are names(RFs), columns are 2(for each RFT) x ntenors. Expecting no NULLs
 /// * `tenor_cols` , all columns are expected to .f64(), otherwise we will panic
-pub(crate) fn bucket_kb_sb_two_types<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
+fn bucket_kb_sb_two_types<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
     rho_diff_rf_bucket: &[f64], rho_diff_rft: f64, scenario_fn: F, cols_by_tenor: &[(&str, &str)],
 dtenor: Option<f64> ) 
     -> Result<(f64, f64)> 
@@ -600,6 +438,7 @@ dtenor: Option<f64> )
                 let mut next_tenors_sum = Array2::<f64>::zeros(dim);
                 for (c3, c4) in cols_by_tenor[(t+1)..].iter(){
                     let next_tenor = df.select([*c3, *c4])?
+                    //.fill_null(FillNullStrategy::Zero)?
                     .to_ndarray::<Float64Type>()?; // Nulls must've been filled
                     next_tenors_sum = next_tenors_sum + next_tenor;
                 }
@@ -787,9 +626,9 @@ pub (crate)fn bucket_kb_sb_single_type<F>(bucket_df: &DataFrame,
     // However, does this make sence? Every rho in the text is less than or equal to(in case of opt mat same tenor) 1
     // Hence, can we ever have rho over 1? Doesn't seem so.
     let case1 = scenario_fn(rho_diff_curve); //Same tenor, diff curve
-    let yield_df = bucket_df.select(columns)?;
+    let yield_df = bucket_df.select(columns)?
+        .fill_null(FillNullStrategy::Zero)?;
     let all_yield_arr = yield_df
-        .fill_null(FillNullStrategy::Zero)?
         .to_ndarray::<Float64Type>()?;
 
     // EQ Vega, take care of special bucket

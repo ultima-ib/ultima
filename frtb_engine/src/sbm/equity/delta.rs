@@ -83,7 +83,6 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
             "b"    => columns[2].clone(), 
             "rf"   => columns[3].clone(),
             "rft"  => columns[4].clone(),
-            //"dw"    => columns[5].clone(),
             "d"    => columns[5].clone(),
             "w"    => columns[6].clone(),
         ]?;
@@ -91,17 +90,13 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         // 21.4.3 - Netting
         df = df.lazy()
             .filter(col("rc").eq(lit("Equity")).and(col("rcat").eq(lit("Delta"))))
-            //.filter(col("dw").is_not_null())
-            //.with_column(col("d")*col("w").alias("dw"))
             .with_columns([
                 when(col("rft").eq(lit("EqSpot")))
                 .then((col("d")*col("w")).alias("Spot"))
-            //    .then((col("dw")).alias("Spot"))
                 .otherwise(NULL.lit()),
 
                 when(col("rft").eq(lit("EqRepo")))
                 .then((col("d")*col("w")).alias("Repo"))
-                //.then((col("dw")).alias("Repo"))
                 .otherwise(NULL.lit())
 
             ])

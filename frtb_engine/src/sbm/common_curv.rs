@@ -141,7 +141,7 @@ pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
 /// 
 /// For multiple buckets at the same time.
 /// 
-/// Used for Eq, Girr curvature.
+/// Used for FX, Girr curvature.
 pub(crate) fn kb_plus_minus_simple(cvr_up_or_down: &Series) -> Result<Vec<f64>>{
     Ok(
     cvr_up_or_down

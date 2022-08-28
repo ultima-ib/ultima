@@ -190,17 +190,12 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     
 
     // CSR Sec nonCTP 21.68
-    let mut base_csr_sec_nonctp_rho_tenor = Array2::from_elem((5, 5), 0.8 );
-    let ones = Array1::<f64>::ones(5);
-    base_csr_sec_nonctp_rho_tenor.diag_mut().assign(&ones);
-    // Tranche is CSR Sec nonCTP alternative for Name(Risk Factor)
-    let base_csr_sec_nonctp_rho_diff_tranche = [
-        0.4, 0.4, 0.4, 0.4, 0.4,
-        0.4, 0.4, 0.4, 0.4, 0.4,
-        0.4, 0.4, 0.4, 0.4, 0.4,
-        0.4, 0.4, 0.4, 0.4, 0.4,
-        0.4, 0.4, 0.4, 0.4, 0.,];
-    let base_csr_sec_nonctp_rho_diff_basis = 0.999;
+    let base_csr_sec_nonctp_rho_tenor =  0.8;
+    let base_csr_sec_nonctp_rho_diff_tranche = 0.4;
+    // Although rho is same for each bucket, for convenience and flexibility we allow diff rhos for each bucket
+    let base_csr_sec_nonctp_rho_diff_name: [f64; 25] = vec![0.999; 25].try_into().unwrap();
+    let base_csr_sec_nonctp_rho_diff_name_curv: [f64; 25] = base_csr_sec_nonctp_rho_diff_name.iter().map(|x|(*x as f64).powi(2)).collect::<Vec<f64>>().try_into().unwrap();
+
 
     let mut csr_sec_nonctp_gamma = Array2::<f64>::zeros((25, 25) );
     let mut base_csr_sec_nonctp_gamma_col25_slice = csr_sec_nonctp_gamma.slice_mut(s![..,24]);
@@ -235,14 +230,14 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         fx_curv_gamma: 0.6f64.powi(2),
 
         base_com_delta_rho_cty: base_com_delta_bucket_rho,
-        base_com_curv_rho_cty,
+        com_curv_rho_cty: base_com_curv_rho_cty,
         base_com_rho_basis_diff: 0.999,
         base_com_rho_tenor,
         com_gamma,
         com_gamma_curv,
 
         base_eq_delta_rho_bucket: eq_rho_bucket,
-        base_eq_curv_rho_bucket: base_curv_eq_rho_bucket,
+        eq_curv_rho_bucket: base_curv_eq_rho_bucket,
         base_eq_rho_mult: eq_rho_mult,
         eq_gamma,
         eq_gamma_curv,
@@ -250,35 +245,36 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         //CSR nonSec
         base_csr_nonsec_rho_tenor,
         base_csr_nonsec_rho_name_bcbs,
-        base_csr_nonsec_rho_name_bcbs_curv,
+        csr_nonsec_rho_name_bcbs_curv: base_csr_nonsec_rho_name_bcbs_curv,
         base_csr_nonsec_rho_basis,
 
         csr_nonsec_gamma,
         csr_nonsec_gamma_curv,
         // CRR2 325aj
         base_csr_nonsec_rho_name_crr2,
-        base_csr_nonsec_rho_name_crr2_curv,
+        csr_nonsec_rho_name_crr2_curv: base_csr_nonsec_rho_name_crr2_curv,
         csr_nonsec_gamma_crr2,
         csr_nonsec_gamma_crr2_curv,
 
         //CSR Sec CTP
         base_csr_ctp_rho_tenor,
         base_csr_ctp_rho_name_bcbs,
-        base_csr_ctp_rho_name_bcbs_curv,
+        csr_ctp_rho_name_bcbs_curv: base_csr_ctp_rho_name_bcbs_curv,
         base_csr_ctp_rho_basis,
 
         csr_ctp_gamma,
         csr_ctp_gamma_curv,
         // CSR Sec CTP CRR2
         base_csr_ctp_rho_name_crr2,
-        base_csr_ctp_rho_name_crr2_curv,
+        csr_ctp_rho_name_crr2_curv: base_csr_ctp_rho_name_crr2_curv,
         csr_ctp_gamma_crr2,
         csr_ctp_gamma_crr2_curv,
 
         // CSR Sec nonCTP
         base_csr_sec_nonctp_rho_tenor,
         base_csr_sec_nonctp_rho_diff_tranche,
-        base_csr_sec_nonctp_rho_diff_basis,
+        base_csr_sec_nonctp_rho_diff_name,
+        csr_sec_nonctp_rho_diff_name_curv: base_csr_sec_nonctp_rho_diff_name_curv,
 
         csr_sec_nonctp_gamma,
 
@@ -347,7 +343,7 @@ pub struct ScenarioConfig{
     /// 21.83.1 same commodity or diff commodity(depends on per bucket)
     pub base_com_delta_rho_cty: [f64; 11],
     /// 21.101
-    pub base_com_curv_rho_cty: [f64; 11],
+    pub com_curv_rho_cty: [f64; 11],
     /// 21.83.2 same or diff tenors
     pub base_com_rho_tenor: f64,
     /// 21.83.3 same or diff location
@@ -361,7 +357,7 @@ pub struct ScenarioConfig{
     // 21.78.2
     pub base_eq_delta_rho_bucket: [f64; 13],
     ///21.100
-    pub base_eq_curv_rho_bucket: [f64; 13],
+    pub eq_curv_rho_bucket: [f64; 13],
     /// 21.78.1 and 21.78.4
     /// multiplier used when rft is not equal(spot vs repo)
     pub base_eq_rho_mult: f64,
@@ -374,7 +370,7 @@ pub struct ScenarioConfig{
     pub base_csr_nonsec_rho_tenor: f64,
     pub base_csr_nonsec_rho_name_bcbs: [f64; 18],
     ///21.100
-    pub base_csr_nonsec_rho_name_bcbs_curv: [f64; 18],
+    pub csr_nonsec_rho_name_bcbs_curv: [f64; 18],
     pub base_csr_nonsec_rho_basis: f64,
     pub csr_nonsec_gamma: Array2<f64>,
     pub csr_nonsec_gamma_curv: Array2<f64>,
@@ -382,27 +378,29 @@ pub struct ScenarioConfig{
     /// CSR non Sec CRR2 325aj
     pub base_csr_nonsec_rho_name_crr2: [f64; 20],
     /// 325ay 5
-    pub base_csr_nonsec_rho_name_crr2_curv: [f64; 20],
+    pub csr_nonsec_rho_name_crr2_curv: [f64; 20],
     pub csr_nonsec_gamma_crr2: Array2<f64>,
     pub csr_nonsec_gamma_crr2_curv: Array2<f64>,
 
     //CSR Sec CTP
     pub base_csr_ctp_rho_tenor: f64,
     pub base_csr_ctp_rho_name_bcbs: [f64; 16],
-    pub base_csr_ctp_rho_name_bcbs_curv: [f64; 16],
+    pub csr_ctp_rho_name_bcbs_curv: [f64; 16],
     pub base_csr_ctp_rho_basis: f64,
     pub csr_ctp_gamma: Array2<f64>,
     pub csr_ctp_gamma_curv: Array2<f64>,
 
     pub base_csr_ctp_rho_name_crr2: [f64; 18],
-    pub base_csr_ctp_rho_name_crr2_curv: [f64; 18],
+    pub csr_ctp_rho_name_crr2_curv: [f64; 18],
     pub csr_ctp_gamma_crr2: Array2<f64>,
     pub csr_ctp_gamma_crr2_curv: Array2<f64>,
 
     //CSR Sec nonCTP 21.68
-    pub base_csr_sec_nonctp_rho_tenor: Array2<f64>,
-    pub base_csr_sec_nonctp_rho_diff_tranche: [f64; 25],
-    pub base_csr_sec_nonctp_rho_diff_basis: f64,
+    pub base_csr_sec_nonctp_rho_tenor: f64,
+    /// Although rho is same for each bucket, for convenience and flexibility we allow diff rhos for each bucket
+    pub base_csr_sec_nonctp_rho_diff_name: [f64; 25],
+    pub csr_sec_nonctp_rho_diff_name_curv: [f64; 25],
+    pub base_csr_sec_nonctp_rho_diff_tranche: f64,
 
     pub csr_sec_nonctp_gamma: Array2<f64>,
 
@@ -448,14 +446,29 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     csr_nonsec_gamma_curv, csr_nonsec_gamma_crr2_curv, 
     csr_ctp_gamma_curv, csr_ctp_gamma_crr2_curv] = matrixes;
 
-    let mut eq_curv_rho_bucket = self.base_eq_curv_rho_bucket;
+    let mut eq_curv_rho_bucket: [f64; 13] = self.eq_curv_rho_bucket;
     eq_curv_rho_bucket.iter_mut().for_each(|x|{*x = function(*x);});
 
+    let mut com_curv_rho_cty: [f64; 11] = self.com_curv_rho_cty;
+    com_curv_rho_cty.iter_mut().for_each(|x|{*x = function(*x);});
+
+    let mut csr_nonsec_rho_name_bcbs_curv = self.csr_nonsec_rho_name_bcbs_curv;
+    csr_nonsec_rho_name_bcbs_curv.iter_mut().for_each(|x|{*x = function(*x);});
+
+    let mut csr_nonsec_rho_name_crr2_curv = self.csr_nonsec_rho_name_crr2_curv;
+    csr_nonsec_rho_name_crr2_curv.iter_mut().for_each(|x|{*x = function(*x);});
+
+    let mut csr_ctp_rho_name_bcbs_curv = self.csr_ctp_rho_name_bcbs_curv;
+    csr_ctp_rho_name_bcbs_curv.iter_mut().for_each(|x|{*x = function(*x);});
+
+    let mut csr_ctp_rho_name_crr2_curv = self.csr_ctp_rho_name_crr2_curv;
+    csr_ctp_rho_name_crr2_curv.iter_mut().for_each(|x|{*x = function(*x);});
+
+    let mut csr_sec_nonctp_rho_diff_name_curv = self.csr_sec_nonctp_rho_diff_name_curv;
+    csr_sec_nonctp_rho_diff_name_curv.iter_mut().for_each(|x|{*x = function(*x);});
+
+
     //objects which do not implement copy
-    let base_com_rho_tenor = self.base_com_rho_tenor.to_owned();
-
-    let base_csr_sec_nonctp_rho_tenor = self.base_csr_sec_nonctp_rho_tenor.to_owned();
-
     let base_vega_rho = self.base_vega_rho.clone();
 
     let erm2_crr2 = self.erm2_crr2.clone();
@@ -477,28 +490,29 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
             fx_gamma: function(self.fx_gamma),
             fx_curv_gamma: function(self.fx_curv_gamma),
 
-            base_com_rho_tenor,
+            com_curv_rho_cty,
             com_gamma,
             com_gamma_curv,
 
-            base_eq_curv_rho_bucket: eq_curv_rho_bucket,
+            eq_curv_rho_bucket,
             eq_gamma,
             eq_gamma_curv,
 
+            csr_nonsec_rho_name_bcbs_curv,
+            csr_nonsec_rho_name_crr2_curv,
             csr_nonsec_gamma,
             csr_nonsec_gamma_curv,
-
             csr_nonsec_gamma_crr2,
             csr_nonsec_gamma_crr2_curv,
-
+            
+            csr_ctp_rho_name_bcbs_curv,
+            csr_ctp_rho_name_crr2_curv,
             csr_ctp_gamma,
             csr_ctp_gamma_curv,
-
             csr_ctp_gamma_crr2,
             csr_ctp_gamma_crr2_curv,
 
-            base_csr_sec_nonctp_rho_tenor,
-
+            csr_sec_nonctp_rho_diff_name_curv,
             csr_sec_nonctp_gamma,
 
             base_vega_rho,

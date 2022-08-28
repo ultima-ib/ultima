@@ -50,8 +50,8 @@ fn equity_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, r
     let _suffix = scenario.as_str();
     //TODO check
     let eq_gamma = get_optional_parameter_array(op, format!("eq_vega_gamma{_suffix}").as_str(), &scenario.eq_gamma);
-    let base_eq_rho_bucket = get_optional_parameter(op, format!("eq_rho_diff_name_bucket{_suffix}").as_str(), &scenario.base_eq_delta_rho_bucket);
-    let eq_vega_rho = get_optional_parameter_array(op, format!("eq_opt_mat_vega_rho{_suffix}").as_str(), &scenario.base_vega_rho);
+    let base_eq_rho_bucket = get_optional_parameter(op, "base_eq_rho_diff_name_bucket", &scenario.base_eq_delta_rho_bucket);
+    let eq_vega_rho = get_optional_parameter_array(op, "base_eq_opt_mat_vega_rho", &scenario.base_vega_rho);
 
     equity_vega_charge(eq_vega_rho, eq_gamma, base_eq_rho_bucket.to_vec(), 
     scenario.scenario_fn, rtrn, Some("11"), "Equity")
@@ -88,7 +88,7 @@ pub(crate) fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>
                 (col("y5")*col("wght")).sum().alias("y5"),
                 (col("y10")*col("wght")).sum().alias("y10")
             ])
-            .fill_null(0.)
+            //.fill_null(0.)
             .collect()?;
         
         if df.height() == 0 {

@@ -146,7 +146,7 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
     let base_csr_nonsec_rho_basis = get_optional_parameter(op,"base_csr_nonsec_diff_basis_rho", 
     &scenario.base_csr_nonsec_rho_basis);
 
-    let gamma = get_optional_parameter_array(op,"base_csr_nonsec_rating_gamma", 
+    let gamma = get_optional_parameter_array(op,format!("csr_nonsec_curv_gamma{_suffix}").as_str(), 
     gamma);
 
     csr_nonsec_delta_charge(
@@ -252,7 +252,6 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
                 col("CDS_y10").sum()         
                 
             ])
-            .fill_null(lit::<f64>(0.))
             .collect()?;
 
         let kbs_sbs = all_kbs_sbs_two_types(df, n_buckets, 

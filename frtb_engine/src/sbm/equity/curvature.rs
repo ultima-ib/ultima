@@ -76,7 +76,7 @@ fn eq_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, 
     let _suffix = scenario.as_str();
 
     let eq_curv_gamma = get_optional_parameter_array(op, format!("equity_curv_gamma{_suffix}").as_str(), &scenario.eq_gamma_curv);
-    let eq_curv_rho = get_optional_parameter(op, "base_equity_curv_rho", &scenario.base_eq_curv_rho_bucket);
+    let eq_curv_rho = get_optional_parameter(op, format!("equity_curv_rho{_suffix}").as_str(), &scenario.eq_curv_rho_bucket);
     eq_curvature_charge(eq_curv_rho.to_vec(), eq_curv_gamma,  rtrn, "Equity", Some(11))
 }
 
@@ -101,7 +101,7 @@ pub(crate) fn eq_curvature_charge(eq_curv_rho: Vec<f64>, eq_curv_gamma: Array2<f
                 cvr_up_spot().sum().alias("cvr_up"),
                 cvr_down_spot().sum().alias("cvr_down"),
             ])
-            .fill_null(lit::<f64>(0.))
+            //.fill_null(lit::<f64>(0.))
             .collect()?;
 
         let res_len = columns[0].len();

@@ -1,7 +1,5 @@
 use base_engine::prelude::OCP;
-use ndarray::{Array2, Array1};
 use crate::{prelude::*, sbm::equity::curvature::eq_curvature_charge};
-//use ndarray::{Array1, Array2};
 use polars::prelude::*;
 
 pub fn com_curv_delta (_: &OCP) -> Expr {
@@ -76,7 +74,7 @@ fn com_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig,
     let _suffix = scenario.as_str();
 
     let com_curv_gamma = get_optional_parameter_array(op, format!("commodity_curv_gamma{_suffix}").as_str(), &scenario.com_gamma_curv);
-    let com_curv_rho = get_optional_parameter(op, "base_commodity_curv_rho", &scenario.base_com_curv_rho_cty);
+    let com_curv_rho = get_optional_parameter(op, format!("commodity_curv_rho{_suffix}").as_str(), &scenario.com_curv_rho_cty);
 
     // Same methodology as EQ Curvature
     eq_curvature_charge(com_curv_rho.to_vec(), com_curv_gamma,  rtrn, "Commodity", None)

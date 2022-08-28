@@ -90,7 +90,7 @@ fn csrnonsec_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
             Jurisdiction::CRR2 => (
             col("CurvatureRiskWeightCRR2"),
             col("BucketCRR2"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_crr2_curv),
+            Vec::from(scenario.csr_nonsec_rho_name_crr2_curv),
             &scenario.csr_nonsec_gamma_crr2_curv,
             Some(18)
             ),
@@ -99,7 +99,7 @@ fn csrnonsec_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
             (
             col("CurvatureRiskWeight"),
             col("BucketBCBS"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs_curv),
+            Vec::from(scenario.csr_nonsec_rho_name_bcbs_curv),
             &scenario.csr_nonsec_gamma_curv,
             Some(16)
             )
@@ -107,6 +107,7 @@ fn csrnonsec_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
 
     let csr_nonsec_curv_gamma = get_optional_parameter_array(op, format!("csr_nonsec_curv_gamma{_suffix}").as_str(), &gamma);
     let csr_nonsec_curv_rho = get_optional_parameter_vec(op, format!("csr_nonsec_curv_rho{_suffix}").as_str(), &name_rho_vec);
+
     csrnonsec_curvature_charge(csr_nonsec_curv_rho, csr_nonsec_curv_gamma,
           rtrn, special_bucket, weight, bucket_col, "CSR_nonSec")
 }
@@ -137,7 +138,7 @@ special_bucket: Option<usize>, weight: Expr, bucket_col: Expr, rc: &'static str)
                 cvr_up_5().sum().alias("cvr_up"),
                 cvr_down_5().sum().alias("cvr_down"),
             ])
-            .fill_null(lit::<f64>(0.))
+            //.fill_null(lit::<f64>(0.))
             .collect()?;
 
         let res_len = columns[0].len();

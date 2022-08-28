@@ -130,7 +130,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
                 (col("y5")*col("w")).sum(), 
                 (col("y10")*col("w")).sum(),    
             ])
-            .fill_null(lit::<f64>(0.))
+            //.fill_null(lit::<f64>(0.))
             .collect()?;
         
         if df.height() == 0 { return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )};

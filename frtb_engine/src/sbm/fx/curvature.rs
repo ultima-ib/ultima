@@ -139,7 +139,7 @@ fn fx_curvature_charge(gamma: f64, return_metric: ReturnMetric, ccy_regex: Strin
                 fx_cvr_up_down(div, cvr_up_spot()).sum().alias("cvr_up"),
                 fx_cvr_up_down(div, cvr_down_spot()).sum().alias("cvr_down")
             ])
-            .fill_null(lit::<f64>(0.))
+            //.fill_null(lit::<f64>(0.))
             .collect()?;
         
         let res_len = columns[0].len();

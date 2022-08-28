@@ -300,11 +300,23 @@ const JSON: &str = r#"
 
 ["CSR_Sec_nonCTP_DeltaSens", "sum"],
 ["CSR_Sec_nonCTP_DeltaSens_Weighted", "sum"],
+["CSR_Sec_nonCTP_DeltaSb", "first"],
+["CSR_Sec_nonCTP_DeltaKb_Low", "first"],
+["CSR_Sec_nonCTP_DeltaKb_Medium", "first"],
+["CSR_Sec_nonCTP_DeltaKb_High", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Low", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_Medium", "first"],
 ["CSR_Sec_nonCTP_DeltaCharge_High", "first"],
 
-
+["CSR_Sec_nonCTP_VegaSens", "sum"],
+["CSR_Sec_nonCTP_VegaSens_Weighted", "sum"],
+["CSR_Sec_nonCTP_VegaSb", "first"],
+["CSR_Sec_nonCTP_VegaKb_Low", "first"],
+["CSR_Sec_nonCTP_VegaKb_Medium", "first"],
+["CSR_Sec_nonCTP_VegaCharge_High", "first"],
+["CSR_Sec_nonCTP_VegaCharge_Low", "first"],
+["CSR_Sec_nonCTP_VegaCharge_Medium", "first"],
+["CSR_Sec_nonCTP_VegaKb_High", "first"],
 
 
 ["EQ_DeltaSens", "sum"],

@@ -79,3 +79,143 @@ fn com_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig,
     // Same methodology as EQ Curvature
     eq_curvature_charge(com_curv_rho.to_vec(), com_curv_gamma,  rtrn, "Commodity", None)
 }
+
+/// Exporting Measures
+pub(crate) fn com_curv_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "Commodity_CurvatureDelta".to_string(),
+            calculator: Box::new(com_curv_delta),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(com_curv_delta_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_PnLup".to_string(),
+            calculator: Box::new(com_pnl_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_PnLdown".to_string(),
+            calculator: Box::new(com_pnl_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_CVRup".to_string(),
+            calculator: Box::new(com_cvr_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_CVRdown".to_string(),
+            calculator: Box::new(com_cvr_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbPlus_Medium".to_string(),
+            calculator: Box::new(com_curvature_kb_plus_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbMinus_Medium".to_string(),
+            calculator: Box::new(com_curvature_kb_minus_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_Curvature_Kb_Medium".to_string(),
+            calculator: Box::new(com_curvature_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_Curvature_Sb_Medium".to_string(),
+            calculator: Box::new(com_curvature_sb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(com_curvature_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbPlus_Low".to_string(),
+            calculator: Box::new(com_curvature_kb_plus_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbMinus_Low".to_string(),
+            calculator: Box::new(com_curvature_kb_minus_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_Curvature_Kb_Low".to_string(),
+            calculator: Box::new(com_curvature_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_Curvature_Sb_Low".to_string(),
+            calculator: Box::new(com_curvature_sb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(com_curvature_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbPlus_High".to_string(),
+            calculator: Box::new(com_curvature_kb_plus_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+
+        Measure{
+            name: "Commodity_Curvature_KbMinus_High".to_string(),
+            calculator: Box::new(com_curvature_kb_minus_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_Curvature_Kb_High".to_string(),
+            calculator: Box::new(com_curvature_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_Curvature_Sb_High".to_string(),
+            calculator: Box::new(com_curvature_sb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure{
+            name: "Commodity_CurvatureCharge_High".to_string(),
+            calculator: Box::new(com_curvature_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+    ]
+}

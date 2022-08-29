@@ -3,32 +3,12 @@
     "method": "SEND", 
     "params": {
         "measures": [ 
-            ["CSR_Sec_nonCTP_CurvatureDelta", "sum"],
-            ["CSR_Sec_nonCTP_CurvatureDelta_Weighted", "sum"],
-            ["CSR_Sec_nonCTP_PnLup", "sum"],
-            ["CSR_Sec_nonCTP_PnLdown", "sum"],
-            ["CSR_Sec_nonCTP_CVRup", "sum"],
-            ["CSR_Sec_nonCTP_CVRdown", "sum"],
-            ["CSR_Sec_nonCTP_Curvature_KbPlus_Low", "first"],
-            ["CSR_Sec_nonCTP_Curvature_KbMinus_Low", "first"],
-            ["CSR_Sec_nonCTP_Curvature_Kb_Low", "first"],
-            ["CSR_Sec_nonCTP_Curvature_Sb_Low", "first"],
-            ["CSR_Sec_nonCTP_Curvature_KbPlus_Medium", "first"],
-            ["CSR_Sec_nonCTP_Curvature_KbMinus_Medium", "first"],
-            ["CSR_Sec_nonCTP_Curvature_Kb_Medium", "first"],
-            ["CSR_Sec_nonCTP_Curvature_Sb_Medium", "first"],
-            ["CSR_Sec_nonCTP_Curvature_KbPlus_High", "first"],
-            ["CSR_Sec_nonCTP_Curvature_KbMinus_High", "first"],
-            ["CSR_Sec_nonCTP_Curvature_Kb_High", "first"],
-            ["CSR_Sec_nonCTP_Curvature_Sb_High", "first"],
-            ["CSR_Sec_nonCTP_CurvatureCharge_Low", "first"],
-            ["CSR_Sec_nonCTP_CurvatureCharge_Medium", "first"],
             ["CSR_Sec_nonCTP_CurvatureCharge_High", "first"]
                 ],
-        "groupby": ["Desk"],
+        "groupby": ["Desk", "BucketBCBS"],
         "filters": [],
         "optional_params": {
-                    "hide_zeros": true,
+                    "hide_zeros": false,
                     "calc_params": {"jurisdiction": "BCBS"}
                 }
     }

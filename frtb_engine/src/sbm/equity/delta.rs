@@ -143,3 +143,71 @@ fn equity_delta_charge<F>(gamma: Array2<f64>, eq_rho_bucket: [f64; 13],
         ], 
         GetOutput::from_type(DataType::Float64))
 }
+
+/// Exporting Measures
+pub(crate) fn eq_delta_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure {
+            name: "EQ_DeltaSens".to_string(),
+            calculator: Box::new(equity_delta_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaSens_Weighted".to_string(),
+            calculator: Box::new(equity_delta_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaSb".to_string(),
+            calculator: Box::new(eq_delta_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaKb_Low".to_string(),
+            calculator: Box::new(eq_delta_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaKb_Medium".to_string(),
+            calculator: Box::new(eq_delta_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaKb_High".to_string(),
+            calculator: Box::new(eq_delta_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaCharge_Low".to_string(),
+            calculator: Box::new(equity_delta_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaCharge_Medium".to_string(),
+            calculator: Box::new(equity_delta_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_DeltaCharge_High".to_string(),
+            calculator: Box::new(equity_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+    ]
+}

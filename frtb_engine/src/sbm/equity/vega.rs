@@ -132,3 +132,69 @@ pub(crate) fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>
         col("SensWeights").arr().get(0) ], 
         GetOutput::from_type(DataType::Float64))
 }
+
+/// Exporting Measures
+pub(crate) fn eq_vega_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure {
+            name: "EQ_VegaSens".to_string(),
+            calculator: Box::new(total_eq_vega_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_VegaSens_Weighted".to_string(),
+            calculator: Box::new(total_eq_vega_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_VegaSb".to_string(),
+            calculator: Box::new(equity_vega_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+        Measure {
+            name: "EQ_VegaKb_Low".to_string(),
+            calculator: Box::new(equity_vega_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_VegaCharge_Low".to_string(),
+            calculator: Box::new(equity_vega_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_VegaKb_Medium".to_string(),
+            calculator: Box::new(equity_vega_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_VegaCharge_Medium".to_string(),
+            calculator: Box::new(equity_vega_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+        Measure {
+            name: "EQ_VegaKb_High".to_string(),
+            calculator: Box::new(equity_vega_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+
+        Measure {
+            name: "EQ_VegaCharge_High".to_string(),
+            calculator: Box::new(equity_vega_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("Equity"))))            
+        },
+    ]
+}

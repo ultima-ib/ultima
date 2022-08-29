@@ -182,3 +182,143 @@ special_bucket: Option<usize>, weight: Expr, bucket_col: Expr, rc: &'static str)
         weight],
         GetOutput::from_type(DataType::Float64))
 }
+
+/// Exporting Measures
+pub(crate) fn csrnonsec_curv_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "CSR_nonSec_CurvatureDelta".to_string(),
+            calculator: Box::new(csrnonsec_curv_delta),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(csrnonsec_curv_delta_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_PnLup".to_string(),
+            calculator: Box::new(csrnonsec_pnl_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_PnLdown".to_string(),
+            calculator: Box::new(csrnonsec_pnl_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_CVRup".to_string(),
+            calculator: Box::new(csrnonsec_cvr_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_CVRdown".to_string(),
+            calculator: Box::new(csrnonsec_cvr_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbPlus_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_plus_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbMinus_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_minus_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Kb_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Sb_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_sb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(csrnonsec_curvature_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbPlus_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_plus_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbMinus_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_minus_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Kb_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Sb_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_sb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(csrnonsec_curvature_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbPlus_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_plus_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure{
+            name: "CSR_nonSec_Curvature_KbMinus_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_minus_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Kb_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_Curvature_Sb_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_sb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure{
+            name: "CSR_nonSec_CurvatureCharge_High".to_string(),
+            calculator: Box::new(csrnonsec_curvature_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+    ]
+}

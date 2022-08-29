@@ -57,3 +57,70 @@ fn csr_sec_nonctp_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioC
         csr_sec_nonctp_rho_bucket.to_vec(), 
     scenario.scenario_fn, rtrn, Some("25"), "CSR_Sec_nonCTP")
 }
+
+/// Exporting Measures
+pub(crate) fn csrsecnonctp_vega_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaSens".to_string(),
+            calculator: Box::new(total_csr_sec_nonctp_vega_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaSens_Weighted".to_string(),
+            calculator: Box::new(total_csr_sec_nonctp_vega_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaSb".to_string(),
+            calculator: Box::new(csr_sec_nonctp_vega_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+        
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaCharge_Low".to_string(),
+            calculator: Box::new(csr_sec_nonctp_vega_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaKb_Low".to_string(),
+            calculator: Box::new(csr_sec_nonctp_vega_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaCharge_Medium".to_string(),
+            calculator: Box::new(csr_sec_nonctp_vega_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaKb_Medium".to_string(),
+            calculator: Box::new(csr_sec_nonctp_vega_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaCharge_High".to_string(),
+            calculator: Box::new(csr_sec_nonctp_vega_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_VegaKb_High".to_string(),
+            calculator: Box::new(csr_sec_nonctp_vega_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))))
+        },
+    ]
+}

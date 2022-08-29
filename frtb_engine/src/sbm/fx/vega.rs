@@ -133,3 +133,63 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
     GetOutput::from_type(DataType::Float64)
     )
 }
+
+/// Exporting Measures
+pub(crate) fn fx_vega_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "FX_VegaSens".to_string(),
+            calculator: Box::new(total_fx_vega_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaSens_Weighted".to_string(),
+            calculator: Box::new(total_fx_vega_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaSb".to_string(),
+            calculator: Box::new(fx_vega_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaKb_Low".to_string(),
+            calculator: Box::new(fx_vega_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaKb_Medium".to_string(),
+            calculator: Box::new(fx_vega_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaKb_High".to_string(),
+            calculator: Box::new(fx_vega_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaCharge_Low".to_string(),
+            calculator: Box::new(fx_vega_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaCharge_Medium".to_string(),
+            calculator: Box::new(fx_vega_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_VegaCharge_High".to_string(),
+            calculator: Box::new(fx_vega_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("FX"))))
+        },
+    ]
+}

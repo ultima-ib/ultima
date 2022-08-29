@@ -291,122 +291,70 @@ pub(crate) fn girr_corr_matrix() -> Array2<f64> {
     }
     base_weights
 }
-/*
-/// TODO here we still initialise an array
-/// Although, given limited number of underlying curves in each GIRR bucket that should generally be ok
-/// It would be best to avoid that
-fn build_girr_corr_matrix( girr_delta_rho_same_curve: &Array2<f64>, 
-    girr_delta_rho_diff_curve: &Array2<f64>, 
-    girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,
-    y: usize, i: usize, x: usize) -> Result<Array2<f64>> {
+/// Exporting Measures
+pub(crate) fn girr_delta_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "GIRR_DeltaSens".to_string(),
+            calculator: Box::new(total_ir_delta_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
 
-    let n = 10; //represents number of tenors (aka columns) of yield curve
-    let y_curves = y / n ; //represents number of yield curves
-    //let i_curves = i;
-    //let x_curves = x;
-    let total_len = y + i + x;
-    let mut res = Array2::ones((0, 0));
-    if total_len>0{
-        let mut arr = Array2::<f64>::uninit((total_len, total_len));
-        if y > 0 {
-            let mut yield_slice = arr.slice_mut(s![..y, ..y]);
-            yield_slice
-            .exact_chunks_mut((n, n))
-            .into_iter()
-            .enumerate()
-            .par_bridge()
-            .for_each(|(i, chunk)|{
-                let row_id = i/y_curves; //eg 27usize/10usize = 2usize
-                let col_id = i%y_curves; //eg 27usize % 10usize = 7usize
-                //21.46 GIRR delta risk correlation within same bucket, same curve
-                if row_id == col_id {
-                    //girr_delta_rho_same_curve.assign_to(chunk);
-                    girr_delta_rho_same_curve.to_owned().move_into_uninit(chunk)
-                //21.47 GIRR delta risk correlation within same bucket, different curves
-                } else {
-                    //girr_delta_rho_diff_curve.assign_to(chunk);
-                    girr_delta_rho_diff_curve.to_owned().move_into_uninit(chunk)
-                }
-            });
-        };
-        if i>0 {
-            // Can't use multi slice because slices intersect
-            // Have to take advantage of Rust's non-lexical lifetimes
-            let infl_rho_element = MaybeUninit::new(girr_delta_rho_infl);
-            let mut inflation_slice_row = arr.slice_mut(s![y..y+i, ..]);
-            inflation_slice_row.fill(infl_rho_element);
-            let mut inflation_slice_col = arr.slice_mut(s![..,y..y+i]);
-            inflation_slice_col.fill(infl_rho_element);
-        }
-        if x>0 {
-            let xccy_rho_elem = MaybeUninit::new(girr_delta_rho_xccy);
-            let mut xccy_slice_row = arr.slice_mut(s![y+i.., ..]);
-            xccy_slice_row.fill(xccy_rho_elem);
-            let mut xccy_slice_col = arr.slice_mut(s![.., y+i..]);
-            xccy_slice_col.fill(xccy_rho_elem);
-        }
-        unsafe {
-            res = arr.assume_init();
-        }
-    }
+        Measure{
+            name: "GIRR_DeltaSens_Weighted".to_string(),
+            calculator: Box::new(girr_delta_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
 
-    let ones = Array1::<f64>::ones(total_len);
-    res.diag_mut().assign(&ones);
-    Ok(res)
+        Measure{
+            name: "GIRR_DeltaSb".to_string(),
+            calculator: Box::new(girr_delta_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_DeltaCharge_Low".to_string(),
+            calculator: Box::new(girr_delta_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_DeltaKb_Low".to_string(),
+            calculator: Box::new(girr_delta_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_DeltaCharge_Medium".to_string(),
+            calculator: Box::new(girr_delta_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_DeltaKb_Medium".to_string(),
+            calculator: Box::new(girr_delta_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_DeltaCharge_High".to_string(),
+            calculator: Box::new(girr_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_DeltaKb_High".to_string(),
+            calculator: Box::new(girr_delta_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+    ]
 }
-
-fn girr_bucket_kb_sb<'a>(bucket_df: &'a DataFrame, 
-    girr_delta_rho_same_curve: &Array2<f64>, 
-    girr_delta_rho_diff_curve: &Array2<f64>,
-    girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,) -> Result<((&'a str, f64), f64)> {
-
-    let bucket = unsafe{bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or_else(||"Default")};
-    
-    // Extracting yield curves
-    let yield_arr_mask = bucket_df.column("rft")?.equal("Yield")?;
-    let yield_arr = bucket_df
-        .filter(&yield_arr_mask)?
-        .select(["y025", "y05", "y1", "y2", "y3", "y5", "y10", "y15", "y20", "y30"])?
-        .to_ndarray::<Float64Type>()?;
-    // Reshape in order to perform matrix multiplication
-    let yield_arr_shaped = yield_arr
-        .to_shape((yield_arr.len(), Order::RowMajor) )
-        .map_err(|_| PolarsError::ShapeMisMatch("Could not reshape yield_arr".into()) )?;
-    // Extracting Infl curves
-    let infl_mask = bucket_df.column("rft")?.equal("Inflation")?;
-    // No need to reshape since already in good shape
-    let infl_df = bucket_df
-        .filter(&infl_mask)?;
-    let infl_arr = infl_df["y0"].f64()?
-        .to_ndarray()?;
-    // Extracting XCCY curves
-    let xccy_mask = bucket_df.column("rft")?.equal("XCCY")?;
-    // No need to reshape since already in good shape
-    let xccy_df = bucket_df
-        .filter(&xccy_mask)?;
-    let xccy_arr = xccy_df["y0"].f64()?
-        .to_ndarray()?;
-    
-    let corr_mtrx: Array2<f64> = build_girr_corr_matrix(girr_delta_rho_same_curve, girr_delta_rho_diff_curve, 
-        girr_delta_rho_infl, girr_delta_rho_xccy, 
-        yield_arr.len(), infl_arr.len(), xccy_arr.len())?;
-        
-    let yield_infl_xccy: Array1<f64> = 
-        ndarray::concatenate(Axis(0), &[yield_arr_shaped.view(),
-         infl_arr, xccy_arr] )
-        .map_err(|_| PolarsError::ShapeMisMatch("Could not concatenate yield infl xccy".into()) )?;
-
-    let a = yield_infl_xccy.dot(&corr_mtrx);
-
-    //21.4.4
-    let kb = a.dot(&yield_infl_xccy)
-        .max(0.)
-        .sqrt();
-
-    //21.4.5.a
-    let sb = yield_infl_xccy.sum();
-
-    Ok(((bucket, kb), sb))
-}
-*/
-

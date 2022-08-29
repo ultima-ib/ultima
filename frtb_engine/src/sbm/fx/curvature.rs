@@ -184,3 +184,91 @@ fn fx_curvature_charge(gamma: f64, return_metric: ReturnMetric, ccy_regex: Strin
         ],
         GetOutput::from_type(DataType::Float64))
 }
+
+/// Exporting Measures
+pub(crate) fn fx_curv_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "FX_CurvatureDelta".to_string(),
+            calculator: Box::new(fx_curv_delta),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+
+        },
+        Measure{
+            name: "FX_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(fx_curv_delta_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_PnLup".to_string(),
+            calculator: Box::new(fx_pnl_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_PnLdown".to_string(),
+            calculator: Box::new(fx_pnl_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_CVRup".to_string(),
+            calculator: Box::new(fx_cvr_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_CVRdown".to_string(),
+            calculator: Box::new(fx_cvr_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_Curvature_KbPlus".to_string(),
+            calculator: Box::new(fx_curvature_kb_plus),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_Curvature_KbMinus".to_string(),
+            calculator: Box::new(fx_curvature_kb_minus),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_Curvature_Kb".to_string(),
+            calculator: Box::new(fx_curvature_kb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_Curvature_Sb".to_string(),
+            calculator: Box::new(fx_curvature_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(fx_curvature_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(fx_curvature_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_CurvatureCharge_High".to_string(),
+            calculator: Box::new(fx_curvature_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+    ]
+}

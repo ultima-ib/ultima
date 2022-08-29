@@ -165,3 +165,94 @@ fn girr_curvature_charge(girr_curv_gamma: f64, _erm2_gamma: f64,
         col("CurvatureRiskWeight")],
         GetOutput::from_type(DataType::Float64))
 }
+
+/// Exporting Measures
+pub(crate) fn girr_curv_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "GIRR_CurvatureDelta".to_string(),
+            calculator: Box::new(ir_curv_delta),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_PnLup".to_string(),
+            calculator: Box::new(girr_pnl_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_PnLdown".to_string(),
+            calculator: Box::new(girr_pnl_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(girr_curv_delta_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_CVRup".to_string(),
+            calculator: Box::new(girr_cvr_up),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_CVRdown".to_string(),
+            calculator: Box::new(girr_cvr_down),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_Curvature_KbPlus".to_string(),
+            calculator: Box::new(girr_curvature_kb_plus),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_Curvature_KbMinus".to_string(),
+            calculator: Box::new(girr_curvature_kb_minus),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+        Measure{
+            name: "GIRR_Curvature_Kb".to_string(),
+            calculator: Box::new(girr_curvature_kb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+        Measure{
+            name: "GIRR_Curvature_Sb".to_string(),
+            calculator: Box::new(girr_curvature_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+        Measure{
+            name: "GIRR_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(girr_curvature_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+        Measure{
+            name: "GIRR_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(girr_curvature_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+        Measure{
+            name: "GIRR_CurvatureCharge_High".to_string(),
+            calculator: Box::new(girr_curvature_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+    ]
+}

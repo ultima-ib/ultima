@@ -161,3 +161,63 @@ fn commodity_delta_charge<F>(bucket_rho_cty: [f64; 11], com_gamma: Array2<f64>,
         GetOutput::from_type(DataType::Float64))
 }
 
+/// Exporting Measures
+pub(crate) fn com_delta_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure {
+            name: "Commodity_DeltaSens".to_string(),
+            calculator: Box::new(total_commodity_delta_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure {
+            name: "Commodity_DeltaSens_Weighted".to_string(),
+            calculator: Box::new(commodity_delta_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure {
+            name: "Commodity_DeltaSb".to_string(),
+            calculator: Box::new(commodity_delta_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure {
+            name: "Commodity_DeltaKb_Low".to_string(),
+            calculator: Box::new(commodity_delta_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity")))),
+        },
+        Measure {
+            name: "Commodity_DeltaKb_Medium".to_string(),
+            calculator: Box::new(commodity_delta_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure {
+            name: "Commodity_DeltaKb_High".to_string(),
+            calculator: Box::new(commodity_delta_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure {
+            name: "Commodity_DeltaCharge_Low".to_string(),
+            calculator: Box::new(commodity_delta_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure {
+            name: "Commodity_DeltaCharge_Medium".to_string(),
+            calculator: Box::new(commodity_delta_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+        Measure {
+            name: "Commodity_DeltaCharge_High".to_string(),
+            calculator: Box::new(commodity_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("Commodity"))))
+        },
+    ]
+}
+

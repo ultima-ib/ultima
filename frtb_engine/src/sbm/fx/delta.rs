@@ -162,3 +162,56 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
     col("SensWeights").arr().get(0) ], 
     GetOutput::from_type(DataType::Float64))
 }
+
+/// Exporting Measures
+pub(crate) fn fx_delta_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "FX_DeltaSens".to_string(),
+            calculator: Box::new(fx_delta_sens_repccy),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+        Measure{
+            name: "FX_DeltaSens_Weighted".to_string(),
+            calculator: Box::new(fx_delta_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_DeltaSb".to_string(),
+            calculator: Box::new(fx_delta_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_DeltaKb".to_string(),
+            calculator: Box::new(fx_delta_kb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_DeltaCharge_Low".to_string(),
+            calculator: Box::new(fx_delta_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_DeltaCharge_Medium".to_string(),
+            calculator: Box::new(fx_delta_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+
+        Measure{
+            name: "FX_DeltaCharge_High".to_string(),
+            calculator: Box::new(fx_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+        },
+    ]
+}

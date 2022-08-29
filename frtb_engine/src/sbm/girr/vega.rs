@@ -245,3 +245,72 @@ pub(crate) fn girr_vega_rho() -> Array2<f64> {
     res.map_inplace(|x|*x = f64::min(*x, 1.));
     res
 }
+
+/// Exporting Measures
+pub(crate) fn girr_vega_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure{
+            name: "GIRR_VegaSens".to_string(),
+            calculator: Box::new(total_ir_vega_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+
+        },
+
+        Measure{
+            name: "GIRR_VegaSens_Weighted".to_string(),
+            calculator: Box::new(girr_vega_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_VegaSb".to_string(),
+            calculator: Box::new(girr_vega_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+        
+        Measure{
+            name: "GIRR_VegaCharge_Low".to_string(),
+            calculator: Box::new(girr_vega_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_VegaKb_Low".to_string(),
+            calculator: Box::new(girr_vega_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_VegaCharge_Medium".to_string(),
+            calculator: Box::new(girr_vega_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_VegaKb_Medium".to_string(),
+            calculator: Box::new(girr_vega_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_VegaCharge_High".to_string(),
+            calculator: Box::new(girr_vega_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+
+        Measure{
+            name: "GIRR_VegaKb_High".to_string(),
+            calculator: Box::new(girr_vega_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Vega")).and(col("RiskClass").eq(lit("GIRR"))))
+        },
+    ]
+}

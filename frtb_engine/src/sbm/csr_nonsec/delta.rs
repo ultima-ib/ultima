@@ -289,4 +289,70 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
 
 }
 
+/// Exporting Measures
+pub(crate) fn csrnonsec_delta_measures()-> Vec<Measure<'static>> {
+    vec![
+        Measure {
+            name: "CSR_nonSec_DeltaSens".to_string(),
+            calculator: Box::new(total_csr_nonsec_delta_sens),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))            
+        },
+
+        Measure {
+            name: "CSR_nonSec_DeltaSens_Weighted".to_string(),
+            calculator: Box::new(csr_nonsec_delta_sens_weighted),
+            aggregation: None,
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure {
+            name: "CSR_nonSec_DeltaSb".to_string(),
+            calculator: Box::new(csr_nonsec_delta_sb),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure {
+            name: "CSR_nonSec_DeltaKb_Low".to_string(),
+            calculator: Box::new(csr_nonsec_delta_kb_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure {
+            name: "CSR_nonSec_DeltaKb_Medium".to_string(),
+            calculator: Box::new(csr_nonsec_delta_kb_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+        Measure {
+            name: "CSR_nonSec_DeltaKb_High".to_string(),
+            calculator: Box::new(csr_nonsec_delta_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure {
+            name: "CSR_nonSec_DeltaCharge_Low".to_string(),
+            calculator: Box::new(csr_nonsec_delta_charge_low),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure {
+            name: "CSR_nonSec_DeltaCharge_Medium".to_string(),
+            calculator: Box::new(csr_nonsec_delta_charge_medium),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+
+        Measure {
+            name: "CSR_nonSec_DeltaCharge_High".to_string(),
+            calculator: Box::new(csr_nonsec_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("CSR_nonSec"))))
+        },
+    ]
+}
+
 

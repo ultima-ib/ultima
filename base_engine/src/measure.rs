@@ -22,10 +22,13 @@ pub struct Measure<'a>{
     ///this field is to restrict aggregation option to certain type only
     ///for example where it makes sence to aggregate with "first" and not "sum"
     pub aggregation: Option<&'a str>,
-    // List of files
-    //pub file: Vec<File>,
-    //TODO cache
-    // Measure to store cached requests and results
+    /// Say you want to compute CSR Delta by Bucket
+    /// 
+    /// You are only interested in CSR Buckets, all other would be 0,
+    /// So we want to avoid unnecessary calculations.
+    /// 
+    /// This field is an optional filter on DataFrame, placed PRIOR to the computation
+    pub precomputefilter: Option<Expr>,
 }
 
 pub fn derive_basic_measures_vec<'a> (dataset_numer_cols: Vec<String>) -> Vec<Measure<'a>> {
@@ -37,6 +40,7 @@ pub fn derive_basic_measures_vec<'a> (dataset_numer_cols: Vec<String>) -> Vec<Me
             name: x.clone(),
             calculator: Box::new(move |_| col(y.as_str())),
             aggregation: None,
+            precomputefilter: None,
         }}
     )
     .collect::<Vec<Measure>>()

@@ -10,6 +10,7 @@ use crate::sbm::csr_nonsec::vega::{total_csrnonsec_vega_sens, total_csrnonsec_ve
 use crate::sbm::csr_sec_ctp::curvature::{csrsecctp_curv_delta, csrsecctp_curv_delta_weighted, csrsecctp_pnl_up, csrsecctp_pnl_down, csrsecctp_cvr_up, csrsecctp_cvr_down, csrsecctp_curvature_kb_plus_medium, csrsecctp_curvature_kb_minus_medium, csrsecctp_curvature_kb_medium, csrsecctp_curvature_sb_medium, csrsecctp_curvature_charge_medium, csrsecctp_curvature_kb_plus_low, csrsecctp_curvature_kb_minus_low, csrsecctp_curvature_kb_low, csrsecctp_curvature_sb_low, csrsecctp_curvature_charge_low, csrsecctp_curvature_kb_plus_high, csrsecctp_curvature_kb_minus_high, csrsecctp_curvature_kb_high, csrsecctp_curvature_sb_high, csrsecctp_curvature_charge_high};
 use crate::sbm::csr_sec_ctp::delta::{total_csr_sec_ctp_delta_sens, csr_sec_ctp_delta_sens_weighted, csr_sec_ctp_delta_charge_low, csr_sec_ctp_delta_charge_medium, csr_sec_ctp_delta_charge_high, csr_sec_ctp_delta_sb, csr_sec_ctp_delta_kb_low, csr_sec_ctp_delta_kb_medium, csr_sec_ctp_delta_kb_high};
 use crate::sbm::csr_sec_ctp::vega::{total_csrsecctp_vega_sens, total_csrsecctp_vega_sens_weighted, csrsecctp_vega_sb, csrsecctp_vega_charge_low, csrsecctp_vega_kb_low, csrsecctp_vega_charge_medium, csrsecctp_vega_kb_medium, csrsecctp_vega_charge_high, csrsecctp_vega_kb_high};
+use crate::sbm::csr_sec_nonctp::curvature::{csr_sec_nonctp_curv_delta, csr_sec_nonctp_curv_delta_weighted, csr_sec_nonctp_pnl_up, csr_sec_nonctp_pnl_down, csr_sec_nonctp_cvr_up, csr_sec_nonctp_cvr_down, csr_sec_nonctp_curvature_kb_plus_medium, csr_sec_nonctp_curvature_kb_minus_medium, csr_sec_nonctp_curvature_kb_medium, csr_sec_nonctp_curvature_sb_medium, csr_sec_nonctp_curvature_charge_medium, csr_sec_nonctp_curvature_kb_plus_low, csr_sec_nonctp_curvature_kb_minus_low, csr_sec_nonctp_curvature_kb_low, csr_sec_nonctp_curvature_sb_low, csr_sec_nonctp_curvature_charge_low, csr_sec_nonctp_curvature_kb_plus_high, csr_sec_nonctp_curvature_kb_minus_high, csr_sec_nonctp_curvature_kb_high, csr_sec_nonctp_curvature_sb_high, csr_sec_nonctp_curvature_charge_high};
 use crate::sbm::csr_sec_nonctp::delta::{total_csr_sec_nonctp_delta_sens, csr_sec_nonctp_delta_sens_weighted, csr_sec_nonctp_delta_charge_low, csr_sec_nonctp_delta_charge_medium, csr_sec_nonctp_delta_charge_high, csr_sec_nonctp_delta_kb_low, csr_sec_nonctp_delta_kb_medium, csr_sec_nonctp_delta_kb_high, csr_sec_nonctp_delta_sb};
 use crate::sbm::csr_sec_nonctp::vega::{total_csr_sec_nonctp_vega_sens, total_csr_sec_nonctp_vega_sens_weighted, csr_sec_nonctp_vega_sb, csr_sec_nonctp_vega_charge_low, csr_sec_nonctp_vega_kb_low, csr_sec_nonctp_vega_charge_medium, csr_sec_nonctp_vega_kb_medium, csr_sec_nonctp_vega_charge_high, csr_sec_nonctp_vega_kb_high};
 use crate::sbm::equity::curvature::{eq_curv_delta, eq_curv_delta_weighted, eq_pnl_up, eq_pnl_down, eq_cvr_down, eq_cvr_up, eq_curvature_charge_medium, eq_curvature_sb_medium, eq_curvature_kb_medium, eq_curvature_kb_minus_medium, eq_curvature_kb_plus_medium, eq_curvature_kb_plus_low, eq_curvature_kb_minus_low, eq_curvature_kb_low, eq_curvature_sb_low, eq_curvature_charge_low, eq_curvature_kb_plus_high, eq_curvature_kb_minus_high, eq_curvature_kb_high, eq_curvature_sb_high, eq_curvature_charge_high};
@@ -973,8 +974,6 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             aggregation: Some("first"),
         },
 
-
-
         Measure{
             name: "CSR_secCTP_CurvatureDelta".to_string(),
             calculator: Box::new(csrsecctp_curv_delta),
@@ -1084,7 +1083,6 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             calculator: Box::new(csrsecctp_curvature_charge_high),
             aggregation: Some("first"),
         },
-
         
         //###################################################CSR Sec non-CTP
         Measure {
@@ -1141,8 +1139,6 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             aggregation: None,
         },
 
-
-
         Measure{
             name: "CSR_Sec_nonCTP_VegaSens".to_string(),
             calculator: Box::new(total_csr_sec_nonctp_vega_sens),
@@ -1196,6 +1192,115 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
             aggregation: Some("first"),
         },
 
+        Measure{
+            name: "CSR_Sec_nonCTP_CurvatureDelta".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curv_delta),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_CurvatureDelta_Weighted".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curv_delta_weighted),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_PnLup".to_string(),
+            calculator: Box::new(csr_sec_nonctp_pnl_up),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_PnLdown".to_string(),
+            calculator: Box::new(csr_sec_nonctp_pnl_down),
+            aggregation: None,
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_CVRup".to_string(),
+            calculator: Box::new(csr_sec_nonctp_cvr_up),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_CVRdown".to_string(),
+            calculator: Box::new(csr_sec_nonctp_cvr_down),
+            aggregation: None,
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_KbPlus_Medium".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_medium),
+            aggregation: Some("first"),
+        },
+
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_KbMinus_Medium".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_Kb_Medium".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_Sb_Medium".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_sb_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_CurvatureCharge_Medium".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_charge_medium),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_KbPlus_Low".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_KbMinus_Low".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_Kb_Low".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_Sb_Low".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_sb_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_CurvatureCharge_Low".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_charge_low),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_KbPlus_High".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_KbMinus_High".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_Kb_High".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_kb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_Curvature_Sb_High".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_sb_high),
+            aggregation: Some("first"),
+        },
+        Measure{
+            name: "CSR_Sec_nonCTP_CurvatureCharge_High".to_string(),
+            calculator: Box::new(csr_sec_nonctp_curvature_charge_high),
+            aggregation: Some("first"),
+        },
 
         //                      ################################ GIRR Delta #######################################
         Measure{

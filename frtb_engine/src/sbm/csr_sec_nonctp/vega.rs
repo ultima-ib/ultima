@@ -18,7 +18,7 @@ pub(crate) fn csr_sec_nonctp_vega_kb_low(op: &OCP) -> Expr {
     csr_sec_nonctp_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)  
 }
 
-///calculate Equity Vega Low Capital charge
+///calculate Sec nonCTP Vega Low Capital charge
 pub(crate) fn csr_sec_nonctp_vega_charge_low(op: &OCP) -> Expr {
     csr_sec_nonctp_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
@@ -28,7 +28,7 @@ pub(crate) fn csr_sec_nonctp_vega_kb_medium(op: &OCP) -> Expr {
     csr_sec_nonctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)  
 }
 
-///calculate Equity Vega Low Capital charge
+///calculate Sec nonCTP Vega Low Capital charge
 pub(crate) fn csr_sec_nonctp_vega_charge_medium(op: &OCP) -> Expr {
     csr_sec_nonctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
@@ -38,7 +38,7 @@ pub(crate) fn csr_sec_nonctp_vega_kb_high(op: &OCP) -> Expr {
     csr_sec_nonctp_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)  
 }
 
-///calculate Equity Vega Low Capital charge
+///calculate Sec nonCTP Vega Low Capital charge
 pub(crate) fn csr_sec_nonctp_vega_charge_high(op: &OCP) -> Expr {
     csr_sec_nonctp_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)  
 }
@@ -52,6 +52,8 @@ fn csr_sec_nonctp_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioC
     let csr_sec_nonctp_rho_bucket = get_optional_parameter(op, "base_csr_sec_nonctp_rho_diff_name_bucket", &scenario.base_csr_sec_nonctp_rho_diff_name);
     let csr_sec_nonctp_vega_rho = get_optional_parameter_array(op, "base_csr_sec_nonctp_opt_mat_vega_rho", &scenario.base_vega_rho);
 
-    equity_vega_charge(csr_sec_nonctp_vega_rho, csr_sec_nonctp_gamma, csr_sec_nonctp_rho_bucket.to_vec(), 
+    equity_vega_charge(csr_sec_nonctp_vega_rho, 
+        csr_sec_nonctp_gamma, 
+        csr_sec_nonctp_rho_bucket.to_vec(), 
     scenario.scenario_fn, rtrn, Some("25"), "CSR_Sec_nonCTP")
 }

@@ -206,6 +206,9 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
     let mut base_csr_sec_nonctp_gamma_row25col25_slice = csr_sec_nonctp_gamma.slice_mut(s![24,24]);
     base_csr_sec_nonctp_gamma_row25col25_slice.fill(0.);
 
+    let mut csr_sec_nonctp_gamma_curv = csr_sec_nonctp_gamma.clone();
+    csr_sec_nonctp_gamma_curv.mapv_inplace(|x|{x.powi(2)});
+
     let base_vega_rho = option_maturity_rho();
     let fx_vega_rho = base_vega_rho.clone();
 
@@ -277,6 +280,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         csr_sec_nonctp_rho_diff_name_curv: base_csr_sec_nonctp_rho_diff_name_curv,
 
         csr_sec_nonctp_gamma,
+        csr_sec_nonctp_gamma_curv,
 
         // Vega
         base_vega_rho,
@@ -403,6 +407,7 @@ pub struct ScenarioConfig{
     pub base_csr_sec_nonctp_rho_diff_tranche: f64,
 
     pub csr_sec_nonctp_gamma: Array2<f64>,
+    pub csr_sec_nonctp_gamma_curv: Array2<f64>,
 
     //Vega
     /// Option Maturity Rho
@@ -428,11 +433,12 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 //where F: Fn(f64) -> f64 + Sync,
 {
     //First, apply function to matrixes 
-    let mut matrixes: [Array2<f64>; 16] = [self.girr_delta_rho_same_curve.to_owned(),
+    let mut matrixes: [Array2<f64>; 17] = [self.girr_delta_rho_same_curve.to_owned(),
     self.com_gamma.to_owned(), self.com_gamma_curv.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
     self.fx_vega_rho.to_owned(), self.eq_gamma_curv.to_owned(), self.csr_nonsec_gamma.to_owned(), self.csr_nonsec_gamma_crr2.to_owned(),
     self.csr_ctp_gamma.to_owned(), self.csr_ctp_gamma_crr2.to_owned(), self.csr_nonsec_gamma_curv.to_owned(), self.csr_nonsec_gamma_crr2_curv.to_owned(),
-    self.csr_ctp_gamma_curv.to_owned(), self.csr_ctp_gamma_crr2_curv.to_owned()];
+    self.csr_ctp_gamma_curv.to_owned(), self.csr_ctp_gamma_crr2_curv.to_owned(),
+    self.csr_sec_nonctp_gamma_curv.to_owned()];
 
     matrixes.iter_mut()
     .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
@@ -444,7 +450,8 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     csr_nonsec_gamma, csr_nonsec_gamma_crr2, 
     csr_ctp_gamma, csr_ctp_gamma_crr2,
     csr_nonsec_gamma_curv, csr_nonsec_gamma_crr2_curv, 
-    csr_ctp_gamma_curv, csr_ctp_gamma_crr2_curv] = matrixes;
+    csr_ctp_gamma_curv, csr_ctp_gamma_crr2_curv,
+    csr_sec_nonctp_gamma_curv] = matrixes;
 
     let mut eq_curv_rho_bucket: [f64; 13] = self.eq_curv_rho_bucket;
     eq_curv_rho_bucket.iter_mut().for_each(|x|{*x = function(*x);});
@@ -514,6 +521,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 
             csr_sec_nonctp_rho_diff_name_curv,
             csr_sec_nonctp_gamma,
+            csr_sec_nonctp_gamma_curv,
 
             base_vega_rho,
             fx_vega_rho,

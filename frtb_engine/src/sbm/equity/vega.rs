@@ -90,7 +90,7 @@ pub(crate) fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>
             ])
             //.fill_null(0.)
             .collect()?;
-        
+                
         if df.height() == 0 {
             return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )
         };

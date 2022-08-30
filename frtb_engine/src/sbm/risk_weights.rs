@@ -100,7 +100,7 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
             rf_rw_map("RiskClass", delta_weights.vega_risk_class_weight, never_reached.clone())
         )
         // Equity, special case
-        .otherwise(rf_rw_map("BucketBCBS", delta_weights.vega_equity_weight, never_reached.clone()))
+        .otherwise(rf_rw_map("BucketBCBS", delta_weights.vega_equity_weight, never_reached))
     )
     .otherwise(not_yet_implemented)
 

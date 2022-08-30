@@ -1,5 +1,8 @@
 //! Common functionality associated with Curvature Calculations
 
+#![allow(clippy::type_complexity, clippy::unnecessary_lazy_evaluations)]
+//#![allow(clippy::unnecessary_lazy_evaluations)]
+
 use std::sync::Mutex;
 
 use ndarray::prelude::*;
@@ -184,10 +187,7 @@ pub(crate) fn curvature_kb_plus_minus(
             ,   _=>None};
 
             if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
-                let is_special_bucket = match special_bucket {
-                    Some(b) if b == b_as_idx_plus_1 => true,
-                    _=>false,
-                };
+                let is_special_bucket = matches!(special_bucket, Some(b) if b == b_as_idx_plus_1);
 
                 let rho = bucket_rho[b_as_idx_plus_1-1];
                 // CALCULATE Kb Sb for a bucket
@@ -246,7 +246,7 @@ pub(crate) fn kb_plus_minus(cvr_up_or_down: &Series, rho: f64, special_bucket: b
 pub(crate) fn kbs_sbs_curvature<I>(kb_plus: Vec<f64>,kb_minus: Vec<f64>, cvr_up: I, cvr_down: I) -> Result<(Vec<f64>, Vec<f64>)> 
 where I: Iterator<Item = Option<f64>>
 {
-    let kbs_sbs: Vec<(f64, f64)> = kb_plus.into_iter()
+    let (kbs, sbs): (Vec<f64>, Vec<f64>) = kb_plus.into_iter()
         .zip(kb_minus.into_iter())
         .zip(cvr_up)
         .zip(cvr_down)
@@ -263,7 +263,7 @@ where I: Iterator<Item = Option<f64>>
                 }
             }
         )
-        .collect::<Vec<(f64, f64)>>();
-    let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
+        .unzip();
+
     Ok((kbs, sbs))
 }

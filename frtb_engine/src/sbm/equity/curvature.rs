@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use base_engine::prelude::OCP;
 use ndarray::{Array2, Array1};
 use crate::prelude::*;
@@ -118,9 +120,9 @@ pub(crate) fn eq_curvature_charge(eq_curv_rho: Vec<f64>, eq_curv_gamma: Array2<f
             ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
             _ => (), }
         
-        let cvr_up_opt: Vec<Option<f64>> = cvr_up.into_iter().map(|x|Some(x)).collect();
-        let cvr_down_opt: Vec<Option<f64>> = cvr_down.into_iter().map(|x|Some(x)).collect();
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus, cvr_up_opt.into_iter(), cvr_down_opt.into_iter())?;
+        // If we want to reuse [kbs_sbs_curvature] the iterator has to be over Option<f64>
+        let a = Some;
+        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus, cvr_up.into_iter().map(a), cvr_down.into_iter().map(a))?;
         match return_metric {
             ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
             ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),

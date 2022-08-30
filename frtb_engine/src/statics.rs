@@ -533,6 +533,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 
 #[derive(Default, Debug)]
 #[derive(EnumString)]
+#[allow(clippy::upper_case_acronyms)]
 pub(crate) enum Jurisdiction {
 #[default]
 BCBS,

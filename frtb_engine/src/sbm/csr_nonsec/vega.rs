@@ -95,6 +95,7 @@ fn csr_nonsec_vega_charge_distributor(op: &OCP, scenario: &'static ScenarioConfi
 }
 
 /// Used by CSR nonSec, CSR secCTP Vegas
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn csr_nonsec_vega_charge<F>(
     weight: Expr,
     bucket_col: Expr, scenario_fn: F, 
@@ -139,7 +140,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy + 'static, {
             &opt_mat_rho,
             &rho_diff_curve, 
             scenario_fn, 
-            &vec!["y05", "y1", "y3", "y5", "y10"],
+            &["y05", "y1", "y3", "y5", "y10"],
             special_bucket            
         )?; 
 

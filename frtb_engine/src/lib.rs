@@ -1,4 +1,6 @@
 //! FRTB job entry point
+#![allow(clippy::unnecessary_lazy_evaluations)]
+
 pub mod prelude;
 mod sbm;
 mod helpers;

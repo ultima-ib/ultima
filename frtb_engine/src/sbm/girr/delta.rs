@@ -111,6 +111,7 @@ fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rt
     girr_delta_charge(girr_delta_gamma, girr_delta_rho_same_curve, girr_delta_rho_diff_curve, girr_delta_rho_infl, girr_delta_rho_xccy, rtrn, juri, girr_delta_gamma_crr2_erm2, erm2ccys, scenario.scenario_fn)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn girr_delta_charge<F>(girr_delta_gamma: f64, girr_delta_rho_same_curve: Array2<f64>, 
     girr_delta_rho_diff_curve: f64, 
     girr_delta_rho_infl: f64, girr_delta_rho_xccy: f64,

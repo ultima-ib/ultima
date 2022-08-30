@@ -164,7 +164,7 @@ fn girr_vega_charge(girr_vega_opt_rho: Array2<f64>, girr_gamma: f64, return_metr
 }
 
 fn girr_vega_bucket_kb_sb<'a>(bucket_df: &'a DataFrame, girr_vega_rho: &Array2<f64>) -> Result<((&'a str, f64), f64)> {
-    let bucket = unsafe{bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or_else(||"Default")};
+    let bucket = unsafe{bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or("Default")};
 
     // Extracting yield curves
     let yield_05um = girr_underlying_maturity_arr(bucket_df, "0.5Y", bucket)?;

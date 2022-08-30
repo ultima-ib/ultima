@@ -1,9 +1,11 @@
+#![allow(clippy::unnecessary_lazy_evaluations)]
+
 use base_engine::prelude::*;
 
 use ndarray::{Array2, Array1, Zip, ArrayView1, s, Axis};
 use polars::{prelude::*, export::num::Signed};
 use rayon::{iter::{ParallelBridge, ParallelIterator}, prelude::IntoParallelRefIterator};
-use std::{sync::Mutex};
+use std::sync::Mutex;
 use std::mem::MaybeUninit as MU;
 
 /// Sum of all delta sensis, from spot to 30Y tenor
@@ -186,7 +188,7 @@ pub(crate) fn alt_sbs(sbs_arr: ArrayView1<f64>, kbs_arr: ArrayView1<f64>) -> Arr
 /// 
 /// Commodity and CSR CTP. Common way of calculating Kbs and Sbs for all buckets, where no optimisation is possible
 /// due to many risk factor types (location/tranche).
-/// 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn all_kbs_sbs_onsq<F>(df: DataFrame, 
     tenor_col:&str, rho_diff_tenor: f64, 
     name_col: &str, bucket_rho_diff_rf: &[f64], 
@@ -244,6 +246,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
 /// Commodity and CSR Sec CTO have potentially unlimited number of locations/tranches.
 /// 
 /// Hence we can't go with any of the optimizations. Have to be computed in O(N^2)
+#[allow(clippy::too_many_arguments)]
 fn bucket_kb_sb_onsq<F>(df: &DataFrame,
     tenor_col:&str, rho_diff_tenor: f64, 
     name_col: &str, rho_diff_name: f64, 
@@ -289,13 +292,13 @@ where F: Fn(f64) -> f64 + Sync + Send,
                 if let Some(risk2) = risk2{
                     let mut rho = 1.;
                     if tenor != tenor2{
-                        rho = rho*rho_diff_tenor
+                        rho *= rho_diff_tenor
                     }
                     if name != name2 {
-                        rho = rho*rho_diff_name
+                        rho *= rho_diff_name
                     }
                     if basis != basis2 {
-                        rho = rho*rho_diff_rft
+                        rho *= rho_diff_rft
                     }
                     res += 2f64*scenario_fn(rho)*risk*risk2
                 }
@@ -331,7 +334,7 @@ fn vega_rho_element(m1: f64, m2: f64) -> f64 {
 /// The difference between them is only in number of tenors 
 /// 
 /// *df is expected to have "b" column representing bucket
-/// TODO use bucket_rho_diff_rf.len() instead of n_buckets
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn all_kbs_sbs_two_types<F>(df: DataFrame, n_buckets: usize, bucket_rho_diff_rf: &[f64], 
 rho_base_diff_rft_or_loc: f64, 
 scenario_fn: F, special_bucket: Option<usize>,
@@ -379,6 +382,7 @@ where F: Fn(f64) -> f64 + Sync + Send + Copy{
 /// This function assumes two RFTs
 /// * `df` - A "pivoted" Dataframe. Rows are names(RFs), columns are 2(for each RFT) x ntenors. Expecting no NULLs
 /// * `tenor_cols` , all columns are expected to .f64(), otherwise we will panic
+#[allow(clippy::too_many_arguments)]
 fn bucket_kb_sb_two_types<F>(df: &DataFrame, bucket_id: usize, special_bucket: Option<usize>,
     rho_diff_rf_bucket: &[f64], rho_diff_rft: f64, scenario_fn: F, cols_by_tenor: &[(&str, &str)],
 dtenor: Option<f64> ) 
@@ -497,17 +501,14 @@ pub(crate) fn var_covar_sum_fn(srs1: &Series, srs2: &Series, rho_case1: f64, rho
         spot_sum_of_sq+=x.powi(2);
         repo_sum+=y;
         repo_sum_of_sq+=y.powi(2);
-        spot_times_repo_sum = spot_times_repo_sum + x*y;
+        spot_times_repo_sum += x*y;
 
     });
     let pre_sb = repo_sum + spot_sum;
 
     let formula1 = spot_sum_of_sq + repo_sum_of_sq + rho_case1*(spot_sum.powi(2) - spot_sum_of_sq + repo_sum.powi(2) - repo_sum_of_sq );
-    //let formula1 = spot_f1 + repo_f1;
     
     let formula2_pt1 = spot_sum*repo_sum*rho_case3;
-    // .sum() returns None if array is empty or all NULLs
-    //let spot_times_repo_sum = (srs1*srs2).f64().unwrap().sum().unwrap_or_default();//.unwrap_or_else(||0.);
 
     let formula2_pt2 = rho_case2*spot_times_repo_sum;
     let formula2_pt3 = - rho_case3*spot_times_repo_sum; 
@@ -566,9 +567,7 @@ pub(crate) fn all_kbs_sbs_single_type<F>(
                 AnyValue::Utf8(st)=>{ st.parse::<usize>()
                     .ok()
                     .and_then(|b_id|{if b_id<=n_buckets{Some(b_id)}else{None}})
-                    //.unwrap_or_else(|| return () )
                 },   
-                // If Bucket is None(ie Empty) then skip
                 _=>None};
 
             // For example if CSR BCBS bucket is 19, then we would have None here

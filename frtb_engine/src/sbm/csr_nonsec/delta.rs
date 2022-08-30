@@ -160,6 +160,7 @@ fn csr_nonsec_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConf
         rtrn)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn csr_nonsec_delta_charge<F>(
     weight: Expr,
     base_tenor_rho: f64, rho_name: Vec<f64>, rho_basis: f64,

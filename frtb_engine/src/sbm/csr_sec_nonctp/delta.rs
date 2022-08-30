@@ -99,6 +99,7 @@ fn csr_sec_nonctp_delta_charge_distributor(op: &OCP, scenario: &'static Scenario
         
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn csr_sec_nonctp_delta_charge<F>(
     rho_tenor: f64, rho_name: Vec<f64>, rho_rft: f64,
     scenario_fn: F, gamma: Array2<f64>,

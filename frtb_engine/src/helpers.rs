@@ -1,3 +1,6 @@
+#![allow(clippy::unnecessary_lazy_evaluations)]
+
+
 use crate::prelude::*;
 
 use ndarray::prelude::*;

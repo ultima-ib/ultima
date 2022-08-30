@@ -1,7 +1,8 @@
+#![allow(clippy::type_complexity)]
+
 use base_engine::prelude::OCP;
 use ndarray::{Array2, Array1};
 use crate::prelude::*;
-//use ndarray::{Array1, Array2};
 use polars::prelude::*;
 
 pub fn csrnonsec_curv_delta (_: &OCP) -> Expr {
@@ -105,7 +106,7 @@ fn csrnonsec_curvature_charge_distributor(op: &OCP, scenario: &'static ScenarioC
             )
         };
 
-    let csr_nonsec_curv_gamma = get_optional_parameter_array(op, format!("csr_nonsec_curv_gamma{_suffix}").as_str(), &gamma);
+    let csr_nonsec_curv_gamma = get_optional_parameter_array(op, format!("csr_nonsec_curv_gamma{_suffix}").as_str(), gamma);
     let csr_nonsec_curv_rho = get_optional_parameter_vec(op, format!("csr_nonsec_curv_rho{_suffix}").as_str(), &name_rho_vec);
 
     csrnonsec_curvature_charge(csr_nonsec_curv_rho, csr_nonsec_curv_gamma,
@@ -155,10 +156,9 @@ special_bucket: Option<usize>, weight: Expr, bucket_col: Expr, rc: &'static str)
             ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
             _ => (), }
         
-        let cvr_up_opt: Vec<Option<f64>> = cvr_up.into_iter().map(|x|Some(x)).collect();
-        let cvr_down_opt: Vec<Option<f64>> = cvr_down.into_iter().map(|x|Some(x)).collect();
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus, cvr_up_opt.into_iter(), cvr_down_opt.into_iter())?;
-        match return_metric {
+            let a = Some;
+            let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus, cvr_up.into_iter().map(a), cvr_down.into_iter().map(a))?;
+            match return_metric {
             ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.iter().sum()).as_slice().unwrap())),
             ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.iter().sum()).as_slice().unwrap())),
             _ => (),

@@ -103,7 +103,7 @@ pub(crate) fn equity_vega_charge<F>(opt_mat_rho: Array2<f64>, gamma: Array2<f64>
             &opt_mat_rho,
             &eq_rho_bucket,
             scenario_fn,
-            &vec!["y05", "y1", "y3", "y5", "y10"],
+            &["y05", "y1", "y3", "y5", "y10"],
             special_bucket)?;
 
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();

@@ -138,15 +138,10 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
             .to_ndarray()?; //Ok since we have filtered out NULLs above
         // Early return Kb or Sb, ie the required metric
         let res_len = columns[0].len();
-        match rtrn {
-            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, dw_sum.sum()).as_slice().unwrap())),
-            _ => (),
-        }
+        if let ReturnMetric::Sb = rtrn { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, dw_sum.sum()).as_slice().unwrap())) }
+
         let kbs: Array1<f64> = dw_sum.iter().map(|x|x.abs()).collect();
-        match rtrn {
-            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.sum()).as_slice().unwrap())),
-            _ => (),
-        }
+        if let ReturnMetric::Kb = rtrn { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.sum()).as_slice().unwrap())) }
 
         let mut gamma = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma );
         let zeros = Array::zeros(dw_sum.len() );

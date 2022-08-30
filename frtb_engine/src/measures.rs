@@ -67,6 +67,8 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
         precomputefilter: None
     },
     ];
+
+    
     let mut res = vec![];
     res.extend(fx_delta_measures);
     res.extend(fx_vega_measures);

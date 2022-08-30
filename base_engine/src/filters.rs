@@ -21,17 +21,17 @@ pub (crate) fn fltr_in_or_builder(_f: &Vec<(String, Vec<String>)>) -> Expr {
     let cat = true; // set true for now, later to be checked if col is among cat cols
     let mut e: Expr;
     if cat {
-        e = col(&*a).cast(DataType::Categorical(None))
-         .is_in( s.lit().cast(DataType::Categorical(None)) );
-    } else { e = col(&*a) .is_in( s.lit()  ) };
+        e = col(a)
+         .is_in( s.lit() );
+    } else { e = col(a) .is_in( s.lit()  ) };
 
     for (i, j) in _f.iter().skip(0) {
         let s = Series::new("filter", j);
         if cat {
-            e = e.or( col(&*i).cast(DataType::Categorical(None))
-            .is_in( s.lit().cast(DataType::Categorical(None)) ) );
+            e = e.or( col(i)
+            .is_in( s.lit() ) );
         } else {
-            e = e.or ( col(&*i) 
+            e = e.or ( col(i) 
             .is_in( s.lit()  ))
         }
     } 
@@ -44,17 +44,17 @@ pub (crate) fn fltr_not_in_or_builder(_f: &Vec<(String, Vec<String>)>) -> Expr {
     let cat = true; // set true for now, later to be checked if col is among cat cols
     let mut e: Expr;
     if cat {
-        e = col(&*a).cast(DataType::Categorical(None))
-         .is_in( s.lit().cast(DataType::Categorical(None)) ).not();
-    } else { e = col(&*a).is_in( s.lit()  ).not() };
+        e = col(a)
+         .is_in( s.lit() ).not();
+    } else { e = col(a).is_in( s.lit()  ).not() };
 
     for (i, j) in _f.iter().skip(0) {
         let s = Series::new("filter", j);
         if cat {
-            e = e.or( col(&*i).cast(DataType::Categorical(None))
-            .is_in( s.lit().cast(DataType::Categorical(None)) ).not() );
+            e = e.or( col(i)
+            .is_in( s.lit() ).not() );
         } else {
-            e = e.or ( col(&*i) 
+            e = e.or ( col(i) 
             .is_in( s.lit()  ).not())
         }
     } 
@@ -75,9 +75,9 @@ pub (crate) fn fltr_eq_or_builder(_f: &Vec<(String, String)>) -> Expr {
 pub (crate) fn fltr_neq_or_builder(_f: &Vec<(String, String)>) -> Expr {
     let (a, b) = _f.index(0);
     println!("a: {}, b: {}", a, b);
-    let mut e: Expr = col(&*a).neq(lit::<&str>(b));
+    let mut e: Expr = col(a).neq(lit::<&str>(b));
     for (i, j) in _f.iter().skip(1) {
-        e = e.or(col(&*i).neq(lit::<&str>(j)))
+        e = e.or(col(i).neq(lit::<&str>(j)))
     };
     e
 }

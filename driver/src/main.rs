@@ -3,7 +3,7 @@
 
 use base_engine::prelude::*;
 
-use std::{process, fs};
+use std::fs;
 //use std::sync::Arc;
 use log::info;
 use serde::{Serialize, Deserialize};
@@ -49,20 +49,17 @@ fn main() {
     let message: Message = serde_json::from_str(&json).unwrap();
     info!("{:?}", message);
     let now = Instant::now();
-    match message {
-        Message::Request{ params: conf, ..} => {
-            match base_engine::execute(conf, &data){
-                Err(e) =>{ 
-                    eprintln!("Application error: {:#?}", e);
-                    process::exit(1);
-                },
-                Ok(df) => {
-                    let elapsed = now.elapsed();
-                    println!("result: {:?}", df);
-                    println!("Elapsed: {:.6?}", elapsed);}
-            }
-        },
-        _ => ()
+    if let Message::Request{ params: conf, ..} = message {
+        match base_engine::execute(conf, &data){
+            Err(e) =>{
+                eprintln!("Application error: {:#?}", e);
+                //process::exit(1);
+            },
+            Ok(df) => {
+                let elapsed = now.elapsed();
+                println!("result: {:?}", df);
+                println!("Elapsed: {:.6?}", elapsed);}
+        }
     };
 }
 

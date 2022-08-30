@@ -94,10 +94,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
 
         // Early return Kb or Sb, ie the required metric
         let res_len = columns[0].len();
-        match rtrn {
-            ReturnMetric::Sb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.sum()).as_slice().unwrap())),
-            _ => (),
-        }
+        if let ReturnMetric::Sb = rtrn { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, sbs.sum()).as_slice().unwrap())) }
 
         // Interm step
         let _kbs = sens.dot(&fx_vega_rho);
@@ -112,10 +109,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
             *a = f64::max( arr.dot( &sens.row(i) ), 0. ).sqrt();
         });
         
-        match rtrn {
-            ReturnMetric::Kb => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.sum()).as_slice().unwrap())),
-            _ => (),
-        }
+        if let ReturnMetric::Kb = rtrn { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.sum()).as_slice().unwrap())) }
 
         let mut gamma = Array2::from_elem((kbs.len(), kbs.len()), fx_vega_gamma );
         let zeros = Array1::zeros(kbs.len() );

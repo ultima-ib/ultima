@@ -219,10 +219,10 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig>  = Lazy::new(|| {
         scenario_fn: med_fn,
 
         erm2_crr2: vec!["BGN".to_string(), "DKK".to_string(), "HRK".to_string()],
-        girr_delta_rho_same_curve,
-        girr_delta_rho_diff_curve,
-        girr_delta_rho_infl: 0.4,
-        girr_delta_rho_xccy: 0.,
+        base_girr_delta_rho_same_curve: girr_delta_rho_same_curve,
+        base_girr_delta_rho_diff_curve: girr_delta_rho_diff_curve,
+        base_girr_delta_rho_infl: 0.4,
+        base_girr_delta_rho_xccy: 0.,
         girr_gamma: 0.5,
         girr_gamma_crr2_erm2: 0.8,
         girr_curv_gamma: 0.5f64.powi(2),
@@ -331,10 +331,10 @@ pub struct ScenarioConfig{
 
     pub erm2_crr2: Vec<String>,
 
-    pub girr_delta_rho_same_curve: Array2<f64>,
-    pub girr_delta_rho_diff_curve: f64,
-    pub girr_delta_rho_infl: f64,
-    pub girr_delta_rho_xccy: f64,
+    pub base_girr_delta_rho_same_curve: Array2<f64>,
+    pub base_girr_delta_rho_diff_curve: f64,
+    pub base_girr_delta_rho_infl: f64,
+    pub base_girr_delta_rho_xccy: f64,
     pub girr_gamma: f64,
     pub girr_gamma_crr2_erm2: f64,
     pub girr_curv_gamma: f64,
@@ -433,7 +433,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 //where F: Fn(f64) -> f64 + Sync,
 {
     //First, apply function to matrixes 
-    let mut matrixes: [Array2<f64>; 17] = [self.girr_delta_rho_same_curve.to_owned(),
+    let mut matrixes: [Array2<f64>; 16] = [
     self.com_gamma.to_owned(), self.com_gamma_curv.to_owned(), self.eq_gamma.to_owned(), self.csr_sec_nonctp_gamma.to_owned(), self.girr_vega_rho.to_owned(),
     self.fx_vega_rho.to_owned(), self.eq_gamma_curv.to_owned(), self.csr_nonsec_gamma.to_owned(), self.csr_nonsec_gamma_crr2.to_owned(),
     self.csr_ctp_gamma.to_owned(), self.csr_ctp_gamma_crr2.to_owned(), self.csr_nonsec_gamma_curv.to_owned(), self.csr_nonsec_gamma_crr2_curv.to_owned(),
@@ -444,7 +444,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
     .for_each(|matrix| matrix.par_mapv_inplace(|element| {function(element)})
     );
     //Unzip matrixes into individual components
-    let[girr_delta_rho_same_curve,
+    let[
     com_gamma, com_gamma_curv, eq_gamma, csr_sec_nonctp_gamma,
     girr_vega_rho, fx_vega_rho, eq_gamma_curv, 
     csr_nonsec_gamma, csr_nonsec_gamma_crr2, 
@@ -477,6 +477,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
 
     //objects which do not implement copy
     let base_vega_rho = self.base_vega_rho.clone();
+    let base_girr_delta_rho_same_curve = self.base_girr_delta_rho_same_curve.to_owned();
 
     let erm2_crr2 = self.erm2_crr2.clone();
 
@@ -486,9 +487,7 @@ pub (crate) fn create_scenario_from_med(&self, scenario: ScenarioName, function:
             
             erm2_crr2,
 
-            girr_delta_rho_same_curve,
-            girr_delta_rho_infl: function(self.girr_delta_rho_infl), 
-            girr_delta_rho_xccy: function(self.girr_delta_rho_xccy), 
+            base_girr_delta_rho_same_curve, 
             girr_gamma: function(self.girr_gamma), 
             girr_curv_gamma: function(self.girr_curv_gamma), 
             girr_curv_gamma_crr2_erm2: function(self.girr_curv_gamma_crr2_erm2), 

@@ -3,7 +3,9 @@
     "method": "SEND", 
     "params": {
         "measures": [ 
-            ["CSR_Sec_nonCTP_CurvatureCharge_High", "first"]
+            ["CSR_Sec_nonCTP_CurvatureCharge_High", "first"],
+            ["FX_CurvatureCharge_High", "first"]
+
                 ],
         "groupby": ["Desk", "BucketBCBS"],
         "filters": [],

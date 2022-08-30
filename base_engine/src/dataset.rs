@@ -101,8 +101,5 @@ pub (crate) fn numeric_columns(df: &DataFrame) -> Vec<String> {
 }
 
 pub fn is_numeric(s: &Series) -> bool {
-    match s.dtype() {
-        DataType::Utf8 | DataType::List(_) | DataType::Boolean | DataType::Null | DataType::Categorical(_) => false,
-        _ => true,
-    }
+    !matches!(s.dtype(), DataType::Utf8 | DataType::List(_) | DataType::Boolean | DataType::Null | DataType::Categorical(_))
 }

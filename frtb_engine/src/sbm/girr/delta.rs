@@ -99,10 +99,10 @@ fn girr_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rt
     let _suffix = scenario.as_str();
 
     // Take MEDIUM scenario here because scenario_fn is to be applied post factum
-    let girr_delta_rho_same_curve = get_optional_parameter_array(op, format!("girr_delta_rho_same_curve").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_same_curve);
-    let girr_delta_rho_diff_curve = get_optional_parameter(op, format!("girr_delta_rho_diff_curve").as_str(), &MEDIUM_CORR_SCENARIO.girr_delta_rho_diff_curve);
-    let girr_delta_rho_infl = get_optional_parameter(op,format!("girr_delta_rho_infl").as_str(),&MEDIUM_CORR_SCENARIO.girr_delta_rho_infl);
-    let girr_delta_rho_xccy = get_optional_parameter(op,format!("girr_delta_rho_xccy").as_str(), &MEDIUM_CORR_SCENARIO.girr_delta_rho_xccy);
+    let girr_delta_rho_same_curve = get_optional_parameter_array(op, "base_girr_delta_rho_same_curve",&MEDIUM_CORR_SCENARIO.base_girr_delta_rho_same_curve);
+    let girr_delta_rho_diff_curve = get_optional_parameter(op, "base_girr_delta_rho_diff_curve", &MEDIUM_CORR_SCENARIO.base_girr_delta_rho_diff_curve);
+    let girr_delta_rho_infl = get_optional_parameter(op,"base_girr_delta_rho_infl",&MEDIUM_CORR_SCENARIO.base_girr_delta_rho_infl);
+    let girr_delta_rho_xccy = get_optional_parameter(op,"base_girr_delta_rho_xccy", &MEDIUM_CORR_SCENARIO.base_girr_delta_rho_xccy);
 
     let girr_delta_gamma = get_optional_parameter(op, format!("girr_delta_gamma{_suffix}").as_str(), &scenario.girr_gamma);
     let girr_delta_gamma_crr2_erm2 = get_optional_parameter(op, format!("girr_delta_gamma_erm2{_suffix}").as_str(), &scenario.girr_gamma_crr2_erm2);

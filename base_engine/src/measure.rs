@@ -5,6 +5,7 @@ use serde::{Serialize, Deserialize};
 
 //MeasureMap
 pub type MM<'b> = HashMap<String, Measure<'b>>;
+type Calculator<'a> = Box<dyn Fn(&Option<CalcParams>)->Expr + Send + Sync + 'a>;
 
 /// Measure is the 
 #[derive(Derivative)]
@@ -13,7 +14,7 @@ pub struct Measure<'a>{
     pub name: String,
     /// Main function which performs the calculation
     #[derivative(Debug="ignore")]
-    pub calculator: Box<dyn Fn(&Option<CalcParams>)->Expr + Send + Sync + 'a>,
+    pub calculator: Calculator<'a>,
     /// Bespoke measures assumes presence of these columns
     /// This field is used to validate the DataSet
     /// Req Columns of all availiable measures must be present in the DataSet
@@ -46,7 +47,7 @@ pub fn derive_basic_measures_vec<'a> (dataset_numer_cols: Vec<String>) -> Vec<Me
     .collect::<Vec<Measure>>()
 }
 
-pub fn derive_measure_map<'a> (measures_vecs: Vec<Measure<'a>>)
+pub fn derive_measure_map (measures_vecs: Vec<Measure>)
  -> MM {
     let mut measure_map: MM = HashMap::default();
     for m in measures_vecs {

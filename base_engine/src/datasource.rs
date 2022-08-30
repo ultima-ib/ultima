@@ -9,7 +9,7 @@ use crate::{dataset::*, Measure, derive_basic_measures_vec};
 /// reads setup.toml 
 /// # Panics
 /// When path or file is invalid
-pub fn read_toml2<'de, T>(path: &'de str) -> std::result::Result<T, Box<dyn std::error::Error>>
+pub fn read_toml2<T>(path: &str) -> std::result::Result<T, Box<dyn std::error::Error>>
 where T: serde::de::DeserializeOwned,
  {
     let result_string: std::result::Result<String, std::io::Error> = std::fs::read_to_string(path);
@@ -186,7 +186,7 @@ fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> Dat
         //.with_ignore_parser_errors(ignore)
         .finish()
         .and_then(|lf| lf.collect())
-        .expect(format!("Error reading file: {path}").as_str());
+        .unwrap_or_else(|_| panic!("Error reading file: {path}"));
     
     df
 }

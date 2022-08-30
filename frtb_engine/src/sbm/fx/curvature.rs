@@ -145,14 +145,10 @@ fn fx_curvature_charge(gamma: f64, return_metric: ReturnMetric, ccy_regex: Strin
         let res_len = columns[0].len();
         
         let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
-        match return_metric {
-            ReturnMetric::KbPlus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_plus.iter().sum()).as_slice().unwrap())),
-            _ => (), }
+        if let ReturnMetric::KbPlus = return_metric { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_plus.iter().sum()).as_slice().unwrap())) }
 
         let kb_minus: Vec<f64> = kb_plus_minus_simple(&df["cvr_down"])?;
-        match return_metric {
-            ReturnMetric::KbMinus => return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())),
-            _ => (), }
+        if let ReturnMetric::KbMinus = return_metric { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kb_minus.iter().sum()).as_slice().unwrap())) }
 
         
         let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(kb_plus, kb_minus,df["cvr_up"].f64()?.into_iter(),df["cvr_down"].f64()?.into_iter())?;

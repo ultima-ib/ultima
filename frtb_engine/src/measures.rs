@@ -1,42 +1,40 @@
-
 //! This file defines all the measures, associated with this library
 
 use crate::sbm::common::sens_weights;
 
+use crate::sbm::commodity::curvature::com_curv_measures;
 use crate::sbm::commodity::delta::com_delta_measures;
 use crate::sbm::commodity::vega::com_vega_measures;
-use crate::sbm::commodity::curvature::com_curv_measures;
 
+use crate::sbm::csr_nonsec::curvature::csrnonsec_curv_measures;
 use crate::sbm::csr_nonsec::delta::csrnonsec_delta_measures;
 use crate::sbm::csr_nonsec::vega::csrnonsec_vega_measures;
-use crate::sbm::csr_nonsec::curvature::csrnonsec_curv_measures;
 
+use crate::sbm::csr_sec_ctp::curvature::csrsecctp_curv_measures;
 use crate::sbm::csr_sec_ctp::delta::csrsecctp_delta_measures;
 use crate::sbm::csr_sec_ctp::vega::csrsecctp_vega_measures;
-use crate::sbm::csr_sec_ctp::curvature::csrsecctp_curv_measures;
 
+use crate::sbm::csr_sec_nonctp::curvature::csrsecnonctp_curv_measures;
 use crate::sbm::csr_sec_nonctp::delta::csrsecnonctp_delta_measures;
 use crate::sbm::csr_sec_nonctp::vega::csrsecnonctp_vega_measures;
-use crate::sbm::csr_sec_nonctp::curvature::csrsecnonctp_curv_measures;
 
+use crate::sbm::fx::curvature::fx_curv_measures;
 use crate::sbm::fx::delta::fx_delta_measures;
 use crate::sbm::fx::vega::fx_vega_measures;
-use crate::sbm::fx::curvature::fx_curv_measures;
 
+use crate::sbm::girr::curvature::girr_curv_measures;
 use crate::sbm::girr::delta::girr_delta_measures;
 use crate::sbm::girr::vega::girr_vega_measures;
-use crate::sbm::girr::curvature::girr_curv_measures;
-    
+
+use crate::sbm::equity::curvature::eq_curv_measures;
 use crate::sbm::equity::delta::eq_delta_measures;
 use crate::sbm::equity::vega::eq_vega_measures;
-use crate::sbm::equity::curvature::eq_curv_measures;
-    
+
 use base_engine::prelude::*;
 //use polars::prelude::*;
 
 /// Exporting Measures
-pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
-
+pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     let fx_delta_measures = fx_delta_measures();
     let fx_vega_measures = fx_vega_measures();
     let fx_curv_measures = fx_curv_measures();
@@ -59,16 +57,13 @@ pub(crate)fn frtb_measure_vec() -> Vec<Measure<'static>> {
     let girr_vega_measures = girr_vega_measures();
     let girr_curv_measures = girr_curv_measures();
 
-    let non_rc_specific = vec![
-    Measure{
+    let non_rc_specific = vec![Measure {
         name: "RiskWeights".to_string(),
         calculator: Box::new(sens_weights),
         aggregation: Some("first"),
-        precomputefilter: None
-    },
-    ];
+        precomputefilter: None,
+    }];
 
-    
     let mut res = vec![];
     res.extend(fx_delta_measures);
     res.extend(fx_vega_measures);

@@ -1,61 +1,68 @@
 //! For FX RiskFactor is the original source of risk, could be offshore
-//! BucketBCBS/CRR2 to be 
+//! BucketBCBS/CRR2 to be
 
+use crate::{
+    helpers::get_jurisdiction,
+    prelude::*,
+    sbm::common::{across_bucket_agg, SBMChargeType},
+};
 use base_engine::prelude::*;
-use crate::{prelude::*, helpers::get_jurisdiction, sbm::common::{SBMChargeType, across_bucket_agg}};
 
-use polars::prelude::*;
 use ndarray::prelude::*;
+use polars::prelude::*;
 
 /// This works for cases like GBP reporting with BCBS params
 pub(crate) fn ccy_regex(op: &OCP) -> String {
     let juri: Jurisdiction = get_jurisdiction(op);
     op.as_ref()
         .and_then(|map| map.get("reporting_ccy"))
-        .and_then(|s| { if s.len() == 3 { Some(format!("^...{s}$")) } else { None } })
-        .unwrap_or_else(||{
-            match juri{
-                #[cfg(feature = "CRR2")]
-                Jurisdiction::CRR2 => "^...EUR$".to_string(),
-                _=>"^...USD$".to_string()
+        .and_then(|s| {
+            if s.len() == 3 {
+                Some(format!("^...{s}$"))
+            } else {
+                None
             }
+        })
+        .unwrap_or_else(|| match juri {
+            #[cfg(feature = "CRR2")]
+            Jurisdiction::CRR2 => "^...EUR$".to_string(),
+            _ => "^...USD$".to_string(),
         })
 }
 
 /// Returns a Series equal to SensitivitySpot with RiskClass == FX and RiskFactor == ...CCY
 /// !where CCY is either provided as part of optional parameters,
 /// !and if not, then is based on Jurisdiction
-pub(crate) fn fx_delta_sens_repccy (op: &OCP) -> Expr {
+pub(crate) fn fx_delta_sens_repccy(op: &OCP) -> Expr {
     let ccy_regex = ccy_regex(op);
-    
-    apply_multiple( move |columns| {
-        let mask1 = columns[0]
-            .utf8()?
-            .equal("FX");
 
-        // function to take rep_ccy as an argument
-        let mask2 = columns[1]
-            .utf8()?
-            .contains(ccy_regex.as_str())?;
-        
-        // function to take rep_ccy as an argument
-        let mask3 = columns[3]
-            .utf8()?
-            .equal("Delta");
-        
-        // Set delta's which don't match mask1 or mask2 to None (ie NaN)
-        let delta = columns[2]
-            .f64()?
-            .set(&!(mask1&mask2&mask3), None)?;
+    apply_multiple(
+        move |columns| {
+            let mask1 = columns[0].utf8()?.equal("FX");
 
-        Ok(delta.into_series())
-    }, 
-        &[col("RiskClass"), col("BucketBCBS"), col("SensitivitySpot"), col("RiskCategory")], 
-        GetOutput::from_type(DataType::Float64))
+            // function to take rep_ccy as an argument
+            let mask2 = columns[1].utf8()?.contains(ccy_regex.as_str())?;
+
+            // function to take rep_ccy as an argument
+            let mask3 = columns[3].utf8()?.equal("Delta");
+
+            // Set delta's which don't match mask1 or mask2 to None (ie NaN)
+            let delta = columns[2].f64()?.set(&!(mask1 & mask2 & mask3), None)?;
+
+            Ok(delta.into_series())
+        },
+        &[
+            col("RiskClass"),
+            col("BucketBCBS"),
+            col("SensitivitySpot"),
+            col("RiskCategory"),
+        ],
+        GetOutput::from_type(DataType::Float64),
+    )
 }
 
 /// takes CalcParams because we need to know reporting CCY
-pub(crate) fn fx_delta_sens_weighted (op: &OCP) -> Expr {
+pub(crate) fn fx_delta_sens_weighted(op: &OCP) -> Expr {
     fx_delta_sens_repccy(op) * col("SensWeights").arr().get(0)
 }
 ///calculate FX Delta Sb, same for all scenarios
@@ -83,13 +90,21 @@ pub(crate) fn fx_delta_charge_low(op: &OCP) -> Expr {
     fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
-fn fx_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn: ReturnMetric) -> Expr {
+fn fx_delta_charge_distributor(
+    op: &OCP,
+    scenario: &'static ScenarioConfig,
+    rtrn: ReturnMetric,
+) -> Expr {
     //let fx_delta_sens_weighted_with_rep_ccy = fx_delta_sens_weighted(op);
     let ccy_regex = ccy_regex(op);
 
     let _suffix = scenario.as_str();
 
-    let fx_delta_gamma = get_optional_parameter(op, format!("fx_delta_gamma{_suffix}").as_ref() as &str, &scenario.fx_gamma);
+    let fx_delta_gamma = get_optional_parameter(
+        op,
+        format!("fx_delta_gamma{_suffix}").as_ref() as &str,
+        &scenario.fx_gamma,
+    );
 
     fx_delta_charge(fx_delta_gamma, rtrn, ccy_regex)
 }
@@ -99,114 +114,160 @@ fn fx_delta_charge_distributor(op: &OCP, scenario: &'static ScenarioConfig, rtrn
 /// Hence it makes sence to run regex after filtering
 fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
     // inner function
-    apply_multiple( move |columns| {
+    apply_multiple(
+        move |columns| {
+            let df = df![
+                "rcat" => columns[0].clone(),
+                "rc"   => columns[1].clone(),
+                "b"    => columns[2].clone(),
+                "d"    => columns[3].clone(),
+                "w"    => columns[4].clone(),
+            ]?;
 
-        let df = df![
-            "rcat" => columns[0].clone(), 
-            "rc"   => columns[1].clone(),
-            "b"    => columns[2].clone(),
-            "d"    => columns[3].clone(),
-            "w"    => columns[4].clone(),
-        ]?;
+            let ccy_regex = ccy_regex.clone();
+            let df = df
+                .lazy()
+                .filter(
+                    col("rc")
+                        .eq(lit("FX"))
+                        .and(col("rcat").eq(lit("Delta")))
+                        .and(col("b").apply(
+                            move |col| Ok(col.utf8()?.contains(&ccy_regex)?.into_series()),
+                            GetOutput::from_type(DataType::Boolean),
+                        )),
+                )
+                .groupby([col("b")])
+                .agg([(col("d") * col("w")).sum().alias("dw_sum")])
+                // Drop nulls (ie other reporting ccys)
+                .drop_nulls(Some(vec![col("dw_sum")]))
+                .collect()?;
 
-        let ccy_regex = ccy_regex.clone();
-        let df = df.lazy()
-            .filter(
-                col("rc").eq(lit("FX"))
-                .and(col("rcat").eq(lit("Delta")))
-                .and(col("b").apply(move |col|{
-                    Ok( col
-                    .utf8()?
-                    .contains(&ccy_regex)?
-                    .into_series() )
-                },
-                    GetOutput::from_type(DataType::Boolean)))
+            if df.height() == 0 {
+                return Ok(Series::from_vec(
+                    "res",
+                    vec![0.; columns[0].len()] as Vec<f64>,
+                ));
+            };
+
+            //21.4.4 |dw_sum| == kb for FX
+            //21.4.5.a sb == dw_sum
+            let dw_sum = df["dw_sum"].f64()?.to_ndarray()?; //Ok since we have filtered out NULLs above
+                                                            // Early return Kb or Sb, ie the required metric
+            let res_len = columns[0].len();
+            if let ReturnMetric::Sb = rtrn {
+                return Ok(Series::new(
+                    "res",
+                    Array1::<f64>::from_elem(res_len, dw_sum.sum())
+                        .as_slice()
+                        .unwrap(),
+                ));
+            }
+
+            let kbs: Array1<f64> = dw_sum.iter().map(|x| x.abs()).collect();
+            if let ReturnMetric::Kb = rtrn {
+                return Ok(Series::new(
+                    "res",
+                    Array1::<f64>::from_elem(res_len, kbs.sum())
+                        .as_slice()
+                        .unwrap(),
+                ));
+            }
+
+            let mut gamma = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma);
+            let zeros = Array::zeros(dw_sum.len());
+            gamma.diag_mut().assign(&zeros);
+
+            across_bucket_agg(
+                kbs,
+                dw_sum.to_owned(),
+                &gamma,
+                res_len,
+                SBMChargeType::DeltaVega,
             )
-            .groupby([col("b")])
-            .agg([
-                (col("d")*col("w")).sum().alias("dw_sum")
-                ])
-            // Drop nulls (ie other reporting ccys)
-            .drop_nulls(Some(vec![col("dw_sum")]))
-            .collect()?;
-        
-        if df.height() == 0 { return Ok( Series::from_vec("res", vec![0.; columns[0].len() ] as Vec<f64>) )};
-
-        //21.4.4 |dw_sum| == kb for FX
-        //21.4.5.a sb == dw_sum
-        let dw_sum = df["dw_sum"].f64()?
-            .to_ndarray()?; //Ok since we have filtered out NULLs above
-        // Early return Kb or Sb, ie the required metric
-        let res_len = columns[0].len();
-        if let ReturnMetric::Sb = rtrn { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, dw_sum.sum()).as_slice().unwrap())) }
-
-        let kbs: Array1<f64> = dw_sum.iter().map(|x|x.abs()).collect();
-        if let ReturnMetric::Kb = rtrn { return Ok( Series::new("res", Array1::<f64>::from_elem(res_len, kbs.sum()).as_slice().unwrap())) }
-
-        let mut gamma = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma );
-        let zeros = Array::zeros(dw_sum.len() );
-        gamma.diag_mut().assign(&zeros);
-
-        across_bucket_agg(kbs, dw_sum.to_owned(), &gamma, res_len, SBMChargeType::DeltaVega)
-    }, 
-    &[ 
-    col("RiskCategory"),
-    col("RiskClass"),
-    col("BucketBCBS"), 
-    col("SensitivitySpot"),
-    col("SensWeights").arr().get(0) ], 
-    GetOutput::from_type(DataType::Float64))
+        },
+        &[
+            col("RiskCategory"),
+            col("RiskClass"),
+            col("BucketBCBS"),
+            col("SensitivitySpot"),
+            col("SensWeights").arr().get(0),
+        ],
+        GetOutput::from_type(DataType::Float64),
+    )
 }
 
 /// Exporting Measures
-pub(crate) fn fx_delta_measures()-> Vec<Measure<'static>> {
+pub(crate) fn fx_delta_measures() -> Vec<Measure<'static>> {
     vec![
-        Measure{
+        Measure {
             name: "FX_DeltaSens".to_string(),
             calculator: Box::new(fx_delta_sens_repccy),
             aggregation: None,
-            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
         },
-        Measure{
+        Measure {
             name: "FX_DeltaSens_Weighted".to_string(),
             calculator: Box::new(fx_delta_sens_weighted),
             aggregation: None,
-            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
         },
-
-        Measure{
+        Measure {
             name: "FX_DeltaSb".to_string(),
             calculator: Box::new(fx_delta_sb),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
         },
-
-        Measure{
+        Measure {
             name: "FX_DeltaKb".to_string(),
             calculator: Box::new(fx_delta_kb),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
         },
-
-        Measure{
+        Measure {
             name: "FX_DeltaCharge_Low".to_string(),
             calculator: Box::new(fx_delta_charge_low),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
         },
-
-        Measure{
+        Measure {
             name: "FX_DeltaCharge_Medium".to_string(),
             calculator: Box::new(fx_delta_charge_medium),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
         },
-
-        Measure{
+        Measure {
             name: "FX_DeltaCharge_High".to_string(),
             calculator: Box::new(fx_delta_charge_high),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskCategory").eq(lit("Delta")).and(col("RiskClass").eq(lit("FX"))))
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
         },
     ]
 }

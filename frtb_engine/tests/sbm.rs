@@ -1,35 +1,45 @@
 use base_engine::prelude::*;
 use frtb_engine::prelude::*;
 
-use polars::prelude::*;
 use ndarray::prelude::*;
 use once_cell::sync::Lazy;
+use polars::prelude::*;
 
-pub static LAZY_DASET: Lazy<FRTBDataSet>  = Lazy::new(|| {
-    let conf_path =  r"./tests/data/datasource_config.toml";
-    let conf = read_toml2::<DataSourceConfig>(conf_path).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
+pub static LAZY_DASET: Lazy<FRTBDataSet> = Lazy::new(|| {
+    let conf_path = r"./tests/data/datasource_config.toml";
+    let conf = read_toml2::<DataSourceConfig>(conf_path)
+        .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     let mut data: FRTBDataSet = DataSet::build(conf);
     data.prepare();
     data
 });
 
 fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
-    let ep = if let Some(e) = epsilon {e} else{1e-5};
+    let ep = if let Some(e) = epsilon { e } else { 1e-5 };
     let data_req = serde_json::from_str::<DataRequestS>(req).expect("Could not parse request");
     let excl = data_req._groupby().clone();
-    let res = base_engine::execute(data_req, &*LAZY_DASET).expect("Error while calculating results");
+    let res =
+        base_engine::execute(data_req, &*LAZY_DASET).expect("Error while calculating results");
     dbg!(res.clone());
-    let res_numeric = res.lazy().select([col("*").exclude(excl)]).collect().expect("Could not remove column");
-    let res_arr = res_numeric.to_ndarray::<Float64Type>().expect("Could not convert result to nd_array");
+    let res_numeric = res
+        .lazy()
+        .select([col("*").exclude(excl)])
+        .collect()
+        .expect("Could not remove column");
+    let res_arr = res_numeric
+        .to_ndarray::<Float64Type>()
+        .expect("Could not convert result to nd_array");
     // Slightly naive, but we assume if the sum is equivallent then the result is accurate
     dbg!(res_arr.sum());
     dbg!(expected_sum);
-    assert!((res_arr.sum()-expected_sum).abs()<ep);
+    assert!((res_arr.sum() - expected_sum).abs() < ep);
 }
 
 #[test]
 fn fx_delta() {
-    let expected_res = arr1(&[115.0, 12.197592, 12.197592, 12.197592, 11.652789, 11.803866, 11.953033]);
+    let expected_res = arr1(&[
+        115.0, 12.197592, 12.197592, 12.197592, 11.652789, 11.803866, 11.953033,
+    ]);
     let request = r#"
     {"measures": [
         ["FX_DeltaSens", "sum"],
@@ -51,7 +61,17 @@ fn fx_delta() {
 
 #[test]
 fn fx_vega() {
-    let expected_res = arr1(&[53000.0, 53000.0, 53000.0, 50894.787649, 51958.261414, 53000.0, 49423.256786, 50875.624376,52287.6658]);
+    let expected_res = arr1(&[
+        53000.0,
+        53000.0,
+        53000.0,
+        50894.787649,
+        51958.261414,
+        53000.0,
+        49423.256786,
+        50875.624376,
+        52287.6658,
+    ]);
     let request = r#"
     {"measures": [
         ["FX_VegaSens", "sum"],
@@ -75,7 +95,21 @@ fn fx_vega() {
 
 #[test]
 fn fx_curvature() {
-    let expected_res = arr1(&[ 369000.0, 39138.360339, 3000.0, -3000.0, 28107.613597, -28107.613597, 28107.613597, 0.0, 28107.613597, 28107.613597, 23550.772425, 24159.070424, 24752.423835]);
+    let expected_res = arr1(&[
+        369000.0,
+        39138.360339,
+        3000.0,
+        -3000.0,
+        28107.613597,
+        -28107.613597,
+        28107.613597,
+        0.0,
+        28107.613597,
+        28107.613597,
+        23550.772425,
+        24159.070424,
+        24752.423835,
+    ]);
     let request = r#"
     {"measures": [
         ["FX_CurvatureDelta", "sum"],
@@ -105,7 +139,10 @@ fn fx_curvature() {
 
 #[test]
 fn girr_delta() {
-    let expected_res = arr1(&[2581.0, 35.925432, 35.925432, 28.072696, 29.023816, 29.941875, 26.770639, 28.0824, 29.335659]);
+    let expected_res = arr1(&[
+        2581.0, 35.925432, 35.925432, 28.072696, 29.023816, 29.941875, 26.770639, 28.0824,
+        29.335659,
+    ]);
     let request = r#"
     {"measures": [
         ["GIRR_DeltaSens", "sum"],
@@ -129,7 +166,17 @@ fn girr_delta() {
 
 #[test]
 fn girr_vega() {
-    let expected_res = arr1(&[210000.0, 210000.0, 210000.0, 157611.879405, 163407.920578, 169005.3031, 143838.458921, 156128.390288, 167519.092174]);
+    let expected_res = arr1(&[
+        210000.0,
+        210000.0,
+        210000.0,
+        157611.879405,
+        163407.920578,
+        169005.3031,
+        143838.458921,
+        156128.390288,
+        167519.092174,
+    ]);
     let request = r#"
     {"measures": [
         ["GIRR_VegaSens", "sum"],
@@ -154,8 +201,37 @@ fn girr_vega() {
 #[test]
 fn girr_curvature() {
     let expected_res = arr2(&[
-        [270000.0, 22000.0, -15000.0, 3992.497834, -18007.502166, 11007.502166, 0.0, 11007.502166, 11007.502166, 11007.502166, 8567.192327, 8779.024461, 8985.864266],
-        [270000.0, 22000.0, -15000.0, 3992.497834, -18007.502166, 11007.502166, 0.0, 11007.502166, 11007.502166, 11007.502166, 8567.192327, 8779.024461, 8985.864266]]);
+        [
+            270000.0,
+            22000.0,
+            -15000.0,
+            3992.497834,
+            -18007.502166,
+            11007.502166,
+            0.0,
+            11007.502166,
+            11007.502166,
+            11007.502166,
+            8567.192327,
+            8779.024461,
+            8985.864266,
+        ],
+        [
+            270000.0,
+            22000.0,
+            -15000.0,
+            3992.497834,
+            -18007.502166,
+            11007.502166,
+            0.0,
+            11007.502166,
+            11007.502166,
+            11007.502166,
+            8567.192327,
+            8779.024461,
+            8985.864266,
+        ],
+    ]);
     let request = r#"
     {"measures": [
         ["GIRR_CurvatureDelta", "sum"],
@@ -185,7 +261,16 @@ fn girr_curvature() {
 #[test]
 fn eq_delta() {
     let expected_res = arr1(&[
-        2800.0, 1089.0, 1089.0, 987.273493, 995.758659, 1004.116547, 665.011398, 683.999424, 702.474388]);
+        2800.0,
+        1089.0,
+        1089.0,
+        987.273493,
+        995.758659,
+        1004.116547,
+        665.011398,
+        683.999424,
+        702.474388,
+    ]);
     let request = r#"
     {"measures": [
         ["EQ_DeltaSens", "sum"],
@@ -211,7 +296,16 @@ fn eq_delta() {
 #[test]
 fn eq_vega() {
     let expected_res = arr1(&[
-        60000.0, 55556.349186, 55556.349186, 46233.467601, 46669.280435, 47098.051013, 28620.521491, 29224.393971, 29816.038563]);
+        60000.0,
+        55556.349186,
+        55556.349186,
+        46233.467601,
+        46669.280435,
+        47098.051013,
+        28620.521491,
+        29224.393971,
+        29816.038563,
+    ]);
     let request = r#"
     {"measures": [
         ["EQ_VegaSens", "sum"],
@@ -232,13 +326,12 @@ fn eq_vega() {
         "apply_fx_curv_div": "true"}
         }
     }"#;
-    assert_results(request, dbg!(expected_res).sum()*2., None)
+    assert_results(request, dbg!(expected_res).sum() * 2., None)
 }
 
 #[test]
 fn eq_curv() {
-    let expected_res = arr1(&[
-        19559.580453, 19778.428906, 19994.882158]);
+    let expected_res = arr1(&[19559.580453, 19778.428906, 19994.882158]);
     let request = r#"
     {"measures": [
         ["EQ_CurvatureCharge_Low", "first"],
@@ -258,7 +351,8 @@ fn eq_curv() {
 #[test]
 fn csr_nonsec_bcbs_delta() {
     let expected_res = arr1(&[
-        45000.0, 975.0, 975.0, 684.920009, 768.283274, 843.4428, 656.018202, 742.954861, 820.733799]);
+        45000.0, 975.0, 975.0, 684.920009, 768.283274, 843.4428, 656.018202, 742.954861, 820.733799,
+    ]);
     let request = r#"
     {"measures": [
         ["CSR_nonSec_DeltaSens", "sum"],
@@ -285,7 +379,16 @@ fn csr_nonsec_bcbs_delta() {
 #[cfg(feature = "CRR2")]
 fn csr_nonsec_crr2_delta() {
     let expected_res = arr1(&[
-        45000.0, 1950.0, 1950.0, 1896.229439, 1907.3086, 1917.346389, 1804.405734, 1804.718141, 1805.030495]);
+        45000.0,
+        1950.0,
+        1950.0,
+        1896.229439,
+        1907.3086,
+        1917.346389,
+        1804.405734,
+        1804.718141,
+        1805.030495,
+    ]);
     let request = r#"
     {"measures": [
         ["CSR_nonSec_DeltaSens", "sum"],
@@ -311,7 +414,16 @@ fn csr_nonsec_crr2_delta() {
 #[test]
 fn csr_nonsec_bcbs_vega() {
     let expected_res = arr1(&[
-        33000.0, 33000.0, 33000.0, 25549.287697, 26896.533904, 28167.670869, 20743.2964, 23075.707625, 25193.098585]);
+        33000.0,
+        33000.0,
+        33000.0,
+        25549.287697,
+        26896.533904,
+        28167.670869,
+        20743.2964,
+        23075.707625,
+        25193.098585,
+    ]);
     let request = r#"
     {"measures": [ 
         ["CSR_nonSec_VegaSens", "sum"],
@@ -338,7 +450,16 @@ fn csr_nonsec_bcbs_vega() {
 #[cfg(feature = "CRR2")]
 fn csr_nonsec_crr2_vega() {
     let expected_res = arr1(&[
-        33000.0, 33000.0, 33000.0, 25149.920952, 26389.402294, 27561.245693, 22502.1728, 23106.410208, 23695.244337]);
+        33000.0,
+        33000.0,
+        33000.0,
+        25149.920952,
+        26389.402294,
+        27561.245693,
+        22502.1728,
+        23106.410208,
+        23695.244337,
+    ]);
     let request = r#"
     {"measures": [ 
         ["CSR_nonSec_VegaSens", "sum"],
@@ -364,7 +485,8 @@ fn csr_nonsec_crr2_vega() {
 #[test]
 fn commodity_delta() {
     let expected_res = arr1(&[
-        -250.0, -122.5, -122.5, 408.934179, 405.736564, 402.5, 269.704639, 260.4533, 250.861017]);
+        -250.0, -122.5, -122.5, 408.934179, 405.736564, 402.5, 269.704639, 260.4533, 250.861017,
+    ]);
     let request = r#"
     {"measures": [
         ["Commodity_DeltaSens", "sum"],
@@ -386,5 +508,3 @@ fn commodity_delta() {
     }"#;
     assert_results(request, expected_res.sum(), None)
 }
-
-

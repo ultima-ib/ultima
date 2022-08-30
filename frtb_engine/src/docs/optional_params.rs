@@ -1,11 +1,11 @@
 //! # Overview
 //! This document outlines optional parameters, their formats, possible values, and usage guidance.
-//! Generally, there are two places where users can pass parameters. 
+//! Generally, there are two places where users can pass parameters.
 //! # Contents
 //!
 //! * [Build Parameters](#buildparams)
 //! * [Request Parameters](#some-key-differences)
-//! 
+//!
 //! # Request Parameters
 //! These are the optional_parameters of the incoming request.
 //! `Parameter` | `Default` | `Parses into` | `Notes`
@@ -22,9 +22,9 @@
 //! base_csr_ctp_diff_basis_rho|
 //! base_csr_ctp_rating_gamma|
 //! base_csr_ctp_sector_gamma|
-//! 
-//! 
-//! 
+//!
+//!
+//!
 //! # Build Parameters
 //! These are build_parameters of the datasource_config.toml
 //! Used for the prebuild of the DataSet

@@ -5,13 +5,13 @@ use base_engine::prelude::*;
 
 use std::fs;
 //use std::sync::Arc;
-use log::info;
-use serde::{Serialize, Deserialize};
-use std::time::Instant;
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
+use log::info;
 #[cfg(not(target_os = "linux"))]
 use mimalloc::MiMalloc;
+use serde::{Deserialize, Serialize};
+use std::time::Instant;
 
 #[global_allocator]
 #[cfg(target_os = "linux")]
@@ -35,7 +35,8 @@ fn main() {
     // Allow pretty logs
     pretty_env_logger::init();
     // Read Config
-    let conf = read_toml2::<DataSourceConfig>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
+    let conf =
+        read_toml2::<DataSourceConfig>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     info!("Data SetUp: {:?}", conf);
 
     // Build data
@@ -43,34 +44,42 @@ fn main() {
     //dbg!(&data);
     // Pre build some columns, which you wish to store in memory alongside the original data
     data.prepare();
-    
-    let json = fs::read_to_string("./driver/src/request.json").expect("Unable to read request file");
+
+    let json =
+        fs::read_to_string("./driver/src/request.json").expect("Unable to read request file");
 
     let message: Message = serde_json::from_str(&json).unwrap();
     info!("{:?}", message);
     let now = Instant::now();
-    if let Message::Request{ params: conf, ..} = message {
-        match base_engine::execute(conf, &data){
-            Err(e) =>{
+    if let Message::Request { params: conf, .. } = message {
+        match base_engine::execute(conf, &data) {
+            Err(e) => {
                 eprintln!("Application error: {:#?}", e);
                 //process::exit(1);
-            },
+            }
             Ok(df) => {
                 let elapsed = now.elapsed();
                 println!("result: {:?}", df);
-                println!("Elapsed: {:.6?}", elapsed);}
+                println!("Elapsed: {:.6?}", elapsed);
+            }
         }
     };
 }
-
 
 // public params: Request
 // bespoke params: FRTBRequest
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 enum Message {
-    Request { id: String, method: String, params: DataRequestS },
-    Response { id: String, result: PlaceHolder },
+    Request {
+        id: String,
+        method: String,
+        params: DataRequestS,
+    },
+    Response {
+        id: String,
+        result: PlaceHolder,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -80,8 +89,8 @@ struct PlaceHolder(u8);
 /// Sample request
 const JSON: &str = r#"
 {"type": "Request",
-    "id": "123", 
-    "method": "None", 
+    "id": "123",
+    "method": "None",
     "params": {
         "cob": "2022-04-05",
         "measures": [["Delta", "sum"]],
@@ -93,8 +102,8 @@ const JSON: &str = r#"
 /// Sample request 2
 const JSON: &str = r#"
 {"type": "Request",
-    "id": "123", 
-    "method": "None", 
+    "id": "123",
+    "method": "None",
     "params": {
         "cob": "2022-04-05",
         "measures": [["Delta", "sum"]],
@@ -107,8 +116,8 @@ const JSON: &str = r#"
 /// Sample request 3
 const JSON: &str = r#"
 {"type": "Request",
-    "id": "123", 
-    "method": "None", 
+    "id": "123",
+    "method": "None",
     "params": {
         "measures": [
                     ["SensitivitySpot", "sum"],
@@ -127,8 +136,8 @@ const JSON: &str = r#"
 /// Sample request 4
 const JSON: &str = r#"
 {"type": "Request",
-    "id": "123", 
-    "method": "None", 
+    "id": "123",
+    "method": "None",
     "params": {
         "measures": [
             ["FXDeltaSens", "sum"],
@@ -140,22 +149,22 @@ const JSON: &str = r#"
         "filters": []
     }
 }"#;
-["SensWeights", "list"] , 
+["SensWeights", "list"] ,
 ["TotalDeltaSens", "sum"],
-["SensitivitySpot", "sum"], 
-["FXDeltaSens", "sum"], 
+["SensitivitySpot", "sum"],
+["FXDeltaSens", "sum"],
 ["FxDeltaSensWeighted", "sum"],
 
 
 const JSON: &str = r#"
 {"type": "Request",
-    "id": "123", 
-    "method": "None", 
+    "id": "123",
+    "method": "None",
     "params": {
         "measures": [
             ["GIRRDeltaChargeLow", "first"],
             ["GIRRDeltaChargeMedium", "first"],
-            ["GIRRDeltaChargeHigh", "first"]  
+            ["GIRRDeltaChargeHigh", "first"]
         ],
         "groupby": ["Desk"],
         "filters": []
@@ -458,8 +467,6 @@ const JSON: &str = r#"
 "reporting_ccy": "USD"
 "filters": [{"Eq":[["Desk", "FXOptions"]]}],
 "base_csr_nonsec_tenor_rho": "{\"v\":1,\"dim\":[5,5],\"data\":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}"
-"base_csr_nonsec_diff_name_rho_per_bucket": "[1.0,2.0]" <- Example of bad input. Parsing would go for a default  
+"base_csr_nonsec_diff_name_rho_per_bucket": "[1.0,2.0]" <- Example of bad input. Parsing would go for a default
 ["Desk","FXCash"],["Desk","RatesEM"]
 */
-
-

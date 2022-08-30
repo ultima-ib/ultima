@@ -1,19 +1,20 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
-use polars::prelude::*;
 use log::warn;
-use serde::{Serialize, Deserialize};
+use polars::prelude::*;
+use serde::{Deserialize, Serialize};
 
-use crate::{dataset::*, Measure, derive_basic_measures_vec};
+use crate::{dataset::*, derive_basic_measures_vec, Measure};
 
-/// reads setup.toml 
+/// reads setup.toml
 /// # Panics
 /// When path or file is invalid
 pub fn read_toml2<T>(path: &str) -> std::result::Result<T, Box<dyn std::error::Error>>
-where T: serde::de::DeserializeOwned,
- {
+where
+    T: serde::de::DeserializeOwned,
+{
     let result_string: std::result::Result<String, std::io::Error> = std::fs::read_to_string(path);
-    
+
     match result_string {
         Ok(f) => {
             let x = toml::from_str::<T>(&f);
@@ -24,7 +25,7 @@ where T: serde::de::DeserializeOwned,
                     Err(er.into()) // convert toml de::error into Box dyn Error
                 }
             }
-        },
+        }
         Err(er) => {
             warn!("Can't read file{}: {}", path, er);
             Err(er.into()) // convert std::io::error into Box dyn Error
@@ -35,7 +36,8 @@ where T: serde::de::DeserializeOwned,
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum DataSourceConfig {
-    CSV{#[serde(default, rename = "files")]
+    CSV {
+        #[serde(default, rename = "files")]
         file_paths: Vec<String>,
         #[serde(default, rename = "attributes_path")]
         attr: Option<String>,
@@ -54,16 +56,15 @@ pub enum DataSourceConfig {
         /// parameters to be used for build and prepare
         #[serde(default)]
         build_params: Option<HashMap<String, String>>,
-    }
+    },
 }
 
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
     pub fn build<'a>(self) -> (Vec<DataFrame>, Vec<Measure<'a>>, HashMap<String, String>) {
-
-        match self{
-            DataSourceConfig::CSV{
+        match self {
+            DataSourceConfig::CSV {
                 file_paths: files,
                 attr: ta,
                 hms,
@@ -72,90 +73,101 @@ impl DataSourceConfig {
                 measures: ms,
                 f1_cast_to_str: cast_to_str_vec,
                 f1_numeric_cols,
-                mut build_params} => {
-                    // in order to convert to categorical, f2a columns have to be Utf8
+                mut build_params,
+            } => {
+                // in order to convert to categorical, f2a columns have to be Utf8
 
-                    let mut str_cols: Vec<String> = cast_to_str_vec.unwrap_or_default();
-                    str_cols.extend(f2a.clone());
+                let mut str_cols: Vec<String> = cast_to_str_vec.unwrap_or_default();
+                str_cols.extend(f2a.clone());
 
-                    let f64_cols: Vec<String> = f1_numeric_cols.unwrap_or_default();
+                let f64_cols: Vec<String> = f1_numeric_cols.unwrap_or_default();
 
-                    let mut frames = Vec::with_capacity(files.len());
+                let mut frames = Vec::with_capacity(files.len());
 
-                    for f in files {
-                        frames.push(path_to_df(f.as_str(),&str_cols, &f64_cols))
-                    };                    
-                    
-                    let mut tmp = f2a.clone();
-                    tmp.extend(a2h.clone());
-                    let mut df_attr = match  ta{
-                        Some(y) => path_to_df(&y, &tmp, &[])
-                                            .unique(Some(&f2a), UniqueKeepStrategy::First).unwrap(),
-                        _ => {
-                            empty_frame(&tmp) 
-                        }};
-                    
-                    //here we expect if hms is provided then a2h is not empty
-                    let mut df_hms = match  hms{
+                for f in files {
+                    frames.push(path_to_df(f.as_str(), &str_cols, &f64_cols))
+                }
+
+                let mut tmp = f2a.clone();
+                tmp.extend(a2h.clone());
+                let mut df_attr = match ta {
+                    Some(y) => path_to_df(&y, &tmp, &[])
+                        .unique(Some(&f2a), UniqueKeepStrategy::First)
+                        .unwrap(),
+                    _ => empty_frame(&tmp),
+                };
+
+                //here we expect if hms is provided then a2h is not empty
+                let mut df_hms = match  hms{
                         Some(y) =>{ path_to_df(&y, &a2h, &[])
                                             .unique(Some(&a2h), UniqueKeepStrategy::First)
                                             .expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
                                             in the datasource_config.toml") },
                         _ => empty_frame(&a2h) };
 
-                    // Cast to Categorical, needed for Join later
-                    // Set a global string cache
-                    // https://docs.rs/polars/0.13.3/polars/docs/performance/index.html
-                    use polars::toggle_string_cache;
-                    toggle_string_cache(true);
+                // Cast to Categorical, needed for Join later
+                // Set a global string cache
+                // https://docs.rs/polars/0.13.3/polars/docs/performance/index.html
+                use polars::toggle_string_cache;
+                toggle_string_cache(true);
 
-                    for i in a2h.iter() {
-                        df_hms.try_apply(i, |s| 
-                            s.cast(&DataType::Categorical(None))).unwrap();
-                        df_attr.try_apply(i, |s| 
-                            s.cast(&DataType::Categorical(None))).unwrap();
-                        
-                    }
-                    for i in f2a.iter() {
-                        df_attr.try_apply(i, |s| 
-                            s.cast(&DataType::Categorical(None))).unwrap();
-                        for df in &mut frames {
-                            df.try_apply(i, |s| 
-                                s.cast(&DataType::Categorical(None))).unwrap();
-                        }
-                    }
-
-                    // join with hms if a2h was provided
-                    if !a2h.is_empty() {
-                        df_attr = df_attr.join(&df_hms, a2h.clone(), a2h.clone(), JoinType::Left, None).unwrap();
-                    }
+                for i in a2h.iter() {
+                    df_hms
+                        .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
+                        .unwrap();
+                    df_attr
+                        .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
+                        .unwrap();
+                }
+                for i in f2a.iter() {
+                    df_attr
+                        .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
+                        .unwrap();
                     for df in &mut frames {
-                        *df =  df.join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None).unwrap();
+                        df.try_apply(i, |s| s.cast(&DataType::Categorical(None)))
+                            .unwrap();
                     }
-                    
-                    
-                    //let mut measures = vec![];
-                    let measures = match ms {
-                        //TODO Check here if each of f1_m is present in the df1
-                        Some(measures) =>{ derive_basic_measures_vec(measures) },
-                        // If not provided return all numeric columns
-                        None =>{ 
-                            let mut num_cols = vec![];
-                            frames.iter()
-                                .for_each(|df|{num_cols.extend(numeric_columns(df))});
-                            derive_basic_measures_vec(num_cols) },
-                    };
+                }
 
-                    let build_params = 
-                    if let Some(bp) = build_params.take() { bp } else { HashMap::default()};
+                // join with hms if a2h was provided
+                if !a2h.is_empty() {
+                    df_attr = df_attr
+                        .join(&df_hms, a2h.clone(), a2h.clone(), JoinType::Left, None)
+                        .unwrap();
+                }
+                for df in &mut frames {
+                    *df = df
+                        .join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None)
+                        .unwrap();
+                }
 
-                    (frames, measures, build_params)
-                },
+                //let mut measures = vec![];
+                let measures = match ms {
+                    //TODO Check here if each of f1_m is present in the df1
+                    Some(measures) => derive_basic_measures_vec(measures),
+                    // If not provided return all numeric columns
+                    None => {
+                        let mut num_cols = vec![];
+                        frames
+                            .iter()
+                            .for_each(|df| num_cols.extend(numeric_columns(df)));
+                        derive_basic_measures_vec(num_cols)
+                    }
+                };
+
+                let build_params = if let Some(bp) = build_params.take() {
+                    bp
+                } else {
+                    HashMap::default()
+                };
+
+                (frames, measures, build_params)
+            }
         }
     }
 }
 
-fn empty_frame (with_columns: &[String]) -> DataFrame {
+fn empty_frame(with_columns: &[String]) -> DataFrame {
     let mut x: Vec<Series> = Vec::with_capacity(with_columns.len());
     let y: [String; 0] = [];
     for c in with_columns {
@@ -166,15 +178,14 @@ fn empty_frame (with_columns: &[String]) -> DataFrame {
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
 fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> DataFrame {
-    
-    let mut vc= Vec::with_capacity(cast_to_str.len()+cast_to_f64.len());
+    let mut vc = Vec::with_capacity(cast_to_str.len() + cast_to_f64.len());
     for str_col in cast_to_str {
         vc.push(Field::new(str_col, DataType::Utf8))
     }
     for f64_col in cast_to_f64 {
         vc.push(Field::new(f64_col, DataType::Float64))
     }
-    
+
     let schema = Schema::from(vc);
 
     // if path provided, then we expect it to be of the correct format
@@ -187,6 +198,6 @@ fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> Dat
         .finish()
         .and_then(|lf| lf.collect())
         .unwrap_or_else(|_| panic!("Error reading file: {path}"));
-    
+
     df
 }

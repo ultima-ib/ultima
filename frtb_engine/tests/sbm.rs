@@ -141,7 +141,7 @@ fn fx_curvature() {
 fn girr_delta() {
     let expected_res = arr1(&[
         2581.0, 35.925432, 35.925432, 28.072696, 29.023816, 29.941875, 26.770639, 28.0824,
-        29.335659,
+        29.335659, 29.335659,
     ]);
     let request = r#"
     {"measures": [
@@ -153,7 +153,8 @@ fn girr_delta() {
 ["GIRR_DeltaKb_High", "first"],
 ["GIRR_DeltaCharge_Low", "first"],
 ["GIRR_DeltaCharge_Medium", "first"],
-["GIRR_DeltaCharge_High", "first"]
+["GIRR_DeltaCharge_High", "first"],
+["GIRR_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -176,6 +177,7 @@ fn girr_vega() {
         143838.458921,
         156128.390288,
         167519.092174,
+        167519.092174,
     ]);
     let request = r#"
     {"measures": [
@@ -187,7 +189,8 @@ fn girr_vega() {
         ["GIRR_VegaKb_High", "first"],
         ["GIRR_VegaCharge_Low", "first"],
         ["GIRR_VegaCharge_Medium", "first"],
-        ["GIRR_VegaCharge_High", "first"]
+        ["GIRR_VegaCharge_High", "first"],
+        ["GIRR_VegaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -215,6 +218,7 @@ fn girr_curvature() {
             8567.192327,
             8779.024461,
             8985.864266,
+            8985.864266,
         ],
         [
             270000.0,
@@ -229,6 +233,7 @@ fn girr_curvature() {
             11007.502166,
             8567.192327,
             8779.024461,
+            8985.864266,
             8985.864266,
         ],
     ]);
@@ -246,7 +251,8 @@ fn girr_curvature() {
 ["GIRR_Curvature_Sb", "first"],
 ["GIRR_CurvatureCharge_Low", "first"],
 ["GIRR_CurvatureCharge_Medium", "first"],
-["GIRR_CurvatureCharge_High", "first"]
+["GIRR_CurvatureCharge_High", "first"],
+["GIRR_CurvatureCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [],

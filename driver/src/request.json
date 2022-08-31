@@ -1,17 +1,18 @@
-{"type": "Request",
+[{"type": "Request",
     "id": "123", 
-    "method": "SEND", 
+    "method": "POST", 
     "params": {
         "measures": [ 
-            ["CSR_Sec_nonCTP_CurvatureCharge_High", "first"],
-            ["FX_CurvatureCharge_High", "first"]
-
+            ["GIRR_CurvatureCharge_Low", "first"],
+["GIRR_CurvatureCharge_Medium", "first"],
+["GIRR_CurvatureCharge_High", "first"],
+["GIRR_CurvatureCharge_MAX", "first"]
                 ],
-        "groupby": ["Desk", "BucketBCBS"],
+        "groupby": ["Desk"],
         "filters": [],
         "optional_params": {
                     "hide_zeros": false,
                     "calc_params": {"jurisdiction": "BCBS"}
                 }
     }
-}
+}]

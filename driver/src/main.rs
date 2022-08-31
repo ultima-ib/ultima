@@ -48,22 +48,24 @@ fn main() {
     let json =
         fs::read_to_string("./driver/src/request.json").expect("Unable to read request file");
 
-    let message: Message = serde_json::from_str(&json).unwrap();
-    info!("{:?}", message);
-    let now = Instant::now();
-    if let Message::Request { params: conf, .. } = message {
-        match base_engine::execute(conf, &data) {
-            Err(e) => {
-                eprintln!("Application error: {:#?}", e);
-                //process::exit(1);
+    let messages: Vec<Message> = serde_json::from_str(&json).unwrap();
+    for message in messages{
+        info!("{:?}", message);
+        let now = Instant::now();
+        if let Message::Request { params: conf, .. } = message {
+            match base_engine::execute(conf, &data) {
+                Err(e) => {
+                    eprintln!("Application error: {:#?}", e);
+                    continue;
+                }
+                Ok(df) => {
+                    let elapsed = now.elapsed();
+                    println!("result: {:?}", df);
+                    println!("Elapsed: {:.6?}", elapsed);
+                }
             }
-            Ok(df) => {
-                let elapsed = now.elapsed();
-                println!("result: {:?}", df);
-                println!("Elapsed: {:.6?}", elapsed);
-            }
-        }
-    };
+        };
+}
 }
 
 // public params: Request
@@ -435,6 +437,7 @@ const JSON: &str = r#"
 ["GIRR_DeltaCharge_Low", "first"],
 ["GIRR_DeltaCharge_Medium", "first"],
 ["GIRR_DeltaCharge_High", "first"],
+["GIRR_DeltaCharge_MAX", "first"],
 
 ["GIRR_VegaSens", "sum"],
 ["GIRR_VegaSens_Weighted", "sum"],
@@ -445,6 +448,8 @@ const JSON: &str = r#"
 ["GIRR_VegaCharge_Low", "first"],
 ["GIRR_VegaCharge_Medium", "first"],
 ["GIRR_VegaCharge_High", "first"],
+["GIRR_VegaCharge_MAX", "first"],
+
 
 ["GIRR_CurvatureDelta", "sum"],
 ["GIRR_PnLup", "sum"],
@@ -458,7 +463,9 @@ const JSON: &str = r#"
 ["GIRR_Curvature_Sb", "first"],
 ["GIRR_CurvatureCharge_Low", "first"],
 ["GIRR_CurvatureCharge_Medium", "first"],
-["GIRR_CurvatureCharge_High", "first"]
+["GIRR_CurvatureCharge_High", "first"],
+["GIRR_CurvatureCharge_MAX", "first"],
+
 
 ["PnL_Up", "sum"],
 ["PnL_Down", "sum"]

@@ -401,6 +401,7 @@ const JSON: &str = r#"
 ["FX_DeltaCharge_Low", "first"],
 ["FX_DeltaCharge_Medium", "first"],
 ["FX_DeltaCharge_High", "first"],
+["FX_DeltaCharge_MAX", "first"],
 
 ["FX_VegaSens", "sum"],
 ["FX_VegaSens_Weighted", "sum"],
@@ -411,6 +412,7 @@ const JSON: &str = r#"
 ["FX_VegaCharge_Low", "first"],
 ["FX_VegaCharge_Medium", "first"],
 ["FX_VegaCharge_High", "first"],
+["FX_VegaCharge_MAX", "first"],
 
 ["FX_CurvatureDelta", "sum"],
 ["FX_CurvatureDelta_Weighted", "sum"],
@@ -424,7 +426,8 @@ const JSON: &str = r#"
 ["FX_Curvature_Sb", "first"],
 ["FX_CurvatureCharge_Low", "first"],
 ["FX_CurvatureCharge_Medium", "first"],
-["FX_CurvatureCharge_High", "first"]
+["FX_CurvatureCharge_High", "first"],
+["FX_CurvatureCharge_MAX", "first"]
 
 
 

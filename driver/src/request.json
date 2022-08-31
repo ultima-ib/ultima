@@ -3,16 +3,17 @@
     "method": "POST", 
     "params": {
         "measures": [ 
-            ["GIRR_CurvatureCharge_Low", "first"],
-["GIRR_CurvatureCharge_Medium", "first"],
-["GIRR_CurvatureCharge_High", "first"],
-["GIRR_CurvatureCharge_MAX", "first"]
+            ["FX_DeltaCharge_Low", "first"],
+        ["FX_DeltaCharge_Medium", "first"],
+        ["FX_DeltaCharge_High", "first"],
+        ["FX_DeltaCharge_MAX", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [],
         "optional_params": {
                     "hide_zeros": false,
-                    "calc_params": {"jurisdiction": "BCBS"}
+                    "calc_params": {"jurisdiction": "BCBS",
+                        "apply_fx_curv_div": "true"}
                 }
     }
 }]

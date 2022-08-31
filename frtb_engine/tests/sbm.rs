@@ -39,6 +39,7 @@ fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
 fn fx_delta() {
     let expected_res = arr1(&[
         115.0, 12.197592, 12.197592, 12.197592, 11.652789, 11.803866, 11.953033,
+        11.953033,
     ]);
     let request = r#"
     {"measures": [
@@ -48,7 +49,8 @@ fn fx_delta() {
         ["FX_DeltaKb", "first"],
         ["FX_DeltaCharge_Low", "first"],
         ["FX_DeltaCharge_Medium", "first"],
-        ["FX_DeltaCharge_High", "first"]
+        ["FX_DeltaCharge_High", "first"],
+        ["FX_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -71,6 +73,7 @@ fn fx_vega() {
         49423.256786,
         50875.624376,
         52287.6658,
+        52287.6658,
     ]);
     let request = r#"
     {"measures": [
@@ -82,7 +85,9 @@ fn fx_vega() {
         ["FX_VegaKb_High", "first"],
         ["FX_VegaCharge_Low", "first"],
         ["FX_VegaCharge_Medium", "first"],
-        ["FX_VegaCharge_High", "first"]
+        ["FX_VegaCharge_High", "first"],
+        ["FX_VegaCharge_MAX", "first"]
+
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -109,6 +114,7 @@ fn fx_curvature() {
         23550.772425,
         24159.070424,
         24752.423835,
+        24752.423835,
     ]);
     let request = r#"
     {"measures": [
@@ -124,7 +130,8 @@ fn fx_curvature() {
 ["FX_Curvature_Sb", "first"],
 ["FX_CurvatureCharge_Low", "first"],
 ["FX_CurvatureCharge_Medium", "first"],
-["FX_CurvatureCharge_High", "first"]
+["FX_CurvatureCharge_High", "first"],
+["FX_CurvatureCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "RatesEM"]]}],

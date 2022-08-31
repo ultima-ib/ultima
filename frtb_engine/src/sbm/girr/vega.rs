@@ -419,7 +419,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure<'static>> {
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
-                    .eq(lit("Delta"))
+                    .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },

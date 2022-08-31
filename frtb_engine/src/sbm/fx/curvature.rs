@@ -226,6 +226,15 @@ fn fx_curvature_charge(
     )
 }
 
+/// Returns max of three scenarios
+/// 
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn fx_curv_max(op: &OCP) -> Expr {
+    max_exprs(&[fx_curvature_charge_low(op), fx_curvature_charge_medium(op), fx_curvature_charge_high(op)])
+}
+
 /// Exporting Measures
 pub(crate) fn fx_curv_measures() -> Vec<Measure<'static>> {
     vec![
@@ -352,6 +361,16 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "FX_CurvatureCharge_High".to_string(),
             calculator: Box::new(fx_curvature_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
+        },
+        Measure {
+            name: "FX_CurvatureCharge_MAX".to_string(),
+            calculator: Box::new(fx_curv_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

@@ -195,7 +195,14 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
         GetOutput::from_type(DataType::Float64),
     )
 }
-
+/// Returns max of three scenarios
+/// 
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn fx_delta_max(op: &OCP) -> Expr {
+    max_exprs(&[fx_delta_charge_low(op), fx_delta_charge_medium(op), fx_delta_charge_high(op)])
+}
 /// Exporting Measures
 pub(crate) fn fx_delta_measures() -> Vec<Measure<'static>> {
     vec![
@@ -262,6 +269,16 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "FX_DeltaCharge_High".to_string(),
             calculator: Box::new(fx_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("FX"))),
+            ),
+        },
+        Measure {
+            name: "FX_DeltaCharge_MAX".to_string(),
+            calculator: Box::new(fx_delta_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

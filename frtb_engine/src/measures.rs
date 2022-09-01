@@ -10,6 +10,7 @@ use crate::sbm::commodity::totals::com_total_measures;
 use crate::sbm::csr_nonsec::curvature::csrnonsec_curv_measures;
 use crate::sbm::csr_nonsec::delta::csrnonsec_delta_measures;
 use crate::sbm::csr_nonsec::vega::csrnonsec_vega_measures;
+use crate::sbm::csr_nonsec::totals::csrnonsec_total_measures;
 
 use crate::sbm::csr_sec_ctp::curvature::csrsecctp_curv_measures;
 use crate::sbm::csr_sec_ctp::delta::csrsecctp_delta_measures;
@@ -82,16 +83,18 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     res.extend(com_delta_measures);
     res.extend(com_vega_measures);
     res.extend(com_curv_measures);
-    res.extend( com_total_measures() );
+    res.extend(com_total_measures());
 
     res.extend(eq_delta_measures);
     res.extend(eq_vega_measures);
     res.extend(eq_curv_measures);
-    res.extend( eq_total_measures() );
+    res.extend(eq_total_measures());
 
     res.extend(csrnonsec_delta_measures);
     res.extend(csrnonsec_vega_measures);
     res.extend(csrnonsec_curv_measures);
+    res.extend(csrnonsec_total_measures());
+
 
     res.extend(csrsecctp_delta_measures);
     res.extend(csrsecctp_vega_measures);

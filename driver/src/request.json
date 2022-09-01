@@ -3,16 +3,16 @@
     "method": "POST", 
     "params": {
         "measures": [
-            ["Commodity_DeltaCharge_Low", "first"],
-["Commodity_DeltaCharge_Medium", "first"],
-["Commodity_DeltaCharge_High", "first"],
-["Commodity_DeltaCharge_MAX", "first"]
+            ["CSR_nonSec_DeltaCharge_Low", "first"],
+["CSR_nonSec_DeltaCharge_Medium", "first"],
+["CSR_nonSec_DeltaCharge_High", "first"],
+["CSR_nonSec_DeltaCharge_MAX", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],
         "optional_params": {
                     "hide_zeros": false,
-                    "calc_params": {"jurisdiction": "BCBS",
+                    "calc_params": {"jurisdiction": "CRR2",
                         "apply_fx_curv_div": "true"}
                 }
     }

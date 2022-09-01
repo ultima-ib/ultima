@@ -432,7 +432,7 @@ fn eq_totals() {
 #[test]
 fn csr_nonsec_bcbs_delta() {
     let expected_res = arr1(&[
-        45000.0, 975.0, 975.0, 684.920009, 768.283274, 843.4428, 656.018202, 742.954861, 820.733799,
+        45000.0, 975.0, 975.0, 684.920009, 768.283274, 843.4428, 656.018202, 742.954861, 820.733799, 820.733799
     ]);
     let request = r#"
     {"measures": [
@@ -444,7 +444,8 @@ fn csr_nonsec_bcbs_delta() {
 ["CSR_nonSec_DeltaKb_High", "first"],
             ["CSR_nonSec_DeltaCharge_Low", "first"],
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
-["CSR_nonSec_DeltaCharge_High", "first"]
+["CSR_nonSec_DeltaCharge_High", "first"],
+["CSR_nonSec_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -469,6 +470,7 @@ fn csr_nonsec_crr2_delta() {
         1804.405734,
         1804.718141,
         1805.030495,
+        1805.030495,
     ]);
     let request = r#"
     {"measures": [
@@ -480,7 +482,8 @@ fn csr_nonsec_crr2_delta() {
 ["CSR_nonSec_DeltaKb_High", "first"],
             ["CSR_nonSec_DeltaCharge_Low", "first"],
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
-["CSR_nonSec_DeltaCharge_High", "first"]
+["CSR_nonSec_DeltaCharge_High", "first"],
+["CSR_nonSec_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],

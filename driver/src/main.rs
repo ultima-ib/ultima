@@ -235,6 +235,7 @@ const JSON: &str = r#"
 ["CSR_nonSec_DeltaCharge_Low", "first"],
 ["CSR_nonSec_DeltaCharge_Medium", "first"],
 ["CSR_nonSec_DeltaCharge_High", "first"],
+["CSR_nonSec_DeltaCharge_MAX", "first"],
 
 ["CSR_nonSec_VegaSens", "sum"],
 ["CSR_nonSec_VegaSens_Weighted", "sum"],
@@ -245,6 +246,7 @@ const JSON: &str = r#"
 ["CSR_nonSec_VegaCharge_Low", "first"],
 ["CSR_nonSec_VegaCharge_Medium", "first"],
 ["CSR_nonSec_VegaCharge_High", "first"],
+["CSR_nonSec_VegaCharge_MAX", "first"],
 
 ["CSR_nonSec_CurvatureDelta", "sum"],
 ["CSR_nonSec_CurvatureDelta_Weighted", "sum"],
@@ -266,6 +268,12 @@ const JSON: &str = r#"
 ["CSR_nonSec_Curvature_KbMinus_High", "first"],
 ["CSR_nonSec_Curvature_Kb_High", "first"],
 ["CSR_nonSec_Curvature_Sb_High", "first"]
+["CSR_nonSec_CurvatureCharge_High", "first"],
+["CSR_nonSec_CurvatureCharge_MAX", "first"],
+
+["CSR_nonSec_TotalCharge_Low", "first"],
+["CSR_nonSec_TotalCharge_Medium", "first"],
+["CSR_nonSec_TotalCharge_High", "first"],
 
 
 

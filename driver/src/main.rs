@@ -358,6 +358,7 @@ const JSON: &str = r#"
 ["EQ_DeltaCharge_Low", "first"],
 ["EQ_DeltaCharge_Medium", "first"],
 ["EQ_DeltaCharge_High", "first"],
+["EQ_DeltaCharge_MAX", "first"],
 
 ["EQ_VegaSens", "sum"],
 ["EQ_VegaSens_Weighted", "sum"],
@@ -368,6 +369,7 @@ const JSON: &str = r#"
 ["EQ_VegaCharge_Low", "first"],
 ["EQ_VegaCharge_Medium", "first"],
 ["EQ_VegaCharge_High", "first"],
+["EQ_VegaCharge_MAX", "first"],
 
 ["EQ_CurvatureDelta", "sum"],
 ["EQ_CurvatureDelta_Weighted", "sum"],
@@ -390,7 +392,11 @@ const JSON: &str = r#"
 ["EQ_CurvatureCharge_Low", "first"],
 ["EQ_CurvatureCharge_Medium", "first"],
 ["EQ_CurvatureCharge_High", "first"]
+["EQ_CurvatureCharge_MAX", "first"],
 
+["EQ_TotalCharge_Low", "first"],
+["EQ_TotalCharge_Medium", "first"],
+["EQ_TotalCharge_High", "first"],
 
 
 
@@ -427,7 +433,11 @@ const JSON: &str = r#"
 ["FX_CurvatureCharge_Low", "first"],
 ["FX_CurvatureCharge_Medium", "first"],
 ["FX_CurvatureCharge_High", "first"],
-["FX_CurvatureCharge_MAX", "first"]
+["FX_CurvatureCharge_MAX", "first"],
+
+["FX_TotalCharge_Low", "first"],
+["FX_TotalCharge_Medium", "first"],
+["FX_TotalCharge_High", "first"],
 
 
 
@@ -453,7 +463,6 @@ const JSON: &str = r#"
 ["GIRR_VegaCharge_High", "first"],
 ["GIRR_VegaCharge_MAX", "first"],
 
-
 ["GIRR_CurvatureDelta", "sum"],
 ["GIRR_PnLup", "sum"],
 ["GIRR_PnLdown", "sum"],
@@ -469,10 +478,13 @@ const JSON: &str = r#"
 ["GIRR_CurvatureCharge_High", "first"],
 ["GIRR_CurvatureCharge_MAX", "first"],
 
+["GIRR_TotalCharge_Low", "first"],
+["GIRR_TotalCharge_Medium", "first"],
+["GIRR_TotalCharge_High", "first"],
+
 
 ["PnL_Up", "sum"],
 ["PnL_Down", "sum"]
-
 
 "reporting_ccy": "USD"
 "filters": [{"Eq":[["Desk", "FXOptions"]]}],

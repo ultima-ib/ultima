@@ -101,12 +101,19 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
                 .fill_null(lit::<f64>(0.))
                 .collect()?;
 
+            let res_len = columns[0].len();
+            if df.height() == 0 {
+                return Ok(Series::from_vec(
+                    "res",
+                    vec![0.; res_len] as Vec<f64>,
+                ));
+            };
+            
             let sens = df.to_ndarray::<Float64Type>()?;
 
             let sbs = sens.sum_axis(Axis(1));
 
             // Early return Kb or Sb, ie the required metric
-            let res_len = columns[0].len();
             if let ReturnMetric::Sb = rtrn {
                 return Ok(Series::new(
                     "res",

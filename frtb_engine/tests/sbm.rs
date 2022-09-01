@@ -143,6 +143,27 @@ fn fx_curvature() {
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
 }
+#[test]
+fn fx_total() {
+    let expected_res = arr1(&[
+        11.652789 + 49423.256786,
+        11.803866 + 50875.624376,
+        11.953033 + 52287.6658,
+    ]);
+    let request = r#"
+    {"measures": [
+        ["FX_TotalCharge_Low", "first"],
+["FX_TotalCharge_Medium", "first"],
+["FX_TotalCharge_High", "first"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "optional_params": {
+                "calc_params": {"jurisdiction": "BCBS"}
+            }
+    }"#;
+    assert_results(request, expected_res.sum(), Some(1e-4))
+}
 
 #[test]
 fn girr_delta() {
@@ -272,6 +293,26 @@ fn girr_curvature() {
 }
 
 #[test]
+fn girr_totals() {
+    let expected_res = arr1(&[
+        26.770639, 28.0824, 29.335659, 143838.458921, 156128.390288, 167519.092174, 0.0, 0.0, 0.0
+    ]);
+    let request = r#"
+    {"measures": [
+        ["GIRR_TotalCharge_Low", "first"],
+["GIRR_TotalCharge_Medium", "first"],
+["GIRR_TotalCharge_High", "first"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "optional_params": {
+                "calc_params": {"jurisdiction": "BCBS"}
+            }
+    }"#;
+    assert_results(request, expected_res.sum(), Some(1e-4))
+}
+
+#[test]
 fn eq_delta() {
     let expected_res = arr1(&[
         2800.0,
@@ -282,6 +323,7 @@ fn eq_delta() {
         1004.116547,
         665.011398,
         683.999424,
+        702.474388,
         702.474388,
     ]);
     let request = r#"
@@ -294,7 +336,8 @@ fn eq_delta() {
 ["EQ_DeltaKb_High", "first"],
 ["EQ_DeltaCharge_Low", "first"],
 ["EQ_DeltaCharge_Medium", "first"],
-["EQ_DeltaCharge_High", "first"]
+["EQ_DeltaCharge_High", "first"],
+["EQ_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
@@ -318,6 +361,7 @@ fn eq_vega() {
         28620.521491,
         29224.393971,
         29816.038563,
+        29816.038563
     ]);
     let request = r#"
     {"measures": [
@@ -329,30 +373,54 @@ fn eq_vega() {
         ["EQ_VegaKb_High", "first"],
         ["EQ_VegaCharge_Low", "first"],
         ["EQ_VegaCharge_Medium", "first"],
-        ["EQ_VegaCharge_High", "first"]
+        ["EQ_VegaCharge_High", "first"],
+        ["EQ_VegaCharge_MAX", "first"]
     ],
     "groupby": ["Desk"],
-    "filters": [],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
     "optional_params": {
         "hide_zeros": true,
         "calc_params": {"jurisdiction": "BCBS",
         "apply_fx_curv_div": "true"}
         }
     }"#;
-    assert_results(request, dbg!(expected_res).sum() * 2., None)
+    assert_results(request, dbg!(expected_res).sum(), None)
 }
 
 #[test]
 fn eq_curv() {
-    let expected_res = arr1(&[19559.580453, 19778.428906, 19994.882158]);
+    let expected_res = arr1(&[19559.580453, 19778.428906, 19994.882158, 19994.882158]);
     let request = r#"
     {"measures": [
         ["EQ_CurvatureCharge_Low", "first"],
         ["EQ_CurvatureCharge_Medium", "first"],
-        ["EQ_CurvatureCharge_High", "first"]
+        ["EQ_CurvatureCharge_High", "first"],
+        ["EQ_CurvatureCharge_MAX", "first"]
     ],
     "groupby": ["Desk"],
-    "filters": [],
+    "filters": [{"Eq":[["Desk", "RatesEM"]]}],
+    "optional_params": {
+        "hide_zeros": true,
+        "calc_params": {"jurisdiction": "BCBS"}
+        }
+    }"#;
+    assert_results(request, dbg!(expected_res).sum(), None)
+}
+
+#[test]
+fn eq_totals() {
+    let expected_res = arr1(&[
+        665.011398 + 28620.521491 + 0.,
+        683.999424 + 29224.393971 + 0.,
+        702.474388 + 29816.038563 + 0.]);
+    let request = r#"
+    {"measures": [
+        ["EQ_TotalCharge_Low", "first"],
+["EQ_TotalCharge_Medium", "first"],
+["EQ_TotalCharge_High", "first"]
+    ],
+    "groupby": ["Desk"],
+    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
     "optional_params": {
         "hide_zeros": true,
         "calc_params": {"jurisdiction": "BCBS"}

@@ -190,6 +190,15 @@ where
     )
 }
 
+/// Returns max of three scenarios
+/// 
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn eq_delta_max(op: &OCP) -> Expr {
+    max_exprs(&[equity_delta_charge_low(op), equity_delta_charge_medium(op), equity_delta_charge_high(op)])
+}
+
 /// Exporting Measures
 pub(crate) fn eq_delta_measures() -> Vec<Measure<'static>> {
     vec![
@@ -276,6 +285,16 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "EQ_DeltaCharge_High".to_string(),
             calculator: Box::new(equity_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("Equity"))),
+            ),
+        },
+        Measure {
+            name: "EQ_DeltaCharge_MAX".to_string(),
+            calculator: Box::new(eq_delta_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

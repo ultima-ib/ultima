@@ -181,6 +181,14 @@ where
         GetOutput::from_type(DataType::Float64),
     )
 }
+/// Returns max of three scenarios
+/// 
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn eq_vega_max(op: &OCP) -> Expr {
+    max_exprs(&[equity_vega_charge_low(op), equity_vega_charge_medium(op), equity_vega_charge_high(op)])
+}
 
 /// Exporting Measures
 pub(crate) fn eq_vega_measures() -> Vec<Measure<'static>> {
@@ -268,6 +276,16 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "EQ_VegaCharge_High".to_string(),
             calculator: Box::new(equity_vega_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Vega"))
+                    .and(col("RiskClass").eq(lit("Equity"))),
+            ),
+        },
+        Measure {
+            name: "EQ_VegaCharge_MAX".to_string(),
+            calculator: Box::new(eq_vega_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

@@ -133,10 +133,15 @@ pub(crate) fn eq_curvature_charge(
                     cvr_up_spot().sum().alias("cvr_up"),
                     cvr_down_spot().sum().alias("cvr_down"),
                 ])
-                //.fill_null(lit::<f64>(0.))
                 .collect()?;
 
             let res_len = columns[0].len();
+            if df.height() == 0 {
+                return Ok(Series::from_vec(
+                    "res",
+                    vec![0.; columns[0].len()] as Vec<f64>,
+                ));
+            };
             let (kb_plus_cvr_up, kb_minus_cvr_down): (Vec<(f64, f64)>, Vec<(f64, f64)>) =
                 curvature_kb_plus_minus(df, &eq_curv_rho, special_bucket)?;
             let (kb_plus, cvr_up): (Vec<f64>, Vec<f64>) = kb_plus_cvr_up.into_iter().unzip();
@@ -206,6 +211,15 @@ pub(crate) fn eq_curvature_charge(
         ],
         GetOutput::from_type(DataType::Float64),
     )
+}
+
+/// Returns max of three scenarios
+/// 
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn eq_curv_max(op: &OCP) -> Expr {
+    max_exprs(&[eq_curvature_charge_low(op), eq_curvature_charge_medium(op), eq_curvature_charge_high(op)])
 }
 
 /// Exporting Measures
@@ -414,6 +428,16 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "EQ_CurvatureCharge_High".to_string(),
             calculator: Box::new(eq_curvature_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("Equity"))),
+            ),
+        },
+        Measure {
+            name: "EQ_CurvatureCharge_MAX".to_string(),
+            calculator: Box::new(eq_curv_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

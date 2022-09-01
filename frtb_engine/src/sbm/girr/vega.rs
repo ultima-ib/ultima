@@ -151,6 +151,14 @@ fn girr_vega_charge(
                 .fill_null(lit::<f64>(0.))
                 .collect()?;
 
+            let res_len = columns[0].len();
+            if df.height() == 0 {
+                return Ok(Series::from_vec(
+                    "res",
+                    vec![0.; columns[0].len()] as Vec<f64>,
+                ));
+            };
+
             let part = df.partition_by(["b"])?;
             let res_buckets_kbs_sbs: Result<Vec<((&str, f64), f64)>> = part
                 .par_iter()
@@ -163,7 +171,6 @@ fn girr_vega_charge(
             let (_buckets, kbs): (Vec<&str>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
             // Early return Kb or Sb, ie the required metric
-            let res_len = columns[0].len();
             match return_metric {
                 ReturnMetric::Kb => {
                     return Ok(Series::new(

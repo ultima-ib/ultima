@@ -246,6 +246,14 @@ where
                     )
                 })
                 .collect();
+            
+            let res_len = columns[0].len();
+            if df.height() == 0 {
+                return Ok(Series::from_vec(
+                    "res",
+                    vec![0.; columns[0].len()] as Vec<f64>,
+                ));
+            };
 
             let buckets_kbs_sbs = res_buckets_kbs_sbs?;
             let (buckets_kbs, sbs): (Vec<(String, f64)>, Vec<f64>) =
@@ -253,7 +261,6 @@ where
             let (_buckets, kbs): (Vec<String>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
             // Early return Kb or Sb is that is the required metric
-            let res_len = columns[0].len();
             match return_metric {
                 ReturnMetric::Kb => {
                     return Ok(Series::new(

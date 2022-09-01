@@ -10,3 +10,4 @@ pub mod buckets;
 pub mod common;
 pub mod common_curv;
 pub mod risk_weights;
+pub mod totals;

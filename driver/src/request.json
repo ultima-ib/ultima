@@ -2,14 +2,22 @@
     "id": "123", 
     "method": "POST", 
     "params": {
-        "measures": [ 
-            ["FX_DeltaCharge_Low", "first"],
-        ["FX_DeltaCharge_Medium", "first"],
-        ["FX_DeltaCharge_High", "first"],
-        ["FX_DeltaCharge_MAX", "first"]
+        "measures": [
+            ["EQ_DeltaCharge_Low", "first"],
+["EQ_DeltaCharge_Medium", "first"],
+["EQ_DeltaCharge_High", "first"],
+["EQ_VegaCharge_Low", "first"],
+["EQ_VegaCharge_Medium", "first"],
+["EQ_VegaCharge_High", "first"],
+["EQ_CurvatureCharge_Low", "first"],
+["EQ_CurvatureCharge_Medium", "first"],
+["EQ_CurvatureCharge_High", "first"],
+["EQ_TotalCharge_Low", "first"],
+["EQ_TotalCharge_Medium", "first"],
+["EQ_TotalCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
-        "filters": [],
+        "filters": [{"Eq":[["Desk", "FXOptions"]]}],
         "optional_params": {
                     "hide_zeros": false,
                     "calc_params": {"jurisdiction": "BCBS",

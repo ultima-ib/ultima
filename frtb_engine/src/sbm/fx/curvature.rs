@@ -152,10 +152,17 @@ fn fx_curvature_charge(
                     fx_cvr_up_down(div, cvr_up_spot()).sum().alias("cvr_up"),
                     fx_cvr_up_down(div, cvr_down_spot()).sum().alias("cvr_down"),
                 ])
-                //.fill_null(lit::<f64>(0.))
                 .collect()?;
-
+            
             let res_len = columns[0].len();
+            
+            if df.height() == 0 {
+                return Ok(Series::from_vec(
+                    "res",
+                    vec![0.; res_len] as Vec<f64>,
+                ));
+            };
+
 
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {

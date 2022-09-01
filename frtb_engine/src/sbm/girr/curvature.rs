@@ -143,6 +143,12 @@ fn girr_curvature_charge(
                 .unwrap();
 
             let res_len = columns[0].len();
+            if df.height() == 0 {
+                return Ok(Series::from_vec(
+                    "res",
+                    vec![0.; columns[0].len()] as Vec<f64>,
+                ));
+            };
 
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {

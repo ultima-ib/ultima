@@ -21,14 +21,18 @@ use crate::sbm::csr_sec_nonctp::vega::csrsecnonctp_vega_measures;
 use crate::sbm::fx::curvature::fx_curv_measures;
 use crate::sbm::fx::delta::fx_delta_measures;
 use crate::sbm::fx::vega::fx_vega_measures;
+use crate::sbm::fx::totals::fx_total_measures;
 
 use crate::sbm::girr::curvature::girr_curv_measures;
 use crate::sbm::girr::delta::girr_delta_measures;
 use crate::sbm::girr::vega::girr_vega_measures;
+use crate::sbm::girr::totals::girr_total_measures;
 
 use crate::sbm::equity::curvature::eq_curv_measures;
 use crate::sbm::equity::delta::eq_delta_measures;
 use crate::sbm::equity::vega::eq_vega_measures;
+use crate::sbm::equity::totals::eq_total_measures;
+
 
 use base_engine::prelude::*;
 //use polars::prelude::*;
@@ -38,6 +42,8 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     let fx_delta_measures = fx_delta_measures();
     let fx_vega_measures = fx_vega_measures();
     let fx_curv_measures = fx_curv_measures();
+    let fx_total_measures = fx_total_measures();
+
     let com_delta_measures = com_delta_measures();
     let com_vega_measures = com_vega_measures();
     let com_curv_measures = com_curv_measures();
@@ -53,9 +59,11 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     let csrsecnonctp_delta_measures = csrsecnonctp_delta_measures();
     let csrsecnonctp_vega_measures = csrsecnonctp_vega_measures();
     let csrsecnonctp_curv_measures = csrsecnonctp_curv_measures();
+
     let girr_delta_measures = girr_delta_measures();
     let girr_vega_measures = girr_vega_measures();
     let girr_curv_measures = girr_curv_measures();
+    let girr_total_measures = girr_total_measures();
 
     let non_rc_specific = vec![Measure {
         name: "RiskWeights".to_string(),
@@ -68,6 +76,7 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     res.extend(fx_delta_measures);
     res.extend(fx_vega_measures);
     res.extend(fx_curv_measures);
+    res.extend(fx_total_measures);
 
     res.extend(com_delta_measures);
     res.extend(com_vega_measures);
@@ -76,6 +85,7 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     res.extend(eq_delta_measures);
     res.extend(eq_vega_measures);
     res.extend(eq_curv_measures);
+    res.extend(eq_total_measures() );
 
     res.extend(csrnonsec_delta_measures);
     res.extend(csrnonsec_vega_measures);
@@ -92,6 +102,7 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     res.extend(girr_delta_measures);
     res.extend(girr_vega_measures);
     res.extend(girr_curv_measures);
+    res.extend(girr_total_measures);
 
     res.extend(non_rc_specific);
 

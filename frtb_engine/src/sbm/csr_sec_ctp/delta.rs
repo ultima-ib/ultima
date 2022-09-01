@@ -153,7 +153,7 @@ fn csr_sec_ctp_delta_charge_distributor(
     let (weight, bucket_col, name_rho_vec, gamma, n_buckets, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2"),
+            col("SensWeightsCRR2").arr().get(0),
             col("BucketCRR2"),
             Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
             &scenario.csr_ctp_gamma_crr2,
@@ -161,7 +161,7 @@ fn csr_sec_ctp_delta_charge_distributor(
             Option::<usize>::None,
         ),
         Jurisdiction::BCBS => (
-            col("SensWeights"),
+            col("SensWeights").arr().get(0),
             col("BucketBCBS"),
             Vec::from(scenario.base_csr_ctp_rho_name_bcbs),
             &scenario.csr_ctp_gamma,
@@ -203,6 +203,19 @@ fn csr_sec_ctp_delta_charge_distributor(
         "Delta",
         rtrn,
     )
+}
+
+/// Returns max of three scenarios
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn csrsecctp_delta_max(op: &OCP) -> Expr {
+    max_exprs(
+    &[csr_sec_ctp_delta_charge_low(op), 
+    csr_sec_ctp_delta_charge_medium(op),
+    csr_sec_ctp_delta_charge_high(op)
+    ]
+)
 }
 
 /// Exporting Measures
@@ -291,6 +304,16 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "CSR_secCTP_DeltaCharge_High".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
+            ),
+        },
+        Measure {
+            name: "CSR_secCTP_DeltaCharge_MAX".to_string(),
+            calculator: Box::new(csrsecctp_delta_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

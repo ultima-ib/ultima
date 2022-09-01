@@ -113,6 +113,14 @@ fn csrsecctp_vega_charge_distributor(
     )
 }
 
+/// Returns max of three scenarios
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn csrsecctp_vega_max(op: &OCP) -> Expr {
+    max_exprs(&[csrsecctp_vega_charge_low(op), csrsecctp_vega_charge_medium(op), csrsecctp_vega_charge_high(op)])
+}
+
 /// Exporting Measures
 pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure<'static>> {
     vec![
@@ -199,6 +207,16 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "CSR_secCTP_VegaKb_High".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Vega"))
+                    .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
+            ),
+        },
+        Measure {
+            name: "CSR_secCTP_VegaCharge_MAX".to_string(),
+            calculator: Box::new(csrsecctp_vega_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

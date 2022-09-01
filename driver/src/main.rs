@@ -286,6 +286,7 @@ const JSON: &str = r#"
 ["CSR_secCTP_DeltaCharge_Low", "first"],
 ["CSR_secCTP_DeltaCharge_Medium", "first"],
 ["CSR_secCTP_DeltaCharge_High", "first"],
+["CSR_secCTP_DeltaCharge_MAX", "first"],
 
 ["CSR_secCTP_VegaSens", "sum"],
 ["CSR_secCTP_VegaSens_Weighted", "sum"],
@@ -296,6 +297,7 @@ const JSON: &str = r#"
 ["CSR_secCTP_VegaCharge_Low", "first"],
 ["CSR_secCTP_VegaCharge_Medium", "first"],
 ["CSR_secCTP_VegaKb_High", "first"],
+["CSR_secCTP_VegaCharge_MAX", "first"],
 
 ["CSR_secCTP_CurvatureDelta", "sum"],
 ["CSR_secCTP_CurvatureDelta_Weighted", "sum"],
@@ -316,8 +318,13 @@ const JSON: &str = r#"
 ["CSR_secCTP_Curvature_KbPlus_High", "first"],
 ["CSR_secCTP_Curvature_KbMinus_High", "first"],
 ["CSR_secCTP_Curvature_Kb_High", "first"],
-["CSR_secCTP_Curvature_Sb_High", "first"]
+["CSR_secCTP_Curvature_Sb_High", "first"],
+["CSR_secCTP_CurvatureCharge_High", "first"],
+["CSR_secCTP_CurvatureCharge_MAX", "first"],
 
+["CSR_secCTP_TotalCharge_Low", "first"],
+["CSR_secCTP_TotalCharge_Medium", "first"],
+["CSR_secCTP_TotalCharge_High", "first"],
 
 
 

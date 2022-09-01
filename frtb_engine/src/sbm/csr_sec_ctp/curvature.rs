@@ -125,6 +125,14 @@ fn csrsecctp_curvature_charge_distributor(
     )
 }
 
+/// Returns max of three scenarios
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn csrsecctp_curv_max(op: &OCP) -> Expr {
+    max_exprs(&[csrsecctp_curvature_charge_low(op), csrsecctp_curvature_charge_medium(op), csrsecctp_curvature_charge_high(op)])
+}
+
 /// Exporting Measures
 pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure<'static>> {
     vec![
@@ -331,6 +339,16 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "CSR_secCTP_CurvatureCharge_High".to_string(),
             calculator: Box::new(csrsecctp_curvature_charge_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
+            ),
+        },
+        Measure {
+            name: "CSR_secCTP_CurvatureCharge_MAX".to_string(),
+            calculator: Box::new(csrsecctp_curv_max),
             aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")

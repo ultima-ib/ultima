@@ -15,6 +15,7 @@ use crate::sbm::csr_nonsec::totals::csrnonsec_total_measures;
 use crate::sbm::csr_sec_ctp::curvature::csrsecctp_curv_measures;
 use crate::sbm::csr_sec_ctp::delta::csrsecctp_delta_measures;
 use crate::sbm::csr_sec_ctp::vega::csrsecctp_vega_measures;
+use crate::sbm::csr_sec_ctp::totals::csrsecctp_total_measures;
 
 use crate::sbm::csr_sec_nonctp::curvature::csrsecnonctp_curv_measures;
 use crate::sbm::csr_sec_nonctp::delta::csrsecnonctp_delta_measures;
@@ -41,10 +42,6 @@ use base_engine::prelude::*;
 
 /// Exporting Measures
 pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
-    let fx_delta_measures = fx_delta_measures();
-    let fx_vega_measures = fx_vega_measures();
-    let fx_curv_measures = fx_curv_measures();
-    let fx_total_measures = fx_total_measures();
 
     let com_delta_measures = com_delta_measures();
     let com_vega_measures = com_vega_measures();
@@ -75,10 +72,10 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     }];
 
     let mut res = vec![];
-    res.extend(fx_delta_measures);
-    res.extend(fx_vega_measures);
-    res.extend(fx_curv_measures);
-    res.extend(fx_total_measures);
+    res.extend(fx_delta_measures());
+    res.extend(fx_vega_measures());
+    res.extend(fx_curv_measures());
+    res.extend(fx_total_measures());
 
     res.extend(com_delta_measures);
     res.extend(com_vega_measures);
@@ -99,6 +96,7 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     res.extend(csrsecctp_delta_measures);
     res.extend(csrsecctp_vega_measures);
     res.extend(csrsecctp_curv_measures);
+    res.extend(csrsecctp_total_measures());
 
     res.extend(csrsecnonctp_delta_measures);
     res.extend(csrsecnonctp_vega_measures);

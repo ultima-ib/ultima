@@ -3,12 +3,15 @@
     "method": "POST", 
     "params": {
         "measures": [
-            ["CSR_secCTP_DeltaCharge_MAX", "first"],
-            ["CSR_secCTP_VegaCharge_MAX", "first"],
-            ["CSR_secCTP_CurvatureCharge_MAX", "first"],
-            ["CSR_secCTP_TotalCharge_Low", "first"],
-            ["CSR_secCTP_TotalCharge_Medium", "first"],
-            ["CSR_secCTP_TotalCharge_High", "first"]
+            ["CSR_Sec_nonCTP_DeltaCharge_MAX", "first"],
+
+            ["CSR_Sec_nonCTP_VegaCharge_MAX", "first"],
+
+            ["CSR_Sec_nonCTP_CurvatureCharge_MAX", "first"],
+
+["CSR_Sec_nonCTP_TotalCharge_Low", "first"],
+["CSR_Sec_nonCTP_TotalCharge_Medium", "first"],
+["CSR_Sec_nonCTP_TotalCharge_High", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],

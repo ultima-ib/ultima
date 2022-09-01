@@ -206,7 +206,7 @@ where
                 variable_name: Some("tenor".to_string()),
                 value_name: Some("weighted_sens".to_string()),
             };
-            let df = df.melt2(ma).unwrap();
+            let df = df.melt2(ma)?;
             // 21.4.4 - 21.5.a
             let kbs_sbs = all_kbs_sbs_onsq(
                 df,
@@ -262,6 +262,14 @@ where
         ],
         GetOutput::from_type(DataType::Float64),
     )
+}
+
+/// Returns max of three scenarios
+/// !Note This is not a real measure, as MAX should be taken as
+/// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
+/// This is for convienience view only.
+fn csrsecnonctp_delta_max(op: &OCP) -> Expr {
+    max_exprs(&[csr_sec_nonctp_delta_charge_low(op), csr_sec_nonctp_delta_charge_medium(op), csr_sec_nonctp_delta_charge_high(op)])
 }
 
 /// Exporting Measures
@@ -350,6 +358,16 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure<'static>> {
         Measure {
             name: "CSR_Sec_nonCTP_DeltaCharge_High".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_charge_high),
+            aggregation: None,
+            precomputefilter: Some(
+                col("RiskCategory")
+                    .eq(lit("Delta"))
+                    .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
+            ),
+        },
+        Measure {
+            name: "CSR_Sec_nonCTP_DeltaCharge_MAX".to_string(),
+            calculator: Box::new(csrsecnonctp_delta_max),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")

@@ -184,7 +184,6 @@ where
             col("RiskFactorType"),
             col("SensitivitySpot"),
             col("SensWeights").arr().get(0),
-            //equity_delta_sens_weighted_spot()
         ],
         GetOutput::from_type(DataType::Float64),
     )

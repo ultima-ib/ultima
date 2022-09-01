@@ -1,10 +1,27 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
+use once_cell::sync::Lazy;
 use rayon::prelude::IntoParallelIterator;
 
 use ndarray::parallel::prelude::ParallelIterator;
 use ndarray::prelude::*;
 use polars::prelude::*;
+
+/// TODO GIRR Delta is the only case where Risk Weight is different, depending on tenor
+/// Hence col("SensWeights") can be f64 instead of list f64
+/// GIRR Delta will be the only case when we compute RW on the fly
+/// TODO but need to take care of /sqrt(2) 
+#[allow(dead_code)]
+pub static GIRR_RISK_WEIGHTS: Lazy<[f64; 10]> =
+    Lazy::new(||[0.017, 0.017, 0.016, 0.013, 0.012, 
+                 0.011, 0.011, 0.011, 0.011, 0.011]);
+
+/// TODO Apply this RW on the fly
+/// 21.44 Buckets where RW above can be divided by /sqrt(2)
+#[allow(dead_code)]
+pub static GIRR_BUCKET_DIV_SQRT2: Lazy<Vec<String>> =
+    Lazy::new(||vec!["EUR".to_string(), "USD".to_string(), "GBP".to_string(), 
+        "AUD".to_string(), "JPY".to_string(), "SEK".to_string(), "CAD".to_string()]);
 
 pub fn total_ir_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "GIRR", total_delta_sens())

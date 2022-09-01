@@ -566,7 +566,7 @@ fn csr_nonsec_crr2_vega() {
 #[test]
 fn commodity_delta() {
     let expected_res = arr1(&[
-        -250.0, -122.5, -122.5, 408.934179, 405.736564, 402.5, 269.704639, 260.4533, 250.861017,
+        -250.0, -122.5, -122.5, 408.934179, 405.736564, 402.5, 269.704639, 260.4533, 250.861017,269.704639
     ]);
     let request = r#"
     {"measures": [
@@ -578,7 +578,8 @@ fn commodity_delta() {
         ["Commodity_DeltaKb_High", "first"],
         ["Commodity_DeltaCharge_Low", "first"],
         ["Commodity_DeltaCharge_Medium", "first"],
-        ["Commodity_DeltaCharge_High", "first"]
+        ["Commodity_DeltaCharge_High", "first"],
+        ["Commodity_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],

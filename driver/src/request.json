@@ -3,18 +3,10 @@
     "method": "POST", 
     "params": {
         "measures": [
-            ["EQ_DeltaCharge_Low", "first"],
-["EQ_DeltaCharge_Medium", "first"],
-["EQ_DeltaCharge_High", "first"],
-["EQ_VegaCharge_Low", "first"],
-["EQ_VegaCharge_Medium", "first"],
-["EQ_VegaCharge_High", "first"],
-["EQ_CurvatureCharge_Low", "first"],
-["EQ_CurvatureCharge_Medium", "first"],
-["EQ_CurvatureCharge_High", "first"],
-["EQ_TotalCharge_Low", "first"],
-["EQ_TotalCharge_Medium", "first"],
-["EQ_TotalCharge_High", "first"]
+            ["Commodity_DeltaCharge_Low", "first"],
+["Commodity_DeltaCharge_Medium", "first"],
+["Commodity_DeltaCharge_High", "first"],
+["Commodity_DeltaCharge_MAX", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [{"Eq":[["Desk", "FXOptions"]]}],

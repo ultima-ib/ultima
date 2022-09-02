@@ -5,16 +5,16 @@ use polars::prelude::*;
 use super::delta::*;
 use super::vega::*;
 use super::curvature::*;
-use crate::sbm::totals::total_sum3;
+use crate::sbm::totals::total_sum;
 
-fn csrsecnonctp_total_low(op: &OCP) -> Expr {
-    total_sum3(&[csr_sec_nonctp_delta_charge_low(op), csr_sec_nonctp_vega_charge_low(op), csr_sec_nonctp_curvature_charge_low(op)])
+pub(crate)fn csrsecnonctp_total_low(op: &OCP) -> Expr {
+    total_sum(&[csr_sec_nonctp_delta_charge_low(op), csr_sec_nonctp_vega_charge_low(op), csr_sec_nonctp_curvature_charge_low(op)])
 }
-fn csrsecnonctp_total_medium(op: &OCP) -> Expr {
-    total_sum3(&[csr_sec_nonctp_delta_charge_medium(op),csr_sec_nonctp_vega_charge_medium(op),csr_sec_nonctp_curvature_charge_medium(op)])
+pub(crate)fn csrsecnonctp_total_medium(op: &OCP) -> Expr {
+    total_sum(&[csr_sec_nonctp_delta_charge_medium(op),csr_sec_nonctp_vega_charge_medium(op),csr_sec_nonctp_curvature_charge_medium(op)])
 }
-fn csrsecnonctp_total_high(op: &OCP) -> Expr {
-    total_sum3(&[csr_sec_nonctp_delta_charge_high(op), csr_sec_nonctp_vega_charge_high(op), csr_sec_nonctp_curvature_charge_high(op)])
+pub(crate)fn csrsecnonctp_total_high(op: &OCP) -> Expr {
+    total_sum(&[csr_sec_nonctp_delta_charge_high(op), csr_sec_nonctp_vega_charge_high(op), csr_sec_nonctp_curvature_charge_high(op)])
 }
 
 

@@ -4,10 +4,10 @@ type = "CSV"
 # first file path 
 # "C:/rust/DeltaGirr100_100_400000.csv"
 # "C:/rust/ultima/frtb_engine/tests/data/Delta.csv"
-# "C:/rust/DeltaEq.csv"
+# "C:/rust/SensEq.csv"
 # "C:/rust/VegaEq.csv"
 # "C:/rust/DeltaCSR.csv"
-files = [ "C:/rust/ultima/frtb_engine/tests/data/Delta.csv"]
+files = [ "C:/rust/SensEq.csv"]
 # trade attributes
 # "C:/rust/TradeAttributes2.csv"
 #"C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"

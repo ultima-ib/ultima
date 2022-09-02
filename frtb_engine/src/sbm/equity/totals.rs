@@ -5,16 +5,16 @@ use polars::prelude::*;
 use super::delta::*;
 use super::vega::*;
 use super::curvature::*;
-use crate::sbm::totals::total_sum3;
+use crate::sbm::totals::total_sum;
 
-fn eq_total_low(op: &OCP) -> Expr {
-    total_sum3(&[equity_delta_charge_low(op), equity_vega_charge_low(op), eq_curvature_charge_low(op)])
+pub(crate)fn eq_total_low(op: &OCP) -> Expr {
+    total_sum(&[equity_delta_charge_low(op), equity_vega_charge_low(op), eq_curvature_charge_low(op)])
 }
-fn eq_total_medium(op: &OCP) -> Expr {
-    total_sum3(&[equity_delta_charge_medium(op),equity_vega_charge_medium(op),eq_curvature_charge_medium(op)])
+pub(crate)fn eq_total_medium(op: &OCP) -> Expr {
+    total_sum(&[equity_delta_charge_medium(op),equity_vega_charge_medium(op),eq_curvature_charge_medium(op)])
 }
-fn eq_total_high(op: &OCP) -> Expr {
-    total_sum3(&[equity_delta_charge_high(op), equity_vega_charge_high(op), eq_curvature_charge_high(op)])
+pub(crate)fn eq_total_high(op: &OCP) -> Expr {
+    total_sum(&[equity_delta_charge_high(op), equity_vega_charge_high(op), eq_curvature_charge_high(op)])
 }
 
 

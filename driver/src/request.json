@@ -3,21 +3,19 @@
     "method": "POST", 
     "params": {
         "measures": [
-            ["CSR_Sec_nonCTP_DeltaCharge_MAX", "first"],
-
-            ["CSR_Sec_nonCTP_VegaCharge_MAX", "first"],
-
-            ["CSR_Sec_nonCTP_CurvatureCharge_MAX", "first"],
-
-["CSR_Sec_nonCTP_TotalCharge_Low", "first"],
-["CSR_Sec_nonCTP_TotalCharge_Medium", "first"],
-["CSR_Sec_nonCTP_TotalCharge_High", "first"]
+            ["EQ_TotalCharge_Low", "first"],
+["EQ_TotalCharge_Medium", "first"],
+["EQ_TotalCharge_High", "first"],
+            ["SBM_Charge_Low", "first"],
+            ["SBM_Charge_Medium", "first"],
+            ["SBM_Charge_High", "first"],
+            ["SBM_Charge", "first"]
                 ],
         "groupby": ["Desk"],
-        "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+        "filters": [],
         "optional_params": {
                     "hide_zeros": false,
-                    "calc_params": {"jurisdiction": "CRR2",
+                    "calc_params": {"jurisdiction": "BCBS",
                         "apply_fx_curv_div": "true"}
                 }
     }

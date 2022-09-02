@@ -1,4 +1,4 @@
-COB,TradeId,RiskCategory,RiskClass,RiskFactor,RiskFactorType,Tranche,CommodityLocation,GirrVegaUnderlyingMaturity,BucketBCBS,BucketCRR2,PnL_Up,PnL_Down,SensitivitySpot,Sensitivity_025Y,Sensitivity_05Y,Sensitivity_1Y,Sensitivity_2Y,Sensitivity_3Y,Sensitivity_5Y,Sensitivity_10Y,Sensitivity_15Y,Sensitivity_20Y,Sensitivity_30Y,SensitivityCcy,CoveredBondReducedWeight,CsrSector,CsrCreditQuality,FxCurvDivEligibility
+COB,TradeId,RiskCategory,RiskClass,RiskFactor,RiskFactorType,CSRSecNonCTP_Tranche,CommodityLocation,GirrVegaUnderlyingMaturity,BucketBCBS,BucketCRR2,PnL_Up,PnL_Down,SensitivitySpot,Sensitivity_025Y,Sensitivity_05Y,Sensitivity_1Y,Sensitivity_2Y,Sensitivity_3Y,Sensitivity_5Y,Sensitivity_10Y,Sensitivity_15Y,Sensitivity_20Y,Sensitivity_30Y,SensitivityCcy,CoveredBondReducedWeight,CsrSector,CsrCreditQuality,FxCurvDivEligibility
 22/07/2022,12,Vega,CSR_Sec_nonCTP,XXX,,,,,1,,,,,,1000,1000,,1000,1000,1000,,,,USD,,,,
 22/07/2022,13,Vega,CSR_Sec_nonCTP,YYYYY,,,,,2,,,,,,1000,1000,,1000,1000,1000,,,,USD,,,,
 22/07/2022,14,Vega,CSR_Sec_nonCTP,XXX,,,,,9,,,,,,1000,1000,,1000,1000,1000,,,,USD,,,,

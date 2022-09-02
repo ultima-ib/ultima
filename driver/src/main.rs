@@ -217,6 +217,7 @@ const JSON: &str = r#"
 ["Commodity_Curvature_KbMinus_High", "first"],
 ["Commodity_Curvature_Kb_High", "first"],
 ["Commodity_Curvature_Sb_High", "first"],
+["Commodity_CurvatureCharge_High", "first"],
 ["Commodity_CurvatureCharge_MAX", "first"],
 
 ["Commodity_TotalCharge_Low", "first"],
@@ -511,6 +512,12 @@ const JSON: &str = r#"
 ["GIRR_TotalCharge_Low", "first"],
 ["GIRR_TotalCharge_Medium", "first"],
 ["GIRR_TotalCharge_High", "first"],
+
+["SBM_Charge_Low", "first"],
+["SBM_Charge_Medium", "first"],
+["SBM_Charge_High", "first"],
+["SBM_Charge", "first"],
+
 
 
 ["PnL_Up", "sum"],

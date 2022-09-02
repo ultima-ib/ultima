@@ -84,17 +84,27 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
             .map(|m| (m.name, (m.calculator, m.precomputefilter)))
             .unzip();
 
+    //dbg!(fltrs);
+    // DOESN'T WORK .or(lit::<bool>(true))
+    // @TODO raise to Polars Team
+    //let mut measure_filter = fltrs[0].clone().unwrap().or(lit::<bool>(true));
+    // By default, everything is false (ie everything is filtered out)
     let mut measure_filter = lit::<bool>(false);
     for fltr in fltrs {
         match fltr {
+            // join filters as or
             Some(f) => {
                 measure_filter = measure_filter.or(f);
             }
+            // If at least one of the measure filters is None, then everything is true
+            // and break
             None => {
-                measure_filter = measure_filter.or(lit::<bool>(true));
+                measure_filter = lit::<bool>(true);
+                break
             }
         }
     }
+    //let mut measure_filter = lit::<bool>(true);
 
     // Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
@@ -129,7 +139,8 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
         }
     };
 
-    f1.collect()
+    let df = f1.collect().unwrap();
+    Ok(df)
 }
 
 /// Convert requested measure into actual measure

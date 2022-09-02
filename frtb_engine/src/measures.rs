@@ -37,6 +37,8 @@ use crate::sbm::equity::delta::eq_delta_measures;
 use crate::sbm::equity::vega::eq_vega_measures;
 use crate::sbm::equity::totals::eq_total_measures;
 
+use crate::sbm::totals::sbm_total_measures;
+
 
 use base_engine::prelude::*;
 //use polars::prelude::*;
@@ -87,6 +89,8 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     res.extend(girr_vega_measures());
     res.extend(girr_curv_measures());
     res.extend(girr_total_measures());
+
+    res.extend(sbm_total_measures());
 
     res.extend(non_rc_specific);
 

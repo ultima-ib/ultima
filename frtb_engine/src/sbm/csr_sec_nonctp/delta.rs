@@ -250,7 +250,7 @@ where
         &[
             col("RiskClass"),
             col("RiskFactor"),
-            col("Tranche"),
+            col("CSRSecNonCTP_Tranche"),
             col("BucketBCBS"),
             col("Sensitivity_05Y"),
             col("Sensitivity_1Y"),

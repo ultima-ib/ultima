@@ -41,7 +41,8 @@ fn main() {
 
     // Build data
     let mut data = DataSetType::build(conf);
-    //dbg!(&data);
+    // TODO
+    // data.validate();
     // Pre build some columns, which you wish to store in memory alongside the original data
     data.prepare();
 
@@ -518,6 +519,9 @@ const JSON: &str = r#"
 ["SBM_Charge_High", "first"],
 ["SBM_Charge", "first"],
 
+["DRC_NonSec_GrossJTD", "sum"],
+["DRC_NonSec_GrossJTD_Scaled", "sum"],
+["DRC_NonSec_CapitalCharge", "first"]
 
 
 ["PnL_Up", "sum"],

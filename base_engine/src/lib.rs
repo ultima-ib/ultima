@@ -25,6 +25,8 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
 
     // Step 0.1
     let f1 = &data.frames()[0];
+    //let tmp = f1.clone().lazy().filter(col("RiskClass").eq(lit("DRC_NonSec"))).collect()?;
+    //dbg!(&tmp["ScaleFactor"]);
     let f1_cols = f1.get_column_names();
     let mut f1 = f1.clone().lazy();
     let measure_map = data.measures();
@@ -186,6 +188,8 @@ struct ProcessedMeasure {
 
 /// This static exists because we need to map aggregation request to a function
 /// There doesn't seem to be a better way than keeping a HashMap
+/// TODO AggExpr implements serde ser/deser
+/// hence we can do smth like serde_json::from_str<AggExpr>()
 pub static BASE_CALCS: Lazy<HashMap<&'static str, fn(Expr, &str) -> (Expr, String)>> =
     Lazy::new(|| {
         HashMap::from([

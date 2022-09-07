@@ -6,12 +6,14 @@ mod helpers;
 pub mod measures;
 pub mod prelude;
 mod sbm;
+mod drc;
 mod statics;
+mod risk_weights;
 
 use base_engine::prelude::*;
-use prelude::frtb_measure_vec;
+use prelude::{frtb_measure_vec, drc::common::drc_scalinng};
 use sbm::buckets;
-use sbm::risk_weights::*;
+use risk_weights::*;
 
 use polars::prelude::*;
 use std::collections::HashMap;
@@ -144,17 +146,23 @@ impl<'a> DataSet for FRTBDataSet<'a> {
             }
 
             // Have to collect into a tmp df, as the code panics otherwise
-            let tmp_frame = lf1.collect().expect("Failed to unwrap while .prepare()");
-            let lf2 = tmp_frame.lazy().with_column(
-                when(
-                    col("RiskClass")
-                        .eq(lit("GIRR"))
-                        .and(col("RiskCategory").eq(lit("Vega"))),
+            let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
+            let lf2 = tmp_frame.lazy().with_columns(
+                &[when(
+                col("RiskClass")
+                    .eq(lit("GIRR"))
+                    .and(col("RiskCategory").eq(lit("Vega"))),
                 )
                 .then(col("GirrVegaUnderlyingMaturity").fill_null(col("RiskFactorType")))
                 .otherwise(NULL.lit()),
+
+                drc_scalinng(
+                    self.build_params.get("DayCountConvention").and_then(|x|x.parse::<u8>().ok()),
+                    self.build_params.get("DateFormat"))
+                .alias("ScaleFactor")
+                ]
             );
-            let tmp2_frame = lf2.collect().unwrap();
+            let tmp2_frame = lf2.collect().expect("Failed to unwrap tmp2_frame while .prepare()");
 
             *f1 = tmp2_frame;
         }
@@ -176,6 +184,7 @@ impl<'a> DataSet for FRTBDataSet<'a> {
     // CSR_nonSec BCBS buckets
     // CSR_nonSec CRR2 buckets
     // if csrnonsec_covered_bond_15 == true in build config then
+    //If DRC validate CreditQuality
     // fn validate(self) -> Self {}
 }
 

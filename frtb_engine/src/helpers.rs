@@ -6,29 +6,6 @@ use log::warn;
 use ndarray::prelude::*;
 use serde::Deserialize;
 
-/// Shifts 2D array by {int} to the right
-/// Creates a new Array2 (essentially cloning)
-#[allow(dead_code)]
-pub(crate) fn shift_right_by(by: usize, a: &Array2<f64>) -> Array2<f64> {
-    // if shift_by is > than number of columns
-    let x: isize = (by % a.len_of(Axis(1))) as isize;
-
-    // if shift by 0 simply return the original
-    if x == 0 {
-        return a.clone();
-    }
-    // create an uninitialized array
-    let mut b = Array2::uninit(a.dim());
-
-    // x first columns in b are two last in a
-    // rest of columns in b are the initial columns in a
-    a.slice(s![.., -x..]).assign_to(b.slice_mut(s![.., ..x]));
-    a.slice(s![.., ..-x]).assign_to(b.slice_mut(s![.., x..]));
-
-    // Now we can promise that `b` is safe to use with all operations
-    unsafe { b.assume_init() }
-}
-
 /// if CRR2 feature is not activated, this will return BCBS
 /// if jurisdiction is not part of optional params or can't parse this will return BCBS
 pub(crate) fn get_jurisdiction(op: &OCP) -> Jurisdiction {
@@ -100,9 +77,11 @@ pub(crate) enum ReturnMetric {
     CapitalCharge,
     Kb,
     Sb,
-    #[allow(dead_code)]
+    #[allow(dead_code)] //TODO
     SbAlt,
-    /// Curvature
+    // Curvature
     KbPlus,
     KbMinus,
+    // DRC
+    ScaledGrossJTD
 }

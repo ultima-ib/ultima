@@ -3,13 +3,9 @@
     "method": "POST", 
     "params": {
         "measures": [
-            ["EQ_TotalCharge_Low", "first"],
-["EQ_TotalCharge_Medium", "first"],
-["EQ_TotalCharge_High", "first"],
-            ["SBM_Charge_Low", "first"],
-            ["SBM_Charge_Medium", "first"],
-            ["SBM_Charge_High", "first"],
-            ["SBM_Charge", "first"]
+            ["DRC_NonSec_GrossJTD", "sum"],
+["DRC_NonSec_GrossJTD_Scaled", "sum"],
+["DRC_NonSec_CapitalCharge", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [],

@@ -39,6 +39,8 @@ use crate::sbm::equity::totals::eq_total_measures;
 
 use crate::sbm::totals::sbm_total_measures;
 
+use crate::drc::drc_nonsec::drc_nonsec_measures;
+
 
 use base_engine::prelude::*;
 //use polars::prelude::*;
@@ -91,6 +93,8 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
     res.extend(girr_total_measures());
 
     res.extend(sbm_total_measures());
+
+    res.extend(drc_nonsec_measures());
 
     res.extend(non_rc_specific);
 

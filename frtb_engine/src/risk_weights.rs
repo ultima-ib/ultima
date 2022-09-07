@@ -1,4 +1,4 @@
-//! This module includes complete delta weights allocation logic (pre build mode)
+//! This module includes complete weights allocation logic (pre build mode). SBM and DRC weights and Scale Factors
 
 use polars::prelude::*;
 use std::collections::HashMap;
@@ -27,7 +27,7 @@ fn rf_rw_map(c: &str, map: HashMap<String, Expr>, other: Expr) -> Expr {
     buf.otherwise(other)
 }
 
-pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
+pub fn weight_assign_logic(weights: SensWeightsConfig) -> Expr {
     let x: Option<f64> = None;
     let not_yet_implemented = Series::new("null", &[x]).lit().list();
     let never_reached = Series::new("null", &[x]).lit().list();
@@ -37,8 +37,8 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
             when(col("RiskClass").eq(lit("FX")))
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.fx_override,
-                    delta_weights.fx,
+                    weights.fx_override,
+                    weights.fx,
                 ))
                 //GIRR
                 .when(
@@ -50,7 +50,7 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
                 )
                 .then(
                     //temp shortcut, since xccy weight = infl weight
-                    delta_weights.ir_xccy_infl,
+                    weights.ir_xccy_infl,
                 )
                 .when(
                     col("RiskClass")
@@ -59,14 +59,14 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
                 )
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.ir_override,
-                    delta_weights.ir_yield,
+                    weights.ir_override,
+                    weights.ir_yield,
                 ))
                 // Commodity
                 .when(col("RiskClass").eq(lit("Commodity")))
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.com_bucket_weight,
+                    weights.com_bucket_weight,
                     never_reached.clone(),
                 ))
                 // Equity
@@ -77,7 +77,7 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
                 )
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.eq_bucket_spot_weight,
+                    weights.eq_bucket_spot_weight,
                     never_reached.clone(),
                 ))
                 .when(
@@ -87,28 +87,28 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
                 )
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.eq_bucket_repo_weight,
+                    weights.eq_bucket_repo_weight,
                     never_reached.clone(),
                 ))
                 // CSR non-Sec
                 .when(col("RiskClass").eq(lit("CSR_nonSec")))
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.csr_non_sec_weight,
+                    weights.csr_non_sec_weight,
                     never_reached.clone(),
                 ))
                 // CSR secCTP
                 .when(col("RiskClass").eq(lit("CSR_Sec_CTP")))
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.csr_sec_ctp_weight,
+                    weights.csr_sec_ctp_weight,
                     never_reached.clone(),
                 ))
                 // CSR sec nonCTP
                 .when(col("RiskClass").eq(lit("CSR_Sec_nonCTP")))
                 .then(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.csr_sec_nonctp_weight,
+                    weights.csr_sec_nonctp_weight,
                     never_reached.clone(),
                 ))
                 .otherwise(not_yet_implemented.clone()),
@@ -118,16 +118,25 @@ pub fn weight_assign_logic(delta_weights: SensWeightsConfig) -> Expr {
             when(col("RiskClass").neq(lit("Equity"))) //all vega except Equity
                 .then(rf_rw_map(
                     "RiskClass",
-                    delta_weights.vega_risk_class_weight,
+                    weights.vega_risk_class_weight,
                     never_reached.clone(),
                 ))
                 // Equity, special case
                 .otherwise(rf_rw_map(
                     "BucketBCBS",
-                    delta_weights.vega_equity_weight,
-                    never_reached,
+                    weights.vega_equity_weight,
+                    never_reached.clone(),
                 )),
         )
+        .when(col("RiskCategory").eq(lit("DRC")))
+        .then(
+            when(col("RiskClass").eq(lit("DRC_NonSec")))
+            .then(rf_rw_map(
+                "CreditQuality",
+                weights.drc_nonsec,
+                never_reached,
+            ))
+            .otherwise(not_yet_implemented.clone()))
         .otherwise(not_yet_implemented)
 }
 
@@ -138,7 +147,7 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     let fx_sqrt2_div = conf
         .get("fx_sqrt2_div")
         .and_then(|s| s.parse::<bool>().ok())
-        .unwrap_or(false);
+        .unwrap_or_else(||false);
     let fx_1_over_sqrt2 = if fx_sqrt2_div {
         1. / 2.0_f64.sqrt()
     } else {
@@ -274,6 +283,18 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     ];
     let vega_equity_weight: HashMap<String, Expr> = bucket_weight_map(&equity_vega_weights);
 
+    let drc_nonsec = HashMap::from([
+        ("^AAA$".to_string(),   Series::new("",&[0.005]).lit().list() ),
+        ("^AA$".to_string(),          Series::new("",&[0.02]).lit().list() ),
+        ("^A$".to_string(), Series::new("", &[0.03]).lit().list() ),
+        ("^BBB$".to_string(), Series::new("", &[0.06]).lit().list() ),
+        ("^BB$".to_string(), Series::new("", &[0.15]).lit().list() ),
+        ("^B$".to_string(), Series::new("", &[0.30]) .lit().list() ),
+        ("^CCC$".to_string(), Series::new("", &[0.50]).lit().list() ),
+        ("^UNRATED$".to_string(), Series::new("", &[0.15]).lit().list() ),
+        ("^DEFAULTED$".to_string(),   Series::new("",&[1.]).lit().list() ),
+    ]);
+
     let dlt_weights = SensWeightsConfig {
         // FX
         fx: fx_base_srs.lit().list(),
@@ -298,6 +319,8 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         vega_risk_class_weight,
         // Vega Eq
         vega_equity_weight,
+        // DRC Non Sec
+        drc_nonsec
     };
 
     //Assign Delta Weights
@@ -329,6 +352,9 @@ pub struct SensWeightsConfig {
 
     //Vega Equity
     vega_equity_weight: HashMap<String, Expr>,
+
+    //DRC Non Sec
+    drc_nonsec: HashMap<String, Expr>,
 }
 
 /// Ammends BCBS risk weights into CRR2 compliance where required
@@ -383,3 +409,23 @@ fn bucket_weight_map(arr: &[f64]) -> HashMap<String, Expr> {
     }
     bucket_weights
 }
+
+// DRC Seniority
+// as per 22.19
+pub fn drc_lgd() -> Expr {
+    when(col("RiskCategory").eq(lit("DRC")).and(col("RiskClass").eq(lit("DRC_NonSec"))))
+    .then(
+        when(col("RiskFactorType").eq(lit("Senior")))
+        .then(lit::<f64>(1.))
+        .when(col("RiskFactorType").eq(lit("SeniotDebt")))
+        .then(lit::<f64>(0.75))
+        .when(col("RiskFactorType").eq(lit("CoveredBonds")))
+        .then(lit::<f64>(0.25))
+        .when(col("RiskFactorType").eq(lit("NotLinkedToRR")))
+        .then(lit::<f64>(0.))
+        .otherwise(NULL.lit())
+    )
+    .otherwise(NULL.lit())
+    .alias("DRC_LGD")
+}
+

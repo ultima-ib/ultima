@@ -31,32 +31,73 @@ fn drc_nonsec_charge_calculator(
 ) -> Expr
 {
     // inner function
-    apply_multiple(
-        move |columns| {
-            let mut df = df![
-                "rc"   => &columns[0],
-                "b"    => &columns[1],
-                "rf"   => &columns[2],
-                "rft"  => &columns[3],
-                "jtd"  => &columns[4],
-                "w"    => &columns[5],
-                "s"    => &columns[6],
-            ]?;
+    apply_multiple( move |columns| {
+        let mut df = df![
+            "rc"   => &columns[0],
+            "b"    => &columns[1],
+            "rf"   => &columns[2],
+            "rft"  => &columns[3],
+            "jtd"  => &columns[4],
+            "w"    => &columns[5],
+            "s"    => &columns[6],
+        ]?;
+        dbg!(&df);
+        // First, sum over bucket, obligor and seniority
+        let mut lf = df
+            .lazy()
+            .filter(
+                col("rc").eq(lit("DRC_NonSec"))
+            )
+            .groupby([col("b"), col("rf"), col("rft")])
+            .agg([
+                (col("jtd")*col("s")).sum().alias("scaled_jtd"),
+                col("w").first(),
+            ]);
+            //.collect()?;
 
-            df = df
-                .lazy()
-                .filter(
-                    col("rc").eq(lit("DRC_NonSec"))
-                )
-                .groupby([col("b"), col("rf"), col("rft")])
-                .agg([
-                    (col("jtd")*col("s")).sum().alias("scaled_jtd"),
-                    col("w").first(),
-                ])
-                .collect()?;
-            
-            dbg!(&df);
-            let res_len = columns[0].len();
+        //TODO MAP the Seniority!!!!!!!!
+        //Do you want to aggregate as per  22.19?
+        let aggregate = true;
+        if aggregate{ 
+            lf = lf
+            .sort_by_exprs(&[col("rft")], &[false], false)
+            .groupby(&["rf"])
+            .apply(|mut df|{
+                //let idf = df.sort(&["s"], false).unwrap();
+                let mut neg = 0.;
+                let mut neg_flag = false; //flags if we have any negative values
+                let mut res: Vec<f64> = Vec::with_capacity(df["scaled_jtd"].len());
+                df["scaled_jtd"].f64()?.into_no_null_iter()
+                .for_each(|x|{
+                    if x < 0. {
+                        neg += x;
+                        neg_flag = true;
+                    } else {
+                        let diff = x+neg;
+                        if diff < 0. {
+                            res.push(0.);
+                            neg = diff;
+                        } else {
+                            res.push(diff);
+                            neg = 0.
+                        }
+                    }
+                });
+                if neg_flag {
+                    res.push(neg);
+                }
+                for _ in 0..(df["scaled_jtd"].len()-res.len()) {
+                    res.push(0.)
+                }
+                df.with_column(Series::from_vec("scaled_jtd", res))?;
+                Ok(df)
+            });
+        };
+        let df = lf.collect()?;
+
+        
+        dbg!(&df);
+        let res_len = columns[0].len();
             //match rtrn {
             //    ReturnMetric::ScaledGrossJTD => {
             //        return Ok(
@@ -120,10 +161,11 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure<'static>> {
 pub static DRC_SENIORITY: Lazy<HashMap<&str, u8>> =
     Lazy::new(||HashMap::from(
         [
-            ("Covered",         4),
-            ("Senior",          3),
+            ("Covered",         3),
             ("SeniorSecured",   2),
-            ("SeniorUnsecured", 1),
+            ("SeniorUnsecured", 2),
+            ("Unrated",         2),
+            ("NonSenior",       1),
             ("Equity",          0)
         ]
     ));

@@ -4,15 +4,18 @@
     "params": {
         "measures": [
             ["DRC_NonSec_GrossJTD", "sum"],
-["DRC_NonSec_GrossJTD_Scaled", "sum"],
-["DRC_NonSec_CapitalCharge", "first"]
+            ["DRC_NonSec_GrossJTD_Scaled", "sum"],
+            ["DRC_NonSec_CapitalCharge", "first"]
                 ],
         "groupby": ["Desk"],
         "filters": [],
         "optional_params": {
-                    "hide_zeros": false,
-                    "calc_params": {"jurisdiction": "BCBS",
-                        "apply_fx_curv_div": "true"}
-                }
+            "hide_zeros": false,
+            "calc_params": {
+                "jurisdiction": "BCBS",
+                "apply_fx_curv_div": "true",
+                "drc_offset": "false"
+            }
+        }
     }
 }]

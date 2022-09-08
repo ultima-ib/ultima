@@ -3,7 +3,6 @@ use base_engine::prelude::*;
 
 //use ndarray::prelude::*;
 use polars::prelude::*;
-use once_cell::sync::Lazy;
 
 
 pub(crate) fn drc_nonsec_grossjtd(_: &OCP) -> Expr {
@@ -17,17 +16,42 @@ pub(crate) fn drc_nonsec_grossjtd_scaled(_: &OCP) -> Expr {
 pub(crate) fn drc_nonsec_charge(op: &OCP) -> Expr {
     drc_nonsec_distributor(op, ReturnMetric::CapitalCharge)
 }
+pub(crate) fn drc_nonsec_netlongjtd(op: &OCP) -> Expr {
+    drc_nonsec_distributor(op, ReturnMetric::NetLongJTD)
+}
+pub(crate) fn drc_nonsec_netshortjtd(op: &OCP) -> Expr {
+    drc_nonsec_distributor(op, ReturnMetric::NetShortJTD)
+}
+pub(crate) fn drc_nonsec_weightednetlongjtd(op: &OCP) -> Expr {
+    drc_nonsec_distributor(op, ReturnMetric::WeightedNetLongJTD)
+}
+pub(crate) fn drc_nonsec_weightednetabsshortjtd(op: &OCP) -> Expr {
+    drc_nonsec_distributor(op, ReturnMetric::WeightedNetAbsShortJTD)
+}
+pub(crate) fn drc_nonsec_hbr(op: &OCP) -> Expr {
+    drc_nonsec_distributor(op, ReturnMetric::HBR)
+}
 
 fn drc_nonsec_distributor(
-    _: &OCP,
+    op: &OCP,
     rtrn: ReturnMetric,
 ) -> Expr {
-    drc_nonsec_charge_calculator(rtrn)
+    let juri: Jurisdiction = get_jurisdiction(op);
+    let offset = get_optional_parameter(op,"drc_offset",&true);
+    
+    let weights = match juri{
+        #[cfg(feature = "CRR2")]
+        Jurisdiction::CRR2 => col("SensWeightsCRR2"),
+        _ => col("SensWeights")
+    };
+    drc_nonsec_charge_calculator(rtrn, offset, weights)
 }
 
 /// calculate FX Delta Capital charge
 fn drc_nonsec_charge_calculator(
     rtrn: ReturnMetric,
+    offset: bool,
+    weights: Expr,
 ) -> Expr
 {
     // inner function
@@ -41,7 +65,6 @@ fn drc_nonsec_charge_calculator(
             "w"    => &columns[5],
             "s"    => &columns[6],
         ]?;
-        dbg!(&df);
         // First, sum over bucket, obligor and seniority
         let mut lf = df
             .lazy()
@@ -51,19 +74,24 @@ fn drc_nonsec_charge_calculator(
             .groupby([col("b"), col("rf"), col("rft")])
             .agg([
                 (col("jtd")*col("s")).sum().alias("scaled_jtd"),
+                // Note: weight is derived from CreditQuality and 
+                // CreditQuality should be 1to1 map to the obligor.
                 col("w").first(),
             ]);
-            //.collect()?;
+        //df = lf.collect()?;
+        //dbg!(&df);
+        //lf = df.lazy(); 
 
-        //TODO MAP the Seniority!!!!!!!!
-        //Do you want to aggregate as per  22.19?
-        let aggregate = true;
-        if aggregate{ 
+        // Do you want to aggregate as per  22.19?
+        // Note, the algorithm is O(N), but we loose Negative GrossJTD position changes, 
+        // (and might end up with a different Credit Quality, but same obligor)
+        // This shouldn't be a problem since we sum positions (netShort netLong) anyway,
+        // And THEN apply CreditQuality weights, BECAUSE Obligor - CreditQuality should be 1to1 map
+        if offset{ 
             lf = lf
             .sort_by_exprs(&[col("rft")], &[false], false)
-            .groupby(&["rf"])
+            .groupby(&["b", "rf"])
             .apply(|mut df|{
-                //let idf = df.sort(&["s"], false).unwrap();
                 let mut neg = 0.;
                 let mut neg_flag = false; //flags if we have any negative values
                 let mut res: Vec<f64> = Vec::with_capacity(df["scaled_jtd"].len());
@@ -85,41 +113,76 @@ fn drc_nonsec_charge_calculator(
                 });
                 if neg_flag {
                     res.push(neg);
-                }
-                for _ in 0..(df["scaled_jtd"].len()-res.len()) {
-                    res.push(0.)
+                    for _ in 0..(df["scaled_jtd"].len()-res.len()) {
+                        res.push(0.)
+                    }
                 }
                 df.with_column(Series::from_vec("scaled_jtd", res))?;
                 Ok(df)
             });
         };
-        let df = lf.collect()?;
+        // Split Scaled GrossJTD into NetLong and NetShort
+        df = lf.collect()?;
+        lf = df.lazy().with_columns([
+            when(col("scaled_jtd").gt(lit::<f64>(0.)))
+            .then(col("scaled_jtd"))
+            .otherwise(NULL.lit())
+            .alias("NetLongJTD"),
 
-        
-        dbg!(&df);
+            when(col("scaled_jtd").lt(lit::<f64>(0.)))
+            .then(col("scaled_jtd"))
+            .otherwise(NULL.lit())
+            .alias("NetShortJTD"),
+        ])
+        .with_column(col("NetShortJTD").map(|x|
+             Ok(x.f64()?.apply(|y|y.abs()).into_series()),
+             GetOutput::from_type(DataType::Float64)
+            ).alias("NetAbsShortJTD")
+        );
+        // Apply Weights
+        df = lf.collect()?;
         let res_len = columns[0].len();
-            //match rtrn {
-            //    ReturnMetric::ScaledGrossJTD => {
-            //        return Ok(
-            //            Float64Chunked::from_vec("Res", vec![df["scaled_jtd"].sum().unwrap_or_default(); res_len])
-            //                .into_series(),
-            //        )
-            //    },
-            //    _ => (),
-            //};
+        match rtrn {
+            ReturnMetric::NetLongJTD=> return Ok(Series::from_vec("Res", vec![df["NetLongJTD"].sum::<f64>().unwrap_or_default(); res_len]).into_series(),),
+            ReturnMetric::NetShortJTD=> return Ok(Series::from_vec("Res", vec![df["NetShortJTD"].sum::<f64>().unwrap_or_default(); res_len]).into_series(),),
+            _ => (),
 
-            return Ok(
-                Float64Chunked::from_vec("Res", vec![0.; res_len])
-                    .into_series(),
-            )
+        };
+        lf = df.lazy().groupby([col("b")])
+        .agg([
+            col("NetLongJTD").sum(),
+            col("NetShortJTD").sum(),
+            col("NetAbsShortJTD").sum(),
+            (col("NetLongJTD")*col("w")).sum().alias("WeightedNetLongJTD"),
+            (col("NetAbsShortJTD")*col("w")).sum().alias("WeightedNetAbsShortJTD"),
+        ])
+        .fill_null(lit::<f64>(0.))
+        .with_column(
+            when((col("NetLongJTD")+col("NetAbsShortJTD")).neq(lit::<f64>(0.)))
+            .then(col("NetLongJTD")/(col("NetLongJTD")+col("NetAbsShortJTD")))
+            .otherwise(lit::<f64>(0.))
+            .alias("HBR")
+        )
+        .with_column(
+            (col("WeightedNetLongJTD") - col("WeightedNetAbsShortJTD")*col("HBR")).alias("DRCBucket")
+        );
+        df = lf.collect().unwrap();
+        
+        match rtrn {
+            ReturnMetric::HBR=> Ok(Series::from_vec("Res", vec![df["HBR"].sum::<f64>().unwrap_or_default(); res_len]).into_series(),),
+            ReturnMetric::WeightedNetLongJTD=> Ok(Series::from_vec("Res", vec![df["WeightedNetLongJTD"].sum::<f64>().unwrap_or_default(); res_len]).into_series(),),
+            ReturnMetric::WeightedNetAbsShortJTD=> Ok(Series::from_vec("Res", vec![df["WeightedNetAbsShortJTD"].sum::<f64>().unwrap_or_default(); res_len]).into_series(),),
+            _ => Ok(Float64Chunked::from_vec("Res", vec![df["DRCBucket"].sum::<f64>().unwrap_or_default(); res_len]).into_series()),
+        }
+
         },
         &[
             col("RiskClass"),
             col("BucketBCBS"),
             col("RiskFactor"),
-            col("RiskFactorType"),
+            col("SeniorityRank"),
             col("GrossJTD"),
-            col("SensWeights").arr().get(0),
+            weights.arr().get(0),
             col("ScaleFactor"),
         ],
         GetOutput::from_type(DataType::Float64),
@@ -155,17 +218,51 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure<'static>> {
                     .eq(lit("DRC_NonSec"))
             ),
         },
+        Measure {
+            name: "DRC_NonSec_NetLongJTD".to_string(),
+            calculator: Box::new(drc_nonsec_netlongjtd),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskClass")
+                    .eq(lit("DRC_NonSec"))
+            ),
+        },
+        Measure {
+            name: "DRC_NonSec_NetShortJTD".to_string(),
+            calculator: Box::new(drc_nonsec_netshortjtd),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskClass")
+                    .eq(lit("DRC_NonSec"))
+            ),
+        },
+        Measure {
+            name: "DRC_NonSec_NetLongJTD_Weighted".to_string(),
+            calculator: Box::new(drc_nonsec_weightednetlongjtd),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskClass")
+                    .eq(lit("DRC_NonSec"))
+            ),
+        },
+        Measure {
+            name: "DRC_NonSec_NetAbsShortJTD_Weighted".to_string(),
+            calculator: Box::new(drc_nonsec_weightednetabsshortjtd),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskClass")
+                    .eq(lit("DRC_NonSec"))
+            ),
+        },
+        // HBR Only makes sence at Bucket level
+        Measure {
+            name: "DRC_NonSec_HBR".to_string(),
+            calculator: Box::new(drc_nonsec_hbr),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("RiskClass")
+                    .eq(lit("DRC_NonSec"))
+            ),
+        },
     ]
 }
-
-pub static DRC_SENIORITY: Lazy<HashMap<&str, u8>> =
-    Lazy::new(||HashMap::from(
-        [
-            ("Covered",         3),
-            ("SeniorSecured",   2),
-            ("SeniorUnsecured", 2),
-            ("Unrated",         2),
-            ("NonSenior",       1),
-            ("Equity",          0)
-        ]
-    ));

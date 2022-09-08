@@ -1,9 +1,9 @@
 COB,TradeId,RiskCategory,RiskClass,RiskFactor,RiskFactorType,CreditQuality,MaturityDate,CSRSecNonCTP_Tranche,CommodityLocation,GirrVegaUnderlyingMaturity,BucketBCBS,BucketCRR2,Notional,GrossJTD,PnL_Up,PnL_Down,SensitivitySpot,Sensitivity_025Y,Sensitivity_05Y,Sensitivity_1Y,Sensitivity_2Y,Sensitivity_3Y,Sensitivity_5Y,Sensitivity_10Y,Sensitivity_15Y,Sensitivity_20Y,Sensitivity_30Y,SensitivityCcy,CoveredBondReducedWeight,CsrSector,FxCurvDivEligibility
 22/07/2022,1,DRC,DRC_NonSec,JohnLewis,Covered,BB,30/06/2023,,,,Sovereigns,,,10000,,,,,,,,,,,,,,USD,,,
-22/07/2022,1,DRC,DRC_NonSec,UK Governemnt,Equity,AAA,13/02/2023,,,,Corporates,,,-10000,,,,,,,,,,,,,,USD,,,
-22/07/2022,1,DRC,DRC_NonSec,Samsung,Senior,AA,30/06/2023,,,,Local Governments&Municipalities,,,-10000,,,,,,,,,,,,,,USD,,,
-22/07/2022,1,DRC,DRC_NonSec,Samsung,SeniorSecured,UNRATED,13/02/2023,,,,Corporates,,,10000,,,,,,,,,,,,,,USD,,,
-22/07/2022,1,DRC,DRC_NonSec,LG,SeniorUnsecured,CCC,30/06/2023,,,,Local Governments&Municipalities,,,5000,,,,,,,,,,,,,,USD,,,
+22/07/2022,1,DRC,DRC_NonSec,UK Governemnt,Equity,Aaa,13/02/2023,,,,Local Governments&Municipalities,,,-10000,,,,,,,,,,,,,,USD,,,
+22/07/2022,1,DRC,DRC_NonSec,Samsung,Unrated,AA,30/06/2023,,,,Corporates,,,-10000,,,,,,,,,,,,,,USD,,,
+22/07/2022,1,DRC,DRC_NonSec,Samsung,SeniorSecured,AA,13/02/2023,,,,Corporates,,,10000,,,,,,,,,,,,,,USD,,,
+22/07/2022,1,DRC,DRC_NonSec,LG,SeniorUnsecured,CCC,30/06/2023,,,,Corporates,,,5000,,,,,,,,,,,,,,USD,,,
 22/07/2022,12,Vega,CSR_Sec_nonCTP,XXX,,,,,,,1,,,,,,,,1000,1000,,1000,1000,1000,,,,USD,,,
 22/07/2022,13,Vega,CSR_Sec_nonCTP,YYYYY,,,,,,,2,,,,,,,,1000,1000,,1000,1000,1000,,,,USD,,,
 22/07/2022,14,Vega,CSR_Sec_nonCTP,XXX,,,,,,,9,,,,,,,,1000,1000,,1000,1000,1000,,,,USD,,,

@@ -83,5 +83,9 @@ pub(crate) enum ReturnMetric {
     KbPlus,
     KbMinus,
     // DRC
-    ScaledGrossJTD
+    NetLongJTD,
+    NetShortJTD,
+    WeightedNetLongJTD,
+    WeightedNetAbsShortJTD,
+    HBR
 }

@@ -77,7 +77,9 @@ impl<'a> DataSet for FRTBDataSet<'a> {
 
             // Then assign risk weights based on buckets
             lf1 = lf1
-                .with_column(weights_assign(&self.build_params).alias("SensWeights"))
+                .with_column(
+                    weights_assign(&self.build_params).alias("SensWeights")
+                )
                 // Curvature risk weight
                 .with_column(
                     when(
@@ -138,6 +140,7 @@ impl<'a> DataSet for FRTBDataSet<'a> {
                     .then(Series::new("", &[0.015]).lit().list())
                     .otherwise(col("SensWeightsCRR2"))
                     .alias("SensWeightsCRR2"),
+
                     col("SensWeightsCRR2")
                         .arr()
                         .max()
@@ -159,7 +162,9 @@ impl<'a> DataSet for FRTBDataSet<'a> {
                 drc_scalinng(
                     self.build_params.get("DayCountConvention").and_then(|x|x.parse::<u8>().ok()),
                     self.build_params.get("DateFormat"))
-                .alias("ScaleFactor")
+                .alias("ScaleFactor"),
+
+                drc_seniority().alias("SeniorityRank"),
                 ]
             );
             let tmp2_frame = lf2.collect().expect("Failed to unwrap tmp2_frame while .prepare()");

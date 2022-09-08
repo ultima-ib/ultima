@@ -284,15 +284,20 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     let vega_equity_weight: HashMap<String, Expr> = bucket_weight_map(&equity_vega_weights);
 
     let drc_nonsec = HashMap::from([
-        ("^AAA$".to_string(),   Series::new("",&[0.005]).lit().list() ),
-        ("^AA$".to_string(),          Series::new("",&[0.02]).lit().list() ),
-        ("^A$".to_string(), Series::new("", &[0.03]).lit().list() ),
-        ("^BBB$".to_string(), Series::new("", &[0.06]).lit().list() ),
-        ("^BB$".to_string(), Series::new("", &[0.15]).lit().list() ),
-        ("^B$".to_string(), Series::new("", &[0.30]) .lit().list() ),
-        ("^CCC$".to_string(), Series::new("", &[0.50]).lit().list() ),
-        ("^UNRATED$".to_string(), Series::new("", &[0.15]).lit().list() ),
-        ("^DEFAULTED$".to_string(),   Series::new("",&[1.]).lit().list() ),
+        ("^(?i)AAA$".to_string(),   Series::new("",&[0.005]).lit().list() ),
+        ("^(?i)AA$".to_string(),          Series::new("",&[0.02]).lit().list() ),
+        ("^(?i)A$".to_string(), Series::new("", &[0.03]).lit().list() ),
+        ("^(?i)BBB$".to_string(), Series::new("", &[0.06]).lit().list() ),
+        ("^(?i)Baa$".to_string(), Series::new("", &[0.06]).lit().list() ),
+        ("^(?i)BB$".to_string(), Series::new("", &[0.15]).lit().list() ),
+        ("^(?i)Ba$".to_string(), Series::new("", &[0.15]).lit().list() ),
+        ("^(?i)B$".to_string(), Series::new("", &[0.30]) .lit().list() ),
+        ("^(?i)CCC$".to_string(), Series::new("", &[0.50]).lit().list() ),
+        ("^(?i)Caa$".to_string(), Series::new("", &[0.50]).lit().list() ),
+        ("^(?i)Ca$".to_string(), Series::new("", &[0.50]).lit().list() ),
+        ("^(?i)UNRATED$".to_string(), Series::new("", &[0.15]).lit().list() ),
+        ("^(?i)NORATING$".to_string(), Series::new("", &[0.15]).lit().list() ),
+        ("^(?i)DEFAULTED$".to_string(),   Series::new("",&[1.]).lit().list() ),
     ]);
 
     let dlt_weights = SensWeightsConfig {
@@ -378,24 +383,33 @@ pub fn weights_assign_crr2() -> Expr {
     let csr_sec_ctp_weight_crr2: HashMap<String, Expr> =
         bucket_weight_map(&csr_sec_ctp_weights_crr2);
 
+    let drc_nonsec_crr2 = HashMap::from([
+        ("^(?i)AA$".to_string(),          Series::new("",&[0.005]).lit().list() ),
+    ]);
+
     when(col("RiskCategory").eq(lit("Delta")))
-        .then(
-            when(col("RiskClass").eq(lit("CSR_nonSec")))
-                .then(rf_rw_map(
-                    "BucketCRR2",
-                    csr_non_sec_weight_crr2,
-                    never_reached.clone(),
-                ))
-                .when(col("RiskClass").eq(lit("CSR_secCTP")))
-                .then(rf_rw_map(
-                    "BucketCRR2",
-                    csr_sec_ctp_weight_crr2,
-                    never_reached,
-                ))
-                .otherwise(col("SensWeights")),
-        )
-        .otherwise(col("SensWeights"))
-    //unimplemented!()
+    .then(
+        when(col("RiskClass").eq(lit("CSR_nonSec")))
+        .then(rf_rw_map(
+            "BucketCRR2",
+            csr_non_sec_weight_crr2,
+            never_reached.clone(),
+        ))
+        .when(col("RiskClass").eq(lit("CSR_secCTP")))
+        .then(rf_rw_map(
+            "BucketCRR2",
+            csr_sec_ctp_weight_crr2,
+            never_reached,
+        ))
+        .otherwise(col("SensWeights")),
+    )
+    .when(col("RiskClass").eq(lit("DRC_NonSec")))
+    .then(rf_rw_map(
+        "CreditQuality",
+        drc_nonsec_crr2,
+        col("SensWeights"),
+    ))
+    .otherwise(col("SensWeights"))
 }
 
 fn bucket_weight_map(arr: &[f64]) -> HashMap<String, Expr> {
@@ -411,21 +425,24 @@ fn bucket_weight_map(arr: &[f64]) -> HashMap<String, Expr> {
 }
 
 // DRC Seniority
-// as per 22.19
-pub fn drc_lgd() -> Expr {
-    when(col("RiskCategory").eq(lit("DRC")).and(col("RiskClass").eq(lit("DRC_NonSec"))))
+// as per 22.24
+pub fn drc_seniority() -> Expr {
+    when(col("RiskClass").eq(lit("DRC_NonSec")))
     .then(
-        when(col("RiskFactorType").eq(lit("Senior")))
-        .then(lit::<f64>(1.))
-        .when(col("RiskFactorType").eq(lit("SeniotDebt")))
-        .then(lit::<f64>(0.75))
-        .when(col("RiskFactorType").eq(lit("CoveredBonds")))
-        .then(lit::<f64>(0.25))
-        .when(col("RiskFactorType").eq(lit("NotLinkedToRR")))
-        .then(lit::<f64>(0.))
+        when(col("RiskFactorType").eq(lit("Covered")))
+        .then(lit::<u8>(4))
+        .when(col("RiskFactorType").eq(lit("SeniorSecured")))
+        .then(lit::<u8>(3))
+        .when(col("RiskFactorType").eq(lit("SeniorUnsecured")))
+        .then(lit::<u8>(2))
+        .when(col("RiskFactorType").eq(lit("Unrated")))
+        .then(lit::<u8>(2))
+        .when(col("RiskFactorType").eq(lit("NonSenior")))
+        .then(lit::<u8>(1))
+        .when(col("RiskFactorType").eq(lit("Equity")))
+        .then(lit::<u8>(0))
         .otherwise(NULL.lit())
     )
     .otherwise(NULL.lit())
-    .alias("DRC_LGD")
 }
 

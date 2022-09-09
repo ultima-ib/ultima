@@ -5,14 +5,19 @@
         "measures": [
             ["DRC_NonSec_GrossJTD", "sum"],
             ["DRC_NonSec_GrossJTD_Scaled", "sum"],
-            ["DRC_NonSec_CapitalCharge", "first"]
+            ["DRC_NonSec_CapitalCharge", "first"],
+            ["DRC_NonSec_NetLongJTD", "first"],
+            ["DRC_NonSec_NetShortJTD", "first"],
+            ["DRC_NonSec_NetLongJTD_Weighted", "first"],
+            ["DRC_NonSec_NetAbsShortJTD_Weighted", "first"],
+            ["DRC_NonSec_HBR", "first"]
                 ],
-        "groupby": ["Desk"],
+        "groupby": ["Desk", "BucketBCBS"],
         "filters": [],
         "optional_params": {
             "hide_zeros": false,
             "calc_params": {
-                "jurisdiction": "BCBS",
+                "jurisdiction": "CRR2",
                 "apply_fx_curv_div": "true",
                 "drc_offset": "false"
             }

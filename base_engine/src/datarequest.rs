@@ -13,7 +13,7 @@ pub struct DataRequestS {
     /// bespoke: DerivedField - Action
     measures: Vec<(String, String)>,
     groupby: Vec<String>,
-    filters: Vec<FilterS>,
+    filters: Vec<FilterE>,
     #[serde(default)]
     optional_params: Option<OptParams>,
 }
@@ -41,12 +41,12 @@ impl DataRequestS {
         // each filter column must be present
         for f in &self.filters {
             match f {
-                FilterS::Eq(v) | FilterS::Neq(v) => {
+                FilterE::Eq(v) | FilterE::Neq(v) => {
                     for s in v {
                         res.push(s.0.clone())
                     }
                 }
-                FilterS::In(v) | FilterS::NotIn(v) => {
+                FilterE::In(v) | FilterE::NotIn(v) => {
                     for s in v {
                         res.push(s.0.clone())
                     }
@@ -72,7 +72,7 @@ impl DataRequestS {
         (res, bespoke_measures_from_request)
     }
 
-    pub fn filters(&self) -> &Vec<FilterS> {
+    pub fn filters(&self) -> &Vec<FilterE> {
         &self.filters
     }
 

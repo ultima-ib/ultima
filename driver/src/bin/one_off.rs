@@ -520,8 +520,13 @@ const JSON: &str = r#"
 ["SBM_Charge", "first"],
 
 ["DRC_NonSec_GrossJTD", "sum"],
-["DRC_NonSec_GrossJTD_Scaled", "sum"],
-["DRC_NonSec_CapitalCharge", "first"]
+            ["DRC_NonSec_GrossJTD_Scaled", "sum"],
+            ["DRC_NonSec_CapitalCharge", "first"],
+            ["DRC_NonSec_NetLongJTD", "first"],
+            ["DRC_NonSec_NetShortJTD", "first"],
+            ["DRC_NonSec_NetLongJTD_Weighted", "first"],
+            ["DRC_NonSec_NetAbsShortJTD_Weighted", "first"],
+            ["DRC_NonSec_HBR", "first"]
 
 
 ["PnL_Up", "sum"],

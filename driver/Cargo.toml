@@ -6,6 +6,9 @@ default-run = "one_off"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+path = "src/lib.rs"
+
 [dependencies]
 base_engine = {path = "../base_engine"}
 frtb_engine = {path = "../frtb_engine", optional=true}
@@ -18,7 +21,8 @@ dotenv = "0.15"
 tokio = {version = "1.21.0", features=["full"]}
 toml = "0.5.9"
 actix-web = "4"
-#polars = {version = "0.23.2",features=["lazy"]}
+[dev-dependencies]
+reqwest = "0.11"
 
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.

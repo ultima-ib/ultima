@@ -75,13 +75,18 @@ impl<'a> DataSet for FRTBDataSet<'a> {
                 lf1 = lf1.with_column(buckets::sbm_buckets_crr2())
             };
 
+            println!("ANATOOOOOOOOOOOOOOOOOOOLY");
+
             // Then assign risk weights based on buckets
+            // PROBLEM HERE
             lf1 = lf1
                 .with_column(
                     weights_assign(&self.build_params).alias("SensWeights")
-                )
+                );
+            let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
+            println!("ANATOOOOOOOOOOOOOOOOOOOLY");
                 // Curvature risk weight
-                .with_column(
+            lf1 =  tmp_frame.lazy().with_column(
                     when(
                         col("PnL_Up")
                             .is_not_null()

@@ -1,6 +1,5 @@
 title = "setup.toml Example"
 type = "CSV"
-
 # first file path 
 # "C:/rust/DeltaGirr100_100_400000.csv"
 # "C:/rust/ultima/frtb_engine/tests/data/Delta.csv"

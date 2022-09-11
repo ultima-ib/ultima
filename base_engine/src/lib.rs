@@ -13,7 +13,6 @@ use polars::prelude::*;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
-use crate::filters::*;
 pub use crate::prelude::*;
 
 /// main function which returns a Result of the calculation
@@ -21,46 +20,21 @@ pub use crate::prelude::*;
 pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
     // Assuming Front End knows which columns can be in groupby, agg etc
 
-    //info!("f1 with HMS, attr and prepared: {:?}", data.frames()[0].clone().lazy().collect());
-
     // Step 0.1
     let f1 = &data.frames()[0];
-    //let tmp = f1.clone().lazy().filter(col("RiskClass").eq(lit("DRC_NonSec"))).collect()?;
-    //dbg!(&tmp["ScaleFactor"]);
-    let f1_cols = f1.get_column_names();
+    //let tmp = f1.clone().lazy().filter(col("RiskClass").eq(lit("DRC_SecNonCTP"))).collect()?;
+    //dbg!(&tmp["SensWeights"]);
+    //let f1_cols = f1.get_column_names();
     let mut f1 = f1.clone().lazy();
     let measure_map = data.measures();
 
-    //Step 1.0 Applying FILTERS:
+    // Step 1.0 Applying FILTERS:
+    // TODO check if column is present in DF - ( is this "second line of defence" even needed?) 
     for f in req.filters() {
-        match f {
-            FilterS::In(ref fltrs) => {
-                if f1_cols.contains(&&*fltrs[0].0) {
-                    f1 = f1.filter(fltr_in_or_builder(fltrs));
-                };
-            }
-
-            FilterS::NotIn(ref fltrs) => {
-                if f1_cols.contains(&&*fltrs[0].0) {
-                    f1 = f1.filter(fltr_not_in_or_builder(fltrs));
-                };
-            }
-
-            FilterS::Eq(ref fltrs) => {
-                if f1_cols.contains(&&*fltrs[0].0) {
-                    f1 = f1.filter(fltr_eq_or_builder(fltrs));
-                };
-            }
-
-            FilterS::Neq(ref fltrs) => {
-                if f1_cols.contains(&&*fltrs[0].0) {
-                    f1 = f1.filter(fltr_neq_or_builder(fltrs));
-                };
-            }
-        }
+        f1 = f1.filter(f.to_expr());
     }
 
-    // Step 2.1 GROUPBY and 2.2 Calculate Measures
+    // Step 2.0 , 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
 
     //AGGREGATE
     //Potentially rayon spawn here, for each measure-df
@@ -68,8 +42,8 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
     //the join on groupby cols
     //use https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
     let m = req.measures();
-    let op = req.optiona_params();
-    let calc_p: &OCP = match op.as_ref() {
+    let op = req.optiona_params().as_ref();
+    let calc_p: &OCP = match op {
         Some(x) => &x.calc_params,
         _ => &None,
     };
@@ -86,10 +60,7 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
             .map(|m| (m.name, (m.calculator, m.precomputefilter)))
             .unzip();
 
-    //dbg!(fltrs);
-    // DOESN'T WORK .or(lit::<bool>(true))
-    // @TODO raise to Polars Team
-    //let mut measure_filter = fltrs[0].clone().unwrap().or(lit::<bool>(true));
+    // Note: DOESN'T WORK .or(lit::<bool>(true)) TODO raise to Polars Team
     // By default, everything is false (ie everything is filtered out)
     let mut measure_filter = lit::<bool>(false);
     for fltr in fltrs {
@@ -106,7 +77,6 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
             }
         }
     }
-    //let mut measure_filter = lit::<bool>(true);
 
     // Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
@@ -124,10 +94,7 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
     // Remove zeros, optional
     // TODO Note: Comparing with 0. doesn't work with list columns
     // TODO Need to check column type and based on that compare against 0. or not
-    if req
-        .optiona_params()
-        .as_ref()
-        .map(|x| x.hide_zeros)
+    if op.map(|x| x.hide_zeros)
         .unwrap_or_default()
     {
         let mut it = newnames.iter();

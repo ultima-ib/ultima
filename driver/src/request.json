@@ -12,11 +12,12 @@
             ["DRC_NonSec_NetAbsShortJTD_Weighted", "first"],
             ["DRC_NonSec_HBR", "first"]
                 ],
-        "groupby": ["Desk", "BucketBCBS"],
+        "groupby": ["Desk"],
         "filters": [],
         "optional_params": {
-            "hide_zeros": false,
+            "hide_zeros": true,
             "calc_params": {
+
                 "jurisdiction": "CRR2",
                 "apply_fx_curv_div": "true",
                 "drc_offset": "false"

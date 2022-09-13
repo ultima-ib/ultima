@@ -78,6 +78,7 @@ fn drc_nonsec_charge_calculator(
                 // CreditQuality should be 1to1 map to the obligor.
                 col("w").first(),
             ]);
+        //dbg!(lf.clone().collect());
 
         // Do you want to aggregate as per  22.19?
         // Note, the algorithm is O(N), but we loose Negative GrossJTD position changes, 

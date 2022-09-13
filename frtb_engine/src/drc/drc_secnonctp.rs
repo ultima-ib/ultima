@@ -12,34 +12,40 @@ pub(crate) fn drc_secnonctp_grossjtd_scaled(_: &OCP) -> Expr {
 }
 
 pub(crate) fn drc_secnonctp_charge(op: &OCP) -> Expr {
-    drc_secnonctp_distributor(op, ReturnMetric::CapitalCharge)
+    drc_secnonctp_distributor(op, ReturnMetric::CapitalCharge, &*MEDIUM_CORR_SCENARIO)
 }
 pub(crate) fn drc_secnonctp_netlongjtd(op: &OCP) -> Expr {
-    drc_secnonctp_distributor(op, ReturnMetric::NetLongJTD)
+    drc_secnonctp_distributor(op, ReturnMetric::NetLongJTD, &*MEDIUM_CORR_SCENARIO)
 }
 pub(crate) fn drc_secnonctp_netshortjtd(op: &OCP) -> Expr {
-    drc_secnonctp_distributor(op, ReturnMetric::NetShortJTD)
+    drc_secnonctp_distributor(op, ReturnMetric::NetShortJTD, &*MEDIUM_CORR_SCENARIO)
 }
 pub(crate) fn drc_secnonctp_weightednetlongjtd(op: &OCP) -> Expr {
-    drc_secnonctp_distributor(op, ReturnMetric::WeightedNetLongJTD)
+    drc_secnonctp_distributor(op, ReturnMetric::WeightedNetLongJTD, &*MEDIUM_CORR_SCENARIO)
 }
 pub(crate) fn drc_secnonctp_weightednetabsshortjtd(op: &OCP) -> Expr {
-    drc_secnonctp_distributor(op, ReturnMetric::WeightedNetAbsShortJTD)
+    drc_secnonctp_distributor(op, ReturnMetric::WeightedNetAbsShortJTD, &*MEDIUM_CORR_SCENARIO)
 }
 pub(crate) fn drc_secnonctp_hbr(op: &OCP) -> Expr {
-    drc_secnonctp_distributor(op, ReturnMetric::HBR)
+    drc_secnonctp_distributor(op, ReturnMetric::HBR, &*MEDIUM_CORR_SCENARIO)
 }
 
 fn drc_secnonctp_distributor(
     op: &OCP,
     rtrn: ReturnMetric,
+    scenario: &'static ScenarioConfig,
 ) -> Expr {
+
     let juri: Jurisdiction = get_jurisdiction(op);
-    drc_secnonctp_charge_calculator(rtrn, false)
+    let weights_frame = get_optional_parameter_df(
+        op, "drc_secnonctp_weights",
+        &scenario.drc_secnonctp_weights,
+    );
+    drc_secnonctp_charge_calculator(rtrn, false, weights_frame)
 }
 
 /// DRC Sec Non CTP Offsetting (22.30) is not implemented yet
-fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric, offset: bool) -> Expr {
+fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric, offset: bool, rw: DataFrame) -> Expr {
     todo!()
 }
 

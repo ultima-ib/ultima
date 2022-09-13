@@ -21,13 +21,28 @@ pub(crate) fn drc_nonsec_weights() -> HashMap<String, Expr> {
 }
 
 pub(crate) fn drc_nonsec_weights_crr2() -> HashMap<String, Expr> {
+    println!("HELLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
     HashMap::from([
-        ("^(?i)AA$".to_string(),          Series::new("",&[0.005]).lit().list() ),
+        ("^(?i)AA$".to_string(), Series::new("",&[0.005]).lit().list() ),
     ])
 }
 
-pub(crate) fn drc_secnonctp_weights() -> HashMap<String, Expr> {
-    drc_secnonctp_weights_raw().into_iter().map(|(k, v)|(k.to_string(), Series::new("", &[v/100.]).lit().list())).collect()
+//pub(crate) fn drc_secnonctp_weights() -> HashMap<String, Expr> {
+//    drc_secnonctp_weights_raw().into_iter().map(|(k, v)|(k.to_string(), Series::new("", &[v/100.]).lit().list())).collect()
+//}
+
+pub(crate) fn drc_secnonctp_weights_frame() -> DataFrame {
+    let (key, weight): (Vec<String>, Vec<f64>) =
+        drc_secnonctp_weights_raw()
+        .into_iter()
+        .map(|(k, v)|{
+            (k.to_string(), v/100.)
+        }).unzip();
+    let seniority_arr = Utf8Chunked::from_iter(key);
+    df![
+        "Key" => seniority_arr.into_series(),
+        "RiskWeightDRC" => Series::from_vec("RiskWeight",weight),
+    ].unwrap()
 }
 
 /// 22.34

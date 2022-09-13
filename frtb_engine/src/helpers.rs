@@ -3,7 +3,7 @@
 use crate::prelude::*;
 
 use log::warn;
-use ndarray::prelude::*;
+use ndarray::{prelude::*, Data};
 use serde::Deserialize;
 
 /// if CRR2 feature is not activated, this will return BCBS
@@ -61,6 +61,25 @@ pub(crate) fn get_optional_parameter_array<'a>(
     op.as_ref()
         .and_then(|map| map.get(param))
         .and_then(|x| serde_json::from_str::<Array2<f64>>(x).ok())
+        .and_then(|arr| {
+            if arr.shape() == default.shape() {
+                Some(arr)
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| default.to_owned())
+}
+
+/// we need to assert arr shape, so we have a separate func for arrs
+pub(crate) fn get_optional_parameter_df<'a>(
+    op: &'a OCP,
+    param: &str,
+    default: &DataFrame,
+) -> DataFrame {
+    op.as_ref()
+        .and_then(|map| map.get(param))
+        .and_then(|x| serde_json::from_str::<DataFrame>(x).ok())
         .and_then(|arr| {
             if arr.shape() == default.shape() {
                 Some(arr)

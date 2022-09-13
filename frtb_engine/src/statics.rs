@@ -3,9 +3,11 @@
 //! which we would not want to recalculate every time due to performance concerns
 use crate::prelude::sbm::{common::option_maturity_rho, girr::vega::girr_vega_rho};
 use crate::sbm::girr::delta::girr_corr_matrix;
+use crate::drc::drc_weights;
 
 use ndarray::{s, Array1, Array2, Axis};
 use once_cell::sync::Lazy;
+use polars::prelude::DataFrame;
 use strum::EnumString;
 
 pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
@@ -312,6 +314,8 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
 
     let girr_vega_rho = girr_vega_rho();
 
+    let drc_secnonctp_weights = drc_weights::drc_secnonctp_weights_frame();
+
     ScenarioConfig {
         name: ScenarioName::Medium,
         scenario_fn: med_fn,
@@ -382,9 +386,11 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
 
         // Vega
         base_vega_rho,
-
         fx_vega_rho,
         girr_vega_rho,
+
+        //DRC
+        drc_secnonctp_weights,
     }
 });
 
@@ -510,6 +516,9 @@ pub struct ScenarioConfig {
     pub girr_vega_rho: Array2<f64>,
     /// Similar to Option Maturity Rho, but we apply scenario fn to it
     pub fx_vega_rho: Array2<f64>,
+
+    //DRC
+    pub drc_secnonctp_weights: DataFrame,
 }
 
 impl ScenarioConfig {
@@ -595,8 +604,8 @@ impl ScenarioConfig {
         //objects which do not implement copy
         let base_vega_rho = self.base_vega_rho.clone();
         let base_girr_delta_rho_same_curve = self.base_girr_delta_rho_same_curve.to_owned();
-
         let erm2_crr2 = self.erm2_crr2.clone();
+        let drc_secnonctp_weights = self.drc_secnonctp_weights.clone();
 
         //Next, apply to singles and return a scenario
         Self {
@@ -643,6 +652,8 @@ impl ScenarioConfig {
             base_vega_rho,
             fx_vega_rho,
             girr_vega_rho,
+
+            drc_secnonctp_weights,
 
             ..*self
         }

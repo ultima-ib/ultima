@@ -303,7 +303,7 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
 
     let drc_nonsec = drc_weights::drc_nonsec_weights();
 
-    let drc_secnonctp = drc_weights::drc_secnonctp_weights();
+    //let drc_secnonctp = drc_weights::drc_secnonctp_weights();
 
     let dlt_weights = SensWeightsConfig {
         // FX
@@ -332,7 +332,7 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         // DRC Non Sec
         drc_nonsec,
         //DRC Sec NonCTP
-        drc_secnonctp
+        //drc_secnonctp
     };
 
     //Assign Delta Weights
@@ -367,8 +367,10 @@ pub struct SensWeightsConfig {
 
     //DRC Non Sec
     drc_nonsec: HashMap<String, Expr>,
-    //DRC Sec NonCTP
-    drc_secnonctp: HashMap<String, Expr>,
+    //DRC Sec NonCTP - see prepare()
+    //had to be moved due to:
+    //https://github.com/pola-rs/polars/issues/4827
+    //drc_secnonctp: HashMap<String, Expr>,
 }
 
 /// Ammends BCBS risk weights into CRR2 compliance where required

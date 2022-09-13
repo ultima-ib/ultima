@@ -9,7 +9,7 @@ pub fn sbm_buckets(conf: &HashMap<String, String>) -> Expr {
         .and_then(|x| serde_json::from_str::<HashMap<String, String>>(x).ok())
         .unwrap_or_default();
 
-    when(col("RiskClass").eq(lit("FX")))
+    when(col("RiskClass").eq(lit("FX")).or(col("RiskClass").eq(lit("GIRR"))))
         .then(col("BucketBCBS").fill_null(col("RiskFactor").map(
             move |srs| {
                 let mut res = srs.utf8()?.to_owned();

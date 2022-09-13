@@ -12,7 +12,7 @@
             ["DRC_NonSec_NetAbsShortJTD_Weighted", "first"],
             ["DRC_NonSec_HBR", "first"]
                 ],
-        "groupby": ["Desk"],
+        "groupby": ["RiskClass", "Desk"],
         "filters": [],
         "optional_params": {
             "hide_zeros": true,

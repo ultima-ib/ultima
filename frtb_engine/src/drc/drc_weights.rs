@@ -21,7 +21,6 @@ pub(crate) fn drc_nonsec_weights() -> HashMap<String, Expr> {
 }
 
 pub(crate) fn drc_nonsec_weights_crr2() -> HashMap<String, Expr> {
-    println!("HELLLLLLLLLLLLLLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
     HashMap::from([
         ("^(?i)AA$".to_string(), Series::new("",&[0.005]).lit().list() ),
     ])

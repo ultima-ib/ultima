@@ -74,11 +74,8 @@ fn drc_nonsec_charge_calculator(
             .groupby([col("b"), col("rf"), col("rft")])
             .agg([
                 (col("jtd")*col("s")).sum().alias("scaled_jtd"),
-                // Note: weight is derived from CreditQuality and 
-                // CreditQuality should be 1to1 map to the obligor.
                 col("w").first(),
             ]);
-        //dbg!(lf.clone().collect());
 
         // Do you want to aggregate as per  22.19?
         // Note, the algorithm is O(N), but we loose Negative GrossJTD position changes, 

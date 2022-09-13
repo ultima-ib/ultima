@@ -37,15 +37,11 @@ fn drc_secnonctp_distributor(
 ) -> Expr {
 
     let juri: Jurisdiction = get_jurisdiction(op);
-    let weights_frame = get_optional_parameter_df(
-        op, "drc_secnonctp_weights",
-        &scenario.drc_secnonctp_weights,
-    );
-    drc_secnonctp_charge_calculator(rtrn, false, weights_frame)
+    drc_secnonctp_charge_calculator(rtrn, false)
 }
 
 /// DRC Sec Non CTP Offsetting (22.30) is not implemented yet
-fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric, offset: bool, rw: DataFrame) -> Expr {
+fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric, offset: bool) -> Expr {
     todo!()
 }
 

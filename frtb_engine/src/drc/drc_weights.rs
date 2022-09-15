@@ -20,6 +20,7 @@ pub(crate) fn drc_nonsec_weights() -> HashMap<String, Expr> {
     ])
 }
 
+#[cfg(feature = "CRR2")]
 pub(crate) fn drc_nonsec_weights_crr2() -> HashMap<String, Expr> {
     HashMap::from([
         ("^(?i)AA$".to_string(), Series::new("",&[0.005]).lit().list() ),
@@ -105,6 +106,7 @@ pub fn drc_secnonctp_weights_raw() -> HashMap<&'static str, f64> {
 ("P-3_SENIOR"	, 8.0),
 ("UNDERATD_JUNIOR",	100.0),
 ("UNDERATD_SENIOR",	100.0),
+
 ("AAA_NONSENIOR"	,1.2),
 ("AA+_NONSENIOR"	,1.2),
 ("AA_NONSENIOR"	,2.4),
@@ -135,9 +137,9 @@ pub fn drc_secnonctp_weights_raw() -> HashMap<&'static str, f64> {
 ("P-3_NONSENIOR"	,8.0),
 ("UNDERATD_NONSENIOR"	,100.0),
 ("D_NONSENIOR"	,100.0),
-("D_NONSENIOR"	,100.0),
-("AAA_NONSENIOR"	,1.2),
-("AA+_SENIOR"	,1.2),
+
+("AAA_SUBORDINATE"	,1.2),
+("AA+_SUBORDINATE"	,1.2),
 ("AA_SUBORDINATE"	,2.4),
 ("AA-_SUBORDINATE"	,3.2),
 ("A+_SUBORDINATE"	, 4.8),
@@ -151,7 +153,7 @@ pub fn drc_secnonctp_weights_raw() -> HashMap<&'static str, f64> {
 ("BB-_SUBORDINATE"	, 60.0),
 ("B+_SUBORDINATE",72.0),
 ("B_SUBORDINATE"	,84.0),
-("B_SUBORDINATE"	,90.4),
+("B-_SUBORDINATE"	,90.4),
 ("CC+_SUBORDINATE"	,100.0),
 ("CC_SUBORDINATE",100.0),
 ("CC-_SUBORDINATE"	,100.0),

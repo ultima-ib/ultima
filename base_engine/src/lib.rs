@@ -5,6 +5,7 @@ pub mod dataset;
 mod datasource;
 mod filters;
 mod measure;
+pub mod overrides;
 pub mod prelude;
 
 use log::warn;
@@ -60,7 +61,7 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
             .map(|m| (m.name, (m.calculator, m.precomputefilter)))
             .unzip();
 
-    // Note: DOESN'T WORK .or(lit::<bool>(true)) TODO raise to Polars Team
+    // Note: DOESN'T WORK .or(lit::<bool>(true))
     // By default, everything is false (ie everything is filtered out)
     let mut measure_filter = lit::<bool>(false);
     for fltr in fltrs {

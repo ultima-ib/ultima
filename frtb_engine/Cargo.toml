@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 base_engine = {path = "../base_engine"}
-polars = {version = "0.23.2", features=["strings", "ndarray", "lazy", "is_in", "list", "dtype-categorical", "performant", "partition_by", "concat_str", "zip_with"]}
+polars = {version = "0.23.2", features=["strings", "ndarray", "lazy", "is_in", "list", "dtype-categorical", "performant", "partition_by", "concat_str"]}
 serde = {version="1.0", features=["derive"]}
 serde_json = "1"
 ndarray = {version = "0.15.6", features = ["matrixmultiply-threading", "rayon", "serde"] }

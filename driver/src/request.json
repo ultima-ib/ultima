@@ -2,11 +2,12 @@
     "id": "123", 
     "method": "POST", 
     "params": {
+        "filters": [],
+        "groupby": ["RiskClass", "Desk"],
+        "overrides": [],
         "measures": [
             ["DRC_SecNonCTP_CapitalCharge", "first"]
                 ],
-        "groupby": ["RiskClass", "Desk"],
-        "filters": [],
         "optional_params": {
             "hide_zeros": true,
             "calc_params": {

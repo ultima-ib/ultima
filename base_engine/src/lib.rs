@@ -18,7 +18,7 @@ pub use crate::prelude::*;
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
-pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
+pub fn execute(req: AggregationRequest, data: &impl DataSet) -> Result<DataFrame> {
     // Assuming Front End knows which columns can be in groupby, agg etc
 
     // Step 0.1
@@ -63,17 +63,17 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
 
     // Note: DOESN'T WORK .or(lit::<bool>(true))
     // By default, everything is false (ie everything is filtered out)
-    let mut measure_filter = lit::<bool>(false);
+    let mut measure_filter_opt = Some(lit::<bool>(false));
     for fltr in fltrs {
         match fltr {
             // join filters as or
             Some(f) => {
-                measure_filter = measure_filter.or(f);
+                measure_filter_opt = measure_filter_opt.map(|fltr|fltr.or(f)); //= measure_filter_opt.or(f);
             }
             // If at least one of the measure filters is None, then everything is true
             // and break
             None => {
-                measure_filter = lit::<bool>(true);
+                measure_filter_opt = None;
                 break
             }
         }
@@ -83,13 +83,15 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
 
     // GROUPBY and AGGREGATE
+    if let Some(fltr) = measure_filter_opt{
+        f1 = f1.filter(fltr)
+    }
+    
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable
-    f1 = f1
-        .filter(measure_filter)
-        .groupby_stable(groups)
+    f1 = f1.groupby_stable(groups)
         .agg(aggregateions)
-        .limit(5000);
+        .limit(1_000);
 
     // POSTPROCESSING
     // Remove zeros, optional

@@ -77,7 +77,7 @@ enum Message {
     Request {
         id: String,
         method: String,
-        params: DataRequestS,
+        params: AggregationRequest,
     },
     Response {
         id: String,

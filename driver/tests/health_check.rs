@@ -7,6 +7,7 @@
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
+    #[allow(unused_must_use)] // TODO 
     spawn_app();
     // We need to bring in `reqwest`
     // to perform HTTP requests against our application.

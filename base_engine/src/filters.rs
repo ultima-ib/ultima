@@ -14,16 +14,6 @@ pub enum FilterE {
     In(Vec<(String, Vec<String>)>),
     NotIn(Vec<(String, Vec<String>)>),
 }
-impl Literal for FilterE {
-    fn lit(self)->Expr{
-        match self {
-            FilterE::Eq(f)          => fltr_eq_or_builder(&f),
-            FilterE::Neq(f)         => fltr_neq_or_builder(&f),
-            FilterE::In(f)     => fltr_in_or_builder(&f),
-            FilterE::NotIn(f)  => fltr_not_in_or_builder(&f),
-        }
-    }
-}
 
 impl FilterE{
     pub fn to_expr(&self)->Expr{

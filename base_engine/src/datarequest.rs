@@ -1,12 +1,26 @@
 use super::measure::OptParams;
 use crate::filters::*;
+use crate::overrides::Override;
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+/// Fundamentally, user might want to:
+/// 
+/// i) Aggregation: apply the same procedure to every group and get a single number
+/// 
+/// Otherwise, ii) Apply the same procedure to every group and get multiple numbers (ie a Breakdown)
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct DataRequestS {
+pub enum  DataRequestE {
+    /// Measures will be called in GroupBy-Aggregate context
+    Aggregation(AggregationRequest),
+    /// Measures will be called in groupby-Apply Context
+    Breakdown
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AggregationRequest {
     // general fields
     /// Measure can be of two types:
     /// basic: Column - Action
@@ -15,10 +29,13 @@ pub struct DataRequestS {
     groupby: Vec<String>,
     filters: Vec<FilterE>,
     #[serde(default)]
+    overrides: Vec<Override>,
+    #[serde(default)]
     optional_params: Option<OptParams>,
+
 }
 
-impl DataRequestS {
+impl AggregationRequest {
     /// returns a Vec of columns required by current request
     /// as well as bespoke_measures vec (eg FXDeltaSensWeighted) from the request
     /// not required due to depreciated filtering

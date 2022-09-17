@@ -38,7 +38,6 @@ impl Overwrite {
             fltr = fltr.and(f.to_expr())
         }
 
-
         when(fltr)
         .then(val)
         .otherwise(col(&self.column))

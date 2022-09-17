@@ -20,7 +20,6 @@
 ["CSR_nonSec_DeltaCharge_MAX", "first"]
                 ],
         
-        
         "hide_zeros": true,
         "calc_params": {
             "jurisdiction": "BCBS",

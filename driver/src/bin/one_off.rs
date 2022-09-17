@@ -44,7 +44,10 @@ fn main() {
     // TODO
     // data.validate();
     // Pre build some columns, which you wish to store in memory alongside the original data
+    let now = Instant::now();
     data.prepare();
+    let elapsed = now.elapsed();
+    println!("Time to Prepare DF: {:.6?}", elapsed);
 
     let json =
         fs::read_to_string("./driver/src/request.json").expect("Unable to read request file");
@@ -62,7 +65,7 @@ fn main() {
                 Ok(df) => {
                     let elapsed = now.elapsed();
                     println!("result: {:?}", df);
-                    println!("Elapsed: {:.6?}", elapsed);
+                    println!("Time to Compute: {:.6?}", elapsed);
                 }
             }
         };

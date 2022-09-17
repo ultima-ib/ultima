@@ -1,6 +1,5 @@
 use derivative::Derivative;
 use polars::prelude::*;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 //MeasureMap
@@ -13,13 +12,9 @@ type Calculator<'a> = Box<dyn Fn(&Option<CalcParams>) -> Expr + Send + Sync + 'a
 pub struct Measure<'a> {
     pub name: String,
     /// Main function which performs the calculation
+    /// Note: Measures assumes presence of these columns
     #[derivative(Debug = "ignore")]
     pub calculator: Calculator<'a>,
-    /// Bespoke measures assumes presence of these columns
-    /// This field is used to validate the DataSet
-    /// Req Columns of all availiable measures must be present in the DataSet
-    //  pub req_columns: Vec<&'a str>, <-> not needed. We need a better way to validate DataSet.
-    // perhaps through an optional build param
     ///this field is to restrict aggregation option to certain type only
     ///for example where it makes sence to aggregate with "first" and not "sum"
     pub aggregation: Option<&'a str>,
@@ -54,28 +49,5 @@ pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MM {
     }
     measure_map
 }
-
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct OptParams {
-    // Overrides
-    #[serde(default)]
-    pub over_ride: Option<Override>,
-    //TODO Extends DataFrame
-    #[serde(default)]
-    pub add_rows: Option<AddRows>,
-    // If this could be achieved with Filters
-    // then shouldn't be needed
-    // pub remove_rows //could just filter out trades based on Id
-    #[serde(default)]
-    pub hide_zeros: bool,
-
-    // Parameters, passed to bespoke measures(ie calculation parameters)
-    #[serde(default)]
-    pub calc_params: OCP,
-}
-
-// Column to override, value, where Vec<(Column, Value)>
-pub type Override = Vec<(String, String, Vec<(String, String)>)>;
-pub type AddRows = Vec<String>;
 pub type CalcParams = HashMap<String, String>;
 pub type OCP = Option<CalcParams>;

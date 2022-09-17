@@ -18,7 +18,7 @@ pub use crate::prelude::*;
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
-pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
+pub fn execute(req: AggregationRequest, data: &impl DataSet) -> Result<DataFrame> {
     // Assuming Front End knows which columns can be in groupby, agg etc
 
     // Step 0.1
@@ -26,6 +26,9 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
     //let tmp = f1.clone().lazy().filter(col("RiskClass").eq(lit("DRC_SecNonCTP"))).collect()?;
     //dbg!(&tmp["SensWeights"]);
     //let f1_cols = f1.get_column_names();
+
+    // Polars DataFrame clone is cheap:
+    // https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
     let mut f1 = f1.clone().lazy();
     let measure_map = data.measures();
 
@@ -35,68 +38,70 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
         f1 = f1.filter(f.to_expr());
     }
 
-    // Step 2.0 , 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
+    // Step 2.x OVERRIDE, 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
 
-    //AGGREGATE
-    //Potentially rayon spawn here, for each measure-df
-    //ie we can do all the delta || to vega || to curv
-    //the join on groupby cols
-    //use https://doc.rust-lang.org/std/panic/fn.catch_unwind.html
-    let m = req.measures();
-    let op = req.optiona_params().as_ref();
-    let calc_p: &OCP = match op {
-        Some(x) => &x.calc_params,
-        _ => &None,
-    };
-
-    // Build Aggregations
-
+    // Step 2.1 Build AGGREGATIONS/Measures
     // First, parse requested measures
-    let prepared_measures = measure_builder(m, measure_map, calc_p);
+    let m = req.measures();
+    let op = req.calc_params();
 
-    // Unpack
+    let prepared_measures = measure_builder(m, measure_map, op);
+
+    // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
     let (newnames, (aggregateions, fltrs)): (Vec<String>, (Vec<Expr>, Vec<Option<Expr>>)) =
         prepared_measures
             .into_iter()
             .map(|m| (m.name, (m.calculator, m.precomputefilter)))
             .unzip();
 
+    // Step 2.2 Build Measure Specific Filter
     // Note: DOESN'T WORK .or(lit::<bool>(true))
     // By default, everything is false (ie everything is filtered out)
-    let mut measure_filter = lit::<bool>(false);
+    let mut measure_filter_opt = Some(lit::<bool>(false));
     for fltr in fltrs {
         match fltr {
             // join filters as or
             Some(f) => {
-                measure_filter = measure_filter.or(f);
+                measure_filter_opt = measure_filter_opt.map(|fltr|fltr.or(f)); //= measure_filter_opt.or(f);
             }
             // If at least one of the measure filters is None, then everything is true
             // and break
             None => {
-                measure_filter = lit::<bool>(true);
+                measure_filter_opt = None;
                 break
             }
         }
     }
 
-    // Build GROUPBY
+    
+    
+    // Step 2.3 Applying (Mesure)FILTER
+    if let Some(fltr) = measure_filter_opt{
+        f1 = f1.filter(fltr)
+    }
+    
+    // Step 2.4 Applying Overwrites
+    let mut df = f1.collect()?;
+    for ow in req.overrides() {
+        df = ow.df_with_overwrite(df)?
+    }
+    
+    
+    // Step 2.4 Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
 
-    // GROUPBY and AGGREGATE
+    // Step 2.5 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable
-    f1 = f1
-        .filter(measure_filter)
-        .groupby_stable(groups)
+    f1 = df.lazy().groupby_stable(groups)
         .agg(aggregateions)
-        .limit(5000);
+        .limit(1_000);
 
     // POSTPROCESSING
     // Remove zeros, optional
     // TODO Note: Comparing with 0. doesn't work with list columns
     // TODO Need to check column type and based on that compare against 0. or not
-    if op.map(|x| x.hide_zeros)
-        .unwrap_or_default()
+    if req.hide_zeros
     {
         let mut it = newnames.iter();
         if let Some(c) = it.next() {
@@ -108,9 +113,8 @@ pub fn execute(req: DataRequestS, data: &impl DataSet) -> Result<DataFrame> {
             f1 = f1.filter(predicate);
         }
     };
-
-    let df = f1.collect().unwrap();
-    Ok(df)
+    
+    f1.collect()
 }
 
 /// Convert requested measure into actual measure

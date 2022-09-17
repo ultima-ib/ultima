@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::ops::Index;
 
 /// Inner elements of each Filter are OR
-/// Filters themselves are AND
-/// Inside single Filter expect first element(X) of (X ,.) to be from the same file
-/// ie OR "ON" filters have to be on columns of the same file
+/// Filters themselves(eg a Vec of Filters) are AND
+/// 
+/// TODO Currently works for Utf8 columns only. In the future 
+/// parsing logic will be added based on column datatype
 #[derive(Serialize, Deserialize, Debug, Hash, Clone)]
 pub enum FilterE {
     /// On Same as In, but better for 1 field only
@@ -13,16 +14,6 @@ pub enum FilterE {
     Neq(Vec<(String, String)>),
     In(Vec<(String, Vec<String>)>),
     NotIn(Vec<(String, Vec<String>)>),
-}
-impl Literal for FilterE {
-    fn lit(self)->Expr{
-        match self {
-            FilterE::Eq(f)          => fltr_eq_or_builder(&f),
-            FilterE::Neq(f)         => fltr_neq_or_builder(&f),
-            FilterE::In(f)     => fltr_in_or_builder(&f),
-            FilterE::NotIn(f)  => fltr_not_in_or_builder(&f),
-        }
-    }
 }
 
 impl FilterE{
@@ -35,7 +26,6 @@ impl FilterE{
         }
     }
 }
-
 
 pub(crate) fn fltr_in_or_builder(_f: &Vec<(String, Vec<String>)>) -> Expr {
     let (a, b) = _f.index(0);
@@ -61,7 +51,6 @@ pub(crate) fn fltr_not_in_or_builder(_f: &Vec<(String, Vec<String>)>) -> Expr {
     e
 }
 
-/// To add categorical here
 pub(crate) fn fltr_eq_or_builder(_f: &Vec<(String, String)>) -> Expr {
     let (a, b) = _f.index(0);
     let mut e: Expr = col(a).eq(lit::<&str>(b));
@@ -71,7 +60,6 @@ pub(crate) fn fltr_eq_or_builder(_f: &Vec<(String, String)>) -> Expr {
     e
 }
 
-/// To add categorical here
 pub(crate) fn fltr_neq_or_builder(_f: &Vec<(String, String)>) -> Expr {
     let (a, b) = _f.index(0);
     println!("a: {}, b: {}", a, b);

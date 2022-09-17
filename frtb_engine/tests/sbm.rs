@@ -16,7 +16,7 @@ pub static LAZY_DASET: Lazy<FRTBDataSet> = Lazy::new(|| {
 
 fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let ep = if let Some(e) = epsilon { e } else { 1e-5 };
-    let data_req = serde_json::from_str::<DataRequestS>(req).expect("Could not parse request");
+    let data_req = serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
     let excl = data_req._groupby().clone();
     let res =
         base_engine::execute(data_req, &*LAZY_DASET).expect("Error while calculating results");
@@ -54,9 +54,9 @@ fn fx_delta() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
-                "calc_params": {"jurisdiction": "BCBS"}
-            }
+    
+    "calc_params": {"jurisdiction": "BCBS"}
+            
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
 }
@@ -91,9 +91,8 @@ fn fx_vega() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
-                "calc_params": {"jurisdiction": "BCBS"}
-            }
+    "calc_params": {"jurisdiction": "BCBS"}
+            
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -135,11 +134,9 @@ fn fx_curvature() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "RatesEM"]]}],
-    "optional_params": {
-        "hide_zeros": true,
-                "calc_params": {"jurisdiction": "BCBS",
+    "hide_zeros": true,
+    "calc_params": {"jurisdiction": "BCBS",
                 "apply_fx_curv_div": "true"}
-            }
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
 }
@@ -158,9 +155,7 @@ fn fx_total() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
-                "calc_params": {"jurisdiction": "BCBS"}
-            }
+    "calc_params": {"jurisdiction": "BCBS"}
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -186,9 +181,8 @@ fn girr_delta() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
-                "calc_params": {"jurisdiction": "BCBS"}
-            }
+    "calc_params": {"jurisdiction": "BCBS"}
+            
     }"#;
     assert_results(request, dbg!(expected_res).sum(), Some(1e-4))
 }
@@ -222,9 +216,8 @@ fn girr_vega() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
-                "calc_params": {"jurisdiction": "BCBS"}
-            }
+    "calc_params": {"jurisdiction": "BCBS"}
+            
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -284,10 +277,8 @@ fn girr_curvature() {
             ],
     "groupby": ["Desk"],
     "filters": [],
-    "optional_params": {
-                "hide_zeros":true,
-                "calc_params": {"jurisdiction": "BCBS"}
-            }
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "BCBS"}
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -305,9 +296,8 @@ fn girr_totals() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
-                "calc_params": {"jurisdiction": "BCBS"}
-            }
+    "calc_params": {"jurisdiction": "BCBS"}
+            
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -341,10 +331,8 @@ fn eq_delta() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
                 "hide_zeros":true,
                 "calc_params": {"jurisdiction": "CRR2"}
-            }
     }"#;
     assert_results(request, expected_res.sum(), None)
 }
@@ -378,11 +366,10 @@ fn eq_vega() {
     ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
         "hide_zeros": true,
         "calc_params": {"jurisdiction": "BCBS",
         "apply_fx_curv_div": "true"}
-        }
+        
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
 }
@@ -399,10 +386,9 @@ fn eq_curv() {
     ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "RatesEM"]]}],
-    "optional_params": {
         "hide_zeros": true,
         "calc_params": {"jurisdiction": "BCBS"}
-        }
+        
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
 }
@@ -421,10 +407,9 @@ fn eq_totals() {
     ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
         "hide_zeros": true,
         "calc_params": {"jurisdiction": "BCBS"}
-        }
+        
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
 }
@@ -449,10 +434,9 @@ fn csr_nonsec_bcbs_delta() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
                 "hide_zeros":true,
                 "calc_params": {"jurisdiction": "BCBS"}
-            }
+            
     }"#;
     assert_results(request, expected_res.sum(), None)
 }
@@ -487,10 +471,8 @@ fn csr_nonsec_crr2_delta() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
                 "hide_zeros":true,
                 "calc_params": {"jurisdiction": "CRR2"}
-            }
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -522,10 +504,9 @@ fn csr_nonsec_bcbs_vega() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "Rates"]]}],
-    "optional_params": {
                 "hide_zeros": true,
                 "calc_params": {"jurisdiction": "BCBS"}
-            }
+            
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -558,10 +539,9 @@ fn csr_nonsec_crr2_vega() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "Rates"]]}],
-    "optional_params": {
                 "hide_zeros": true,
                 "calc_params": {"jurisdiction": "CRR2"}
-            }
+            
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -586,10 +566,8 @@ fn commodity_delta() {
             ],
     "groupby": ["Desk"],
     "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    "optional_params": {
                 "hide_zeros":true,
                 "calc_params": {"jurisdiction": "BCBS"}
-            }
     }"#;
     assert_results(request, expected_res.sum(), None)
 }
@@ -615,14 +593,13 @@ fn drc_nonsec() {
                 ],
         "groupby": ["Desk", "BucketBCBS"],
         "filters": [],
-        "optional_params": {
             "hide_zeros": false,
             "calc_params": {
                 "jurisdiction": "BCBS",
                 "apply_fx_curv_div": "true",
                 "drc_offset": "false"
             }
-        }}
+        }
 "#;
     assert_results(request, expected_res.sum(), None)
 }
@@ -649,13 +626,43 @@ fn drc_nonsec_crr2() {
                 ],
         "groupby": ["Desk", "BucketBCBS"],
         "filters": [],
-        "optional_params": {
             "hide_zeros": false,
             "calc_params": {
                 "jurisdiction": "CRR2",
                 "apply_fx_curv_div": "true",
                 "drc_offset": "false"
-            }
+        }}
+"#;
+    assert_results(request, expected_res.sum(), None)
+}
+
+/// This is just testing overwrite functionality
+/// Drc BCBS with this overwrite is equal to Drc CRR2
+#[test]
+fn overwrites() {
+    let expected_res = arr1(&[3814.762221]);
+
+    let request = r#"
+    {"filters": [],
+
+        "groupby": ["RiskClass", "Desk"],
+        
+        "overwrites": [{   "column": "SensWeights",
+                          "value": "[0.005]",
+                          "when": [{"Eq":[["RiskClass", "DRC_NonSec"]]},
+                                    {"Eq":[["CreditQuality", "AA"]]}]
+                    }],
+        
+        "measures": [
+            ["DRC_NonSec_CapitalCharge", "first"]
+                ],
+        
+        
+        "hide_zeros": true,
+        "calc_params": {
+            "jurisdiction": "BCBS",
+            "apply_fx_curv_div": "true",
+            "drc_offset": "false"
         }}
 "#;
     assert_results(request, expected_res.sum(), None)

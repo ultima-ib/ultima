@@ -1,3 +1,4 @@
+#![allow(unused_must_use)] // TODO - remove
 //! tests/health_check.rs
 // `tokio::test` is the testing equivalent of `tokio::main`.
 // It also spares you from having to specify the `#[test]` attribute.
@@ -7,7 +8,6 @@
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
-    #[allow(unused_must_use)] // TODO 
     spawn_app();
     // We need to bring in `reqwest`
     // to perform HTTP requests against our application.

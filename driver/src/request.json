@@ -2,20 +2,28 @@
     "id": "123", 
     "method": "POST", 
     "params": {
-        "filters": [],
-        "groupby": ["RiskClass", "Desk"],
-        "overrides": [],
-        "measures": [
-            ["DRC_SecNonCTP_CapitalCharge", "first"]
-                ],
-        "optional_params": {
-            "hide_zeros": true,
-            "calc_params": {
 
-                "jurisdiction": "CRR2",
-                "apply_fx_curv_div": "true",
-                "drc_offset": "false"
-            }
+        "filters": [],
+
+        "groupby": ["RiskClass", "Desk"],
+        
+        "overwrites": [{   "column": "SensWeights",
+                          "value": "[0.005]",
+                          "when": [{"Eq":[["RiskClass", "DRC_NonSec"]]},
+                                    {"Eq":[["CreditQuality", "AA"]]}]
+                    }],
+        
+        "measures": [
+            ["DRC_NonSec_CapitalCharge", "first"]
+                ],
+        
+        
+        "hide_zeros": true,
+        "calc_params": {
+            "jurisdiction": "BCBS",
+            "apply_fx_curv_div": "true",
+            "drc_offset": "false"
         }
+        
     }
 }]

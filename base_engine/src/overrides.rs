@@ -8,10 +8,11 @@ use crate::filters::FilterE;
 /// # Examples
 /// ```
 /// Json looks like this:
-/// {  "column": "SensWeights",
-///     "value": "0.005",
-///    "filters": [{"Eq":[["RiskClass", "DRC_NonSec"], ["CreditQuality", "AA"]]}]
-/// } 
+/// {   "column": "SensWeights",
+///     "value": "[0.005]",
+///     "when": [{"Eq":[["RiskClass", "DRC_NonSec"]]},
+///          {"Eq":[["CreditQuality", "AA"]]}]
+/// }
 /// ```
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Overwrite {

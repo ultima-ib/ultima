@@ -16,16 +16,16 @@ fn csr_nonsec_delta_sens_weighted_05y_bcbs() -> Expr {
     rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_05Y", "SensWeights", 0)
 }
 fn csr_nonsec_delta_sens_weighted_1y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_1Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_1Y", "SensWeights", 1)
 }
 fn csr_nonsec_delta_sens_weighted_3y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_3Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_3Y", "SensWeights", 2)
 }
 fn csr_nonsec_delta_sens_weighted_5y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_5Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_5Y", "SensWeights", 3)
 }
 fn csr_nonsec_delta_sens_weighted_10y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_10Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_nonSec", "Sensitivity_10Y", "SensWeights", 4)
 }
 
 //CRR2
@@ -46,7 +46,7 @@ fn csr_nonsec_delta_sens_weighted_1y_crr2() -> Expr {
         "CSR_nonSec",
         "Sensitivity_1Y",
         "SensWeightsCRR2",
-        0,
+        1,
     )
 }
 #[cfg(feature = "CRR2")]
@@ -56,7 +56,7 @@ fn csr_nonsec_delta_sens_weighted_3y_crr2() -> Expr {
         "CSR_nonSec",
         "Sensitivity_3Y",
         "SensWeightsCRR2",
-        0,
+        2,
     )
 }
 #[cfg(feature = "CRR2")]
@@ -66,7 +66,7 @@ fn csr_nonsec_delta_sens_weighted_5y_crr2() -> Expr {
         "CSR_nonSec",
         "Sensitivity_5Y",
         "SensWeightsCRR2",
-        0,
+        3,
     )
 }
 #[cfg(feature = "CRR2")]
@@ -76,7 +76,7 @@ fn csr_nonsec_delta_sens_weighted_10y_crr2() -> Expr {
         "CSR_nonSec",
         "Sensitivity_10Y",
         "SensWeightsCRR2",
-        0,
+        4,
     )
 }
 
@@ -150,7 +150,11 @@ fn csr_nonsec_delta_charge_distributor(
     let (weight, bucket_col, name_rho_vec, gamma, n_buckets, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2").arr().get(0),
+            [col("SensWeightsCRR2").arr().get(0),
+            col("SensWeightsCRR2").arr().get(1),
+            col("SensWeightsCRR2").arr().get(2),
+            col("SensWeightsCRR2").arr().get(3),
+            col("SensWeightsCRR2").arr().get(4),],
             col("BucketCRR2"),
             Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
             &scenario.csr_nonsec_gamma_crr2,
@@ -159,7 +163,11 @@ fn csr_nonsec_delta_charge_distributor(
         ),
 
         Jurisdiction::BCBS => (
-            col("SensWeights").arr().get(0),
+            [col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(1),
+            col("SensWeights").arr().get(2),
+            col("SensWeights").arr().get(3),
+            col("SensWeights").arr().get(4),],
             col("BucketBCBS"),
             Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
             &scenario.csr_nonsec_gamma,
@@ -210,7 +218,7 @@ fn csr_nonsec_delta_charge_distributor(
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn csr_nonsec_delta_charge<F>(
-    weight: Expr,
+    weight: [Expr; 5],
     base_tenor_rho: f64,
     rho_name: Vec<f64>,
     rho_basis: f64,
@@ -226,21 +234,26 @@ pub(crate) fn csr_nonsec_delta_charge<F>(
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
+    let [w1, w2, w3, w4, w5] = weight;
     apply_multiple(
         move |columns| {
             //let now = Instant::now();
             let df = df![
-                "rcat" => columns[10].clone(),
-                "rc" =>   columns[0].clone(),
-                "rf" =>   columns[1].clone(),
-                "rft" =>  columns[2].clone(),
-                "b" =>    columns[3].clone(),
-                "y05" =>  columns[4].clone(),
-                "y1" =>   columns[5].clone(),
-                "y3" =>   columns[6].clone(),
-                "y5" =>   columns[7].clone(),
-                "y10" =>  columns[8].clone(),
-                "w" =>    columns[9].clone()
+                "rc" =>   &columns[0],
+                "rf" =>   &columns[1],
+                "rft" =>  &columns[2],
+                "b" =>    &columns[3],
+                "y05" =>  &columns[4],
+                "y1" =>   &columns[5],
+                "y3" =>   &columns[6],
+                "y5" =>   &columns[7],
+                "y10" =>  &columns[8],
+                "rcat" => &columns[9],
+                "w1" =>   &columns[10],
+                "w2" =>   &columns[11],
+                "w3" =>   &columns[12],
+                "w4" =>   &columns[13],
+                "w5" =>   &columns[14]
             ]?;
 
             // concat_lst is actually slower than
@@ -252,11 +265,11 @@ where
                         .and(col("rcat").eq(lit(risk_cat))),
                 )
                 .with_columns([
-                    col("y05") * col("w"),
-                    col("y1") * col("w"),
-                    col("y3") * col("w"),
-                    col("y5") * col("w"),
-                    col("y10") * col("w"),
+                    col("y05") * col("w1"),
+                    col("y1") * col("w2"),
+                    col("y3") * col("w3"),
+                    col("y5") * col("w4"),
+                    col("y10") * col("w5"),
                 ])
                 .with_columns([
                     when(col("rft").eq(lit("Bond")))
@@ -352,14 +365,17 @@ where
             col("RiskFactor"),
             col("RiskFactorType"),
             bucket_col,
-            //y05, y1, y3, y5, y10,
             col("Sensitivity_05Y"),
             col("Sensitivity_1Y"),
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            weight, // risk weight
             col("RiskCategory"),
+            w1,
+            w2,
+            w3,
+            w4,
+            w5,
         ],
         GetOutput::from_type(DataType::Float64),
     )

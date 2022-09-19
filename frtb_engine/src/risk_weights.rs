@@ -211,20 +211,20 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     // 21.82
     // Commodity risk is defined for 11 tenors
     let commodity_weights = [0.3, 0.35, 0.6, 0.8, 0.4, 0.45, 0.2, 0.35, 0.25, 0.35, 0.5];
-    let commodity_bucket_weight: HashMap<String, Expr> = bucket_weight_map(&commodity_weights);
+    let commodity_bucket_weight: HashMap<String, Expr> = bucket_weight_map(&commodity_weights, 11);
 
     // Equity
     // 21.77
     let equity_spot_weights = [
         0.55, 0.6, 0.45, 0.55, 0.3, 0.35, 0.4, 0.5, 0.7, 0.5, 0.7, 0.15, 0.25,
     ];
-    let equity_bucket_spot_weights: HashMap<String, Expr> = bucket_weight_map(&equity_spot_weights);
+    let equity_bucket_spot_weights: HashMap<String, Expr> = bucket_weight_map(&equity_spot_weights, 1);
 
     let equity_repo_weights = [
         0.0055, 0.006, 0.0045, 0.0055, 0.003, 0.0035, 0.004, 0.005, 0.007, 0.005, 0.007, 0.0015,
         0.0025,
     ];
-    let equity_bucket_repo_weights: HashMap<String, Expr> = bucket_weight_map(&equity_repo_weights);
+    let equity_bucket_repo_weights: HashMap<String, Expr> = bucket_weight_map(&equity_repo_weights, 1);
 
     // CSR nonsec
     // 21.53
@@ -234,14 +234,14 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.025, 0.02, 0.04, 0.12, 0.07, 0.085, 0.055,
         0.05, 0.12, 0.015, 0.05,
     ];
-    let csr_non_sec_weight: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights_arr);
+    let csr_non_sec_weight: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights_arr, 5);
 
     // CSR Sec CTP 21.59
     let csr_sec_ctp_weights_arr = [
         0.04, 0.04, 0.08, 0.05, 0.04, 0.03, 0.02, 0.06, 0.13, 0.13, 0.16, 0.10, 0.12, 0.12, 0.12,
         0.13,
     ];
-    let csr_sec_ctp_weight: HashMap<String, Expr> = bucket_weight_map(&csr_sec_ctp_weights_arr);
+    let csr_sec_ctp_weight: HashMap<String, Expr> = bucket_weight_map(&csr_sec_ctp_weights_arr, 5);
 
     // CSR Sec nonCTP 21.62 and 325am
     let csr_sec_nonctp_weight_arr: [f64; 25] = [
@@ -249,7 +249,7 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         0.015, 0.015, 0.0175, 0.01575, 0.02625, 0.035, 0.035, 0.014, 0.021, 0.021, 0.0245, 0.035,
     ];
     let csr_sec_nonctp_weight: HashMap<String, Expr> =
-        bucket_weight_map(&csr_sec_nonctp_weight_arr);
+        bucket_weight_map(&csr_sec_nonctp_weight_arr, 5);
 
     fn vega_rw(lh: u8) -> f64 {
         (0.55 * (lh as f64).sqrt() / (10f64).sqrt()).min(1.)
@@ -299,7 +299,7 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
         eq_large_cap,
         eq_large_cap,
     ];
-    let vega_equity_weight: HashMap<String, Expr> = bucket_weight_map(&equity_vega_weights);
+    let vega_equity_weight: HashMap<String, Expr> = bucket_weight_map(&equity_vega_weights, 5);
 
     let drc_nonsec = drc_weights::drc_nonsec_weights();
 
@@ -384,7 +384,7 @@ pub fn weights_assign_crr2() -> Expr {
         0.005, 0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.1, 0.025, 0.02, 0.04, 0.12, 0.07,
         0.085, 0.055, 0.05, 0.12, 0.015, 0.05,
     ];
-    let csr_non_sec_weight_crr2: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights);
+    let csr_non_sec_weight_crr2: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights, 5);
 
     // CSR Sec CTP 21.59
     let csr_sec_ctp_weights_crr2 = [
@@ -392,7 +392,7 @@ pub fn weights_assign_crr2() -> Expr {
         0.12, 0.12, 0.13,
     ];
     let csr_sec_ctp_weight_crr2: HashMap<String, Expr> =
-        bucket_weight_map(&csr_sec_ctp_weights_crr2);
+        bucket_weight_map(&csr_sec_ctp_weights_crr2, 5);
 
     let drc_nonsec_crr2 = drc_weights::drc_nonsec_weights_crr2();
 
@@ -421,13 +421,13 @@ pub fn weights_assign_crr2() -> Expr {
     .otherwise(col("SensWeights"))
 }
 
-fn bucket_weight_map(arr: &[f64]) -> HashMap<String, Expr> {
+fn bucket_weight_map(arr: &[f64], ntenors: u8) -> HashMap<String, Expr> {
     let mut bucket_weights: HashMap<String, Expr> = HashMap::default();
     for (i, n) in arr.iter().enumerate() {
         let j = i + 1;
         bucket_weights.insert(
             format!["^{j}$"],
-            Series::from_vec("weight", vec![*n; 1]).lit().list(),
+            Series::from_vec("weight", vec![*n; ntenors as usize]).lit().list(),
         );
     }
     bucket_weights

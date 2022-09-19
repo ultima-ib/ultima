@@ -16,16 +16,16 @@ fn csr_sec_ctp_delta_sens_weighted_05y_bcbs() -> Expr {
     rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_05Y", "SensWeights", 0)
 }
 fn csr_sec_ctp_delta_sens_weighted_1y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_1Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_1Y", "SensWeights", 1)
 }
 fn csr_sec_ctp_delta_sens_weighted_3y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_3Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_3Y", "SensWeights", 2)
 }
 fn csr_sec_ctp_delta_sens_weighted_5y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_5Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_5Y", "SensWeights", 3)
 }
 fn csr_sec_ctp_delta_sens_weighted_10y_bcbs() -> Expr {
-    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_10Y", "SensWeights", 0)
+    rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_10Y", "SensWeights", 4)
 }
 
 //CRR2
@@ -46,7 +46,7 @@ fn csr_sec_ctp_delta_sens_weighted_1y_crr2() -> Expr {
         "CSR_Sec_CTP",
         "Sensitivity_1Y",
         "SensWeightsCRR2",
-        0,
+        1,
     )
 }
 #[cfg(feature = "CRR2")]
@@ -56,7 +56,7 @@ fn csr_sec_ctp_delta_sens_weighted_3y_crr2() -> Expr {
         "CSR_Sec_CTP",
         "Sensitivity_3Y",
         "SensWeightsCRR2",
-        0,
+        2,
     )
 }
 #[cfg(feature = "CRR2")]
@@ -66,7 +66,7 @@ fn csr_sec_ctp_delta_sens_weighted_5y_crr2() -> Expr {
         "CSR_Sec_CTP",
         "Sensitivity_5Y",
         "SensWeightsCRR2",
-        0,
+        3,
     )
 }
 #[cfg(feature = "CRR2")]
@@ -76,7 +76,7 @@ fn csr_sec_ctp_delta_sens_weighted_10y_crr2() -> Expr {
         "CSR_Sec_CTP",
         "Sensitivity_10Y",
         "SensWeightsCRR2",
-        0,
+        4,
     )
 }
 
@@ -153,7 +153,11 @@ fn csr_sec_ctp_delta_charge_distributor(
     let (weight, bucket_col, name_rho_vec, gamma, n_buckets, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2").arr().get(0),
+            [col("SensWeightsCRR2").arr().get(0),
+            col("SensWeightsCRR2").arr().get(1),
+            col("SensWeightsCRR2").arr().get(2),
+            col("SensWeightsCRR2").arr().get(3),
+            col("SensWeightsCRR2").arr().get(4),],
             col("BucketCRR2"),
             Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
             &scenario.csr_ctp_gamma_crr2,
@@ -161,7 +165,11 @@ fn csr_sec_ctp_delta_charge_distributor(
             Option::<usize>::None,
         ),
         Jurisdiction::BCBS => (
-            col("SensWeights").arr().get(0),
+            [col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(1),
+            col("SensWeights").arr().get(2),
+            col("SensWeights").arr().get(3),
+            col("SensWeights").arr().get(4),],
             col("BucketBCBS"),
             Vec::from(scenario.base_csr_ctp_rho_name_bcbs),
             &scenario.csr_ctp_gamma,

@@ -5,7 +5,7 @@
 
         "filters": [],
 
-        "groupby": ["RiskClass", "Desk"],
+        "groupby": ["COB", "RiskClass", "Desk", "BucketBCBS"],
         
         "measures": [
             ["Commodity_DeltaSens", "sum"],

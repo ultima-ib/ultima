@@ -8,16 +8,16 @@
         "groupby": ["RiskClass", "Desk"],
         
         "measures": [
-            ["CSR_nonSec_DeltaSens", "sum"],
-["CSR_nonSec_DeltaSens_Weighted", "sum"],
-["CSR_nonSec_DeltaSb", "first"],
-["CSR_nonSec_DeltaKb_Low", "first"],
-["CSR_nonSec_DeltaKb_Medium", "first"],
-["CSR_nonSec_DeltaKb_High", "first"],
-["CSR_nonSec_DeltaCharge_Low", "first"],
-["CSR_nonSec_DeltaCharge_Medium", "first"],
-["CSR_nonSec_DeltaCharge_High", "first"],
-["CSR_nonSec_DeltaCharge_MAX", "first"]
+            ["Commodity_DeltaSens", "sum"],
+            ["Commodity_DeltaSens_Weighted", "sum"],
+            ["Commodity_DeltaSb", "first"],
+            ["Commodity_DeltaKb_Low", "first"],
+            ["Commodity_DeltaKb_Medium", "first"],
+            ["Commodity_DeltaKb_High", "first"],
+            ["Commodity_DeltaCharge_Low", "first"],
+            ["Commodity_DeltaCharge_Medium", "first"],
+            ["Commodity_DeltaCharge_High", "first"],
+            ["Commodity_DeltaCharge_MAX", "first"]
                 ],
         
         "hide_zeros": true,

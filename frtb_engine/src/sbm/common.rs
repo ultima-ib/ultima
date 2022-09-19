@@ -212,8 +212,8 @@ where
 
     let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    //
     df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
+        // Safety: since partition, we must have at least one member
         let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
         // validating also bucket is not greater than max index of bucket_rho_diff_rf
         let b_as_idx_plus_1 =

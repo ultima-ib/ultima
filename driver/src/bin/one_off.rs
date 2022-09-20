@@ -52,6 +52,7 @@ fn main() {
     let json =
         fs::read_to_string("./driver/src/request.json").expect("Unable to read request file");
 
+    // TODO invalid json => continue
     let messages: Vec<Message> = serde_json::from_str(&json).unwrap();
     for message in messages{
         info!("{:?}", message);

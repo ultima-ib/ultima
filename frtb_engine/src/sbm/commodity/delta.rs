@@ -69,13 +69,19 @@ fn commodity_delta_charge_distributor(
     );
     let commodity_rho_diff_loc = get_optional_parameter(
         op,
-        format!("commodity_delta_rho_diff_{_suffix}").as_str(),
+        format!("commodity_delta_rho_diff_loc{_suffix}").as_str(),
         &scenario.base_com_rho_basis_diff,
     );
     let commodity_rho_diff_tenor = get_optional_parameter(
         op,
-        format!("commodity_delta_rho_diff_{_suffix}").as_str(),
+        format!("commodity_delta_rho_diff_tenor{_suffix}").as_str(),
         &scenario.base_com_rho_tenor,
+    );
+
+    let rho_overwrite = get_optional_parameter_opt(
+        op,
+        format!("rho_overwrite{_suffix}").as_str(),
+        &Option::<RhoOverwrite>::None,
     );
 
     commodity_delta_charge(
@@ -85,6 +91,7 @@ fn commodity_delta_charge_distributor(
         commodity_rho_diff_tenor,
         scenario.scenario_fn,
         rtrn,
+        rho_overwrite,
     )
 }
 
@@ -95,6 +102,7 @@ fn commodity_delta_charge<F>(
     rho_tenor: f64,
     scenario_fn: F,
     rtrn: ReturnMetric,
+    rho_overwrite: Option<RhoOverwrite>,
 ) -> Expr
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
@@ -102,23 +110,23 @@ where
     apply_multiple(
         move |columns| {
             let df = df![
-                "rcat"=>  &columns[16],
-                "rc" =>   &columns[0],
-                "rf" =>   &columns[1],
-                "loc" =>  &columns[2],
-                "b" =>    &columns[3],
-                "y0" =>   &columns[4],
-                "y025" => &columns[5],
-                "y05" =>  &columns[6],
-                "y1" =>   &columns[7],
-                "y2" =>   &columns[8],
-                "y3" =>   &columns[9],
-                "y5" =>   &columns[10],
-                "y10" =>  &columns[11],
-                "y15" =>  &columns[12],
-                "y20" =>  &columns[13],
-                "y30" =>  &columns[14],
-                "w"   =>  &columns[15],
+                "rcat"=>  &columns[0],
+                "rc" =>   &columns[1],
+                "rf" =>   &columns[2],
+                "loc" =>  &columns[3],
+                "b" =>    &columns[4],
+                "y0" =>   &columns[5],
+                "y025" => &columns[6],
+                "y05" =>  &columns[7],
+                "y1" =>   &columns[8],
+                "y2" =>   &columns[9],
+                "y3" =>   &columns[10],
+                "y5" =>   &columns[11],
+                "y10" =>  &columns[12],
+                "y15" =>  &columns[13],
+                "y20" =>  &columns[14],
+                "y30" =>  &columns[15],
+                "w"   =>  &columns[16],
             ]?;
 
             let df = df
@@ -130,17 +138,17 @@ where
                 )
                 .groupby([col("b"), col("rf"), col("loc")])
                 .agg([
-                    (col("y0") * col("w")).sum(),
-                    (col("y025") * col("w")).sum(),
-                    (col("y05") * col("w")).sum(),
-                    (col("y1") * col("w")).sum(),
-                    (col("y2") * col("w")).sum(),
-                    (col("y3") * col("w")).sum(),
-                    (col("y5") * col("w")).sum(),
-                    (col("y10") * col("w")).sum(),
-                    (col("y15") * col("w")).sum(),
-                    (col("y20") * col("w")).sum(),
-                    (col("y30") * col("w")).sum(),
+                    (col("y0") * col("w").arr().get(0)).sum(),
+                    (col("y025") * col("w").arr().get(1)).sum(),
+                    (col("y05") * col("w").arr().get(2)).sum(),
+                    (col("y1") * col("w").arr().get(3)).sum(),
+                    (col("y2") * col("w").arr().get(4)).sum(),
+                    (col("y3") * col("w").arr().get(5)).sum(),
+                    (col("y5") * col("w").arr().get(6)).sum(),
+                    (col("y10") * col("w").arr().get(7)).sum(),
+                    (col("y15") * col("w").arr().get(8)).sum(),
+                    (col("y20") * col("w").arr().get(9)).sum(),
+                    (col("y30") * col("w").arr().get(10)).sum(),
                 ])
                 // No need to fill null here
                 .collect()?;
@@ -176,6 +184,7 @@ where
                 "weighted_sens",
                 scenario_fn,
                 None,
+                &rho_overwrite
             )?;
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
@@ -199,6 +208,7 @@ where
             across_bucket_agg(kbs, sbs, &com_gamma, res_len, SBMChargeType::DeltaVega)
         },
         &[
+            col("RiskCategory"),
             col("RiskClass"),
             col("RiskFactor"),
             col("CommodityLocation"),
@@ -214,8 +224,7 @@ where
             col("Sensitivity_15Y"),
             col("Sensitivity_20Y"),
             col("Sensitivity_30Y"),
-            col("SensWeights").arr().get(0),
-            col("RiskCategory"),
+            col("SensWeights"),
         ],
         GetOutput::from_type(DataType::Float64),
     )

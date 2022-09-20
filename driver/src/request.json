@@ -3,28 +3,30 @@
     "method": "POST", 
     "params": {
 
-        "filters": [],
+        "filters": [{"Eq":[["RiskClass", "Commodity"]]}],
 
-        "groupby": ["COB", "RiskClass", "Desk", "BucketBCBS"],
+        "groupby": ["COB", "RiskClass", "Desk"],
         
         "measures": [
             ["Commodity_DeltaSens", "sum"],
             ["Commodity_DeltaSens_Weighted", "sum"],
-            ["Commodity_DeltaSb", "first"],
-            ["Commodity_DeltaKb_Low", "first"],
-            ["Commodity_DeltaKb_Medium", "first"],
-            ["Commodity_DeltaKb_High", "first"],
-            ["Commodity_DeltaCharge_Low", "first"],
-            ["Commodity_DeltaCharge_Medium", "first"],
-            ["Commodity_DeltaCharge_High", "first"],
-            ["Commodity_DeltaCharge_MAX", "first"]
+            ["Commodity_DeltaSb", "first"]
                 ],
+
+        "overwrites": [{   "column": "SensWeights",
+                "value": "[0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37,0.37]",
+                "when": [{"Eq":[["RiskClass", "Commodity"]]},
+                          {"Eq":[["RiskCategory", "Delta"]]},
+                          {"Eq":[["Sector", "CarbonCertificates"]]}]
+          }],
         
         "hide_zeros": true,
+        
         "calc_params": {
             "jurisdiction": "BCBS",
             "apply_fx_curv_div": "true",
-            "drc_offset": "false"
+            "drc_offset": "false",
+            "rho_overwrite": "{\"rhotype\":\"Tenor\",\"column\":\"Sector\",\"col_equals\":\"CarbonCertificates\",\"value\":0.996,\"oneway\":true}"            
         }
         
     }

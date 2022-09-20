@@ -219,6 +219,7 @@ where
                 "weighted_sens",
                 scenario_fn,
                 special_bucket,
+                &None
             )?;
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();

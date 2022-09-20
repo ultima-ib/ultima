@@ -11,6 +11,8 @@ use rayon::{
 use std::mem::MaybeUninit as MU;
 use std::sync::Mutex;
 
+use crate::prelude::{RhoOverwrite, RhoType};
+
 /// Sum of all delta sensis, from spot to 30Y tenor
 /// In practice should be used only with filter on RiskClass
 /// as combining FX and IR sensis is meaningless
@@ -200,6 +202,7 @@ pub(crate) fn all_kbs_sbs_onsq<F>(
     risk_col: &str,
     scenario_fn: F,
     special_bucket: Option<usize>,
+    rho_overwrite: &Option<RhoOverwrite>,
 ) -> Result<Vec<(f64, f64)>>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy,
@@ -245,6 +248,7 @@ where
                 risk_col,
                 scenario_fn,
                 is_special_bucket,
+                rho_overwrite
             );
             let mut res = arc_mtx.lock().unwrap();
             res[b_as_idx_plus_1 - 1] = a;
@@ -259,7 +263,7 @@ where
     reskbs_sbs
 }
 
-/// Commodity and CSR Sec CTO have potentially unlimited number of locations/tranches.
+/// Commodity and CSR Sec Non CTP have potentially unlimited number of locations/tranches.
 ///
 /// Hence we can't go with any of the optimizations. Have to be computed in O(N^2)
 #[allow(clippy::too_many_arguments)]
@@ -274,6 +278,7 @@ fn bucket_kb_sb_onsq<F>(
     risk_col: &str,
     scenario_fn: F,
     is_special_bucket: bool,
+    rho_overwrite: &Option<RhoOverwrite>,
 ) -> Result<(f64, f64)>
 where
     F: Fn(f64) -> f64 + Sync + Send,
@@ -290,6 +295,9 @@ where
     let tenor_chunked = df[tenor_col].utf8()?;
     let name_chunked = df[name_col].utf8()?;
     let basis_chunked = df[basis_col].utf8()?;
+    let special_col = if let Some(sp_rho) = rho_overwrite{
+        Some((df.column(&sp_rho.column)?.utf8()?, &sp_rho.col_equals, sp_rho.oneway, sp_rho.value, sp_rho.rhotype))
+    } else {None};
 
     let mut res = 0.;
     let it = tenor_chunked
@@ -308,11 +316,33 @@ where
                 .zip(basis_chunked.into_iter())
                 .zip(risk_chunked.into_iter());
 
-            for (((tenor2, name2), basis2), risk2) in it2.skip(i + 1) {
+            for (j, (((tenor2, name2), basis2), risk2)) in it2.enumerate().skip(i + 1) {
                 if let Some(risk2) = risk2 {
                     let mut rho = 1.;
                     if tenor != tenor2 {
-                        rho *= rho_diff_tenor
+                        let _rho_diff_tenor = if let Some(sp_col) = &special_col{
+                            match sp_col.4 {
+                                RhoType::Tenor => {
+                                    let a = sp_col.0.get(i);
+                                    let b = sp_col.0.get(j);
+                                    if sp_col.2 {
+                                        if (a == Some(sp_col.1.as_str())) | (b == Some(sp_col.1.as_str())) {
+                                            sp_col.3
+                                        } else {
+                                            rho_diff_tenor
+                                        }
+                                    } else {
+                                        if (a == Some(sp_col.1.as_str())) & (b == Some(sp_col.1.as_str())) {
+                                            sp_col.3
+                                        } else {
+                                            rho_diff_tenor
+                                        }
+                                    }
+                                    },
+                                _ =>rho_diff_tenor,
+                            }
+                        } else { rho_diff_tenor };
+                        rho *= _rho_diff_tenor;
                     }
                     if name != name2 {
                         rho *= rho_diff_name
@@ -325,9 +355,9 @@ where
             }
         }
     }
-
     Ok((res.max(0.).sqrt(), sb))
 }
+
 
 /// 21.93
 pub fn option_maturity_rho() -> Array2<f64> {
@@ -457,7 +487,7 @@ where
         _ => (),
     };
 
-    let rho_name_bucket = unsafe { rho_diff_rf_bucket.get_unchecked(bucket_id - 1) };
+    let rho_name_bucket = rho_diff_rf_bucket.get(bucket_id - 1).unwrap_or(&0.);
     let rho_case1 = scenario_fn(*rho_name_bucket); //Diff name, same type
     let rho_case2 = scenario_fn(rho_diff_rft); //Diff type, same name
     let rho_case3 = scenario_fn(rho_name_bucket * rho_diff_rft); //Diff name, diff type
@@ -613,9 +643,8 @@ where
 
     let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    //
     df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
-        // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
+        // Safety: since we are in partition, bucket_df["b"] has at least one element
         let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
         let b_as_idx_plus_1 =
             match b_as_idx_plus_1 {

@@ -78,10 +78,9 @@ fn commodity_delta_charge_distributor(
         &scenario.base_com_rho_tenor,
     );
 
-    let rho_overwrite = get_optional_parameter_opt(
+    let rho_overwrite: Option<RhoOverwrite> = get_optional_parameter_opt(
         op,
         format!("rho_overwrite{_suffix}").as_str(),
-        &Option::<RhoOverwrite>::None,
     );
 
     commodity_delta_charge(

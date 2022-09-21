@@ -75,7 +75,6 @@ pub(crate) fn get_optional_parameter_array<'a>(
 pub(crate) fn get_optional_parameter_opt<'a, T>(
     op: &'a OCP,
     param: &str,
-    default: &Option<T>,
 ) -> Option<T>
 where T: Deserialize<'a> {
     op.as_ref()

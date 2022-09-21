@@ -160,7 +160,7 @@ fn girr_vega_charge(
             };
 
             let part = df.partition_by(["b"])?;
-            let res_buckets_kbs_sbs: Result<Vec<((&str, f64), f64)>> = part
+            let res_buckets_kbs_sbs: PolarsResult<Vec<((&str, f64), f64)>> = part
                 .par_iter()
                 .map(|bdf| girr_vega_bucket_kb_sb(bdf, &girr_vega_opt_rho))
                 .collect();
@@ -226,7 +226,7 @@ fn girr_vega_charge(
 fn girr_vega_bucket_kb_sb<'a>(
     bucket_df: &'a DataFrame,
     girr_vega_rho: &Array2<f64>,
-) -> Result<((&'a str, f64), f64)> {
+) -> PolarsResult<((&'a str, f64), f64)> {
     let bucket = unsafe { bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or("Default") };
 
     // Extracting yield curves
@@ -278,7 +278,7 @@ pub(crate) fn girr_underlying_maturity_arr(
     df: &DataFrame,
     mat: &str,
     _: &str,
-) -> Result<Array1<f64>> {
+) -> PolarsResult<Array1<f64>> {
     let mask = df["um"].equal(mat)?;
     Ok(df
         .filter(&mask)?

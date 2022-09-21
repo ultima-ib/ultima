@@ -20,30 +20,6 @@ pub trait DataSet {
     fn frame(&self) -> &DataFrame;
     fn measures(&self) -> &MM;
     fn build(conf: DataSourceConfig) -> Self;
-
-    //fn columns_owned(&self, mut buf: Vec<String>) -> Vec<String> {
-    //    let cn = self.frame().get_column_names_owned();
-    //    for i in cn {
-    //        buf.push(i)
-    //    }
-    //    
-    //    buf.sort_unstable();
-    //    buf.dedup();
-    //    buf
-    //}
-//
-    /////Numeric columns
-    //fn numeric_columns_owned(&self, mut buf: Vec<String>) -> Vec<String> {
-    //    for c in self.frame().get_columns() {
-    //        match is_numeric(c) {
-    //            true => buf.push(c.name().to_string()),
-    //            false => continue,
-    //        }
-    //    }
-    //    buf.sort_unstable();
-    //    buf.dedup();
-    //    buf
-    //}
     // These methods could be overwritten.
     /// Prepare runs ONCE before server starts.
     /// Any computations which are common to most queries could go in here.

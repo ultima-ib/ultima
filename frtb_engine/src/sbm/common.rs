@@ -17,36 +17,29 @@ use crate::prelude::{RhoOverwrite, RhoType};
 /// In practice should be used only with filter on RiskClass
 /// as combining FX and IR sensis is meaningless
 pub fn total_delta_sens() -> Expr {
-    // When adding Exprs NULLs have to be filled
-    // Otherwise returns NULL
-    (col("SensitivitySpot").fill_null(0.)
-        + col("Sensitivity_025Y").fill_null(0.)
-        + col("Sensitivity_05Y").fill_null(0.)
-        + col("Sensitivity_1Y").fill_null(0.)
-        + col("Sensitivity_2Y").fill_null(0.)
-        + col("Sensitivity_3Y").fill_null(0.)
-        + col("Sensitivity_5Y").fill_null(0.)
-        + col("Sensitivity_10Y").fill_null(0.)
-        + col("Sensitivity_15Y").fill_null(0.)
-        + col("Sensitivity_20Y").fill_null(0.)
-        + col("Sensitivity_30Y").fill_null(0.))
-    // To be removed after this fixed is published on crates
-    //https://github.com/pola-rs/polars/issues/4326
-    .cast(DataType::Float64)
+    // When adding Exprs NULLs have to be filled Otherwise returns NULL
+    col("SensitivitySpot").fill_null(0.)
+    + col("Sensitivity_025Y").fill_null(0.)
+    + col("Sensitivity_05Y").fill_null(0.)
+    + col("Sensitivity_1Y").fill_null(0.)
+    + col("Sensitivity_2Y").fill_null(0.)
+    + col("Sensitivity_3Y").fill_null(0.)
+    + col("Sensitivity_5Y").fill_null(0.)
+    + col("Sensitivity_10Y").fill_null(0.)
+    + col("Sensitivity_15Y").fill_null(0.)
+    + col("Sensitivity_20Y").fill_null(0.)
+    + col("Sensitivity_30Y").fill_null(0.)
 }
 
 /// CSR, Vega
 pub fn total_vega_curv_sens() -> Expr {
     // When adding Exprs NULLs have to be filled
     // Otherwise returns NULL
-    (col("Sensitivity_05Y").fill_null(0.)
-        + col("Sensitivity_1Y").fill_null(0.)
-        + col("Sensitivity_3Y").fill_null(0.)
-        + col("Sensitivity_5Y").fill_null(0.)
-        + col("Sensitivity_10Y").fill_null(0.))
-    // To be removed after this fixed is published on crates
-    //https://github.com/pola-rs/polars/issues/4326
-    .cast(DataType::Float64)
+    col("Sensitivity_05Y").fill_null(0.)
+    + col("Sensitivity_1Y").fill_null(0.)
+    + col("Sensitivity_3Y").fill_null(0.)
+    + col("Sensitivity_5Y").fill_null(0.)
+    + col("Sensitivity_10Y").fill_null(0.)
 }
 
 /// Filtering risk on rcat and risk class
@@ -125,7 +118,7 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(
     gamma: &Array2<f64>,
     res_len: usize,
     sbm_type: SBMChargeType,
-) -> Result<Series> {
+) -> PolarsResult<Series> {
     let kbs_arr = Array1::from_iter(kbs);
     let sbs_arr = Array1::from_iter(sbs);
 
@@ -203,12 +196,12 @@ pub(crate) fn all_kbs_sbs_onsq<F>(
     scenario_fn: F,
     special_bucket: Option<usize>,
     rho_overwrite: &Option<RhoOverwrite>,
-) -> Result<Vec<(f64, f64)>>
+) -> PolarsResult<Vec<(f64, f64)>>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy,
 {
     let n_buckets = bucket_rho_diff_rf.len();
-    let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
+    let mut reskbs_sbs: Vec<PolarsResult<(f64, f64)>> = Vec::with_capacity(n_buckets);
     for _ in 0..n_buckets {
         reskbs_sbs.push(Ok((0., 0.)))
     }
@@ -254,7 +247,7 @@ where
             res[b_as_idx_plus_1 - 1] = a;
         }
     });
-    let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
+    let reskbs_sbs: PolarsResult<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
         .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
         .into_inner()
         .map_err(|_| PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
@@ -279,7 +272,7 @@ fn bucket_kb_sb_onsq<F>(
     scenario_fn: F,
     is_special_bucket: bool,
     rho_overwrite: &Option<RhoOverwrite>,
-) -> Result<(f64, f64)>
+) -> PolarsResult<(f64, f64)>
 where
     F: Fn(f64) -> f64 + Sync + Send,
 {
@@ -394,11 +387,11 @@ pub(crate) fn all_kbs_sbs_two_types<F>(
     special_bucket: Option<usize>,
     cols_by_tenor: &[(&str, &str)],
     dtenor: Option<f64>,
-) -> Result<Vec<(f64, f64)>>
+) -> PolarsResult<Vec<(f64, f64)>>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy,
 {
-    let mut reskbs_sbs: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
+    let mut reskbs_sbs: Vec<PolarsResult<(f64, f64)>> = Vec::with_capacity(n_buckets);
     for _ in 0..n_buckets {
         reskbs_sbs.push(Ok((0., 0.)))
     }
@@ -439,7 +432,7 @@ where
                 arc_mtx.lock().unwrap()[_idx] = buck_kb_sb;
             }
         });
-    let reskbs_sbs: Result<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
+    let reskbs_sbs: PolarsResult<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
         .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
         .into_inner()
         .map_err(|_| PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
@@ -461,7 +454,7 @@ fn bucket_kb_sb_two_types<F>(
     scenario_fn: F,
     cols_by_tenor: &[(&str, &str)],
     dtenor: Option<f64>,
-) -> Result<(f64, f64)>
+) -> PolarsResult<(f64, f64)>
 where
     F: Fn(f64) -> f64 + Sync + Send,
 {
@@ -610,7 +603,7 @@ pub(crate) fn var_covar_sum_fn(
 /// Rho represents rho between risk factors where name/rf is different
 ///
 /// Returns: (sum(for Sb), formula1(Kb) )
-pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64) -> Result<(f64, f64)> {
+pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64) -> PolarsResult<(f64, f64)> {
     let mut sum_of_sq = 0.;
     let mut sum = 0.;
     srs.f64()?.into_no_null_iter().for_each(|x| {
@@ -630,13 +623,13 @@ pub(crate) fn all_kbs_sbs_single_type<F>(
     scenario_fn: F,
     columns: &[&'static str],
     special_bucket: Option<&'static str>,
-) -> Result<Vec<(f64, f64)>>
+) -> PolarsResult<Vec<(f64, f64)>>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy,
 {
     let n_buckets = rho_diff_curve.len();
 
-    let mut reskbs_sbs: Vec<Result<((String, f64), f64)>> = Vec::with_capacity(n_buckets);
+    let mut reskbs_sbs: Vec<PolarsResult<((String, f64), f64)>> = Vec::with_capacity(n_buckets);
     for _ in 0..n_buckets {
         reskbs_sbs.push(Ok((("".to_string(), 0.), 0.)))
     }
@@ -680,7 +673,7 @@ where
         }
     });
 
-    let reskbs_sbs: Result<Vec<((String, f64), f64)>> = Arc::try_unwrap(arc_mtx)
+    let reskbs_sbs: PolarsResult<Vec<((String, f64), f64)>> = Arc::try_unwrap(arc_mtx)
         .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
         .into_inner()
         .map_err(|_| PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
@@ -704,7 +697,7 @@ pub(crate) fn bucket_kb_sb_single_type<F>(
     columns: &[&'static str],
     girr: Option<(f64, f64)>,
     special_bucket: Option<&'static str>,
-) -> Result<((String, f64), f64)>
+) -> PolarsResult<((String, f64), f64)>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy,
 {

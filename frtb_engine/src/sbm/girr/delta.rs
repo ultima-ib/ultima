@@ -247,7 +247,7 @@ where
 
             let part = df.partition_by(["b"])?;
 
-            let res_buckets_kbs_sbs: Result<Vec<((String, f64), f64)>> = part
+            let res_buckets_kbs_sbs: PolarsResult<Vec<((String, f64), f64)>> = part
                 .into_par_iter()
                 .map(|bdf| {
                     bucket_kb_sb_single_type(

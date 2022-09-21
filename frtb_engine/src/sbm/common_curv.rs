@@ -63,7 +63,7 @@ pub(crate) fn cvr_down() -> Expr {
 /// TODO remove cast
 /// https://github.com/pola-rs/polars/issues/4326
 pub(crate) fn spot_sens_curv_weighted() -> Expr {
-    col("SensitivitySpot").fill_null(0.).cast(DataType::Float64) * col("CurvatureRiskWeight")
+    col("SensitivitySpot").fill_null(0.) * col("CurvatureRiskWeight")
 }
 /// This is for Risk Classes where only Spot Delta constitutes risk, ie FX, Eq
 pub(crate) fn cvr_up_spot() -> Expr {
@@ -135,7 +135,7 @@ pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
 /// For multiple buckets at the same time.
 ///
 /// Used for FX, Girr curvature.
-pub(crate) fn kb_plus_minus_simple(cvr_up_or_down: &Series) -> Result<Vec<f64>> {
+pub(crate) fn kb_plus_minus_simple(cvr_up_or_down: &Series) -> PolarsResult<Vec<f64>> {
     Ok(cvr_up_or_down
         .f64()?
         .into_iter()
@@ -152,10 +152,10 @@ pub(crate) fn curvature_kb_plus_minus(
     //n_buckets: usize,
     bucket_rho: &[f64],
     special_bucket: Option<usize>,
-) -> Result<(Vec<(f64, f64)>, Vec<(f64, f64)>)> {
+) -> PolarsResult<(Vec<(f64, f64)>, Vec<(f64, f64)>)> {
     let n_buckets = bucket_rho.len();
 
-    let mut res_kb_cvr: Vec<(Result<(f64, f64)>, Result<(f64, f64)>)> =
+    let mut res_kb_cvr: Vec<(PolarsResult<(f64, f64)>, PolarsResult<(f64, f64)>)> =
         Vec::with_capacity(n_buckets);
     //let mut res_kbminus_cvrdown: Vec<Result<(f64, f64)>> = Vec::with_capacity(n_buckets);
     for _ in 0..n_buckets {
@@ -195,7 +195,7 @@ pub(crate) fn curvature_kb_plus_minus(
         }
     });
     //Result<Vec<(f64, f64)>>
-    let (res_kbp_cvrup, res_kbm_cvrdown): (Vec<Result<(f64, f64)>>, Vec<Result<(f64, f64)>>) =
+    let (res_kbp_cvrup, res_kbm_cvrdown): (Vec<PolarsResult<(f64, f64)>>, Vec<PolarsResult<(f64, f64)>>) =
         Arc::try_unwrap(arc_mtx_kbpm_cvr)
             .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
             .into_inner()
@@ -203,8 +203,8 @@ pub(crate) fn curvature_kb_plus_minus(
             .into_iter()
             .unzip();
 
-    let res_kbp_cvrup: Result<Vec<(f64, f64)>> = res_kbp_cvrup.into_iter().collect();
-    let res_kbm_cvrdown: Result<Vec<(f64, f64)>> = res_kbm_cvrdown.into_iter().collect();
+    let res_kbp_cvrup: PolarsResult<Vec<(f64, f64)>> = res_kbp_cvrup.into_iter().collect();
+    let res_kbm_cvrdown: PolarsResult<Vec<(f64, f64)>> = res_kbm_cvrdown.into_iter().collect();
     Ok((res_kbp_cvrup?, res_kbm_cvrdown?))
 }
 
@@ -214,7 +214,7 @@ pub(crate) fn kb_plus_minus(
     cvr_up_or_down: &Series,
     rho: f64,
     special_bucket: bool,
-) -> Result<(f64, f64)> {
+) -> PolarsResult<(f64, f64)> {
     // If special bucket, we simply sum positive values for Kb puls/minus
     if special_bucket {
         let sum_positive: f64 = cvr_up_or_down
@@ -252,7 +252,7 @@ pub(crate) fn kbs_sbs_curvature<I>(
     kb_minus: Vec<f64>,
     cvr_up: I,
     cvr_down: I,
-) -> Result<(Vec<f64>, Vec<f64>)>
+) -> PolarsResult<(Vec<f64>, Vec<f64>)>
 where
     I: Iterator<Item = Option<f64>>,
 {

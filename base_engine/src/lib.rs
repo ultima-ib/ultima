@@ -18,7 +18,7 @@ pub use crate::prelude::*;
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
-pub fn execute(req: AggregationRequest, data: &impl DataSet) -> Result<DataFrame> {
+pub fn execute(req: AggregationRequest, data: &impl DataSet) -> PolarsResult<DataFrame> {
     // Assuming Front End knows which columns can be in groupby, agg etc
 
     // Step 0.1
@@ -169,7 +169,7 @@ pub static BASE_CALCS: Lazy<HashMap<&'static str, fn(Expr, &str) -> (Expr, Strin
             ("min", min),
             ("max", max),
             ("mean", mean),
-            ("var", var),
+            //("var", var),
             ("quantile95low", quantile_95_lower),
             ("first", first),
             //("list", list), <-> not needed
@@ -194,10 +194,10 @@ fn mean(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_mean");
     (c.mean().alias(alias.as_ref()), alias)
 }
-fn var(c: Expr, newname: &str) -> (Expr, String) {
-    let alias = format!("{newname}_var");
-    (c.var().alias(alias.as_ref()), alias)
-}
+//fn var(c: Expr, newname: &str) -> (Expr, String) {
+//    let alias = format!("{newname}_var");
+//    (c.var().alias(alias.as_ref()), alias)
+//}
 fn quantile_95_lower(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_quantile95lower");
     (

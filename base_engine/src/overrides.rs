@@ -45,7 +45,7 @@ impl Overwrite {
 
     }
 
-    fn string_to_lit(&self, dt: &DataType) -> Result<Expr> {
+    fn string_to_lit(&self, dt: &DataType) -> PolarsResult<Expr> {
         match dt {
             // RW column is a list for example
             DataType::List(x) => {
@@ -91,7 +91,7 @@ impl Overwrite {
         }
     }
     
-    pub fn df_with_overwrite(&self, df: DataFrame) -> Result<DataFrame> {
+    pub fn df_with_overwrite(&self, df: DataFrame) -> PolarsResult<DataFrame> {
         let dt = df.column(&self.column)?.dtype();
         let lt = self.string_to_lit(dt)?;
         let new_col_as_expr = self.override_builder(lt);

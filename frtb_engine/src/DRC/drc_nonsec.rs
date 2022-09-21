@@ -66,7 +66,7 @@ fn drc_nonsec_charge_calculator(
             "s"    => &columns[6],
         ]?;
         // First, sum over bucket, obligor and seniority
-        let mut lf = df
+        df = df
             .lazy()
             .filter(
                 col("rc").eq(lit("DRC_NonSec"))
@@ -75,7 +75,11 @@ fn drc_nonsec_charge_calculator(
             .agg([
                 (col("jtd")*col("s")).sum().alias("scaled_jtd"),
                 col("w").first(),
-            ]);
+            ]).collect()?;
+
+        let schema = df.schema();
+
+        let mut lf = df.lazy();
 
         // Do you want to aggregate as per  22.19?
         // Note, the algorithm is O(N), but we loose Negative GrossJTD position changes, 
@@ -114,7 +118,8 @@ fn drc_nonsec_charge_calculator(
                 }
                 df.with_column(Series::from_vec("scaled_jtd", res))?;
                 Ok(df)
-            });
+            },
+            Arc::new(schema));
         };
         // Split Scaled GrossJTD into NetLong and NetShort
         df = lf.collect()?;

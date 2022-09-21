@@ -22,7 +22,7 @@ pub fn execute(req: AggregationRequest, data: &impl DataSet) -> Result<DataFrame
     // Assuming Front End knows which columns can be in groupby, agg etc
 
     // Step 0.1
-    let f1 = &data.frames()[0];
+    let f1 = data.frame();
     //let tmp = f1.clone().lazy().filter(col("RiskClass").eq(lit("DRC_SecNonCTP"))).collect()?;
     //dbg!(&tmp["SensWeights"]);
     //let f1_cols = f1.get_column_names();

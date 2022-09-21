@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use log::warn;
 use polars::prelude::*;
+use polars::functions::diag_concat_df;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{dataset::*, derive_basic_measures_vec, Measure};
@@ -62,7 +64,7 @@ pub enum DataSourceConfig {
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
-    pub fn build<'a>(self) -> (Vec<DataFrame>, Vec<Measure<'a>>, HashMap<String, String>) {
+    pub fn build<'a>(self) -> (DataFrame, Vec<Measure<'a>>, HashMap<String, String>) {
         match self {
             DataSourceConfig::CSV {
                 file_paths: files,
@@ -82,11 +84,16 @@ impl DataSourceConfig {
 
                 let f64_cols: Vec<String> = f1_numeric_cols.unwrap_or_default();
 
-                let mut frames = Vec::with_capacity(files.len());
+                //let mut frames = Vec::with_capacity(files.len());
 
-                for f in files {
-                    frames.push(path_to_df(f.as_str(), &str_cols, &f64_cols))
-                }
+                //for f in files {
+                //    frames.push(path_to_df(f.as_str(), &str_cols, &f64_cols))
+                //}
+
+                let mut concatinated_frame = diag_concat_df(
+                    &files.iter().map(|f|path_to_df(f, &str_cols, &f64_cols)).collect::<Vec<DataFrame>>()
+                ).expect("Failed to concatinate provided frames"); // <- Ok to panic upon server startup
+
 
                 let mut tmp = f2a.clone();
                 tmp.extend(a2h.clone());
@@ -123,34 +130,29 @@ impl DataSourceConfig {
                     df_attr
                         .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
                         .unwrap();
-                    for df in &mut frames {
-                        df.try_apply(i, |s| s.cast(&DataType::Categorical(None)))
-                            .unwrap();
-                    }
+                    concatinated_frame.try_apply(i, |s| s.cast(&DataType::Categorical(None)))
+                            .expect("Could not parse into Categorical");
                 }
 
                 // join with hms if a2h was provided
                 if !a2h.is_empty() {
                     df_attr = df_attr
                         .join(&df_hms, a2h.clone(), a2h.clone(), JoinType::Left, None)
-                        .unwrap();
+                        .expect("Could not attributes to hms");
                 }
-                for df in &mut frames {
-                    *df = df
+                concatinated_frame = concatinated_frame
                         .join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None)
-                        .unwrap();
-                }
+                        .expect("Could not join files with attributes");
 
                 //let mut measures = vec![];
                 let measures = match ms {
-                    //TODO Check here if each of f1_m is present in the df1
-                    Some(measures) => derive_basic_measures_vec(measures),
+                    Some(measures) =>{ 
+                        // Checking if each measure is present in DF
+                        measures.iter().for_each(|col|{concatinated_frame.column(col).expect(&format!("Column {} not found", col));});
+                        derive_basic_measures_vec(measures)},
                     // If not provided return all numeric columns
                     None => {
-                        let mut num_cols = vec![];
-                        frames
-                            .iter()
-                            .for_each(|df| num_cols.extend(numeric_columns(df)));
+                        let num_cols = numeric_columns(&concatinated_frame);
                         derive_basic_measures_vec(num_cols)
                     }
                 };
@@ -161,7 +163,7 @@ impl DataSourceConfig {
                     HashMap::default()
                 };
 
-                (frames, measures, build_params)
+                (concatinated_frame, measures, build_params)
             }
         }
     }

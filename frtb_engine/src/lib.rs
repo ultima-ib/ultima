@@ -24,24 +24,24 @@ pub trait FRTBDataSetT {
 }
 #[derive(Debug)]
 pub struct FRTBDataSet<'a> {
-    frames: Vec<DataFrame>,
-    measures: MM<'a>,
-    build_params: HashMap<String, String>,
+    pub frame: DataFrame,
+    pub measures: MM<'a>,
+    pub build_params: HashMap<String, String>,
 }
 impl<'a> FRTBDataSet<'a> {
+    /// Helper function which appends bespoke measures to self.measures
     fn with_measures(&mut self, bespoke: Vec<Measure<'static>>)
     where
         Self: Sized,
     {
         let self_measures = &mut self.measures;
         self_measures.extend(bespoke.into_iter().map(|m| (m.name.clone(), m)));
-        //self
     }
 }
 
 impl<'a> DataSet for FRTBDataSet<'a> {
-    fn frames(&self) -> &Vec<DataFrame> {
-        &self.frames
+    fn frame(&self) -> &DataFrame {
+        &self.frame
     }
     fn measures(&self) -> &MM {
         &self.measures
@@ -51,7 +51,7 @@ impl<'a> DataSet for FRTBDataSet<'a> {
         let (frames, measure_cols, build_params) = conf.build();
         let mm: MM = derive_measure_map(measure_cols);
         let mut res = Self {
-            frames,
+            frame: frames,
             measures: mm,
             build_params,
         };
@@ -62,7 +62,7 @@ impl<'a> DataSet for FRTBDataSet<'a> {
     /// Useful when we don't want to build columns at each request
     /// For example, we don't want to map RiskWeights at each request
     fn prepare(&mut self) {
-        let f1 = &mut self.frames[0];
+        let f1 = &mut self.frame;
 
         if f1.height() != 0 {
             //First, identify buckets

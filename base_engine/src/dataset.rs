@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use polars::prelude::*;
+use serde::{Serializer, Serialize, ser::SerializeMap};
 
 use crate::{derive_measure_map, DataSourceConfig, MM};
 
 /// This is the default Dataset
 /// Usually a client/user would overwrite it with their own DataSet
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct DataSetBase<'a> {
     pub frame: DataFrame,
     pub measures: MM<'a>,
@@ -16,10 +17,10 @@ pub struct DataSetBase<'a> {
 /// The main Trait
 /// 
 /// If you have your own DataSet, implement this
-pub trait DataSet {
+pub trait DataSet: Send + Sync {
     fn frame(&self) -> &DataFrame;
     fn measures(&self) -> &MM;
-    fn build(conf: DataSourceConfig) -> Self;
+    fn build(conf: DataSourceConfig) -> Self where Self: Sized;
     // These methods could be overwritten.
     /// Prepare runs ONCE before server starts.
     /// Any computations which are common to most queries could go in here.
@@ -61,20 +62,53 @@ impl<'a> DataSet for DataSetBase<'a> {
 pub(crate) fn numeric_columns(df: &DataFrame) -> Vec<String> {
     let mut res = vec![];
     for c in df.get_columns() {
-        if is_numeric(c) {
+        if c.dtype().is_numeric() {
             res.push(c.name().to_string())
         }
     }
     res
 }
 
-pub fn is_numeric(s: &Series) -> bool {
-    !matches!(
-        s.dtype(),
-        DataType::Utf8
-            | DataType::List(_)
-            | DataType::Boolean
-            | DataType::Null
-            | DataType::Categorical(_)
-    )
+//pub(crate) fn utf8_columns(df: &DataFrame) -> Vec<String> {
+//    let mut res = vec![];
+//    for c in df.get_columns() {
+//        if let DataType::Utf8 = c.dtype() {
+//            res.push(c.name().to_string())
+//        }
+//    }
+//    res
+//}
+
+pub(crate) fn utf8_columns_unique_vals(df: &DataFrame) -> PolarsResult<HashMap<String, Vec<Option<String>>>> {
+    let mut res = HashMap::new();
+    for c in df.get_columns() {
+        if let DataType::Utf8 = c.dtype() {
+            res.insert(c.name().to_string(),
+             c.unique()?.utf8()?.into_iter()
+                .map(|x|
+                    x.map(|y|y.to_string())).collect::<Vec<Option<String>>>());
+        }
+    }
+    Ok(res)
+}
+
+impl Serialize for dyn DataSet {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let df = self.frame();
+        let measures = self.measures()
+            .iter()
+            .map(|(x, m)| (x, m.aggregation))
+            .collect::<HashMap<&String, Option<&str>>>();
+
+        let col_map = utf8_columns_unique_vals(df)
+            .map_err(|_|serde::ser::Error::custom("Could not serialize column"))?;
+
+        let mut seq = serializer.serialize_map(Some(2))?;
+        seq.serialize_entry("fields", &col_map)?;
+        seq.serialize_entry("measures", &measures)?;
+        seq.end()
+    }
 }

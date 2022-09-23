@@ -2,12 +2,14 @@
 //! This to be conversted into server
 
 use base_engine::prelude::*;
+use driver::api::acquire;
 
-use std::fs;
+use std::{fs, sync::Arc};
+//use std::sync::{Mutex, Arc};
 //use std::sync::Arc;
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
-use log::info;
+use log::{info, error};
 #[cfg(not(target_os = "linux"))]
 use mimalloc::MiMalloc;
 use serde::{Deserialize, Serialize};
@@ -21,36 +23,31 @@ static ALLOC: Jemalloc = Jemalloc;
 #[cfg(not(target_os = "linux"))]
 static ALLOC: MiMalloc = MiMalloc;
 
+// TODO is there a way to get rid of type definition here? In order to allow user to
+// use bin without any need to modify the script? May be via features?
 #[cfg(feature = "FRTB")]
-type DataSetType = frtb_engine::FRTBDataSet<'static>;
+pub type DataSetType = frtb_engine::FRTBDataSet<'static>;
 #[cfg(not(feature = "FRTB"))]
-type DataSetType = base_engine::DataSetBase<'static>;
+pub type DataSetType = base_engine::DataSetBase<'static>;
 
-//to be passed as a command line argument
+// TODO to be passed as a command line argument
 const SETUP: &str = r"frtb_engine/tests/data/datasource_config.toml";
+const REQUEST: &str = r"./driver/src/request.json";
 
 fn main() {
     // Read .env
+    // TODO in production use env variables, not .env
     dotenv::dotenv().ok();
     // Allow pretty logs
     pretty_env_logger::init();
-    // Read Config
-    let conf =
-        read_toml2::<DataSourceConfig>(SETUP).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
-    info!("Data SetUp: {:?}", conf);
 
-    // Build data
-    let mut data = DataSetType::build(conf);
-    // TODO
-    // data.validate();
-    // Pre build some columns, which you wish to store in memory alongside the original data
-    let now = Instant::now();
-    data.prepare();
-    let elapsed = now.elapsed();
-    println!("Time to Prepare DF: {:.6?}", elapsed);
+    // Build Data
+    let data = acquire::data::<DataSetType>(SETUP);
+
+    let x = Arc::new(data);
 
     let json =
-        fs::read_to_string("./driver/src/request.json").expect("Unable to read request file");
+        fs::read_to_string(REQUEST).expect("Unable to read request file");
 
     // TODO invalid json => continue
     let messages: Vec<Message> = serde_json::from_str(&json).unwrap();
@@ -58,9 +55,9 @@ fn main() {
         info!("{:?}", message);
         let now = Instant::now();
         if let Message::Request { params: conf, .. } = message {
-            match base_engine::execute(conf, &data) {
+            match base_engine::execute_aggregation(conf, Arc::clone(&x)) {
                 Err(e) => {
-                    eprintln!("Application error: {:#?}", e);
+                    error!("Application error: {:#?}", e);
                     continue;
                 }
                 Ok(df) => {

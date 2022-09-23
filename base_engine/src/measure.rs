@@ -1,19 +1,21 @@
 use derivative::Derivative;
 use polars::prelude::*;
+use serde::Serialize;
 use std::collections::HashMap;
 
 //MeasureMap
 pub type MM<'b> = HashMap<String, Measure<'b>>;
 type Calculator<'a> = Box<dyn Fn(&Option<CalcParams>) -> Expr + Send + Sync + 'a>;
 
-/// Measure is the
-#[derive(Derivative)]
+/// Measure is the essentially a Struct of a funtion and a name
+#[derive(Derivative, Serialize)]
 #[derivative(Debug)]
 pub struct Measure<'a> {
     pub name: String,
     /// Main function which performs the calculation
     /// Note: Measures assumes presence of these columns
     #[derivative(Debug = "ignore")]
+    #[serde(skip)]
     pub calculator: Calculator<'a>,
     ///this field is to restrict aggregation option to certain type only
     ///for example where it makes sence to aggregate with "first" and not "sum"
@@ -24,6 +26,7 @@ pub struct Measure<'a> {
     /// So we want to avoid unnecessary calculations.
     ///
     /// This field is an optional filter on DataFrame, placed PRIOR to the computation
+    #[serde(skip)]
     pub precomputefilter: Option<Expr>,
 }
 
@@ -49,5 +52,6 @@ pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MM {
     }
     measure_map
 }
+
 pub type CalcParams = HashMap<String, String>;
 pub type OCP = Option<CalcParams>;

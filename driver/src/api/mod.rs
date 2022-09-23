@@ -20,16 +20,15 @@ async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Respo
     web::Json(ds)
 }
 
-async fn execute(r2: HttpRequest, req: web::Json<AggregationRequest>) -> impl Responder {
+async fn execute(data: Data<Arc<dyn DataSet>>, req: web::Json<AggregationRequest>) -> impl Responder {
     let r = req.into_inner();
-    let data = r2.app_data::<Arc<dyn DataSet>>().unwrap();
-    //let res = base_engine::execute_aggregation(r, Arc::clone(data)).unwrap();
-    //println!("Result: {}", res);
-    //web::Json(res)
-    "OK"
+    let data = data.get_ref();
+    let res = base_engine::execute_aggregation(r, Arc::clone(data)).unwrap();
+    web::Json(res)
 }
 
-pub fn run_server(listener: TcpListener, ds: impl DataSet+'static) -> std::io::Result<Server>
+// TODO Why 'static here? ds is not static!
+pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>) -> std::io::Result<Server>
 {
     // Read .env
     dotenv::dotenv().ok();
@@ -44,8 +43,8 @@ pub fn run_server(listener: TcpListener, ds: impl DataSet+'static) -> std::io::R
         .service(health_check)
         //.route("/", web::get().to(greet))
         //.route("/{name}", web::get().to(greet))
-        .route("/FRTB", web::get().to(dataset_info::<Arc<dyn DataSet>>))
-        .route("/FRTB", web::post().to(execute))
+        .route("/api/FRTB", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+        .route("/api/FRTB", web::post().to(execute))
         .app_data(ds.clone())
     })
     .listen(listener)?

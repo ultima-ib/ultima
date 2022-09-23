@@ -1,6 +1,5 @@
 use std::{net::TcpListener, sync::Arc};
 
-use base_engine::DataSet;
 use driver::api::{run_server, acquire}; 
 //use log::info;
 
@@ -33,5 +32,5 @@ async fn main() -> std::io::Result<()> {
 
     let listener = TcpListener::bind("127.0.0.1:8000")
         .expect("Failed to bind random port");
-    run_server(listener, data)?.await
+    run_server(listener, Arc::new(data))?.await
 }

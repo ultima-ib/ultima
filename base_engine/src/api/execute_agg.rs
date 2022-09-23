@@ -9,7 +9,7 @@ use crate::{AggregationRequest, DataSet, measure_builder};
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
-pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet>) -> PolarsResult<DataFrame>
+pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Sized>) -> PolarsResult<DataFrame>
 {
     // Assuming Front End knows which columns can be in groupby, agg etc
 

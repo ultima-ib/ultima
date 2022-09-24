@@ -35,6 +35,7 @@ where
     }
 }
 
+/// No point in Option<Vec<>>
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum DataSourceConfig {
@@ -64,7 +65,7 @@ pub enum DataSourceConfig {
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
     /// if path is None, returns empty DataFrame
-    pub fn build<'a>(self) -> (DataFrame, Vec<Measure<'a>>, HashMap<String, String>) {
+    pub fn build<'a>(self) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
         match self {
             DataSourceConfig::CSV {
                 file_paths: files,

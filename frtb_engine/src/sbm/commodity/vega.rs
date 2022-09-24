@@ -90,7 +90,7 @@ fn com_vega_max(op: &OCP) -> Expr {
 }
 
 /// Exporting Measures
-pub(crate) fn com_vega_measures() -> Vec<Measure<'static>> {
+pub(crate) fn com_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "Commodity_VegaSens".to_string(),

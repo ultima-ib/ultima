@@ -45,7 +45,7 @@ fn sbm_charge(op: &OCP) -> Expr {
     max_exprs(&[sbm_charge_low(op), sbm_charge_medium(op), sbm_charge_high(op)])
 }
 
-pub(crate) fn sbm_total_measures() -> Vec<Measure<'static>> {
+pub(crate) fn sbm_total_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "SBM_Charge_Low".to_string(),

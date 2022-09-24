@@ -20,7 +20,7 @@ pub(crate)fn girr_total_high(op: &OCP) -> Expr {
     total_sum(&[girr_delta_charge_high(op), girr_vega_charge_high(op), girr_curvature_charge_high(op)])
 }
 
-pub(crate) fn girr_total_measures() -> Vec<Measure<'static>> {
+pub(crate) fn girr_total_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "GIRR_TotalCharge_Low".to_string(),

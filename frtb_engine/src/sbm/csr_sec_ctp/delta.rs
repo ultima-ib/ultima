@@ -227,7 +227,7 @@ fn csrsecctp_delta_max(op: &OCP) -> Expr {
 }
 
 /// Exporting Measures
-pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure<'static>> {
+pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "CSR_secCTP_DeltaSens".to_string(),

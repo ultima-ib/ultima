@@ -23,14 +23,14 @@ pub trait FRTBDataSetT {
     fn prepare(self) -> Self;
 }
 #[derive(Debug)]
-pub struct FRTBDataSet<'a> {
+pub struct FRTBDataSet {
     pub frame: DataFrame,
-    pub measures: MM<'a>,
+    pub measures: MM,
     pub build_params: HashMap<String, String>,
 }
-impl<'a> FRTBDataSet<'a> {
+impl FRTBDataSet {
     /// Helper function which appends bespoke measures to self.measures
-    fn with_measures(&mut self, bespoke: Vec<Measure<'static>>)
+    fn with_measures(&mut self, bespoke: Vec<Measure>)
     where
         Self: Sized,
     {
@@ -39,7 +39,7 @@ impl<'a> FRTBDataSet<'a> {
     }
 }
 
-impl<'a> DataSet for FRTBDataSet<'a> {
+impl DataSet for FRTBDataSet {
     fn frame(&self) -> &DataFrame {
         &self.frame
     }

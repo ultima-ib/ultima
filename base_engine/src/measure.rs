@@ -4,22 +4,24 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 //MeasureMap
-pub type MM<'b> = HashMap<String, Measure<'b>>;
-type Calculator<'a> = Box<dyn Fn(&Option<CalcParams>) -> Expr + Send + Sync + 'a>;
+pub type MM = HashMap<String, Measure>;
+// TODO try to remove 'a
+type Calculator = Box<dyn Fn(&Option<CalcParams>) -> Expr + Send + Sync>;
 
+/// clone instead 'a
 /// Measure is the essentially a Struct of a funtion and a name
 #[derive(Derivative, Serialize)]
 #[derivative(Debug)]
-pub struct Measure<'a> {
+pub struct Measure {
     pub name: String,
     /// Main function which performs the calculation
     /// Note: Measures assumes presence of these columns
     #[derivative(Debug = "ignore")]
     #[serde(skip)]
-    pub calculator: Calculator<'a>,
+    pub calculator: Calculator,
     ///this field is to restrict aggregation option to certain type only
     ///for example where it makes sence to aggregate with "first" and not "sum"
-    pub aggregation: Option<&'a str>,
+    pub aggregation: Option<&'static str>,
     /// Say you want to compute CSR Delta by Bucket
     ///
     /// You are only interested in CSR Buckets, all other would be 0,
@@ -30,7 +32,7 @@ pub struct Measure<'a> {
     pub precomputefilter: Option<Expr>,
 }
 
-pub fn derive_basic_measures_vec<'a>(dataset_numer_cols: Vec<String>) -> Vec<Measure<'a>> {
+pub fn derive_basic_measures_vec<'a>(dataset_numer_cols: Vec<String>) -> Vec<Measure> {
     dataset_numer_cols
         .iter()
         .map(|x| {

@@ -17,7 +17,7 @@ pub fn data <DS: DataSet>(config_path: &str) -> impl DataSet {
     // Build data
     let mut data = DS::build(conf);
     // TODO
-    // data.validate();
+    // data.validate().expect();
     // Pre build some columns, which you wish to store in memory alongside the original data
     let now = Instant::now();
     data.prepare();

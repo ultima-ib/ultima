@@ -8,9 +8,9 @@ use crate::{derive_measure_map, DataSourceConfig, MM};
 /// This is the default Dataset
 /// Usually a client/user would overwrite it with their own DataSet
 #[derive(Debug, Default)]
-pub struct DataSetBase<'a> {
+pub struct DataSetBase {
     pub frame: DataFrame,
-    pub measures: MM<'a>,
+    pub measures: MM,
     pub build_params: HashMap<String, String>,
 }
 
@@ -28,10 +28,10 @@ pub trait DataSet: Send + Sync {
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
-    fn validate(&self) {}
+    fn validate(&self) -> bool {true}
 }
 
-impl<'a> DataSet for DataSetBase<'a> {
+impl<'a> DataSet for DataSetBase {
     fn frame(&self) -> &DataFrame {
         &self.frame
     }

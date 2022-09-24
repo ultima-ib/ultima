@@ -174,7 +174,7 @@ fn fx_vega_max(op: &OCP) -> Expr {
 }
 
 /// Exporting Measures
-pub(crate) fn fx_vega_measures() -> Vec<Measure<'static>> {
+pub(crate) fn fx_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "FX_VegaSens".to_string(),

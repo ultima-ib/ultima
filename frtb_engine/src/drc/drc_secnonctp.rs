@@ -136,7 +136,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
     )
 }
 
-pub(crate) fn drc_secnonctp_measures() -> Vec<Measure<'static>> {
+pub(crate) fn drc_secnonctp_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "DRC_SecNonCTP_GrossJTD".to_string(),

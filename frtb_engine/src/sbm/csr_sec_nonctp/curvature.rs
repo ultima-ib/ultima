@@ -120,7 +120,7 @@ fn csrsecnonctp_curv_max(op: &OCP) -> Expr {
 }
 
 /// Exporting Measures
-pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure<'static>> {
+pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "CSR_Sec_nonCTP_CurvatureDelta".to_string(),

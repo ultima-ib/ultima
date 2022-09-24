@@ -47,7 +47,7 @@ use base_engine::prelude::*;
 //use polars::prelude::*;
 
 /// Exporting Measures
-pub(crate) fn frtb_measure_vec() -> Vec<Measure<'static>> {
+pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
 
     let non_rc_specific = vec![
         Measure {

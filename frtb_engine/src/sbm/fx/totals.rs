@@ -18,7 +18,7 @@ pub(crate)fn fx_total_high(op: &OCP) -> Expr {
 }
 
 
-pub(crate) fn fx_total_measures() -> Vec<Measure<'static>> {
+pub(crate) fn fx_total_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "FX_TotalCharge_Low".to_string(),

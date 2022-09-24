@@ -22,7 +22,7 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     // Polars DataFrame clone is cheap:
     // https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
     let mut f1 = f1.clone().lazy();
-    let measure_map = data.measures();
+    
 
     // Step 1.0 Applying FILTERS:
     // TODO check if column is present in DF - ( is this "second line of defence" even needed?) 
@@ -37,6 +37,7 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     let m = req.measures();
     let op = req.calc_params();
 
+    let measure_map = data.measures();
     let prepared_measures = measure_builder(m, measure_map, op);
 
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)

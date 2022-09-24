@@ -17,9 +17,9 @@ static ALLOC: Jemalloc = Jemalloc;
 static ALLOC: MiMalloc = MiMalloc;
 
 #[cfg(feature = "FRTB")]
-pub type DataSetType = frtb_engine::FRTBDataSet<'static>;
+pub type DataSetType = frtb_engine::FRTBDataSet;
 #[cfg(not(feature = "FRTB"))]
-pub type DataSetType = base_engine::DataSetBase<'static>;
+pub type DataSetType = base_engine::DataSetBase;
 
 //to be passed as a command line argument
 const SETUP: &str = r"frtb_engine/tests/data/datasource_config.toml";

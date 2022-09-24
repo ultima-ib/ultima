@@ -204,7 +204,7 @@ fn fx_delta_max(op: &OCP) -> Expr {
     max_exprs(&[fx_delta_charge_low(op), fx_delta_charge_medium(op), fx_delta_charge_high(op)])
 }
 /// Exporting Measures
-pub(crate) fn fx_delta_measures() -> Vec<Measure<'static>> {
+pub(crate) fn fx_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "FX_DeltaSens".to_string(),

@@ -18,7 +18,7 @@ pub(crate)fn eq_total_high(op: &OCP) -> Expr {
 }
 
 
-pub(crate) fn eq_total_measures() -> Vec<Measure<'static>> {
+pub(crate) fn eq_total_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "EQ_TotalCharge_Low".to_string(),

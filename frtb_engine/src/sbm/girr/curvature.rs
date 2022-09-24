@@ -254,7 +254,7 @@ fn girr_curv_max(op: &OCP) -> Expr {
 }
 
 /// Exporting Measures
-pub(crate) fn girr_curv_measures() -> Vec<Measure<'static>> {
+pub(crate) fn girr_curv_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "GIRR_CurvatureDelta".to_string(),

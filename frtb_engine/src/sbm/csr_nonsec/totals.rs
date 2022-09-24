@@ -18,7 +18,7 @@ pub(crate)fn csrnonsec_total_high(op: &OCP) -> Expr {
 }
 
 
-pub(crate) fn csrnonsec_total_measures() -> Vec<Measure<'static>> {
+pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "CSR_nonSec_TotalCharge_Low".to_string(),

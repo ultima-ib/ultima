@@ -412,7 +412,7 @@ fn girr_delta_max(op: &OCP) -> Expr {
     max_exprs(&[girr_delta_charge_low(op), girr_delta_charge_medium(op), girr_delta_charge_high(op)])
 }
 /// Exporting Measures
-pub(crate) fn girr_delta_measures() -> Vec<Measure<'static>> {
+pub(crate) fn girr_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "GIRR_DeltaSens".to_string(),

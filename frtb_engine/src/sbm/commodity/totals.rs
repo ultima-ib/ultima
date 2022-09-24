@@ -22,7 +22,7 @@ fn com_total_max(op: &OCP) -> Expr {
 }
 
 
-pub(crate) fn com_total_measures() -> Vec<Measure<'static>> {
+pub(crate) fn com_total_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "Commodity_TotalCharge_Low".to_string(),

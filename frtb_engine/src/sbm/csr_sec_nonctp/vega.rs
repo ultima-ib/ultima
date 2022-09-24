@@ -88,7 +88,7 @@ fn csrsecnonctp_vega_max(op: &OCP) -> Expr {
 }
 
 /// Exporting Measures
-pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure<'static>> {
+pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "CSR_Sec_nonCTP_VegaSens".to_string(),

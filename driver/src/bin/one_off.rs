@@ -26,9 +26,9 @@ static ALLOC: MiMalloc = MiMalloc;
 // TODO is there a way to get rid of type definition here? In order to allow user to
 // use bin without any need to modify the script? May be via features?
 #[cfg(feature = "FRTB")]
-pub type DataSetType = frtb_engine::FRTBDataSet<'static>;
+pub type DataSetType = frtb_engine::FRTBDataSet;
 #[cfg(not(feature = "FRTB"))]
-pub type DataSetType = base_engine::DataSetBase<'static>;
+pub type DataSetType = base_engine::DataSetBase;
 
 // TODO to be passed as a command line argument
 const SETUP: &str = r"frtb_engine/tests/data/datasource_config.toml";

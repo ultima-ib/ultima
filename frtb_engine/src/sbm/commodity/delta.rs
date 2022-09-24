@@ -239,7 +239,7 @@ fn com_delta_max(op: &OCP) -> Expr {
 }
 
 /// Exporting Measures
-pub(crate) fn com_delta_measures() -> Vec<Measure<'static>> {
+pub(crate) fn com_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "Commodity_DeltaSens".to_string(),

@@ -25,7 +25,7 @@ pub trait FRTBDataSetT {
 #[derive(Debug)]
 pub struct FRTBDataSet {
     pub frame: DataFrame,
-    pub measures: MM,
+    pub measures: MeasuresMap,
     pub build_params: HashMap<String, String>,
 }
 impl FRTBDataSet {
@@ -43,13 +43,13 @@ impl DataSet for FRTBDataSet {
     fn frame(&self) -> &DataFrame {
         &self.frame
     }
-    fn measures(&self) -> &MM {
+    fn measures(&self) -> &MeasuresMap {
         &self.measures
     }
 
     fn build(conf: DataSourceConfig) -> Self {
         let (frames, measure_cols, build_params) = conf.build();
-        let mm: MM = derive_measure_map(measure_cols);
+        let mm: MeasuresMap = derive_measure_map(measure_cols);
         let mut res = Self {
             frame: frames,
             measures: mm,

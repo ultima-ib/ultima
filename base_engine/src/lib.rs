@@ -20,7 +20,7 @@ pub use crate::prelude::*;
 /// by mapping requested String to a map of all availiable measures
 fn measure_builder(
     requested_measures: &[(String, String)],
-    all_availiable_measures: &MM,
+    all_availiable_measures: &MeasuresMap,
     op: &OCP,
 ) -> Vec<ProcessedMeasure> {
     let mut res = Vec::with_capacity(requested_measures.len());

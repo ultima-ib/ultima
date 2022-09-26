@@ -10,17 +10,27 @@ default-run = "one_off"
 path = "src/lib.rs"
 
 [dependencies]
+# Business Logic
 base_engine = {path = "../base_engine"}
 frtb_engine = {path = "../frtb_engine", optional=true}
-mimalloc = { version = "0.1.29", default-features = false }
-serde = { version = "1.0", features = ["derive", "rc"] }
-serde_json = "1.0"
+# JSON
+serde = { workspace = true, features = ["derive", "rc"] }
+serde_json = {workspace = true}
+# Web
 log = "0.4"
 pretty_env_logger = "0.4"
-dotenv = "0.15"
 tokio = {version = "1.21.0", features=["full"]}
-toml = "0.5.9"
 actix-web = "4"
+tracing = { version = "0.1", features = ["log"] }
+uuid = {version = "1.1.2", features = ["v4"]}
+# Errors
+thiserror = "1"
+anyhow = "1"
+# Other
+toml = {workspace = true}
+mimalloc = { version = "0.1.29", default-features = false }
+dotenv = "0.15"
+
 [dev-dependencies]
 reqwest = "0.11"
 

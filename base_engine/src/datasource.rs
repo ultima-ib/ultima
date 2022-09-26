@@ -35,8 +35,7 @@ where
     }
 }
 
-/// No point in Option<Vec<>>
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum DataSourceConfig {
     CSV {
@@ -51,21 +50,24 @@ pub enum DataSourceConfig {
         #[serde(default)]
         attributes_join_hierarchy: Vec<String>,
         #[serde(default)]
-        measures: Option<Vec<String>>,
+        measures: Vec<String>,
         #[serde(default)]
-        f1_numeric_cols: Option<Vec<String>>,
+        f1_numeric_cols: Vec<String>,
         #[serde(default)]
-        f1_cast_to_str: Option<Vec<String>>,
+        f1_cast_to_str: Vec<String>,
         /// parameters to be used for build and prepare
         #[serde(default)]
-        build_params: Option<HashMap<String, String>>,
+        build_params: HashMap<String, String>,
     },
 }
 
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
-    /// if path is None, returns empty DataFrame
-    pub fn build<'a>(self) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
+    /// 
+    /// Returns:
+    /// 
+    /// (joined concatinated DataFrame, vec of base measures, build params)
+    pub fn build(self) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
         match self {
             DataSourceConfig::CSV {
                 file_paths: files,
@@ -73,23 +75,13 @@ impl DataSourceConfig {
                 hms,
                 files_join_attributes: f2a,
                 attributes_join_hierarchy: a2h,
-                measures: ms,
-                f1_cast_to_str: cast_to_str_vec,
-                f1_numeric_cols,
-                mut build_params,
+                measures,
+                f1_cast_to_str: mut str_cols,
+                f1_numeric_cols: f64_cols,
+                build_params,
             } => {
-                // in order to convert to categorical, f2a columns have to be Utf8
-
-                let mut str_cols: Vec<String> = cast_to_str_vec.unwrap_or_default();
+                // what if str_cols already contains f2a?
                 str_cols.extend(f2a.clone());
-
-                let f64_cols: Vec<String> = f1_numeric_cols.unwrap_or_default();
-
-                //let mut frames = Vec::with_capacity(files.len());
-
-                //for f in files {
-                //    frames.push(path_to_df(f.as_str(), &str_cols, &f64_cols))
-                //}
 
                 let mut concatinated_frame = diag_concat_df(
                     &files.iter().map(|f|path_to_df(f, &str_cols, &f64_cols)).collect::<Vec<DataFrame>>()
@@ -145,24 +137,16 @@ impl DataSourceConfig {
                         .join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None)
                         .expect("Could not join files with attributes");
 
-                //let mut measures = vec![];
-                let measures = match ms {
-                    Some(measures) =>{ 
+                // if measures were provided
+                let measures = if !measures.is_empty() {
                         // Checking if each measure is present in DF
                         measures.iter().for_each(|col|{concatinated_frame.column(col).expect(&format!("Column {} not found", col));});
-                        derive_basic_measures_vec(measures)},
+                        derive_basic_measures_vec(measures)}
                     // If not provided return all numeric columns
-                    None => {
+                    else {
                         let num_cols = numeric_columns(&concatinated_frame);
                         derive_basic_measures_vec(num_cols)
-                    }
-                };
-
-                let build_params = if let Some(bp) = build_params.take() {
-                    bp
-                } else {
-                    HashMap::default()
-                };
+                    };
 
                 (concatinated_frame, measures, build_params)
             }

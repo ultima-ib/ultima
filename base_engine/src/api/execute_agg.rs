@@ -9,6 +9,9 @@ use crate::{AggregationRequest, DataSet, measure_builder};
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
+/// 
+/// If Frame is empty post filtering, we get an error:
+/// Note: https://github.com/pola-rs/polars/issues/4978
 pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Sized>) -> PolarsResult<DataFrame>
 {
     // Assuming Front End knows which columns can be in groupby, agg etc
@@ -78,11 +81,15 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     for ow in req.overrides() {
         df = ow.df_with_overwrite(df)?
     }
+
+    //dbg!(&df);
     
     
     // Step 2.4 Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
 
+    //dbg!(&aggregateions);
+    //dbg!(&groups);
     // Step 2.5 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable

@@ -1,6 +1,7 @@
 use std::{net::TcpListener, sync::Arc};
 
-use driver::api::{run_server, acquire}; 
+use driver::api::run_server; 
+use driver::helpers::acquire;
 //use log::info;
 
 #[cfg(target_os = "linux")]

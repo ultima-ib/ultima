@@ -3,21 +3,23 @@
     "method": "POST", 
     "params": {
 
-        "filters": [{"Eq":[["RiskClass", "Commodity"]]}],
+        "filters": [{"Eq":[["Group", "Ultima"]]}],
 
-        "groupby": ["COB", "RiskClass", "Desk", "BucketBCBS"],
+        "groupby": ["COB", "Desk"],
         
         "measures": [
-            ["Commodity_DeltaSens", "sum"],
-            ["Commodity_DeltaSens_Weighted", "sum"],
-            ["Commodity_DeltaSb", "first"],
-            ["Commodity_DeltaCharge_Low", "first"],
-            ["Commodity_DeltaCharge_Medium", "first"],
-            ["Commodity_DeltaCharge_High", "first"]
+            ["FX_DeltaSens", "sum"],
+            ["FX_DeltaSens_Weighted", "sum"],
+            ["FX_DeltaSb", "first"],
+            ["FX_DeltaKb", "first"],
+            ["FX_DeltaCharge_Low", "first"],
+            ["FX_DeltaCharge_Medium", "first"],
+            ["FX_DeltaCharge_High", "first"],
+            ["FX_DeltaCharge_MAX", "first"]
                 ],
         
-        "hide_zeros": true,
-        
+        "hide_zeros": false,
+ 
         "calc_params": {
             "jurisdiction": "BCBS",
             "apply_fx_curv_div": "true",

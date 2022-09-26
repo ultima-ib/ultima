@@ -4,7 +4,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 //MeasureMap
-pub type MM = HashMap<String, Measure>;
+pub type MeasuresMap = HashMap<String, Measure>;
 // TODO try to remove 'a
 type Calculator = Box<dyn Fn(&Option<CalcParams>) -> Expr + Send + Sync>;
 
@@ -32,7 +32,7 @@ pub struct Measure {
     pub precomputefilter: Option<Expr>,
 }
 
-pub fn derive_basic_measures_vec<'a>(dataset_numer_cols: Vec<String>) -> Vec<Measure> {
+pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure> {
     dataset_numer_cols
         .iter()
         .map(|x| {
@@ -47,8 +47,8 @@ pub fn derive_basic_measures_vec<'a>(dataset_numer_cols: Vec<String>) -> Vec<Mea
         .collect::<Vec<Measure>>()
 }
 
-pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MM {
-    let mut measure_map: MM = HashMap::default();
+pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MeasuresMap {
+    let mut measure_map: MeasuresMap = HashMap::default();
     for m in measures_vecs {
         measure_map.insert(m.name.to_string(), m);
     }

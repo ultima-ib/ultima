@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use polars::prelude::*;
 use serde::{Serializer, Serialize, ser::SerializeMap};
 
-use crate::{derive_measure_map, DataSourceConfig, MM};
+use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 
 /// This is the default Dataset
 /// Usually a client/user would overwrite it with their own DataSet
 #[derive(Debug, Default)]
 pub struct DataSetBase {
     pub frame: DataFrame,
-    pub measures: MM,
+    pub measures: MeasuresMap,
     pub build_params: HashMap<String, String>,
 }
 
@@ -19,7 +19,7 @@ pub struct DataSetBase {
 /// If you have your own DataSet, implement this
 pub trait DataSet: Send + Sync {
     fn frame(&self) -> &DataFrame;
-    fn measures(&self) -> &MM;
+    fn measures(&self) -> &MeasuresMap;
     fn build(conf: DataSourceConfig) -> Self where Self: Sized;
     // These methods could be overwritten.
     /// Prepare runs ONCE before server starts.
@@ -35,13 +35,13 @@ impl<'a> DataSet for DataSetBase {
     fn frame(&self) -> &DataFrame {
         &self.frame
     }
-    fn measures(&self) -> &MM {
+    fn measures(&self) -> &MeasuresMap {
         &self.measures
     }
 
     fn build(conf: DataSourceConfig) -> Self {
         let (frames, measure_cols, build_params) = conf.build();
-        let mm: MM = derive_measure_map(measure_cols);
+        let mm: MeasuresMap = derive_measure_map(measure_cols);
         Self {
             frame: frames,
             measures: mm,

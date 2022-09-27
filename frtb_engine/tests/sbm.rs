@@ -3,9 +3,6 @@ mod common;
 use ndarray::prelude::*;
 use common::*;
 
-
-
-
 #[test]
 fn fx_delta() {
     let expected_res = arr1(&[

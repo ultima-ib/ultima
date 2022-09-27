@@ -30,11 +30,11 @@ impl FilterE{
 pub(crate) fn fltr_in_or_builder(_f: &Vec<(String, Vec<String>)>) -> Expr {
     let (a, b) = _f.index(0);
     let s = Series::new("filter", b);
-    let mut e = col(a).is_in(s.lit());
+    let mut e = col(a).cast(DataType::Utf8).is_in(s.lit());
 
     for (i, j) in _f.iter().skip(0) {
         let s = Series::new("filter", j);
-        e = e.or(col(i).is_in(s.lit()));
+        e = e.or(col(i).cast(DataType::Utf8).is_in(s.lit()));
     }
     e
 }
@@ -42,20 +42,20 @@ pub(crate) fn fltr_in_or_builder(_f: &Vec<(String, Vec<String>)>) -> Expr {
 pub(crate) fn fltr_not_in_or_builder(_f: &Vec<(String, Vec<String>)>) -> Expr {
     let (a, b) = _f.index(0);
     let s = Series::new("filter", b);
-    let mut e = col(a).is_in(s.lit()).not();
+    let mut e = col(a).cast(DataType::Utf8).is_in(s.lit()).not();
 
     for (i, j) in _f.iter().skip(0) {
         let s = Series::new("filter", j);
-        e = e.or(col(i).is_in(s.lit()).not());
+        e = e.or(col(i).cast(DataType::Utf8).is_in(s.lit()).not());
     }
     e
 }
 
 pub(crate) fn fltr_eq_or_builder(_f: &Vec<(String, String)>) -> Expr {
     let (a, b) = _f.index(0);
-    let mut e: Expr = col(a).eq(lit::<&str>(b));
+    let mut e: Expr = col(a).cast(DataType::Utf8).eq(lit::<&str>(b));
     for (i, j) in _f.iter().skip(1) {
-        e = e.or(col(i).eq(lit::<&str>(j)))
+        e = e.or(col(i).cast(DataType::Utf8).eq(lit::<&str>(j)))
     }
     e
 }
@@ -63,9 +63,9 @@ pub(crate) fn fltr_eq_or_builder(_f: &Vec<(String, String)>) -> Expr {
 pub(crate) fn fltr_neq_or_builder(_f: &Vec<(String, String)>) -> Expr {
     let (a, b) = _f.index(0);
     println!("a: {}, b: {}", a, b);
-    let mut e: Expr = col(a).neq(lit::<&str>(b));
+    let mut e: Expr = col(a).cast(DataType::Utf8).neq(lit::<&str>(b));
     for (i, j) in _f.iter().skip(1) {
-        e = e.or(col(i).neq(lit::<&str>(j)))
+        e = e.or(col(i).cast(DataType::Utf8).neq(lit::<&str>(j)))
     }
     e
 }

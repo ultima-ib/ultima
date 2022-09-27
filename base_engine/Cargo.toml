@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 serde = {workspace = true, features=["derive"]}
-polars = {workspace = true, features=["strings", "ndarray", "lazy", "is_in", "dtype-categorical", "serde", "csv-file", "diagonal_concat"]}
+polars = {workspace = true, features=["strings", "ndarray", "lazy", "is_in", "dtype-categorical", "serde", "csv-file", "diagonal_concat", "list"]}
 serde_json = {workspace = true}
 toml = {workspace = true}
 once_cell = {workspace = true}

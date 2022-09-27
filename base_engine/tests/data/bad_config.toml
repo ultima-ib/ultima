@@ -1,0 +1,4 @@
+title = "setup.toml Example"
+type = "CSV"
+files = ["No such files*"]
+f1_numeric_cols = ["Age",]

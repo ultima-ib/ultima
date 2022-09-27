@@ -5,21 +5,19 @@ use std::collections::HashMap;
 use once_cell::sync::Lazy;
 use polars::prelude::{Expr, QuantileInterpolOptions};
 
-/// This static exists because we need to map aggregation request to a function
-/// There doesn't seem to be a better way than keeping a HashMap
-/// TODO AggExpr implements serde ser/deser
-/// hence we can do smth like serde_json::from_str<AggExpr>()
+/// The list of supported aggregations will be changing ofter, hence keep it as HashMap
 pub static BASE_CALCS: Lazy<HashMap<&'static str, fn(Expr, &str) -> (Expr, String)>> =
     Lazy::new(|| {
         HashMap::from([
+            //Numeric
             ("sum", sum as fn(Expr, &str) -> (Expr, String)),
             ("min", min),
             ("max", max),
             ("mean", mean),
             ("var", var),
             ("quantile95low", quantile_95_lower),
+            //All
             ("first", first),
-            //("list", list), <-> not needed
             ("count", count),
             ("count_unique", count_unique),
         ])
@@ -59,10 +57,6 @@ fn quantile_95_lower(c: Expr, newname: &str) -> (Expr, String) {
 fn first(c: Expr, newname: &str) -> (Expr, String) {
     (c.first().alias(newname), newname.to_string())
 }
-//fn list(c: Expr, newname: &str) -> (Expr, String) {
-//    let alias = format!("{newname}_list");
-//    ( c.list().alias(alias.as_ref()), alias)
-//}
 fn count(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_list");
     (c.count().alias(alias.as_ref()), alias)

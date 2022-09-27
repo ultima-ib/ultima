@@ -76,14 +76,15 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
         f1 = f1.filter(fltr)
     }
     
-    // Step 2.4 Applying Overwrites
     let mut df = f1.collect()?;
+    if df.is_empty() {
+        return Ok(df)
+    }
+    
+    // Step 2.4 Applying Overwrites
     for ow in req.overrides() {
         df = ow.df_with_overwrite(df)?
     }
-
-    //dbg!(&df);
-    
     
     // Step 2.4 Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();

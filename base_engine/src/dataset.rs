@@ -5,7 +5,7 @@ use serde::{Serializer, Serialize, ser::SerializeMap};
 
 use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 
-/// This is the default Dataset
+/// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
 #[derive(Debug, Default)]
 pub struct DataSetBase {

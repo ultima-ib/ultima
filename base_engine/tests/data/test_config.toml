@@ -1,0 +1,14 @@
+title = "setup.toml Example"
+type = "CSV"
+files = ["./tests/data/testset.csv"]
+# file_1/file_2/file_3 <-> trade attributes
+files_join_attributes = ["TradeId"]
+# attributes <-> hierarchy
+# must be provided if hierarchy file is provided
+attributes_join_hierarchy = ["BookId"] 
+# Measure columns. Optional field. Used as a constraint on which numeric columns
+# can be aggregated eg ("SensitivitySpot", _)
+# f1_measure_cols=[]
+# Polars can't always guess the right type of col. eg an empty col is str
+# So one must provide the list
+f1_numeric_cols = ["Age",]

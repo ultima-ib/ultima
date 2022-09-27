@@ -20,7 +20,6 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let a = &*LAZY_DASET;
     let res =
         execute_aggregation(data_req, Arc::clone(a)).expect("Error while calculating results");
-    dbg!(res.clone());
     let res_numeric = res
         .lazy()
         .select([col("*").exclude(excl)])

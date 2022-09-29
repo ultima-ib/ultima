@@ -1,4 +1,3 @@
-import * as colors from './colors';
 import seedrandom from 'seedrandom';
 import type { Author, Quote, QuoteMap } from './types';
 
@@ -7,10 +6,6 @@ const jake: Author = {
   name: 'Jake',
   url: 'http://adventuretime.wikia.com/wiki/Jake',
   avatarUrl: 'jakeImg',
-  colors: {
-    soft: colors.Y50,
-    hard: colors.N400A,
-  },
 };
 
 const BMO: Author = {
@@ -18,10 +13,6 @@ const BMO: Author = {
   name: 'BMO',
   url: 'http://adventuretime.wikia.com/wiki/BMO',
   avatarUrl: 'bmoImg',
-  colors: {
-    soft: colors.G50,
-    hard: colors.N400A,
-  },
 };
 
 const finn: Author = {
@@ -29,10 +20,6 @@ const finn: Author = {
   name: 'Finn',
   url: 'http://adventuretime.wikia.com/wiki/Finn',
   avatarUrl: 'finnImg',
-  colors: {
-    soft: colors.B50,
-    hard: colors.N400A,
-  },
 };
 
 const princess: Author = {
@@ -40,10 +27,6 @@ const princess: Author = {
   name: 'Princess bubblegum',
   url: 'http://adventuretime.wikia.com/wiki/Princess_Bubblegum',
   avatarUrl: 'princessImg',
-  colors: {
-    soft: colors.P50,
-    hard: colors.N400A,
-  },
 };
 
 export const authors: Author[] = [jake, BMO, finn, princess];
@@ -124,20 +107,6 @@ export const resetData = (seed: string) => {
 
 resetData('base');
 
-export const getQuotes = (count: number = quotes.length): Quote[] =>
-  // eslint-disable-next-line no-restricted-syntax
-  Array.from({ length: count }, (v, k) => k).map(() => {
-    const random: Quote =
-      quotes[Math.floor(predictableMathRandom() * quotes.length)];
-
-    const custom: Quote = {
-      ...random,
-      id: `G${idCount++}`,
-    };
-
-    return custom;
-  });
-
 const getByAuthor = (author: Author, items: Quote[]): Quote[] =>
   items.filter((quote: Quote) => quote.author === author);
 
@@ -148,12 +117,3 @@ export const authorQuoteMap: QuoteMap = authors.reduce(
   }),
   {},
 );
-
-export const generateQuoteMap = (quoteCount: number): QuoteMap =>
-  authors.reduce(
-    (previous: QuoteMap, author: Author) => ({
-      ...previous,
-      [author.name]: getQuotes(quoteCount / authors.length),
-    }),
-    {},
-  );

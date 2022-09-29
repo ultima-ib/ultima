@@ -1,35 +1,30 @@
-import React, { Component, ReactElement } from 'react';
-import styled from '@emotion/styled';
-import { Global, css } from '@emotion/react';
-import type {
-  DropResult,
-  DraggableLocation,
-  DroppableProvided,
-} from '@hello-pangea/dnd';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import React, {useState} from 'react';
+import type {DropResult, DraggableLocation} from '@hello-pangea/dnd';
+import { DragDropContext } from '@hello-pangea/dnd';
 import type { QuoteMap, Quote } from './types';
-import Column from './column';
-import reorder, { reorderQuoteMap } from './reorder';
-import * as colors from './colors';
+import { reorderQuoteMap } from './reorder';
+import {Box, Stack, Typography} from "@mui/material";
+import QuoteList from "./quote-list";
 
-
-interface ParentContainerProps {
-  height: string;
+interface ColumnProps {
+  title: string;
+  quotes: Quote[];
 }
 
-const ParentContainer = styled.div<ParentContainerProps>`
-  height: ${({ height }) => height};
-  overflow-x: hidden;
-  overflow-y: auto;
-`;
+export function Column({ title, quotes }: ColumnProps) {
+  return (
+      <Stack spacing={2}>
+        <Typography variant='h6'>{title ?? 'no title'}</Typography>
+        <QuoteList
+            listId={title}
+            listType="QUOTE"
+            quotes={quotes}
+            internalScroll={true}
+        />
+      </Stack>
+  );
+}
 
-const Container = styled.div`
-  background-color: ${colors.B100};
-  min-height: 100vh;
-  /* like display:flex but will allow bleeding over the window width */
-  min-width: 100vw;
-  display: inline-flex;
-`;
 
 interface Props {
   initial: QuoteMap;
@@ -39,25 +34,10 @@ interface Props {
   useClone?: boolean;
 }
 
-interface State {
-  columns: QuoteMap;
-  ordered: string[];
-}
+const FcBoard = (props: Props) => {
+  const [columns, setColumns] = useState(props.initial)
 
-
-
-export default class Board extends Component<Props, State> {
-  /* eslint-disable react/sort-comp */
-  static defaultProps = {
-    isCombineEnabled: false,
-  };
-
-  state: State = {
-    columns: this.props.initial,
-    ordered: Object.keys(this.props.initial),
-  };
-
-  onDragEnd = (result: DropResult): void => {
+  const onDragEnd = (result: DropResult): void => {
     if (!result.destination) {
       return;
     }
@@ -66,57 +46,35 @@ export default class Board extends Component<Props, State> {
     const destination: DraggableLocation = result.destination;
 
     // did not move anywhere - can bail early
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
+    if (source.droppableId === destination.droppableId && source.index === destination.index) {
       return;
     }
 
     const data = reorderQuoteMap({
-      quoteMap: this.state.columns,
+      quoteMap: columns,
       source,
       destination,
     });
-    console.log(data.quoteMap)
+    console.log(result)
 
-    this.setState({
-      columns: data.quoteMap,
-    });
+    setColumns(data.quoteMap)
   };
 
-  render(): ReactElement {
-    const columns: QuoteMap = this.state.columns;
-    const ordered: string[] = this.state.ordered;
-    const {
-      containerHeight,
-      useClone,
-      withScrollableColumns,
-    } = this.props;
-
-    const board = <Container>
-      {ordered.map((key: string, index: number) => (
-          <Column
-              key={key}
-              index={index}
-              title={key}
-              quotes={columns[key]}
-              isScrollable={withScrollableColumns}
-              useClone={useClone}
-          />
-      ))}
-    </Container>
-
-    return (
-      <React.Fragment>
-        <DragDropContext onDragEnd={this.onDragEnd}>
-          {containerHeight ? (
-            <ParentContainer height={containerHeight}>{board}</ParentContainer>
-          ) : (
-            board
-          )}
+  return (
+      <>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Box>
+            {Object.entries(columns).map(([key, quotes]) => (
+                <Column
+                    key={key}
+                    title={key}
+                    quotes={quotes}
+                />
+            ))}
+          </Box>
         </DragDropContext>
-      </React.Fragment>
-    );
-  }
+      </>
+
+  )
 }
+export default FcBoard

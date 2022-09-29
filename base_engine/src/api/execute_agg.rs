@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 
-use polars::prelude::{PolarsResult, DataFrame, IntoLazy, Expr, lit, col, NULL, Literal};
+use polars::{prelude::{PolarsResult, DataFrame, IntoLazy, Expr, lit, col, NULL, Literal}, functions::diag_concat_df};
 
-use crate::{AggregationRequest, DataSet, measure_builder};
+use crate::{AggregationRequest, DataSet, measure_builder, filters::fltr_chain};
 
 
 /// main function which returns a Result of the calculation
@@ -29,9 +29,10 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
 
     // Step 1.0 Applying FILTERS:
     // TODO check if column is present in DF - ( is this "second line of defence" even needed?) 
-    for f in req.filters() {
-        f1 = f1.filter(f.to_expr());
+    if let Some(f) = fltr_chain(req.filters()){
+        f1 = f1.filter(f)
     }
+
 
     // Step 2.x OVERRIDE, 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
 
@@ -77,6 +78,7 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     }
     
     let mut df = f1.collect()?;
+
     if df.is_empty() {
         return Ok(df)
     }
@@ -89,14 +91,47 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     // Step 2.4 Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
 
-    //dbg!(&aggregateions);
-    //dbg!(&groups);
     // Step 2.5 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable
-    f1 = df.lazy().groupby_stable(groups)
-        .agg(aggregateions)
-        .limit(1_000);
+    let mut aggregated_df = df.clone().
+        lazy()
+        .groupby_stable(&groups)
+        .agg(&aggregateions)
+        .limit(1_000)
+        .collect()?;
+    
+    let ordered_cols = aggregated_df.get_column_names_owned();
+    
+    if req.totals {
+        let mut total_frames = vec![];
+        //let mut with_cols = vec![];
+
+        for i in (1..groups.len()).rev() {
+            // Columns which we are goinf to aggregate this time
+            // (groups minus it's last element)
+            let grp_by = &groups[0..i]; 
+            // Not doing this, since we otherwise loose soring
+            //let last_gr_col_name = &req._groupby()[i];
+            //with_cols.push(lit("Total").alias(last_gr_col_name));
+
+            let _df = df.clone().lazy().groupby_stable(grp_by)
+                .agg(&aggregateions)
+                .limit(100)
+                //.with_columns(&with_cols)
+                .collect()?;
+            total_frames.push(_df)
+        }
+
+        total_frames.push(aggregated_df);
+
+        aggregated_df = diag_concat_df(&total_frames)?;
+    }
+
+    f1 = aggregated_df.lazy()
+        .sort_by_exprs(&groups, vec![false; groups.len()], false)
+        .select(ordered_cols.iter().map(|c|col(c)).collect::<Vec<Expr>>());
+
 
     // POSTPROCESSING
     // Remove zeros, optional

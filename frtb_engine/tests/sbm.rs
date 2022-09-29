@@ -21,7 +21,7 @@ fn fx_delta() {
         ["FX_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
     
     "calc_params": {"jurisdiction": "BCBS"}
             
@@ -58,7 +58,7 @@ fn fx_vega() {
 
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
@@ -101,7 +101,8 @@ fn fx_curvature() {
 ["FX_CurvatureCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "RatesEM"]]}],
+    "filters": [[{"Eq": ["Desk", "RatesEM"]}]],
+
     "hide_zeros": true,
     "calc_params": {"jurisdiction": "BCBS",
                 "apply_fx_curv_div": "true"}
@@ -122,7 +123,7 @@ fn fx_total() {
 ["FX_TotalCharge_High", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
     "calc_params": {"jurisdiction": "BCBS"}
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
@@ -148,7 +149,7 @@ fn girr_delta() {
 ["GIRR_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
@@ -183,7 +184,7 @@ fn girr_vega() {
         ["GIRR_VegaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
@@ -263,7 +264,7 @@ fn girr_totals() {
 ["GIRR_TotalCharge_High", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
@@ -298,9 +299,9 @@ fn eq_delta() {
 ["EQ_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-                "hide_zeros":true,
-                "calc_params": {"jurisdiction": "CRR2"}
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "CRR2"}
     }"#;
     assert_results(request, expected_res.sum(), None)
 }
@@ -333,7 +334,7 @@ fn eq_vega() {
         ["EQ_VegaCharge_MAX", "first"]
     ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
         "hide_zeros": true,
         "calc_params": {"jurisdiction": "BCBS",
         "apply_fx_curv_div": "true"}
@@ -353,9 +354,9 @@ fn eq_curv() {
         ["EQ_CurvatureCharge_MAX", "first"]
     ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "RatesEM"]]}],
-        "hide_zeros": true,
-        "calc_params": {"jurisdiction": "BCBS"}
+    "filters": [[{"Eq": ["Desk", "RatesEM"]}]],
+    "hide_zeros": true,
+    "calc_params": {"jurisdiction": "BCBS"}
         
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
@@ -374,10 +375,9 @@ fn eq_totals() {
 ["EQ_TotalCharge_High", "first"]
     ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-        "hide_zeros": true,
-        "calc_params": {"jurisdiction": "BCBS"}
-        
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
+    "hide_zeros": true,
+    "calc_params": {"jurisdiction": "BCBS"}    
     }"#;
     assert_results(request, dbg!(expected_res).sum(), None)
 }
@@ -401,9 +401,9 @@ fn csr_nonsec_bcbs_delta() {
 ["CSR_nonSec_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-                "hide_zeros":true,
-                "calc_params": {"jurisdiction": "BCBS"}
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
     assert_results(request, expected_res.sum(), None)
@@ -438,9 +438,9 @@ fn csr_nonsec_crr2_delta() {
 ["CSR_nonSec_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-                "hide_zeros":true,
-                "calc_params": {"jurisdiction": "CRR2"}
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "CRR2"}
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
 }
@@ -471,9 +471,9 @@ fn csr_nonsec_bcbs_vega() {
         ["CSR_nonSec_VegaCharge_High", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "Rates"]]}],
-                "hide_zeros": true,
-                "calc_params": {"jurisdiction": "BCBS"}
+    "filters": [[{"Eq": ["Desk", "Rates"]}]],
+    "hide_zeros": true,
+    "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
@@ -506,9 +506,9 @@ fn csr_nonsec_crr2_vega() {
         ["CSR_nonSec_VegaCharge_High", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "Rates"]]}],
-                "hide_zeros": true,
-                "calc_params": {"jurisdiction": "CRR2"}
+    "filters": [[{"Eq": ["Desk", "Rates"]}]],
+    "hide_zeros": true,
+    "calc_params": {"jurisdiction": "CRR2"}
             
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4))
@@ -533,9 +533,9 @@ fn commodity_delta() {
         ["Commodity_DeltaCharge_MAX", "first"]
             ],
     "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-                "hide_zeros":true,
-                "calc_params": {"jurisdiction": "BCBS"}
+    "filters": [[{"Eq": ["Desk", "FXOptions"]}]],
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "BCBS"}
     }"#;
     assert_results(request, expected_res.sum(), None)
 }

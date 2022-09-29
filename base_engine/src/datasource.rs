@@ -124,18 +124,21 @@ impl DataSourceConfig {
                         .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
                         .unwrap();
                     concatinated_frame.try_apply(i, |s| s.cast(&DataType::Categorical(None)))
-                            .expect("Could not parse into Categorical");
+                            .expect("Could not parse. Pehaps files_join_attributes was provided but not found in the dataset.");
                 }
 
                 // join with hms if a2h was provided
                 if !a2h.is_empty() {
                     df_attr = df_attr
                         .join(&df_hms, a2h.clone(), a2h.clone(), JoinType::Left, None)
-                        .expect("Could not attributes to hms");
+                        .expect("Could not join attributes to hms. Review attributes_join_hierarchy field in the setup");
                 }
-                concatinated_frame = concatinated_frame
+                // if df_attr is not empty at this point
+                if !df_attr.is_empty() {
+                    concatinated_frame = concatinated_frame
                         .join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None)
-                        .expect("Could not join files with attributes");
+                        .expect("Could not join files with attributes. Review files_join_attributes field in the setup");
+                }
 
                 // if measures were provided
                 let measures = if !measures.is_empty() {

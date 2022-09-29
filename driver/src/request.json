@@ -3,9 +3,9 @@
     "method": "POST", 
     "params": {
 
-        "filters": [{"Eq":[["Group", "Ultima"]]}],
+        "filters": [[{"Eq": ["Group", "Ultima"]}]],
 
-        "groupby": ["COB", "Desk"],
+        "groupby": ["COB", "Desk", "BucketBCBS"],
         
         "measures": [
             ["FX_DeltaSens", "sum"],
@@ -19,6 +19,8 @@
                 ],
         
         "hide_zeros": false,
+
+        "totals": true,
  
         "calc_params": {
             "jurisdiction": "BCBS",

@@ -6,26 +6,22 @@ use base_engine::{AggregationRequest, execute_aggregation};
 
 mod common;
 
+
 #[test]
-fn dataset1() {
+fn simple_fltr_grpby_sum() {
     let req = r#"
     {"measures": [
-        ["FX_DeltaSens", "sum"],
-        ["FX_DeltaSens_Weighted", "sum"],
-        ["FX_DeltaSb", "first"],
-        ["FX_DeltaKb", "first"],
-        ["FX_DeltaCharge_Low", "first"],
-        ["FX_DeltaCharge_Medium", "first"],
-        ["FX_DeltaCharge_High", "first"],
-        ["FX_DeltaCharge_MAX", "first"]
+        ["Balance", "sum"]
             ],
-    "groupby": ["Desk"],
-    "filters": [{"Eq":[["Desk", "FXOptions"]]}],
-    
-    "calc_params": {"jurisdiction": "BCBS"}
-            
+    "groupby": ["State"],
+    "filters": [[{"Eq": ["State", "NY"]}]]            
     }"#;
     let data_req = serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET));
-    
+    let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET)).expect("Calculation failed");
+
+    let res_sum = res.column("Balance_sum")
+        .expect("Couldn't get column Dalance_sum")
+        .sum::<f64>()
+        .expect("Couldn't sum");
+    assert_eq!(res_sum, 25.0)    
 }

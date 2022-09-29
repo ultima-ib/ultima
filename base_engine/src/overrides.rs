@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use polars::prelude::*;
 
-use crate::filters::FilterE;
+use crate::filters::{AndOrFltrChain, fltr_chain};
 
 /// DataSet must have column present
 /// value must be parsable to the column format (or inner format in case of a list)
@@ -20,31 +20,23 @@ use crate::filters::FilterE;
 pub struct Overwrite {
     column: String,
     value: String,
-    when: Vec<FilterE>
+    filters: AndOrFltrChain
 }
 
 impl Overwrite {
     pub fn override_builder(&self, val: Expr) -> Expr {
         // Empty filter means the whole column will get overwritten
-        if self.when.is_empty() {
-            return val.alias(&self.column)
+        let fltr = fltr_chain(&self.filters);
+        // if filter was provided
+        if let Some(f) = fltr {
+            when(f)
+            .then(val)
+            .otherwise(col(&self.column))
+            .alias(&self.column)
+        } else {
+            // otherwise we simply override the whole column
+            val.alias(&self.column)
         }
-
-        let mut fltr_iter = self.when.iter();
-        // First filter
-        let mut fltr = fltr_iter.next()
-            .unwrap() // form above we know self.when hs at least one element
-            .to_expr();
-        // All subsequent filters are joined by .and()
-        for f in fltr_iter {
-            fltr = fltr.and(f.to_expr())
-        }
-
-        when(fltr)
-        .then(val)
-        .otherwise(col(&self.column))
-        .alias(&self.column)
-
     }
     
     pub fn df_with_overwrite(&self, df: DataFrame) -> PolarsResult<DataFrame> {

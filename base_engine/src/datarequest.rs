@@ -1,5 +1,5 @@
 use super::measure::OCP;
-use crate::filters::*;
+use crate::filters::AndOrFltrChain;
 use crate::overrides::Overwrite;
 
 use serde::{Deserialize, Serialize};
@@ -26,19 +26,23 @@ pub struct AggregationRequest {
     measures: Vec<(String, String)>,
     groupby: Vec<String>,
     #[serde(default)]
-    filters: Vec<FilterE>,
+    filters: AndOrFltrChain,
     #[serde(default)]
     overwrites: Vec<Overwrite>,
     #[serde(default)]
     calc_params: OCP,
+    /// drop rows where all results are NULL or 0
     #[serde(default)]
     pub hide_zeros: bool,
+    /// Show totals
+    #[serde(default)]
+    pub totals: bool,
 
 }
 
 impl AggregationRequest {
 
-    pub fn filters(&self) -> &Vec<FilterE> {
+    pub fn filters(&self) -> &AndOrFltrChain {
         &self.filters
     }
 

@@ -22,7 +22,6 @@ fn drc_nonsec() {
             ["DRC_NonSec_HBR", "first"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
-        "filters": [],
             "hide_zeros": false,
             "calc_params": {
                 "jurisdiction": "BCBS",
@@ -55,7 +54,6 @@ fn drc_nonsec_crr2() {
             ["DRC_NonSec_HBR", "first"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
-        "filters": [],
             "hide_zeros": false,
             "calc_params": {
                 "jurisdiction": "CRR2",
@@ -79,8 +77,10 @@ fn overwrites() {
         
         "overwrites": [{   "column": "SensWeights",
                           "value": "[0.005]",
-                          "when": [{"Eq":[["RiskClass", "DRC_NonSec"]]},
-                                    {"Eq":[["CreditQuality", "AA"]]}]
+                          "filters": [
+                                    [{"Eq":["RiskClass", "DRC_NonSec"]}],
+                                    [{"Eq":["CreditQuality", "AA"]}]
+                                    ]
                     }],
         
         "measures": [
@@ -98,7 +98,7 @@ fn overwrites() {
     assert_results(request, expected_res.sum(), None)
 }
 
-/// Note: DRC Offsetting is not yet implemented 
+/// Note: DRC Sec Non CTP Offsetting is not yet implemented 
 #[test]
 fn drc_secnonctp() {
     let expected_res = arr1(&[8998.888889]);

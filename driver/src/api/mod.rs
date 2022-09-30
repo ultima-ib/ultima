@@ -7,11 +7,11 @@ use actix_web::{web::{self, Data}, App, HttpRequest, HttpServer, Responder,
     //error::InternalError, http::StatusCode,
      Result};
 use anyhow::Context;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
-use base_engine::{DataSet, AggregationRequest};
+use base_engine::{DataSet, AggregationRequest, prelude::PolarsResult};
 use base_engine::api::aggregations::BASE_CALCS;
 
 // use uuid::Uuid;
@@ -23,11 +23,43 @@ async fn health_check(_: HttpRequest) -> impl Responder {
     HttpResponse::Ok()
 }  
 
+#[derive(Deserialize)]
+struct Pagination {
+    page: usize,
+    pattern: String,
+}
+const PER_PAGE: u16 = 100;
+
+// /{column_name}?page=2&per_page=30
+#[get("/{column_name}")]
+async fn column_search(path: web::Path<String>, page: web::Query<Pagination>, data: Data<Arc<dyn DataSet>>) 
+-> Result<HttpResponse> {
+    let column_name = path.into_inner();
+    let (page, pat) = (page.page, page.pattern.clone());
+    let res = task::spawn_blocking(move || {
+        let d = data.get_ref();
+        let srs = d.frame().column(&column_name)?;
+        let search = base_engine::searches::filter_contains_unique(srs, &pat)?;
+        let first = page*PER_PAGE as usize ;
+        let last = first + PER_PAGE as usize;
+        let s = search.slice(first as i64, last);
+        PolarsResult::Ok(s)
+
+    }).await
+    .context("Failed to spawn blocking task.")
+    .map_err(|e|actix_web::error::ErrorInternalServerError(e))?;
+    match  res {
+        Ok(srs) => Ok(HttpResponse::Ok().json(Vec::from(srs.utf8().map_err(|e|actix_web::error::ErrorInternalServerError(e))?))),
+        Err(e) => {tracing::error!("Failed to execute query: {:?}", e); 
+                                Err(actix_web::error::ErrorExpectationFailed(e))}
+    }
+}  
+
 #[tracing::instrument( name = "Obtaining DataSet Info", skip(ds) )]
 async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {  
     web::Json(ds)
 }
-/*
+/* TODO this is not good enough, as we need to return a more detailed message to the client
 pub fn error_chain_fmt(
     e: &impl std::error::Error,
     f: &mut std::fmt::Formatter<'_>,
@@ -116,6 +148,7 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>) -> std::io::Resul
             web::scope("/FRTB")
             .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
             .route("", web::post().to(execute))
+            .service(column_search)
         )
         .route("/aggtypes", web::get().to(measures))
         .app_data(ds.clone())

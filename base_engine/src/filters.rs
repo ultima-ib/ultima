@@ -8,9 +8,11 @@ pub(crate) type AndOrFltrChain = Vec<Vec<FilterE>>;
 /// Inner elements of each Filter are OR
 /// Filters themselves(eg a Vec of Filters) are AND
 /// 
-/// TODO Currently works for Utf8 columns only. In the future 
-/// parsing logic will be added based on column datatype
+/// TODO Currently works for Utf8 columns only. In the far future parsing logic will be added based on column datatype.
+/// 
 /// (Column, Value(s))
+/// 
+/// 
 #[derive(Serialize, Deserialize, Debug, Hash, Clone)]
 pub enum FilterE {
     /// On Same as In, but better for 1 field only
@@ -23,30 +25,36 @@ pub enum FilterE {
 impl FilterE{
     pub fn to_expr(&self)->Expr{
         match self {
-            FilterE::Eq(c, v)          => fltr_eq_or_builder(c, v),
-            FilterE::Neq(c, v)         => fltr_neq_or_builder(c, v),
-            FilterE::In(c, vs)     => fltr_in_or_builder(c, vs),
-            FilterE::NotIn(c, vs)  => fltr_not_in_or_builder(c, vs),
+            FilterE::Eq(c, v)          => fltr_eq(c, v),
+            FilterE::Neq(c, v)         => fltr_neq(c, v),
+            FilterE::In(c, vs)     => fltr_in(c, vs),
+            FilterE::NotIn(c, vs)  => fltr_not_in(c, vs),
         }
     }
 }
 
-pub(crate) fn fltr_in_or_builder(c: &str, vs: &Vec<String>) -> Expr {
+pub(crate) fn fltr_in(c: &str, vs: &Vec<String>) -> Expr {
     let s = Series::new("filter", vs);
     col(c).cast(DataType::Utf8).is_in(s.lit())
 }
 
-pub(crate) fn fltr_not_in_or_builder(c: &str, vs: &Vec<String>) -> Expr {
+pub(crate) fn fltr_not_in(c: &str, vs: &Vec<String>) -> Expr {
     let s = Series::new("filter", vs);
     col(c).cast(DataType::Utf8).is_in(s.lit()).not()
 }
 
-pub(crate) fn fltr_eq_or_builder(c: &str, v: &str) -> Expr {
-    col(c).cast(DataType::Utf8).eq(lit::<&str>(v))
+pub(crate) fn fltr_eq(c: &str, v: &str) -> Expr {
+    match v {
+        "null" => col(c).is_null(),
+        _ => col(c).cast(DataType::Utf8).eq(lit::<&str>(v))
+    }
 }
 
-pub(crate) fn fltr_neq_or_builder(c: &str, v: &str) -> Expr {
-    col(c).cast(DataType::Utf8).neq(lit::<&str>(v))
+pub(crate) fn fltr_neq(c: &str, v: &str) -> Expr {
+    match v {
+        "null" => col(c).is_not_null(),
+        _ => col(c).cast(DataType::Utf8).neq(lit::<&str>(v))
+    }
 }
 
 pub(crate) fn fltr_chain(chain: &AndOrFltrChain) -> Option<Expr>{

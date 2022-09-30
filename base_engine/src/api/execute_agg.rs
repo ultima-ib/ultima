@@ -2,16 +2,14 @@
 
 use std::sync::Arc;
 
-use polars::{prelude::{PolarsResult, DataFrame, IntoLazy, Expr, lit, col, NULL, Literal}, functions::diag_concat_df};
+use polars::prelude::PolarsError;
+pub use polars::{prelude::{PolarsResult, DataFrame, IntoLazy, Expr, lit, col, NULL, Literal}, functions::diag_concat_df};
 
 use crate::{AggregationRequest, DataSet, measure_builder, filters::fltr_chain};
 
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
-/// 
-/// If Frame is empty post filtering, we get an error:
-/// Note: https://github.com/pola-rs/polars/issues/4978
 pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Sized>) -> PolarsResult<DataFrame>
 {
     // Assuming Front End knows which columns can be in groupby, agg etc
@@ -39,6 +37,9 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     // Step 2.1 Build AGGREGATIONS/Measures
     // First, parse requested measures
     let m = req.measures();
+    if m.is_empty(){
+        return Err(PolarsError::InvalidOperation("Select measures. What do you want to aggregate?".into()))
+    }
     let op = req.calc_params();
 
     let measure_map = data.measures();
@@ -79,6 +80,8 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     
     let mut df = f1.collect()?;
 
+    // If Frame is empty post filtering, we get an error:
+    //  Note: https://github.com/pola-rs/polars/issues/4978
     if df.is_empty() {
         return Ok(df)
     }

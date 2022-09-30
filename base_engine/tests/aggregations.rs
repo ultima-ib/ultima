@@ -1,5 +1,3 @@
-//! Main testing module for the DataSet and measures
-
 use std::sync::Arc;
 
 use base_engine::{AggregationRequest, execute_aggregation};
@@ -25,3 +23,4 @@ fn simple_fltr_grpby_sum() {
         .expect("Couldn't sum");
     assert_eq!(res_sum, 25.0)    
 }
+

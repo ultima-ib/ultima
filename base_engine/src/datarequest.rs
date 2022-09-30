@@ -20,9 +20,8 @@ pub enum  DataRequestE {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AggregationRequest {
     // general fields
-    /// Measure can be of two types:
-    /// basic: Column - Action
-    /// bespoke: DerivedField - Action
+    /// Measure: (Name, Action) where Name will be looked up in 
+    /// MeasuresMap of the DataSet
     measures: Vec<(String, String)>,
     groupby: Vec<String>,
     #[serde(default)]

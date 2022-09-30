@@ -69,45 +69,47 @@ pub(crate) fn numeric_columns(df: &DataFrame) -> Vec<String> {
     res
 }
 
-//pub(crate) fn utf8_columns(df: &DataFrame) -> Vec<String> {
-//    let mut res = vec![];
-//    for c in df.get_columns() {
-//        if let DataType::Utf8 = c.dtype() {
-//            res.push(c.name().to_string())
-//        }
-//    }
-//    res
-//}
-
-pub(crate) fn utf8_columns_unique_vals(df: &DataFrame) -> PolarsResult<HashMap<String, Vec<Option<String>>>> {
-    let mut res = HashMap::new();
+pub(crate) fn utf8_columns(df: &DataFrame) -> Vec<String> {
+    let mut res = vec![];
     for c in df.get_columns() {
         if let DataType::Utf8 = c.dtype() {
-            res.insert(c.name().to_string(),
-             c.unique()?.utf8()?.into_iter()
-                .map(|x|
-                    x.map(|y|y.to_string())).collect::<Vec<Option<String>>>());
+            res.push(c.name().to_string())
         }
     }
-    Ok(res)
+    res
 }
+
+//pub(crate) fn utf8_columns_unique_vals(df: &DataFrame) -> PolarsResult<HashMap<String, Vec<Option<String>>>> {
+//    let mut res = HashMap::new();
+//    for c in df.get_columns() {
+//        if let DataType::Utf8 = c.dtype() {
+//            res.insert(c.name().to_string(),
+//             c.unique()?.utf8()?.into_iter()
+//                .map(|x|
+//                    x.map(|y|y.to_string())).collect::<Vec<Option<String>>>());
+//        }
+//    }
+//    Ok(res)
+//}
 
 impl Serialize for dyn DataSet {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let df = self.frame();
+        //let df = self.frame();
         let measures = self.measures()
             .iter()
             .map(|(x, m)| (x, m.aggregation))
             .collect::<HashMap<&String, Option<&str>>>();
 
-        let col_map = utf8_columns_unique_vals(df)
-            .map_err(|_|serde::ser::Error::custom("Could not serialize column"))?;
+        //let col_map = utf8_columns_unique_vals(df)
+        //    .map_err(|_|serde::ser::Error::custom("Could not serialize column"))?;
+
+        let utf8_cols = utf8_columns(self.frame());
 
         let mut seq = serializer.serialize_map(Some(2))?;
-        seq.serialize_entry("fields", &col_map)?;
+        seq.serialize_entry("fields", &utf8_cols)?;
         seq.serialize_entry("measures", &measures)?;
         seq.end()
     }

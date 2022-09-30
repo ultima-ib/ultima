@@ -10,7 +10,6 @@ pub mod prelude;
 pub mod api;
 
 use log::warn;
-use polars::prelude::*;
 
 pub use crate::prelude::*;
 

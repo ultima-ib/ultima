@@ -22,6 +22,7 @@ fn drc_nonsec() {
             ["DRC_NonSec_HBR", "first"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
+        "type": "AggregationRequest",
             "hide_zeros": false,
             "calc_params": {
                 "jurisdiction": "BCBS",
@@ -54,6 +55,7 @@ fn drc_nonsec_crr2() {
             ["DRC_NonSec_HBR", "first"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
+        "type": "AggregationRequest",
             "hide_zeros": false,
             "calc_params": {
                 "jurisdiction": "CRR2",
@@ -78,15 +80,15 @@ fn overwrites() {
         "overwrites": [{   "column": "SensWeights",
                           "value": "[0.005]",
                           "filters": [
-                                    [{"Eq":["RiskClass", "DRC_NonSec"]}],
-                                    [{"Eq":["CreditQuality", "AA"]}]
+                                    [{"op":"Eq", "field":"RiskClass", "value":"DRC_NonSec"}],
+                                    [{"op":"Eq", "field":"CreditQuality", "value":"AA"}]
                                     ]
                     }],
         
         "measures": [
             ["DRC_NonSec_CapitalCharge", "first"]
                 ],
-        
+        "type": "AggregationRequest",
         
         "hide_zeros": true,
         "calc_params": {
@@ -105,6 +107,7 @@ fn drc_secnonctp() {
 
     let request = r#"
     {"filters": [],
+    "type": "AggregationRequest",
 
         "groupby": ["RiskClass", "Desk"],
         

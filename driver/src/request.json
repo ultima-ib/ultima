@@ -1,32 +1,26 @@
-[{"type": "Request",
-    "id": "123", 
-    "method": "POST", 
-    "params": {
+[
+    {
+    "type": "AggregationRequest", 
 
-        "filters": [[{"Eq": ["Group", "Ultima"]}]],
-
-        "groupby": ["COB", "Desk", "BucketBCBS"],
-        
-        "measures": [
-            ["FX_DeltaSens", "sum"],
-            ["FX_DeltaSens_Weighted", "sum"],
-            ["FX_DeltaSb", "first"],
-            ["FX_DeltaKb", "first"],
-            ["FX_DeltaCharge_Low", "first"],
-            ["FX_DeltaCharge_Medium", "first"],
-            ["FX_DeltaCharge_High", "first"],
-            ["FX_DeltaCharge_MAX", "first"]
-                ],
-        
-        "hide_zeros": false,
-
-        "totals": true,
+    "filters": [[{"op": "Eq", "field": "Group", "value": "Ultima"}]],
+    "groupby": ["COB", "Desk", "BucketBCBS"],
+    "measures": [
+        ["FX_DeltaSens", "sum"],
+        ["FX_DeltaSens_Weighted", "sum"],
+        ["FX_DeltaSb", "first"],
+        ["FX_DeltaKb", "first"],
+        ["FX_DeltaCharge_Low", "first"],
+        ["FX_DeltaCharge_Medium", "first"],
+        ["FX_DeltaCharge_High", "first"],
+        ["FX_DeltaCharge_MAX", "first"]
+            ],
+    
+    "hide_zeros": false,
+    "totals": true,
  
-        "calc_params": {
-            "jurisdiction": "BCBS",
-            "apply_fx_curv_div": "true",
-            "drc_offset": "false"
-        }
-        
+    "calc_params": {
+        "jurisdiction": "BCBS",
+        "apply_fx_curv_div": "true",
+        "drc_offset": "false" } 
     }
-}]
+]

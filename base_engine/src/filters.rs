@@ -14,21 +14,23 @@ pub(crate) type AndOrFltrChain = Vec<Vec<FilterE>>;
 /// 
 /// 
 #[derive(Serialize, Deserialize, Debug, Hash, Clone)]
+#[serde(tag="op")]
 pub enum FilterE {
     /// On Same as In, but better for 1 field only
-    Eq(String, String),
-    Neq(String, String),
-    In(String, Vec<String>),
-    NotIn(String, Vec<String>),
+    Eq{field: String, value: String},
+    Neq{field: String, value: String},
+    In{field: String, value: Vec<String>},
+    NotIn{field: String, value: Vec<String>},
 }
+
 
 impl FilterE{
     pub fn to_expr(&self)->Expr{
         match self {
-            FilterE::Eq(c, v)          => fltr_eq(c, v),
-            FilterE::Neq(c, v)         => fltr_neq(c, v),
-            FilterE::In(c, vs)     => fltr_in(c, vs),
-            FilterE::NotIn(c, vs)  => fltr_not_in(c, vs),
+            FilterE::Eq{field: c, value: v}          => fltr_eq(c, v),
+            FilterE::Neq{field: c, value: v}          => fltr_neq(c, v),
+            FilterE::In{field: c, value: vs}      => fltr_in(c, vs),
+            FilterE::NotIn{field: c, value: vs}  => fltr_not_in(c, vs),
         }
     }
 }

@@ -18,6 +18,7 @@ pub enum  DataRequestE {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag="type")]
 pub struct AggregationRequest {
     // general fields
     /// Measure: (Name, Action) where Name will be looked up in 

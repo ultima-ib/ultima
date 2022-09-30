@@ -5,20 +5,19 @@ use base_engine::prelude::*;
 use driver::helpers::acquire;
 
 use std::{fs, sync::Arc};
-//use std::sync::{Mutex, Arc};
-//use std::sync::Arc;
+use log::{info, error};
+use std::time::Instant;
+use clap::{Parser, Subcommand};
+
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
-use log::{info, error};
 #[cfg(not(target_os = "linux"))]
 use mimalloc::MiMalloc;
-use serde::{Deserialize, Serialize};
-use std::time::Instant;
+
 
 #[global_allocator]
 #[cfg(target_os = "linux")]
 static ALLOC: Jemalloc = Jemalloc;
-
 #[global_allocator]
 #[cfg(not(target_os = "linux"))]
 static ALLOC: MiMalloc = MiMalloc;
@@ -49,45 +48,27 @@ fn main() {
     let json =
         fs::read_to_string(REQUEST).expect("Unable to read request file");
 
-    // TODO invalid json => continue
-    let messages: Vec<Message> = serde_json::from_str(&json).unwrap();
-    for message in messages{
-        info!("{:?}", message);
+    // Later this will be RequestE (to match other requests as well)
+    let requests: Vec<AggregationRequest> = serde_json::from_str(&json).unwrap();
+
+    // From here we do not panic
+    for request in requests{
+        info!("{:?}", request);
         let now = Instant::now();
-        if let Message::Request { params: conf, .. } = message {
-            match base_engine::execute_aggregation(conf, Arc::clone(&x)) {
-                Err(e) => {
-                    error!("Application error: {:#?}", e);
-                    continue;
-                }
-                Ok(df) => {
-                    let elapsed = now.elapsed();
-                    println!("result: {:?}", df);
-                    println!("Time to Compute: {:.6?}", elapsed);
-                }
+        match base_engine::execute_aggregation(request, Arc::clone(&x)) {
+
+            Err(e) => {
+                error!("Application error: {:#?}", e);
+                continue; }
+                
+            Ok(df) => {
+                let elapsed = now.elapsed();
+                println!("result: {:?}", df);
+                println!("Time to Compute: {:.6?}", elapsed);
             }
-        };
+        }
+    }
 }
-}
-
-// public params: Request
-// bespoke params: FRTBRequest
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "type")]
-enum Message {
-    Request {
-        id: String,
-        method: String,
-        params: AggregationRequest,
-    },
-    Response {
-        id: String,
-        result: PlaceHolder,
-    },
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct PlaceHolder(u8);
 
 /*
 /// Sample request

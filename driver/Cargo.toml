@@ -30,6 +30,7 @@ anyhow = "1"
 toml = {workspace = true}
 mimalloc = { version = "0.1.29", default-features = false }
 dotenv = "0.15"
+clap = {version="4", features=["derive"]}
 
 [dev-dependencies]
 reqwest = "0.11"

@@ -11,7 +11,7 @@ fn fltr_in_and_eq() {
         ["Balance", "sum"]
             ],
     "groupby": ["State"],
-    "filters": [[{"In": ["City", ["NY", "New York", "Forks"]]}], [{"Eq": ["State", "Washington"]}]]            
+    "filters": [[{"op": "In", "field": "City", "value": ["NY", "New York", "Forks"]}], [{"op": "Eq","field": "State", "value": "Washington"}]]            
     }"#;
     let data_req = serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
     let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET)).expect("Calculation failed");
@@ -30,7 +30,7 @@ fn fltr_eq_or_eq() {
         ["Balance", "mean"]
             ],
     "groupby": ["State"],
-    "filters": [[{"Eq": ["City", "Sun Diego"]}, {"Eq": ["State", "Washington"]}], [{"Eq": ["Sex","female"]}]]            
+    "filters": [[{"op": "Eq", "field": "City", "value": "Sun Diego"}, {"op": "Eq", "field": "State", "value": "Washington"}], [{"op": "Eq", "field": "Sex", "value": "female"}]]            
     }"#;
     let data_req = serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
     let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET)).expect("Calculation failed");

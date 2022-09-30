@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use polars::prelude::*;
 use serde::{Serializer, Serialize, ser::SerializeMap};
@@ -102,15 +102,14 @@ impl Serialize for dyn DataSet {
             .iter()
             .map(|(x, m)| (x, m.aggregation))
             .collect::<HashMap<&String, Option<&str>>>();
-
-        //let col_map = utf8_columns_unique_vals(df)
-        //    .map_err(|_|serde::ser::Error::custom("Could not serialize column"))?;
+        
+        let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
 
         let utf8_cols = utf8_columns(self.frame());
 
         let mut seq = serializer.serialize_map(Some(2))?;
         seq.serialize_entry("fields", &utf8_cols)?;
-        seq.serialize_entry("measures", &measures)?;
+        seq.serialize_entry("measures", &ordered_measures)?;
         seq.end()
     }
 }

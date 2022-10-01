@@ -1,12 +1,26 @@
 import Title from "./Title";
 import {List, ListItem, FormControl, Button, Autocomplete, TextField, Divider, Stack} from "@mui/material";
-import React, {Dispatch, MutableRefObject, SetStateAction, useEffect, useId, useRef, useState} from "react";
+import React, {
+    Dispatch,
+    MutableRefObject,
+    SetStateAction,
+    useEffect,
+    useId,
+    useRef,
+    useState,
+    Suspense,
+    useTransition
+} from "react";
 import {Filter as FilterType} from "./types";
+import {useFilterColumns} from "../api/hooks";
 
 interface FilterSelectProps {
     label: string
-    state: [string | undefined, Dispatch<SetStateAction<string | undefined>>]
+    state: [string | null, Dispatch<SetStateAction<string | null>>]
     options: string[]
+    inputValue?: string
+    onInputChange?: (value: string) => void
+    disabled?: boolean
 }
 
 const FilterSelect = (props: FilterSelectProps) => {
@@ -16,15 +30,20 @@ const FilterSelect = (props: FilterSelectProps) => {
 
     const values = props.options
     return (
-        <FormControl fullWidth variant="standard">
+        <FormControl fullWidth variant="standard" sx={{width: '32%'}}>
             <Autocomplete
                 disablePortal
+                disabled={props.disabled ?? false}
                 id={id}
                 options={values}
                 onChange={(event, newValue) => {
-                    setValue(newValue ?? undefined);
+                    setValue(newValue ?? null);
                 }}
-                value={value ?? undefined}
+                inputValue={props.inputValue}
+                onInputChange={(event, value) => {
+                    props.onInputChange?.(value)
+                }}
+                value={value}
                 renderInput={(params) => <TextField {...params} label={props.label}/>}
             />
         </FormControl>
@@ -32,28 +51,43 @@ const FilterSelect = (props: FilterSelectProps) => {
 }
 
 const Filter = (props: { onChange: (field: string, op: string, val: string) => void, fields: string[] }) => {
-    const [field, setField] = useState<string | undefined>()
-    const [op, setOp] = useState<string | undefined>()
-    const [val, setVal] = useState<string | undefined>()
+    const [field, setField] = useState<string | null>(null)
+    const [op, setOp] = useState<string | null>(null)
+    const [val, setVal] = useState<string | null>(null)
+
+    const [pending, startTransition] = useTransition()
+
     useEffect(() => {
-        if (field !== undefined && op !== undefined && val !== undefined) {
+        if (field !== null && op !== null && val !== null) {
             props.onChange(field, op, val)
         }
     }, [field, op, val, props.onChange])
+    const [valueSearchInput, setValueSearchInput] = useState('');
+
+    const searchResults = useFilterColumns(field ?? '', valueSearchInput)
+
     return (
         <>
-            <FilterSelect label="Field" state={[field, setField]} options={props.fields}/>
+            <FilterSelect label="Field" state={[field, (v) => startTransition(() => {
+                setField(v)
+                setValueSearchInput('')
+                setVal(null)
+            })]} options={props.fields}/>
             <FilterSelect label="Operator" state={[op, setOp]} options={[
                 'eq',
                 'neq',
                 'in',
                 'notin',
             ]}/>
-            <FilterSelect label="Value" state={[val, setVal]} options={[
-                // TODO options for this will come from the API
-                'three',
-                'fifty',
-            ]}/>
+            <Suspense fallback={"Loading..."}>
+                <FilterSelect
+                    disabled={pending}
+                    label="Value"
+                    state={[val, (value) => startTransition(() => setVal(value))]} options={searchResults}
+                    inputValue={valueSearchInput}
+                    onInputChange={(value) => startTransition(() => setValueSearchInput(value))}
+                />
+            </Suspense>
         </>
     )
 }

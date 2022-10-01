@@ -116,7 +116,7 @@ const FcBoard = (props: Props) => {
                   fields={columns.measuresSelected ?? []}
                   listId='measuresSelected'
                   height={'7rem'}
-                  extras={Agg}
+                  extras={({field}) => (columns.canBeAggregated(field) ? (<Agg field={field} />) : (<></>)) }
               />
               <Filters filters={props.filters} fields={columns.fields} />
             </Stack>

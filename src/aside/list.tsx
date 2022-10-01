@@ -65,7 +65,7 @@ function InnerList(props: InnerListProps) {
   }, [fields])
 
   return (
-      <Box sx={{ width: '100%'}}>
+      <Box sx={{ width: '100%', height: props.height }}>
         <Virtuoso
             style={{ height: props.height }}
             // @ts-expect-error signature mismatch between libraries

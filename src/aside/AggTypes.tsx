@@ -1,6 +1,7 @@
 import {MenuItem, FormControl, InputLabel, Select} from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import {createContext, useContext, useId} from "react";
+import {useAggTypes} from "../api/hooks";
 
 const AGG_TYPES =  [
     "max",
@@ -36,9 +37,11 @@ const Agg = (props: {
         })
     };
 
+    const {aggTypes, loading} = useAggTypes()
+
     const id = useId();
 
-    return (
+    const aggForm = (
         <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
             <InputLabel id={id}>Agg Types</InputLabel>
             <Select
@@ -47,11 +50,14 @@ const Agg = (props: {
                 onChange={handleChange}
                 label="Agg Types"
             >
-                {AGG_TYPES.map(it => (
+                {aggTypes.map(it => (
                     <MenuItem value={it} key={it}>{it}</MenuItem>
                 ))}
             </Select>
         </FormControl>
+    )
+    return (
+        loading ? <>Loading</> : aggForm
     )
 }
 

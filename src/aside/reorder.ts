@@ -1,5 +1,5 @@
 import type { DraggableLocation } from '@hello-pangea/dnd';
-import type { Quote, QuoteMap } from './types';
+import type {DataSet} from './types';
 
 // a little function to help us with reordering the result
 function reorder<TItem>(
@@ -16,57 +16,56 @@ function reorder<TItem>(
 
 export default reorder;
 
-interface ReorderQuoteMapArgs {
-  quoteMap: QuoteMap;
-  source: DraggableLocation;
-  destination: DraggableLocation;
-}
-
-export interface ReorderQuoteMapResult {
-  quoteMap: QuoteMap;
-}
-
 export const reorderQuoteMap = ({
   quoteMap,
   source,
   destination,
-}: ReorderQuoteMapArgs): ReorderQuoteMapResult => {
-  const current: Quote[] = [...quoteMap[source.droppableId]];
-  const next: Quote[] = [...quoteMap[destination.droppableId]];
-  const target: Quote = current[source.index];
-
+}: {
+  quoteMap: DataSet;
+  source: DraggableLocation;
+  destination: DraggableLocation;
+}) => {
+  const current: string[] = [...(quoteMap[source.droppableId as keyof DataSet] ?? [])];
+  const next: string[] = [...(quoteMap[destination.droppableId as keyof DataSet] ?? [])];
+  const target = current[source.index];
+  console.log({current, next})
   // moving to same list
   if (source.droppableId === destination.droppableId) {
-    const reordered: Quote[] = reorder(
+    const reordered: string[] = reorder(
       current,
       source.index,
       destination.index,
     );
-    const result: QuoteMap = {
+    return  {
       ...quoteMap,
       [source.droppableId]: reordered,
-    };
-    return {
-      quoteMap: result,
-    };
+    }
   }
 
-  // moving to different list
+  console.log({
+    source: source.droppableId,
+    destination: destination.droppableId
+  })
+  if (
+      (source.droppableId === 'measures' && destination.droppableId !== 'measuresSelected') ||
+      (source.droppableId === 'fields' && destination.droppableId === 'measuresSelected')
+  ) {
+    // impossible
+    return quoteMap
+  }
 
   // remove from original
-  current.splice(source.index, 1);
+  // if (source.droppableId !== 'fields' && source.droppableId !== 'measures') {
+    current.splice(source.index, 1);
+  // }
   // insert into next
   next.splice(destination.index, 0, target);
 
-  const result: QuoteMap = {
+  return {
     ...quoteMap,
     [source.droppableId]: current,
     [destination.droppableId]: next,
-  };
-
-  return {
-    quoteMap: result,
-  };
+  }
 };
 
 interface List<T> {

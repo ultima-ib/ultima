@@ -1,9 +1,13 @@
-import React  from 'react'
-import {Initial} from "./board";
+import Aside from "./aside";
+import CssBaseline from '@mui/material/CssBaseline';
 
 function App() {
   return (
-    <Initial />
+    <>
+      <CssBaseline>
+        <Aside />
+      </CssBaseline>
+    </>
   )
 }
 

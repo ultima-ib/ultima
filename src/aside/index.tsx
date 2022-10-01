@@ -31,13 +31,16 @@ export const Initial = () => {
 
     const [aggData, aggDataUpdater] = useReducer(aggTypesReducer, {})
 
+    const hideZeros = useState(false);
+
     const run = () => {
         const data = dataSet[0]
         const obj = {
             filters: Object.values(filters.current).map(it => Object.values(it)),
             overwrites: data.overwrites,
             groupby: data.groupby,
-            measures: data.measuresSelected
+            measures: data.measuresSelected,
+            hide_zeros: hideZeros[0],
         }
         console.log(JSON.stringify(obj))
     }
@@ -48,7 +51,7 @@ export const Initial = () => {
                 data: aggData,
                 updater: aggDataUpdater
             }}>
-                <Aside dataSet={dataSet} filters={filters} />
+                <Aside dataSet={dataSet} filters={filters} hideZeros={hideZeros} />
             </AggContext.Provider>
             <button onClick={run}>run</button>
         </div>

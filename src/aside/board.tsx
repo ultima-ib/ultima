@@ -1,9 +1,9 @@
-import {Dispatch, MutableRefObject, SetStateAction} from 'react';
+import React, {Dispatch, MutableRefObject, SetStateAction, useState} from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import type {DataSet} from './types';
 import {reorderQuoteMap} from './reorder';
-import {Box, Stack} from "@mui/material";
+import {Box, Checkbox, FormControlLabel, Stack} from "@mui/material";
 import QuoteList from "./list";
 import Title from "./Title";
 import {Filters} from "./Filters";
@@ -34,10 +34,24 @@ export function Column({ title, fields, listId, height, extras }: ColumnProps) {
   );
 }
 
+const HideZeros = (props: {
+  state: [boolean, Dispatch<SetStateAction<boolean>>];
+}) => {
+  const [checked, setChecked] = props.state
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setChecked(event.target.checked);
+  };
+
+  return (
+      <FormControlLabel control={<Checkbox checked={checked} onChange={handleChange}/>} label="Hide Zeros"/>
+  )
+}
 
 interface Props {
   dataSet: [DataSet, Dispatch<SetStateAction<DataSet>>];
   filters: MutableRefObject<{ [p: number]: { [p: number]: Filter } }>
+  hideZeros: [boolean, Dispatch<SetStateAction<boolean>>];
   withScrollableColumns?: boolean;
   isCombineEnabled?: boolean;
   containerHeight?: string;
@@ -116,9 +130,14 @@ const FcBoard = (props: Props) => {
                   fields={columns.measuresSelected ?? []}
                   listId='measuresSelected'
                   height={'7rem'}
-                  extras={({field}) => (columns.canBeAggregated(field) ? (<Agg field={field} />) : (<></>)) }
+                  extras={({field}: { field: string }) => (columns.canBeAggregated(field) ? (<Agg field={field} />) : (<></>)) }
               />
-              <Filters filters={props.filters} fields={columns.fields} />
+              <Filters
+                  filters={props.filters}
+                  fields={columns.fields}
+                  sx={{ height:'7rem' }}
+              />
+              <HideZeros state={props.hideZeros} />
             </Stack>
           </Box>
         </DragDropContext>

@@ -1,5 +1,16 @@
 import Title from "./Title";
-import {List, ListItem, FormControl, Button, Autocomplete, TextField, Divider, Stack} from "@mui/material";
+import {
+    List,
+    ListItem,
+    FormControl,
+    Button,
+    Autocomplete,
+    TextField,
+    Divider,
+    Stack,
+    Box,
+    BoxProps
+} from "@mui/material";
 import React, {
     Dispatch,
     MutableRefObject,
@@ -135,7 +146,7 @@ function FilterList(props: { filters: { [p: number]: FilterType }; fields: strin
 export const Filters = (props: {
     filters: MutableRefObject<{ [p: number]: { [p: number]: FilterType } }>,
     fields: string[]
-}) => {
+} & BoxProps) => {
     const [filters, setFilter] = useState<number[]>([])
     const lastUsed = useRef<number>(0)
 
@@ -152,9 +163,9 @@ export const Filters = (props: {
     }, [])
 
     return (
-        <section>
+        <Box sx={{overflow: 'scroll'}}>
             <Title content='Filters'/>
-            <Stack spacing={2}>
+            <Stack spacing={1} sx={{overflow: 'scroll', height: '8rem'}}>
                 {
                     filters.map((filter) => (
                         <React.Fragment key={filter}>
@@ -165,6 +176,6 @@ export const Filters = (props: {
                 }
             </Stack>
             <Button onClick={addNewFilter}>add and filter</Button>
-        </section>
+        </Box>
     )
 }

@@ -35,6 +35,6 @@ pub struct CliServer {
     #[arg(short, long, value_name = "SOCKET_ADDRESS")]
     pub address: Option<String>,
 
-    #[arg(short, long, default_value_t = false)]
+    #[arg(long, default_value_t = false)]
     pub host: bool,
 }

@@ -153,16 +153,12 @@ fn fx_curvature_charge(
                     fx_cvr_up_down(div, cvr_down_spot()).sum().alias("cvr_down"),
                 ])
                 .collect()?;
-            
-            let res_len = columns[0].len();
-            
-            if df.height() == 0 {
-                return Ok(Series::from_vec(
-                    "res",
-                    vec![0.; res_len] as Vec<f64>,
-                ));
-            };
 
+            let res_len = columns[0].len();
+
+            if df.height() == 0 {
+                return Ok(Series::from_vec("res", vec![0.; res_len] as Vec<f64>));
+            };
 
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {
@@ -234,12 +230,16 @@ fn fx_curvature_charge(
 }
 
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_curv_max(op: &OCP) -> Expr {
-    max_exprs(&[fx_curvature_charge_low(op), fx_curvature_charge_medium(op), fx_curvature_charge_high(op)])
+    max_exprs(&[
+        fx_curvature_charge_low(op),
+        fx_curvature_charge_medium(op),
+        fx_curvature_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

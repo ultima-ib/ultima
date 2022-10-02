@@ -7,30 +7,47 @@ pub(crate) type AndOrFltrChain = Vec<Vec<FilterE>>;
 
 /// Inner elements of each Filter are OR
 /// Filters themselves(eg a Vec of Filters) are AND
-/// 
+///
 /// TODO Currently works for Utf8 columns only. In the far future parsing logic will be added based on column datatype.
-/// 
+///
 /// (Column, Value(s))
-/// 
-/// 
+///
+///
 #[derive(Serialize, Deserialize, Debug, Hash, Clone)]
-#[serde(tag="op")]
+#[serde(tag = "op")]
 pub enum FilterE {
     /// On Same as In, but better for 1 field only
-    Eq{field: String, value: String},
-    Neq{field: String, value: String},
-    In{field: String, value: Vec<String>},
-    NotIn{field: String, value: Vec<String>},
+    Eq {
+        field: String,
+        value: String,
+    },
+    Neq {
+        field: String,
+        value: String,
+    },
+    In {
+        field: String,
+        value: Vec<String>,
+    },
+    NotIn {
+        field: String,
+        value: Vec<String>,
+    },
 }
 
-
-impl FilterE{
-    pub fn to_expr(&self)->Expr{
+impl FilterE {
+    pub fn to_expr(&self) -> Expr {
         match self {
-            FilterE::Eq{field: c, value: v}          => fltr_eq(c, v),
-            FilterE::Neq{field: c, value: v}          => fltr_neq(c, v),
-            FilterE::In{field: c, value: vs}      => fltr_in(c, vs),
-            FilterE::NotIn{field: c, value: vs}  => fltr_not_in(c, vs),
+            FilterE::Eq { field: c, value: v } => fltr_eq(c, v),
+            FilterE::Neq { field: c, value: v } => fltr_neq(c, v),
+            FilterE::In {
+                field: c,
+                value: vs,
+            } => fltr_in(c, vs),
+            FilterE::NotIn {
+                field: c,
+                value: vs,
+            } => fltr_not_in(c, vs),
         }
     }
 }
@@ -48,27 +65,25 @@ pub(crate) fn fltr_not_in(c: &str, vs: &Vec<String>) -> Expr {
 pub(crate) fn fltr_eq(c: &str, v: &str) -> Expr {
     match v {
         "null" => col(c).is_null(),
-        _ => col(c).cast(DataType::Utf8).eq(lit::<&str>(v))
+        _ => col(c).cast(DataType::Utf8).eq(lit::<&str>(v)),
     }
 }
 
 pub(crate) fn fltr_neq(c: &str, v: &str) -> Expr {
     match v {
         "null" => col(c).is_not_null(),
-        _ => col(c).cast(DataType::Utf8).neq(lit::<&str>(v))
+        _ => col(c).cast(DataType::Utf8).neq(lit::<&str>(v)),
     }
 }
 
-pub(crate) fn fltr_chain(chain: &AndOrFltrChain) -> Option<Expr>{
+pub(crate) fn fltr_chain(chain: &AndOrFltrChain) -> Option<Expr> {
     let mut res: Option<Expr> = None;
 
     // Loop from outer vec to inner
     for inner in chain {
         if !inner.is_empty() {
             let mut it = inner.iter();
-            let mut inner_res = it.next()
-                .unwrap()
-                .to_expr();
+            let mut inner_res = it.next().unwrap().to_expr();
             for f in it {
                 inner_res = inner_res.or(f.to_expr())
             }
@@ -77,7 +92,7 @@ pub(crate) fn fltr_chain(chain: &AndOrFltrChain) -> Option<Expr>{
                 // If res is already Some we chain it
                 Some(f) => Some(f.and(inner_res)),
                 // If res is still None we set it to inner_res
-                _ => Some(inner_res)
+                _ => Some(inner_res),
             }
         }
     }

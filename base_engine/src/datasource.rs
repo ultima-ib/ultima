@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use log::warn;
-use polars::prelude::*;
 use polars::functions::diag_concat_df;
+use polars::prelude::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -63,9 +63,9 @@ pub enum DataSourceConfig {
 
 impl DataSourceConfig {
     /// build's and validates FRTBDataSet
-    /// 
+    ///
     /// Returns:
-    /// 
+    ///
     /// (joined concatinated DataFrame, vec of base measures, build params)
     pub fn build(self) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
         match self {
@@ -84,9 +84,12 @@ impl DataSourceConfig {
                 str_cols.extend(f2a.clone());
 
                 let mut concatinated_frame = diag_concat_df(
-                    &files.iter().map(|f|path_to_df(f, &str_cols, &f64_cols)).collect::<Vec<DataFrame>>()
-                ).expect("Failed to concatinate provided frames"); // <- Ok to panic upon server startup
-
+                    &files
+                        .iter()
+                        .map(|f| path_to_df(f, &str_cols, &f64_cols))
+                        .collect::<Vec<DataFrame>>(),
+                )
+                .expect("Failed to concatinate provided frames"); // <- Ok to panic upon server startup
 
                 let mut tmp = f2a.clone();
                 tmp.extend(a2h.clone());
@@ -142,14 +145,19 @@ impl DataSourceConfig {
 
                 // if measures were provided
                 let measures = if !measures.is_empty() {
-                        // Checking if each measure is present in DF
-                        measures.iter().for_each(|col|{concatinated_frame.column(col).expect(&format!("Column {} not found", col));});
-                        derive_basic_measures_vec(measures)}
-                    // If not provided return all numeric columns
-                    else {
-                        let num_cols = numeric_columns(&concatinated_frame);
-                        derive_basic_measures_vec(num_cols)
-                    };
+                    // Checking if each measure is present in DF
+                    measures.iter().for_each(|col| {
+                        concatinated_frame
+                            .column(col)
+                            .unwrap_or_else(|_| panic!("Column {} not found", col));
+                    });
+                    derive_basic_measures_vec(measures)
+                }
+                // If not provided return all numeric columns
+                else {
+                    let num_cols = numeric_columns(&concatinated_frame);
+                    derive_basic_measures_vec(num_cols)
+                };
 
                 (concatinated_frame, measures, build_params)
             }
@@ -180,7 +188,7 @@ fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> Dat
 
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
-    let df = LazyCsvReader::new(path.to_string())
+    let df = LazyCsvReader::new(path)
         .has_header(true)
         .with_parse_dates(true)
         .with_dtype_overwrite(Some(&schema))

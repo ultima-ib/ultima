@@ -118,7 +118,11 @@ fn csrsecctp_vega_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecctp_vega_max(op: &OCP) -> Expr {
-    max_exprs(&[csrsecctp_vega_charge_low(op), csrsecctp_vega_charge_medium(op), csrsecctp_vega_charge_high(op)])
+    max_exprs(&[
+        csrsecctp_vega_charge_low(op),
+        csrsecctp_vega_charge_medium(op),
+        csrsecctp_vega_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

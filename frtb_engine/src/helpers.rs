@@ -3,7 +3,7 @@
 use crate::prelude::*;
 
 use log::warn;
-use ndarray::{prelude::*};
+use ndarray::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// if CRR2 feature is not activated, this will return BCBS
@@ -68,17 +68,16 @@ pub(crate) fn get_optional_parameter_array<'a>(
 }
 
 /// we need to assert arr shape, so we have a separate func for arrs
-pub(crate) fn get_optional_parameter_opt<'a, T>(
-    op: &'a OCP,
-    param: &str,
-) -> Option<T>
-where T: Deserialize<'a> {
+pub(crate) fn get_optional_parameter_opt<'a, T>(op: &'a OCP, param: &str) -> Option<T>
+where
+    T: Deserialize<'a>,
+{
     op.get(param)
         .and_then(|x| serde_json::from_str::<T>(x).ok())
 }
 
 /// For the cases where the requirement is completely outside of standradised approach, eg:
-/// 
+///
 /// https://www.isda.org/a/i6MgE/Implications-of-the-FRTB-for-Carbon-Certificates.pdf
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub(crate) struct RhoOverwrite {
@@ -98,8 +97,8 @@ pub(crate) struct RhoOverwrite {
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub(crate) enum RhoType {
     Tenor, // Standard Tenor rho. Usually independent
-    Type, // Same as Type/Location/Tranche (note: misleading for CSR Sec)
-    Name // Issuer/Risk Factor. Recall, this one varies across bucket
+    Type,  // Same as Type/Location/Tranche (note: misleading for CSR Sec)
+    Name,  // Issuer/Risk Factor. Recall, this one varies across bucket
 }
 
 /// Helper used to identify when to early return from the main charge function
@@ -118,5 +117,5 @@ pub(crate) enum ReturnMetric {
     NetShortJTD,
     WeightedNetLongJTD,
     WeightedNetAbsShortJTD,
-    HBR
+    Hbr,
 }

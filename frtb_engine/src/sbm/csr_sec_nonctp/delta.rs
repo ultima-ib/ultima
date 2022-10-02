@@ -219,7 +219,7 @@ where
                 "weighted_sens",
                 scenario_fn,
                 special_bucket,
-                &None
+                &None,
             )?;
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
@@ -270,7 +270,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecnonctp_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[csr_sec_nonctp_delta_charge_low(op), csr_sec_nonctp_delta_charge_medium(op), csr_sec_nonctp_delta_charge_high(op)])
+    max_exprs(&[
+        csr_sec_nonctp_delta_charge_low(op),
+        csr_sec_nonctp_delta_charge_medium(op),
+        csr_sec_nonctp_delta_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

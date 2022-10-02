@@ -19,16 +19,16 @@ use crate::prelude::{RhoOverwrite, RhoType};
 pub fn total_delta_sens() -> Expr {
     // When adding Exprs NULLs have to be filled Otherwise returns NULL
     col("SensitivitySpot").fill_null(0.)
-    + col("Sensitivity_025Y").fill_null(0.)
-    + col("Sensitivity_05Y").fill_null(0.)
-    + col("Sensitivity_1Y").fill_null(0.)
-    + col("Sensitivity_2Y").fill_null(0.)
-    + col("Sensitivity_3Y").fill_null(0.)
-    + col("Sensitivity_5Y").fill_null(0.)
-    + col("Sensitivity_10Y").fill_null(0.)
-    + col("Sensitivity_15Y").fill_null(0.)
-    + col("Sensitivity_20Y").fill_null(0.)
-    + col("Sensitivity_30Y").fill_null(0.)
+        + col("Sensitivity_025Y").fill_null(0.)
+        + col("Sensitivity_05Y").fill_null(0.)
+        + col("Sensitivity_1Y").fill_null(0.)
+        + col("Sensitivity_2Y").fill_null(0.)
+        + col("Sensitivity_3Y").fill_null(0.)
+        + col("Sensitivity_5Y").fill_null(0.)
+        + col("Sensitivity_10Y").fill_null(0.)
+        + col("Sensitivity_15Y").fill_null(0.)
+        + col("Sensitivity_20Y").fill_null(0.)
+        + col("Sensitivity_30Y").fill_null(0.)
 }
 
 /// CSR, Vega
@@ -36,10 +36,10 @@ pub fn total_vega_curv_sens() -> Expr {
     // When adding Exprs NULLs have to be filled
     // Otherwise returns NULL
     col("Sensitivity_05Y").fill_null(0.)
-    + col("Sensitivity_1Y").fill_null(0.)
-    + col("Sensitivity_3Y").fill_null(0.)
-    + col("Sensitivity_5Y").fill_null(0.)
-    + col("Sensitivity_10Y").fill_null(0.)
+        + col("Sensitivity_1Y").fill_null(0.)
+        + col("Sensitivity_3Y").fill_null(0.)
+        + col("Sensitivity_5Y").fill_null(0.)
+        + col("Sensitivity_10Y").fill_null(0.)
 }
 
 /// Filtering risk on rcat and risk class
@@ -241,7 +241,7 @@ where
                 risk_col,
                 scenario_fn,
                 is_special_bucket,
-                rho_overwrite
+                rho_overwrite,
             );
             let mut res = arc_mtx.lock().unwrap();
             res[b_as_idx_plus_1 - 1] = a;
@@ -288,9 +288,17 @@ where
     let tenor_chunked = df[tenor_col].utf8()?;
     let name_chunked = df[name_col].utf8()?;
     let basis_chunked = df[basis_col].utf8()?;
-    let special_col = if let Some(sp_rho) = rho_overwrite{
-        Some((df.column(&sp_rho.column)?.utf8()?, &sp_rho.col_equals, sp_rho.oneway, sp_rho.value, sp_rho.rhotype))
-    } else {None};
+    let special_col = if let Some(sp_rho) = rho_overwrite {
+        Some((
+            df.column(&sp_rho.column)?.utf8()?,
+            &sp_rho.col_equals,
+            sp_rho.oneway,
+            sp_rho.value,
+            sp_rho.rhotype,
+        ))
+    } else {
+        None
+    };
 
     let mut res = 0.;
     let it = tenor_chunked
@@ -313,28 +321,32 @@ where
                 if let Some(risk2) = risk2 {
                     let mut rho = 1.;
                     if tenor != tenor2 {
-                        let _rho_diff_tenor = if let Some(sp_col) = &special_col{
+                        let _rho_diff_tenor = if let Some(sp_col) = &special_col {
                             match sp_col.4 {
                                 RhoType::Tenor => {
                                     let a = sp_col.0.get(i);
                                     let b = sp_col.0.get(j);
                                     if sp_col.2 {
-                                        if (a == Some(sp_col.1.as_str())) | (b == Some(sp_col.1.as_str())) {
+                                        if (a == Some(sp_col.1.as_str()))
+                                            | (b == Some(sp_col.1.as_str()))
+                                        {
                                             sp_col.3
                                         } else {
                                             rho_diff_tenor
                                         }
+                                    } else if (a == Some(sp_col.1.as_str()))
+                                        & (b == Some(sp_col.1.as_str()))
+                                    {
+                                        sp_col.3
                                     } else {
-                                        if (a == Some(sp_col.1.as_str())) & (b == Some(sp_col.1.as_str())) {
-                                            sp_col.3
-                                        } else {
-                                            rho_diff_tenor
-                                        }
+                                        rho_diff_tenor
                                     }
-                                    },
-                                _ =>rho_diff_tenor,
+                                }
+                                _ => rho_diff_tenor,
                             }
-                        } else { rho_diff_tenor };
+                        } else {
+                            rho_diff_tenor
+                        };
                         rho *= _rho_diff_tenor;
                     }
                     if name != name2 {
@@ -350,7 +362,6 @@ where
     }
     Ok((res.max(0.).sqrt(), sb))
 }
-
 
 /// 21.93
 pub fn option_maturity_rho() -> Array2<f64> {

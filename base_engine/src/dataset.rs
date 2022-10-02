@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap};
 
 use polars::prelude::*;
-use serde::{Serializer, Serialize, ser::SerializeMap};
+use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 
@@ -13,7 +13,7 @@ pub struct DataSetBase {
     pub measures: MeasuresMap,
     /// build_params are used in .prepare()
     pub build_params: HashMap<String, String>,
-    pub calc_params: Vec<CalcParameter>
+    pub calc_params: Vec<CalcParameter>,
 }
 
 /// This struct is purely for DataSet descriptive purposes.
@@ -26,21 +26,27 @@ pub struct CalcParameter {
 }
 
 /// The main Trait
-/// 
+///
 /// If you have your own DataSet, implement this
 pub trait DataSet: Send + Sync {
     fn frame(&self) -> &DataFrame;
     fn measures(&self) -> &MeasuresMap;
-    fn build(conf: DataSourceConfig) -> Self where Self: Sized;
+    fn build(conf: DataSourceConfig) -> Self
+    where
+        Self: Sized;
     // These methods could be overwritten.
     /// Prepare runs ONCE before server starts.
     /// Any computations which are common to most queries could go in here.
     fn prepare(&mut self) {}
-    fn calc_params(&self) -> Vec<CalcParameter>{vec![]}
+    fn calc_params(&self) -> Vec<CalcParameter> {
+        vec![]
+    }
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
-    fn validate(&self) -> bool {true}
+    fn validate(&self) -> bool {
+        true
+    }
 }
 
 impl DataSet for DataSetBase {
@@ -51,7 +57,7 @@ impl DataSet for DataSetBase {
         &self.measures
     }
     /// It's ok to clone. Function is only called upon serialisation, so very rarely
-    fn calc_params(&self) -> Vec<CalcParameter>{
+    fn calc_params(&self) -> Vec<CalcParameter> {
         self.calc_params.clone()
     }
 
@@ -115,11 +121,12 @@ impl Serialize for dyn DataSet {
         S: Serializer,
     {
         //let df = self.frame();
-        let measures = self.measures()
+        let measures = self
+            .measures()
             .iter()
             .map(|(x, m)| (x, m.aggregation))
             .collect::<HashMap<&String, Option<&str>>>();
-        
+
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
         let utf8_cols = utf8_columns(self.frame());
         let calc_params = self.calc_params();

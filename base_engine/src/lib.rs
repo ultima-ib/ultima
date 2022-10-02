@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 
+pub mod api;
 mod datarequest;
 pub mod dataset;
 mod datasource;
@@ -7,12 +8,10 @@ mod filters;
 mod measure;
 pub mod overrides;
 pub mod prelude;
-pub mod api;
 
 use log::warn;
 
 pub use crate::prelude::*;
-
 
 /// Convert requested measure into actual measure
 ///

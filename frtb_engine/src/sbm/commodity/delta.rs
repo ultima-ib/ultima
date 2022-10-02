@@ -78,10 +78,8 @@ fn commodity_delta_charge_distributor(
         &scenario.base_com_rho_tenor,
     );
 
-    let rho_overwrite: Option<RhoOverwrite> = get_optional_parameter_opt(
-        op,
-        format!("com_delta_rho_overwrite{_suffix}").as_str(),
-    );
+    let rho_overwrite: Option<RhoOverwrite> =
+        get_optional_parameter_opt(op, format!("com_delta_rho_overwrite{_suffix}").as_str());
 
     commodity_delta_charge(
         commodity_rho_bucket,
@@ -183,7 +181,7 @@ where
                 "weighted_sens",
                 scenario_fn,
                 None,
-                &rho_overwrite
+                &rho_overwrite,
             )?;
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
@@ -230,12 +228,16 @@ where
 }
 
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[commodity_delta_charge_low(op), commodity_delta_charge_medium(op), commodity_delta_charge_high(op)])
+    max_exprs(&[
+        commodity_delta_charge_low(op),
+        commodity_delta_charge_medium(op),
+        commodity_delta_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

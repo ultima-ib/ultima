@@ -81,12 +81,16 @@ fn com_vega_charge_distributor(
     )
 }
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_vega_max(op: &OCP) -> Expr {
-    max_exprs(&[com_vega_charge_low(op), com_vega_charge_medium(op), com_vega_charge_high(op)])
+    max_exprs(&[
+        com_vega_charge_low(op),
+        com_vega_charge_medium(op),
+        com_vega_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

@@ -10,18 +10,28 @@ use polars::prelude::*;
 /// TODO GIRR Delta is the only case where Risk Weight is different, depending on tenor
 /// Hence col("SensWeights") can be f64 instead of list f64
 /// GIRR Delta will be the only case when we compute RW on the fly
-/// TODO but need to take care of /sqrt(2) 
+/// TODO but need to take care of /sqrt(2)
 #[allow(dead_code)]
-pub static GIRR_RISK_WEIGHTS: Lazy<[f64; 10]> =
-    Lazy::new(||[0.017, 0.017, 0.016, 0.013, 0.012, 
-                 0.011, 0.011, 0.011, 0.011, 0.011]);
+pub static GIRR_RISK_WEIGHTS: Lazy<[f64; 10]> = Lazy::new(|| {
+    [
+        0.017, 0.017, 0.016, 0.013, 0.012, 0.011, 0.011, 0.011, 0.011, 0.011,
+    ]
+});
 
 /// TODO Apply this RW on the fly
 /// 21.44 Buckets where RW above can be divided by /sqrt(2)
 #[allow(dead_code)]
-pub static GIRR_BUCKET_DIV_SQRT2: Lazy<Vec<String>> =
-    Lazy::new(||vec!["EUR".to_string(), "USD".to_string(), "GBP".to_string(), 
-        "AUD".to_string(), "JPY".to_string(), "SEK".to_string(), "CAD".to_string()]);
+pub static GIRR_BUCKET_DIV_SQRT2: Lazy<Vec<String>> = Lazy::new(|| {
+    vec![
+        "EUR".to_string(),
+        "USD".to_string(),
+        "GBP".to_string(),
+        "AUD".to_string(),
+        "JPY".to_string(),
+        "SEK".to_string(),
+        "CAD".to_string(),
+    ]
+});
 
 pub fn total_ir_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "GIRR", total_delta_sens())
@@ -263,7 +273,7 @@ where
                     )
                 })
                 .collect();
-            
+
             let res_len = columns[0].len();
             if df.height() == 0 {
                 return Ok(Series::from_vec(
@@ -404,12 +414,16 @@ pub(crate) fn girr_corr_matrix() -> Array2<f64> {
 }
 
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[girr_delta_charge_low(op), girr_delta_charge_medium(op), girr_delta_charge_high(op)])
+    max_exprs(&[
+        girr_delta_charge_low(op),
+        girr_delta_charge_medium(op),
+        girr_delta_charge_high(op),
+    ])
 }
 /// Exporting Measures
 pub(crate) fn girr_delta_measures() -> Vec<Measure> {

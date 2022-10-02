@@ -2,17 +2,26 @@
 
 pub mod pagination;
 
-use actix_web::{web::{self, Data}, App, HttpRequest, HttpServer, Responder, 
-    HttpResponse, get, dev::Server, middleware::Logger, 
+use actix_web::{
+    dev::Server,
+    get,
+    middleware::Logger,
+    web::{self, Data},
+    App,
+    HttpRequest,
+    HttpResponse,
+    HttpServer,
+    Responder,
     //error::InternalError, http::StatusCode,
-     Result};
+    Result,
+};
 use anyhow::Context;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
-use base_engine::{DataSet, AggregationRequest, prelude::PolarsResult};
 use base_engine::api::aggregations::BASE_CALCS;
+use base_engine::{prelude::PolarsResult, AggregationRequest, DataSet};
 
 // use uuid::Uuid;
 // use tracing::Instrument; //enters the span we pass as argument
@@ -21,7 +30,7 @@ use base_engine::api::aggregations::BASE_CALCS;
 #[get("/health_check")]
 async fn health_check(_: HttpRequest) -> impl Responder {
     HttpResponse::Ok()
-}  
+}
 
 #[derive(Deserialize)]
 struct Pagination {
@@ -32,31 +41,39 @@ const PER_PAGE: u16 = 100;
 
 // /{column_name}?page=2&per_page=30
 #[get("/{column_name}")]
-async fn column_search(path: web::Path<String>, page: web::Query<Pagination>, data: Data<Arc<dyn DataSet>>) 
--> Result<HttpResponse> {
+async fn column_search(
+    path: web::Path<String>,
+    page: web::Query<Pagination>,
+    data: Data<Arc<dyn DataSet>>,
+) -> Result<HttpResponse> {
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
     let res = task::spawn_blocking(move || {
         let d = data.get_ref();
         let srs = d.frame().column(&column_name)?;
         let search = base_engine::searches::filter_contains_unique(srs, &pat)?;
-        let first = page*PER_PAGE as usize ;
+        let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
         PolarsResult::Ok(s)
-
-    }).await
+    })
+    .await
     .context("Failed to spawn blocking task.")
-    .map_err(|e|actix_web::error::ErrorInternalServerError(e))?;
-    match  res {
-        Ok(srs) => Ok(HttpResponse::Ok().json(Vec::from(srs.utf8().map_err(|e|actix_web::error::ErrorInternalServerError(e))?))),
-        Err(e) => {tracing::error!("Failed to execute query: {:?}", e); 
-                                Err(actix_web::error::ErrorExpectationFailed(e))}
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+    match res {
+        Ok(srs) => Ok(HttpResponse::Ok().json(Vec::from(
+            srs.utf8()
+                .map_err(actix_web::error::ErrorInternalServerError)?,
+        ))),
+        Err(e) => {
+            tracing::error!("Failed to execute query: {:?}", e);
+            Err(actix_web::error::ErrorExpectationFailed(e))
+        }
     }
-}  
+}
 
-#[tracing::instrument( name = "Obtaining DataSet Info", skip(ds) )]
-async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {  
+#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
+async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
     web::Json(ds)
 }
 /* TODO this is not good enough, as we need to return a more detailed message to the client
@@ -91,7 +108,7 @@ pub enum UserError {
 
 /// TODO we actually want to return more detailed error message to the client
 #[tracing::instrument( name = "Request Execution", skip(data) )]
-async fn execute(data: Data<Arc<dyn DataSet>>, req: web::Json<AggregationRequest>) 
+async fn execute(data: Data<Arc<dyn DataSet>>, req: web::Json<AggregationRequest>)
 -> Result<HttpResponse, InternalError<UserError>>  {
     let r = req.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
@@ -102,37 +119,41 @@ async fn execute(data: Data<Arc<dyn DataSet>>, req: web::Json<AggregationRequest
     .map_err(|e|InternalError::new(UserError::UnexpectedError(e), StatusCode::INTERNAL_SERVER_ERROR))?;
     match  res {
         Ok(df) => Ok(HttpResponse::Ok().json(df)),
-        Err(e) => {tracing::error!("Failed to execute query: {:?}", e); 
+        Err(e) => {tracing::error!("Failed to execute query: {:?}", e);
                                     Err(InternalError::new(UserError::ComputeError(e.into()), StatusCode::INTERNAL_SERVER_ERROR))}
     }
 }
 */
 
-#[tracing::instrument( name = "Request Execution", skip(data) )]
-async fn execute(data: Data<Arc<dyn DataSet>>, req: web::Json<AggregationRequest>) 
--> Result<HttpResponse>  {
+#[tracing::instrument(name = "Request Execution", skip(data))]
+async fn execute(
+    data: Data<Arc<dyn DataSet>>,
+    req: web::Json<AggregationRequest>,
+) -> Result<HttpResponse> {
     let r = req.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
         base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
-    }).await
+    })
+    .await
     .context("Failed to spawn blocking task.")
-    .map_err(|e|actix_web::error::ErrorInternalServerError(e))?;
-    match  res {
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+    match res {
         Ok(df) => Ok(HttpResponse::Ok().json(df)),
-        Err(e) => {tracing::error!("Failed to execute query: {:?}", e); 
-                                Err(actix_web::error::ErrorExpectationFailed(e))}
+        Err(e) => {
+            tracing::error!("Failed to execute query: {:?}", e);
+            Err(actix_web::error::ErrorExpectationFailed(e))
+        }
     }
 }
 
 async fn measures() -> impl Responder {
-    let res = BASE_CALCS.iter().map(|(x, _)|*x).collect::<Vec<&str>>();
+    let res = BASE_CALCS.iter().map(|(x, _)| *x).collect::<Vec<&str>>();
     web::Json(res)
-}  
+}
 
 // TODO Why can't I use ds: impl DataSet ?
-pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>) -> std::io::Result<Server>
-{
+pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>) -> std::io::Result<Server> {
     // Read .env
     dotenv::dotenv().ok();
     // Allow pretty logs
@@ -140,18 +161,18 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>) -> std::io::Resul
 
     let ds = Data::new(ds);
 
-    let server = HttpServer::new( move|| {
+    let server = HttpServer::new(move || {
         App::new()
-        .wrap(Logger::default())
-        .service(health_check)
-        .service(
-            web::scope("/FRTB")
-            .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
-            .route("", web::post().to(execute))
-            .service(column_search)
-        )
-        .route("/aggtypes", web::get().to(measures))
-        .app_data(ds.clone())
+            .wrap(Logger::default())
+            .service(health_check)
+            .service(
+                web::scope("/FRTB")
+                    .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                    .route("", web::post().to(execute))
+                    .service(column_search),
+            )
+            .route("/aggtypes", web::get().to(measures))
+            .app_data(ds.clone())
     })
     .listen(listener)?
     .run();

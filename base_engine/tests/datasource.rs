@@ -1,12 +1,10 @@
-
-use base_engine::{DataSourceConfig, read_toml2, DataSetBase, DataSet};
+use base_engine::{read_toml2, DataSet, DataSetBase, DataSourceConfig};
 
 #[test]
 fn toml2config() {
     let conf_path = r"./tests/data/test_config.toml";
     read_toml2::<DataSourceConfig>(conf_path).unwrap();
 }
-
 
 #[test]
 #[should_panic(expected = "Error reading file")]

@@ -137,95 +137,96 @@ pub(crate) fn csrnonsec_curvature_charge(
     bucket_col: Expr,
     rc: &'static str,
 ) -> Expr {
-    apply_multiple(move |columns| {
-        let df = df![
-            "rc"       => columns[0].clone(),
-            "b"        => columns[1].clone(),
-            "rf"       => columns[2].clone(),
-            "PnL_Up"   => columns[3].clone(),
-            "PnL_Down" => columns[4].clone(),
-            "Sensitivity_05Y"           => columns[5].clone(),
-            "Sensitivity_1Y"            => columns[6].clone(),
-            "Sensitivity_3Y"            => columns[7].clone(),
-            "Sensitivity_5Y"            => columns[8].clone(),
-            "Sensitivity_10Y"           => columns[9].clone(),
-            "CurvatureRiskWeight"       => columns[10].clone(),
-        ]?;
+    apply_multiple(
+        move |columns| {
+            let df = df![
+                "rc"       => columns[0].clone(),
+                "b"        => columns[1].clone(),
+                "rf"       => columns[2].clone(),
+                "PnL_Up"   => columns[3].clone(),
+                "PnL_Down" => columns[4].clone(),
+                "Sensitivity_05Y"           => columns[5].clone(),
+                "Sensitivity_1Y"            => columns[6].clone(),
+                "Sensitivity_3Y"            => columns[7].clone(),
+                "Sensitivity_5Y"            => columns[8].clone(),
+                "Sensitivity_10Y"           => columns[9].clone(),
+                "CurvatureRiskWeight"       => columns[10].clone(),
+            ]?;
 
-        let df = df
-            .lazy()
-            .filter(
-                col("rc").eq(lit(rc)).and(
-                    col("PnL_Up")
-                        .is_not_null()
-                        .or(col("PnL_Down").is_not_null()),
-                ),
-            )
-            .groupby([col("b"), col("rf")])
-            .agg([
-                cvr_up_5().sum().alias("cvr_up"),
-                cvr_down_5().sum().alias("cvr_down"),
-            ])
-            //.fill_null(lit::<f64>(0.))
-            .collect()?;
+            let df = df
+                .lazy()
+                .filter(
+                    col("rc").eq(lit(rc)).and(
+                        col("PnL_Up")
+                            .is_not_null()
+                            .or(col("PnL_Down").is_not_null()),
+                    ),
+                )
+                .groupby([col("b"), col("rf")])
+                .agg([
+                    cvr_up_5().sum().alias("cvr_up"),
+                    cvr_down_5().sum().alias("cvr_down"),
+                ])
+                //.fill_null(lit::<f64>(0.))
+                .collect()?;
 
-        let res_len = columns[0].len();
-        let (kb_plus_cvr_up, kb_minus_cvr_down): (Vec<(f64, f64)>, Vec<(f64, f64)>) =
-            curvature_kb_plus_minus(df, &csr_curv_rho, special_bucket)?;
-        let (kb_plus, cvr_up): (Vec<f64>, Vec<f64>) = kb_plus_cvr_up.into_iter().unzip();
-        let (kb_minus, cvr_down): (Vec<f64>, Vec<f64>) = kb_minus_cvr_down.into_iter().unzip();
+            let res_len = columns[0].len();
+            let (kb_plus_cvr_up, kb_minus_cvr_down): (Vec<(f64, f64)>, Vec<(f64, f64)>) =
+                curvature_kb_plus_minus(df, &csr_curv_rho, special_bucket)?;
+            let (kb_plus, cvr_up): (Vec<f64>, Vec<f64>) = kb_plus_cvr_up.into_iter().unzip();
+            let (kb_minus, cvr_down): (Vec<f64>, Vec<f64>) = kb_minus_cvr_down.into_iter().unzip();
 
-        match return_metric {
-            ReturnMetric::KbPlus => {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, kb_plus.iter().sum())
-                        .as_slice()
-                        .unwrap(),
-                ))
+            match return_metric {
+                ReturnMetric::KbPlus => {
+                    return Ok(Series::new(
+                        "res",
+                        Array1::<f64>::from_elem(res_len, kb_plus.iter().sum())
+                            .as_slice()
+                            .unwrap(),
+                    ))
+                }
+                ReturnMetric::KbMinus => {
+                    return Ok(Series::new(
+                        "res",
+                        Array1::<f64>::from_elem(res_len, kb_minus.iter().sum())
+                            .as_slice()
+                            .unwrap(),
+                    ))
+                }
+                _ => (),
             }
-            ReturnMetric::KbMinus => {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, kb_minus.iter().sum())
-                        .as_slice()
-                        .unwrap(),
-                ))
-            }
-            _ => (),
-        }
 
-        let a = Some;
-        let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(
-            kb_plus,
-            kb_minus,
-            cvr_up.into_iter().map(a),
-            cvr_down.into_iter().map(a),
-        )?;
-        match return_metric {
-            ReturnMetric::Kb => {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                        .as_slice()
-                        .unwrap(),
-                ))
+            let a = Some;
+            let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(
+                kb_plus,
+                kb_minus,
+                cvr_up.into_iter().map(a),
+                cvr_down.into_iter().map(a),
+            )?;
+            match return_metric {
+                ReturnMetric::Kb => {
+                    return Ok(Series::new(
+                        "res",
+                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
+                            .as_slice()
+                            .unwrap(),
+                    ))
+                }
+                ReturnMetric::Sb => {
+                    return Ok(Series::new(
+                        "res",
+                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
+                            .as_slice()
+                            .unwrap(),
+                    ))
+                }
+                _ => (),
             }
-            ReturnMetric::Sb => {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                        .as_slice()
-                        .unwrap(),
-                ))
-            }
-            _ => (),
-        }
 
-        let phi = phi(&sbs);
-        let gamma = phi * csr_curv_gamma.view();
+            let phi = phi(&sbs);
+            let gamma = phi * csr_curv_gamma.view();
 
-        across_bucket_agg(kbs, sbs, &gamma, res_len, SBMChargeType::Curvature)
+            across_bucket_agg(kbs, sbs, &gamma, res_len, SBMChargeType::Curvature)
         },
         &[
             col("RiskClass"),
@@ -248,7 +249,11 @@ pub(crate) fn csrnonsec_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrnonsec_curv_max(op: &OCP) -> Expr {
-    max_exprs(&[csrnonsec_curvature_charge_low(op), csrnonsec_curvature_charge_medium(op), csrnonsec_curvature_charge_high(op)])
+    max_exprs(&[
+        csrnonsec_curvature_charge_low(op),
+        csrnonsec_curvature_charge_medium(op),
+        csrnonsec_curvature_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

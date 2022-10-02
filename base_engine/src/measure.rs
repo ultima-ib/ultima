@@ -58,4 +58,3 @@ pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MeasuresMap {
     }
     measure_map
 }
-

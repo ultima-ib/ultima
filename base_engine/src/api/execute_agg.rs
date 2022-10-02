@@ -3,15 +3,19 @@
 use std::sync::Arc;
 
 use polars::prelude::PolarsError;
-pub use polars::{prelude::{PolarsResult, DataFrame, IntoLazy, Expr, lit, col, NULL, Literal}, functions::diag_concat_df};
+pub use polars::{
+    functions::diag_concat_df,
+    prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
+};
 
-use crate::{AggregationRequest, DataSet, measure_builder, filters::fltr_chain};
-
+use crate::{filters::fltr_chain, measure_builder, AggregationRequest, DataSet};
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
-pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Sized>) -> PolarsResult<DataFrame>
-{
+pub fn execute_aggregation(
+    req: AggregationRequest,
+    data: Arc<impl DataSet + ?Sized>,
+) -> PolarsResult<DataFrame> {
     // Assuming Front End knows which columns can be in groupby, agg etc
 
     // Step 0.1
@@ -23,22 +27,22 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
     // Polars DataFrame clone is cheap:
     // https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
     let mut f1 = f1.clone().lazy();
-    
 
     // Step 1.0 Applying FILTERS:
-    // TODO check if column is present in DF - ( is this "second line of defence" even needed?) 
-    if let Some(f) = fltr_chain(req.filters()){
+    // TODO check if column is present in DF - ( is this "second line of defence" even needed?)
+    if let Some(f) = fltr_chain(req.filters()) {
         f1 = f1.filter(f)
     }
-
 
     // Step 2.x OVERRIDE, 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
 
     // Step 2.1 Build AGGREGATIONS/Measures
     // First, parse requested measures
     let m = req.measures();
-    if m.is_empty(){
-        return Err(PolarsError::InvalidOperation("Select measures. What do you want to aggregate?".into()))
+    if m.is_empty() {
+        return Err(PolarsError::InvalidOperation(
+            "Select measures. What do you want to aggregate?".into(),
+        ));
     }
     let op = req.calc_params();
 
@@ -60,52 +64,51 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
         match fltr {
             // join filters as or
             Some(f) => {
-                measure_filter_opt = measure_filter_opt.map(|fltr|fltr.or(f)); //= measure_filter_opt.or(f);
+                measure_filter_opt = measure_filter_opt.map(|fltr| fltr.or(f)); //= measure_filter_opt.or(f);
             }
             // If at least one of the measure filters is None, then everything is true
             // and break
             None => {
                 measure_filter_opt = None;
-                break
+                break;
             }
         }
     }
 
-    
-    
     // Step 2.3 Applying (Mesure)FILTER
-    if let Some(fltr) = measure_filter_opt{
+    if let Some(fltr) = measure_filter_opt {
         f1 = f1.filter(fltr)
     }
-    
+
     let mut df = f1.collect()?;
 
     // If Frame is empty post filtering, we get an error:
     //  Note: https://github.com/pola-rs/polars/issues/4978
     if df.is_empty() {
-        return Ok(df)
+        return Ok(df);
     }
-    
+
     // Step 2.4 Applying Overwrites
     for ow in req.overrides() {
         df = ow.df_with_overwrite(df)?
     }
-    
+
     // Step 2.4 Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
 
     // Step 2.5 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable
-    let mut aggregated_df = df.clone().
-        lazy()
+    let mut aggregated_df = df
+        .clone()
+        .lazy()
         .groupby_stable(&groups)
         .agg(&aggregateions)
         .limit(1_000)
         .collect()?;
-    
+
     let ordered_cols = aggregated_df.get_column_names_owned();
-    
+
     if req.totals {
         let mut total_frames = vec![];
         //let mut with_cols = vec![];
@@ -113,12 +116,15 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
         for i in (1..groups.len()).rev() {
             // Columns which we are goinf to aggregate this time
             // (groups minus it's last element)
-            let grp_by = &groups[0..i]; 
+            let grp_by = &groups[0..i];
             // Not doing this, since we otherwise loose soring
             //let last_gr_col_name = &req._groupby()[i];
             //with_cols.push(lit("Total").alias(last_gr_col_name));
 
-            let _df = df.clone().lazy().groupby_stable(grp_by)
+            let _df = df
+                .clone()
+                .lazy()
+                .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)
                 //.with_columns(&with_cols)
@@ -131,17 +137,16 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
         aggregated_df = diag_concat_df(&total_frames)?;
     }
 
-    f1 = aggregated_df.lazy()
+    f1 = aggregated_df
+        .lazy()
         .sort_by_exprs(&groups, vec![false; groups.len()], false)
-        .select(ordered_cols.iter().map(|c|col(c)).collect::<Vec<Expr>>());
-
+        .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>());
 
     // POSTPROCESSING
     // Remove zeros, optional
     // TODO Note: Comparing with 0. doesn't work with list columns
     // TODO Need to check column type and based on that compare against 0. or not
-    if req.hide_zeros
-    {
+    if req.hide_zeros {
         let mut it = newnames.iter();
         if let Some(c) = it.next() {
             // Filter where col is Not Eq 0 AND Not Eq Null
@@ -152,6 +157,6 @@ pub fn execute_aggregation(req: AggregationRequest, data: Arc<impl DataSet + ?Si
             f1 = f1.filter(predicate);
         }
     };
-    
+
     f1.collect()
 }

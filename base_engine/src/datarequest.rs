@@ -5,23 +5,23 @@ use crate::overrides::Overwrite;
 use serde::{Deserialize, Serialize};
 
 /// Fundamentally, user might want to:
-/// 
+///
 /// i) Aggregation: apply the same procedure to every group and get a single number
-/// 
+///
 /// Otherwise, ii) Apply the same procedure to every group and get multiple numbers (ie a Breakdown)
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum  DataRequestE {
+pub enum DataRequestE {
     /// Measures will be called in GroupBy-Aggregate context
     Aggregation(AggregationRequest),
     /// TODO Measures will be called in groupby-Apply Context
-    Breakdown
+    Breakdown,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag="type")]
+#[serde(tag = "type")]
 pub struct AggregationRequest {
     // general fields
-    /// Measure: (Name, Action) where Name will be looked up in 
+    /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
     measures: Vec<(String, String)>,
     groupby: Vec<String>,
@@ -37,11 +37,9 @@ pub struct AggregationRequest {
     /// Show totals
     #[serde(default)]
     pub totals: bool,
-
 }
 
 impl AggregationRequest {
-
     pub fn filters(&self) -> &AndOrFltrChain {
         &self.filters
     }
@@ -54,11 +52,11 @@ impl AggregationRequest {
         &self.groupby
     }
 
-    pub fn calc_params(&self) -> &OCP{
+    pub fn calc_params(&self) -> &OCP {
         &self.calc_params
     }
 
-    pub fn overrides(&self) -> &Vec<Overwrite>{
+    pub fn overrides(&self) -> &Vec<Overwrite> {
         &self.overwrites
     }
 }

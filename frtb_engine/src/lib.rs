@@ -1,21 +1,21 @@
 //! FRTB job entry point
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
+pub mod calc_params;
 pub mod docs;
+mod drc;
 mod helpers;
 pub mod measures;
-pub mod calc_params;
 pub mod prelude;
-mod sbm;
-mod drc;
-mod statics;
 mod risk_weights;
+mod sbm;
+mod statics;
 
-use base_engine::prelude::*;
-use prelude::{frtb_measure_vec, drc::common::drc_scalinng, calc_params::frtb_calc_params};
-use sbm::buckets;
-use risk_weights::*;
 use crate::drc::drc_weights;
+use base_engine::prelude::*;
+use prelude::{calc_params::frtb_calc_params, drc::common::drc_scalinng, frtb_measure_vec};
+use risk_weights::*;
+use sbm::buckets;
 
 use polars::prelude::*;
 use std::collections::HashMap;
@@ -83,45 +83,58 @@ impl DataSet for FRTBDataSet {
             };
 
             // Then assign risk weights based on buckets
-            lf1 = lf1
-                .with_column(
-                    weights_assign(&self.build_params).alias("SensWeights")
-                );
+            lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
             //let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
 
             // Some risk weights assignments (DRC Sec Non CTP) would result in too many when().then() statements
             // which panics: https://github.com/pola-rs/polars/issues/4827
             // Hence, for such scenarios we need to use left join
             let drc_secnonctp_weights: DataFrame = drc_weights::drc_secnonctp_weights_frame();
-            let left_on =  concat_str([
-                        col("CreditQuality").map(|s|Ok(s.utf8()?.to_uppercase().into_series()), GetOutput::from_type(DataType::Utf8)), 
-                        col("RiskFactorType").map(|s|Ok(s.utf8()?.to_uppercase().into_series()), GetOutput::from_type(DataType::Utf8)),
-                        ], 
-                        "_").alias("LeftKey");
+            let left_on = concat_str(
+                [
+                    col("CreditQuality").map(
+                        |s| Ok(s.utf8()?.to_uppercase().into_series()),
+                        GetOutput::from_type(DataType::Utf8),
+                    ),
+                    col("RiskFactorType").map(
+                        |s| Ok(s.utf8()?.to_uppercase().into_series()),
+                        GetOutput::from_type(DataType::Utf8),
+                    ),
+                ],
+                "_",
+            )
+            .alias("LeftKey");
 
-            lf1 = lf1.left_join(drc_secnonctp_weights.lazy(), left_on, col("Key"))
-            .with_column(concat_lst([col("RiskWeightDRC")]));
-            let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
+            lf1 = lf1
+                .left_join(drc_secnonctp_weights.lazy(), left_on, col("Key"))
+                .with_column(concat_lst([col("RiskWeightDRC")]));
+            let tmp_frame = lf1
+                .collect()
+                .expect("Failed to unwrap tmp_frame while .prepare()");
 
-            lf1 = tmp_frame.lazy().with_column(
+            lf1 = tmp_frame
+                .lazy()
+                .with_column(
                     when(col("RiskClass").eq(lit("DRC_SecNonCTP")))
                         .then(col("RiskWeightDRC"))
                         .otherwise(col("SensWeights"))
-                        .alias("SensWeights"))
-                        .select([col("*").exclude(&["RiskWeightDRC", "LeftKey"])]);
-            let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
-
+                        .alias("SensWeights"),
+                )
+                .select([col("*").exclude(&["RiskWeightDRC", "LeftKey"])]);
+            let tmp_frame = lf1
+                .collect()
+                .expect("Failed to unwrap tmp_frame while .prepare()");
 
             // Curvature risk weight
-            lf1 =  tmp_frame.lazy().with_column(
-                    when(
-                        col("PnL_Up")
-                            .is_not_null()
-                            .or(col("PnL_Down").is_not_null()),
-                    )
-                    .then(col("SensWeights").arr().max().alias("CurvatureRiskWeight"))
-                    .otherwise(NULL.lit()),
-                );
+            lf1 = tmp_frame.lazy().with_column(
+                when(
+                    col("PnL_Up")
+                        .is_not_null()
+                        .or(col("PnL_Down").is_not_null()),
+                )
+                .then(col("SensWeights").arr().max().alias("CurvatureRiskWeight"))
+                .otherwise(NULL.lit()),
+            );
 
             // Now,  ammend weights if required. ie has to be done after main assignment of risk weights
             let mut other_cols: Vec<Expr> = vec![];
@@ -164,45 +177,49 @@ impl DataSet for FRTBDataSet {
                 let mut with_cols = vec![col("SensWeightsCRR2")
                     .arr()
                     .max()
-                    .alias("CurvatureRiskWeightCRR2"),
-                ];
+                    .alias("CurvatureRiskWeightCRR2")];
                 if csrnonsec_covered_bond_15 {
                     with_cols.push(
                         when(
-                        col("RiskClass")
-                            .eq(lit("CSR_nonSec"))
-                            .and(col("RiskCategory").eq(lit("Delta")))
-                            .and(col("BucketCRR2").eq(lit("10")))
-                            .and(col("CoveredBondReducedWeight").eq(lit::<bool>(true))),
+                            col("RiskClass")
+                                .eq(lit("CSR_nonSec"))
+                                .and(col("RiskCategory").eq(lit("Delta")))
+                                .and(col("BucketCRR2").eq(lit("10")))
+                                .and(col("CoveredBondReducedWeight").eq(lit::<bool>(true))),
                         )
                         .then(Series::new("", &[0.015]).lit().list())
                         .otherwise(col("SensWeightsCRR2"))
-                        .alias("SensWeightsCRR2"))
+                        .alias("SensWeightsCRR2"),
+                    )
                 }
 
                 lf1 = lf1.with_columns(with_cols)
             }
 
             // Have to collect into a tmp df, as the code panics otherwise
-            let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
-            lf1 = tmp_frame.lazy().with_columns(
-                &[when(
-                col("RiskClass")
-                    .eq(lit("GIRR"))
-                    .and(col("RiskCategory").eq(lit("Vega"))),
+            let tmp_frame = lf1
+                .collect()
+                .expect("Failed to unwrap tmp_frame while .prepare()");
+            lf1 = tmp_frame.lazy().with_columns(&[
+                when(
+                    col("RiskClass")
+                        .eq(lit("GIRR"))
+                        .and(col("RiskCategory").eq(lit("Vega"))),
                 )
                 .then(col("GirrVegaUnderlyingMaturity").fill_null(col("RiskFactorType")))
                 .otherwise(NULL.lit()),
-
                 drc_scalinng(
-                    self.build_params.get("DayCountConvention").and_then(|x|x.parse::<u8>().ok()),
-                    self.build_params.get("DateFormat"))
+                    self.build_params
+                        .get("DayCountConvention")
+                        .and_then(|x| x.parse::<u8>().ok()),
+                    self.build_params.get("DateFormat"),
+                )
                 .alias("ScaleFactor"),
-
                 drc_seniority().alias("SeniorityRank"),
-                ]
-            );
-            let tmp2_frame = lf1.collect().expect("Failed to unwrap tmp2_frame while .prepare()");
+            ]);
+            let tmp2_frame = lf1
+                .collect()
+                .expect("Failed to unwrap tmp2_frame while .prepare()");
 
             *f1 = tmp2_frame;
         }
@@ -227,4 +244,3 @@ impl DataSet for FRTBDataSet {
     //If DRC validate CreditQuality
     // fn validate(self) -> Self {}
 }
-

@@ -150,11 +150,13 @@ fn csr_nonsec_delta_charge_distributor(
     let (weight, bucket_col, name_rho_vec, gamma, n_buckets, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            [col("SensWeightsCRR2").arr().get(0),
-            col("SensWeightsCRR2").arr().get(1),
-            col("SensWeightsCRR2").arr().get(2),
-            col("SensWeightsCRR2").arr().get(3),
-            col("SensWeightsCRR2").arr().get(4),],
+            [
+                col("SensWeightsCRR2").arr().get(0),
+                col("SensWeightsCRR2").arr().get(1),
+                col("SensWeightsCRR2").arr().get(2),
+                col("SensWeightsCRR2").arr().get(3),
+                col("SensWeightsCRR2").arr().get(4),
+            ],
             col("BucketCRR2"),
             Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
             &scenario.csr_nonsec_gamma_crr2,
@@ -163,11 +165,13 @@ fn csr_nonsec_delta_charge_distributor(
         ),
 
         Jurisdiction::BCBS => (
-            [col("SensWeights").arr().get(0),
-            col("SensWeights").arr().get(1),
-            col("SensWeights").arr().get(2),
-            col("SensWeights").arr().get(3),
-            col("SensWeights").arr().get(4),],
+            [
+                col("SensWeights").arr().get(0),
+                col("SensWeights").arr().get(1),
+                col("SensWeights").arr().get(2),
+                col("SensWeights").arr().get(3),
+                col("SensWeights").arr().get(4),
+            ],
             col("BucketBCBS"),
             Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
             &scenario.csr_nonsec_gamma,
@@ -386,7 +390,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrnonsec_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[csr_nonsec_delta_charge_low(op), csr_nonsec_delta_charge_medium(op), csr_nonsec_delta_charge_high(op)])
+    max_exprs(&[
+        csr_nonsec_delta_charge_low(op),
+        csr_nonsec_delta_charge_medium(op),
+        csr_nonsec_delta_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

@@ -319,12 +319,16 @@ pub(crate) fn girr_vega_rho() -> Array2<f64> {
     res
 }
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_vega_max(op: &OCP) -> Expr {
-    max_exprs(&[girr_vega_charge_low(op), girr_vega_charge_medium(op), girr_vega_charge_high(op)])
+    max_exprs(&[
+        girr_vega_charge_low(op),
+        girr_vega_charge_medium(op),
+        girr_vega_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

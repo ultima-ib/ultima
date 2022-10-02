@@ -195,12 +195,16 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
     )
 }
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[fx_delta_charge_low(op), fx_delta_charge_medium(op), fx_delta_charge_high(op)])
+    max_exprs(&[
+        fx_delta_charge_low(op),
+        fx_delta_charge_medium(op),
+        fx_delta_charge_high(op),
+    ])
 }
 /// Exporting Measures
 pub(crate) fn fx_delta_measures() -> Vec<Measure> {

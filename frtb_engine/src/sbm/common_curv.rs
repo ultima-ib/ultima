@@ -195,13 +195,15 @@ pub(crate) fn curvature_kb_plus_minus(
         }
     });
     //Result<Vec<(f64, f64)>>
-    let (res_kbp_cvrup, res_kbm_cvrdown): (Vec<PolarsResult<(f64, f64)>>, Vec<PolarsResult<(f64, f64)>>) =
-        Arc::try_unwrap(arc_mtx_kbpm_cvr)
-            .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
-            .into_inner()
-            .map_err(|_| PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
-            .into_iter()
-            .unzip();
+    let (res_kbp_cvrup, res_kbm_cvrdown): (
+        Vec<PolarsResult<(f64, f64)>>,
+        Vec<PolarsResult<(f64, f64)>>,
+    ) = Arc::try_unwrap(arc_mtx_kbpm_cvr)
+        .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
+        .into_inner()
+        .map_err(|_| PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
+        .into_iter()
+        .unzip();
 
     let res_kbp_cvrup: PolarsResult<Vec<(f64, f64)>> = res_kbp_cvrup.into_iter().collect();
     let res_kbm_cvrdown: PolarsResult<Vec<(f64, f64)>> = res_kbm_cvrdown.into_iter().collect();

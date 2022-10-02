@@ -103,12 +103,9 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
 
             let res_len = columns[0].len();
             if df.height() == 0 {
-                return Ok(Series::from_vec(
-                    "res",
-                    vec![0.; res_len] as Vec<f64>,
-                ));
+                return Ok(Series::from_vec("res", vec![0.; res_len] as Vec<f64>));
             };
-            
+
             let sens = df.to_ndarray::<Float64Type>()?;
 
             let sbs = sens.sum_axis(Axis(1));
@@ -165,12 +162,16 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
 }
 
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_vega_max(op: &OCP) -> Expr {
-    max_exprs(&[fx_vega_charge_low(op), fx_vega_charge_medium(op), fx_vega_charge_high(op)])
+    max_exprs(&[
+        fx_vega_charge_low(op),
+        fx_vega_charge_medium(op),
+        fx_vega_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

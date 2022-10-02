@@ -190,12 +190,16 @@ where
 }
 
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[equity_delta_charge_low(op), equity_delta_charge_medium(op), equity_delta_charge_high(op)])
+    max_exprs(&[
+        equity_delta_charge_low(op),
+        equity_delta_charge_medium(op),
+        equity_delta_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

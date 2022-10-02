@@ -6,15 +6,14 @@ use clap::Parser;
 //use base_engine::prelude::*;
 use driver::helpers::{acquire, cli::CliOnce};
 
-use std::{fs, sync::Arc};
-use log::{info, error};
+use log::{error, info};
 use std::time::Instant;
+use std::{fs, sync::Arc};
 
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
 #[cfg(not(target_os = "linux"))]
 use mimalloc::MiMalloc;
-
 
 #[global_allocator]
 #[cfg(target_os = "linux")]
@@ -46,30 +45,29 @@ fn main() -> anyhow::Result<()> {
 
     let x = Arc::new(data);
 
-    let json =
-        fs::read_to_string(requests_path.as_str()).expect("Unable to read request file");
+    let json = fs::read_to_string(requests_path.as_str()).expect("Unable to read request file");
 
     // Later this will be RequestE (to match other requests as well)
     let requests: Vec<AggregationRequest> = serde_json::from_str(&json).unwrap();
 
     // From here we do not panic
-    for request in requests{
+    for request in requests {
         let rqst_str = serde_json::to_string(&request);
         info!("{:?}", rqst_str);
         let now = Instant::now();
         match base_engine::execute_aggregation(request, Arc::clone(&x)) {
-
             Err(e) => {
                 error!("On request: {:?}, Application error: {:#?}", rqst_str, e);
-                continue; }
-                
+                continue;
+            }
+
             Ok(df) => {
                 let elapsed = now.elapsed();
                 println!("result: {:?}", df);
                 println!("Time to Compute: {:.6?}", elapsed);
             }
         }
-    };
+    }
     Ok(())
 }
 

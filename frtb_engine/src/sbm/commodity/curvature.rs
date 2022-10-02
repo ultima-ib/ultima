@@ -99,12 +99,16 @@ fn com_curvature_charge_distributor(
 }
 
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_curv_max(op: &OCP) -> Expr {
-    max_exprs(&[com_curvature_charge_low(op), com_curvature_charge_medium(op), com_curvature_charge_high(op)])
+    max_exprs(&[
+        com_curvature_charge_low(op),
+        com_curvature_charge_medium(op),
+        com_curvature_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

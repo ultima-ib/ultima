@@ -1,17 +1,17 @@
 use std::time::Instant;
 
-use base_engine::{DataSet, read_toml2, DataSourceConfig};
+use base_engine::{read_toml2, DataSet, DataSourceConfig};
 use log::info;
 
 /// Reads initial DataSet from Source
-/// 
+///
 /// Then calls .validate()
-/// 
+///
 /// Then .prepare()
-pub fn data <DS: DataSet>(config_path: &str) -> impl DataSet {
+pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
     // Read Config
-    let conf =
-        read_toml2::<DataSourceConfig>(config_path).expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
+    let conf = read_toml2::<DataSourceConfig>(config_path)
+        .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     info!("Data SetUp: {:?}", conf);
 
     // Build data

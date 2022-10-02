@@ -1,9 +1,9 @@
 //! Defines statics of our library
 //! These are mainly common types/calculations which are used throughout the library
 //! which we would not want to recalculate every time due to performance concerns
+use crate::drc::drc_weights;
 use crate::prelude::sbm::{common::option_maturity_rho, girr::vega::girr_vega_rho};
 use crate::sbm::girr::delta::girr_corr_matrix;
-use crate::drc::drc_weights;
 
 use ndarray::{s, Array1, Array2, Axis};
 use once_cell::sync::Lazy;
@@ -561,7 +561,7 @@ impl ScenarioConfig {
 
         matrixes
             .iter_mut()
-            .for_each(|matrix| matrix.par_mapv_inplace(|element| function(element)));
+            .for_each(|matrix| matrix.par_mapv_inplace(function));
         //Unzip matrixes into individual components
         let [com_gamma, com_gamma_curv, eq_gamma, csr_sec_nonctp_gamma, girr_vega_rho, fx_vega_rho, eq_gamma_curv, csr_nonsec_gamma, csr_nonsec_gamma_crr2, csr_ctp_gamma, csr_ctp_gamma_crr2, csr_nonsec_gamma_curv, csr_nonsec_gamma_crr2_curv, csr_ctp_gamma_curv, csr_ctp_gamma_crr2_curv, csr_sec_nonctp_gamma_curv] =
             matrixes;

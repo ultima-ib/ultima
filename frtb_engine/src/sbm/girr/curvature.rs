@@ -245,12 +245,16 @@ fn girr_curvature_charge(
 }
 
 /// Returns max of three scenarios
-/// 
+///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_curv_max(op: &OCP) -> Expr {
-    max_exprs(&[girr_curvature_charge_low(op), girr_curvature_charge_medium(op), girr_curvature_charge_high(op)])
+    max_exprs(&[
+        girr_curvature_charge_low(op),
+        girr_curvature_charge_medium(op),
+        girr_curvature_charge_high(op),
+    ])
 }
 
 /// Exporting Measures

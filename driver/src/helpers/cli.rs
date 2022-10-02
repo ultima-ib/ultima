@@ -5,6 +5,7 @@ const CONFIG: &str = r"frtb_engine/tests/data/datasource_config.toml";
 const REQUESTS: &str = r"./driver/src/request.json";
 
 /// Cli for one_off run
+/// TODO potentially to be depreciated in favour of CliServer
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct CliOnce {

@@ -36,21 +36,20 @@ async fn main() -> std::io::Result<()> {
     let setup_path = cli.config;
     let requests_path = cli.requests;
 
-    let requests = if cli.host{
+    let requests: Vec<AggregationRequest> = if cli.host
+        && requests_path.is_none() { vec![] }
+        else{
+            let json =
+                fs::read_to_string(requests_path.expect("Please provide requests path").as_str())
+                    .expect("Couldn't read requests path");
+                serde_json::from_str(&json).unwrap()
+        };
 
-    } else {
-        let requests_path = requests_path.expect("Expecting path to requests file");
-
-        let json =
-        fs::read_to_string(requests_path.as_str()).expect("Couldn't read requests path");
-
-    };
-
-    let json =
-        fs::read_to_string(requests_path.as_str()).ok();
-
-    // Later this will be RequestE (to match other requests as well)
-    let requests: Vec<AggregationRequest> = serde_json::from_str(&json).unwrap();
+    //let json =
+    //    fs::read_to_string(requests_path.as_str()).ok();
+//
+    //// Later this will be RequestE (to match other requests as well)
+    //let requests: Vec<AggregationRequest> = serde_json::from_str(&json).unwrap();
 
     let addr: SocketAddr = cli.address // command line arg first
                                 .map( |s| s.to_owned())

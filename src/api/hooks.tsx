@@ -18,17 +18,7 @@ export const useFRTB = () => {
 }
 
 export const useAggTypes = () => {
-    const [aggTypes, setAggTypes] = useState<string[]>([])
-    const [loading, setLoading] = useState(true)
-    useEffect(() => {
-        fetch(AGG_TYPES)
-            .then(it => it.json())
-            .then(it => {
-                setAggTypes(it)
-                setLoading(false)
-            })
-    })
-    return {aggTypes, loading}
+    return useFetch(AGG_TYPES) as string[]
 }
 export const useFilterColumns = (column: string, search: string = '.*') => {
     const results = useFetch(`${FRTB}/${column}?page=0&pattern=${search === '' ? '.*' : search}`)

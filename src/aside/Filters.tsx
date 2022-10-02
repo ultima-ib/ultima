@@ -1,17 +1,16 @@
 import Title from "./Title";
 import {
-    List,
     ListItem,
-    FormControl,
     Button,
     Autocomplete,
     TextField,
     Divider,
     Stack,
     Box,
-    BoxProps
+    BoxProps, IconButton
 } from "@mui/material";
-import React, {
+import {
+    Fragment,
     Dispatch,
     MutableRefObject,
     SetStateAction,
@@ -24,6 +23,7 @@ import React, {
 } from "react";
 import {Filter as FilterType} from "./types";
 import {useFilterColumns} from "../api/hooks";
+import CloseIcon from '@mui/icons-material/Close';
 
 interface FilterSelectProps {
     label: string
@@ -41,23 +41,22 @@ const FilterSelect = (props: FilterSelectProps) => {
 
     const values = props.options
     return (
-        <FormControl fullWidth variant="standard" sx={{width: '32%'}}>
-            <Autocomplete
-                disablePortal
-                disabled={props.disabled ?? false}
-                id={id}
-                options={values}
-                onChange={(event, newValue) => {
-                    setValue(newValue ?? null);
-                }}
-                inputValue={props.inputValue}
-                onInputChange={(event, value) => {
-                    props.onInputChange?.(value)
-                }}
-                value={value}
-                renderInput={(params) => <TextField {...params} label={props.label}/>}
-            />
-        </FormControl>
+        <Autocomplete
+            disablePortal
+            disabled={props.disabled ?? false}
+            id={id}
+            options={values}
+            onChange={(event, newValue) => {
+                setValue(newValue ?? null);
+            }}
+            inputValue={props.inputValue}
+            onInputChange={(event, value) => {
+                props.onInputChange?.(value)
+            }}
+            value={value}
+            sx={{width: '100%'}}
+            renderInput={(params) => <TextField {...params} variant="standard" label={props.label}/>}
+        />
     )
 }
 
@@ -104,7 +103,7 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
 }
 
 
-function FilterList(props: { filters: { [p: number]: FilterType }; fields: string[] }) {
+function FilterList(props: { filters: { [p: number]: FilterType }, fields: string[], onRemove: () => void }) {
     const [filters, setFilter] = useState<number[]>([])
     const lastUsed = useRef<number>(0)
 
@@ -124,13 +123,19 @@ function FilterList(props: { filters: { [p: number]: FilterType }; fields: strin
         return () => {
             setFilter((filters) => filters.filter((i) => i !== index))
             delete props.filters[index]
+            props.onRemove()
         }
     }
     return <>
-        <List dense>
+        <Box>
             {filters.map((index) => (
-                <ListItem key={index} dense disableGutters>
-                    <button onClick={removeFilter(index)}>x</button>
+                <ListItem component='div' key={index} dense disableGutters sx={{
+                    gap: 0.5,
+                    justifyContent: 'center'
+                }}>
+                    <IconButton onClick={removeFilter(index)} sx={{p: 0, alignSelf: 'last baseline'}}>
+                        <CloseIcon />
+                    </IconButton>
                     <Filter onChange={(field: string, op: string, val: string) => {
                         props.filters[index] = {
                             field, op, val
@@ -138,7 +143,7 @@ function FilterList(props: { filters: { [p: number]: FilterType }; fields: strin
                     }} fields={props.fields}/>
                 </ListItem>
             ))}
-        </List>
+        </Box>
         <Button onClick={addNewFilter}>add filter</Button>
     </>;
 }
@@ -156,6 +161,16 @@ export const Filters = (props: {
         setFilter((f) => [...f, lastUsed.current])
     }
 
+    const removeFilter = (filter: number) => {
+        return () => {
+            if (Object.keys(props.filters.current[filter]).length === 0) {
+                setFilter((filters) => filters.filter((i) => i !== filter))
+                delete props.filters.current[filter]
+            }
+        }
+    }
+
+
     useEffect(() => {
         if (lastUsed.current === 0) {
             addNewFilter()
@@ -168,10 +183,10 @@ export const Filters = (props: {
             <Stack spacing={1} sx={{overflow: 'scroll', height: '8rem'}}>
                 {
                     filters.map((filter) => (
-                        <React.Fragment key={filter}>
-                            <FilterList filters={props.filters.current[filter]} fields={props.fields}/>
+                        <Fragment key={filter}>
+                            <FilterList filters={props.filters.current[filter]} fields={props.fields} onRemove={removeFilter(filter)}/>
                             <Divider/>
-                        </React.Fragment>
+                        </Fragment>
                     ))
                 }
             </Stack>

@@ -1,4 +1,4 @@
-import React, {Dispatch, MutableRefObject, SetStateAction, useState} from 'react';
+import React, {Dispatch, Suspense, MutableRefObject, SetStateAction} from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import type {DataSet} from './types';
@@ -34,8 +34,9 @@ export function Column({ title, fields, listId, height, extras }: ColumnProps) {
   );
 }
 
-const HideZeros = (props: {
-  state: [boolean, Dispatch<SetStateAction<boolean>>];
+const BooleanOption = (props: {
+  state: [boolean, Dispatch<SetStateAction<boolean>>]
+  label: string
 }) => {
   const [checked, setChecked] = props.state
 
@@ -44,14 +45,23 @@ const HideZeros = (props: {
   };
 
   return (
-      <FormControlLabel control={<Checkbox checked={checked} onChange={handleChange}/>} label="Hide Zeros"/>
+      <FormControlLabel control={<Checkbox checked={checked} onChange={handleChange}/>} label={props.label}/>
   )
+}
+
+const SearchBox = () => {
+  return <></>
+}
+
+const PresetSelector = () => {
+  return <></>
 }
 
 interface Props {
   dataSet: [DataSet, Dispatch<SetStateAction<DataSet>>];
   filters: MutableRefObject<{ [p: number]: { [p: number]: Filter } }>
   hideZeros: [boolean, Dispatch<SetStateAction<boolean>>];
+  totals: [boolean, Dispatch<SetStateAction<boolean>>];
   withScrollableColumns?: boolean;
   isCombineEnabled?: boolean;
   containerHeight?: string;
@@ -97,22 +107,24 @@ const FcBoard = (props: Props) => {
   return (
       <>
         <DragDropContext onDragEnd={onDragEnd}>
-          <Box component='aside' sx={{display: 'flex', gap: 2, width: '100%'}}>
-            <Stack  sx={{width: '50%'}}>
+          <Box component='aside' sx={{display: 'flex', gap: 2, width: '35%'}}>
+            <Stack  sx={{width: '40%'}}>
+              <SearchBox />
               <Column
                   title="Measures"
-                  fields={columns.measures}
+                  fields={columns.measures} // apply search
                   listId='measures'
                   height={'300px'}
               />
               <Column
                   title="Fields"
-                  fields={columns.fields}
+                  fields={columns.fields} // apply search
                   listId='fields'
                   height={'300px'}
               />
             </Stack>
-            <Stack sx={{width: '50%'}}>
+            <Stack sx={{width: '60%'}}>
+              <PresetSelector />
               <Column
                   title="Group By"
                   fields={columns.groupby ?? []}
@@ -130,14 +142,21 @@ const FcBoard = (props: Props) => {
                   fields={columns.measuresSelected ?? []}
                   listId='measuresSelected'
                   height={'7rem'}
-                  extras={({field}: { field: string }) => (columns.canBeAggregated(field) ? (<Agg field={field} />) : (<></>)) }
+                  extras={({field}: { field: string }) => (columns.canBeAggregated(field) ? (
+                      <Suspense>
+                        <Agg field={field} />
+                      </Suspense>
+                  ) : (<></>)) }
               />
               <Filters
                   filters={props.filters}
                   fields={columns.fields}
                   sx={{ height:'7rem' }}
               />
-              <HideZeros state={props.hideZeros} />
+              <Box>
+                <BooleanOption state={props.hideZeros} label="Hide Zeros" />
+                <BooleanOption state={props.totals} label="Totals" />
+              </Box>
             </Stack>
           </Box>
         </DragDropContext>

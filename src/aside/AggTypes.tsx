@@ -37,12 +37,12 @@ const Agg = (props: {
         })
     };
 
-    const {aggTypes, loading} = useAggTypes()
+    const aggTypes = useAggTypes()
 
     const id = useId();
 
-    const aggForm = (
-        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+    return (
+        <FormControl variant="standard" sx={{ minWidth: 120 }}>
             <InputLabel id={id}>Agg Types</InputLabel>
             <Select
                 labelId={id}
@@ -55,9 +55,6 @@ const Agg = (props: {
                 ))}
             </Select>
         </FormControl>
-    )
-    return (
-        loading ? <>Loading</> : aggForm
     )
 }
 

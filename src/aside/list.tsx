@@ -50,7 +50,7 @@ function InnerList(props: InnerListProps) {
               dragProvided: DraggableProvided,
               dragSnapshot: DraggableStateSnapshot,
           ) => (
-              <Box sx={{ display: 'flex' }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
                 <FieldListItem
                     key={field}
                     field={field}

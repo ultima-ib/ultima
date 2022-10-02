@@ -32,17 +32,27 @@ export const Initial = () => {
     const [aggData, aggDataUpdater] = useReducer(aggTypesReducer, {})
 
     const hideZeros = useState(false);
+    const totals = useState(false);
 
     const run = () => {
         const data = dataSet[0]
+        const measures: { [p: string]: string }  = {}
+        data.measuresSelected.forEach((measure) => {
+            const m = frtb.measures.find(it => it.measure === measure)
+            if (!m) return
+            // @ts-ignore
+            const agg: string = aggData[m.measure as any];
+            measures[m.measure] = agg ?? m.agg
+        })
         const obj = {
             filters: Object.values(filters.current).map(it => Object.values(it)),
-            overwrites: data.overwrites,
             groupby: data.groupby,
-            measures: data.measuresSelected,
+            measures,
+            overrides: data.overwrites,
             hide_zeros: hideZeros[0],
+            totals: totals[0],
         }
-        console.log(JSON.stringify(obj))
+        console.log(JSON.stringify(obj, null, 2))
     }
 
     return (
@@ -51,7 +61,7 @@ export const Initial = () => {
                 data: aggData,
                 updater: aggDataUpdater
             }}>
-                <Aside dataSet={dataSet} filters={filters} hideZeros={hideZeros} />
+                <Aside dataSet={dataSet} filters={filters} hideZeros={hideZeros} totals={totals} />
             </AggContext.Provider>
             <button onClick={run}>run</button>
         </div>

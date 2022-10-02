@@ -55,17 +55,17 @@ fn com_vega_charge_distributor(
 
     let com_gamma = get_optional_parameter_array(
         op,
-        format!("commodity_delta_gamma{_suffix}").as_str(),
+        format!("com_vega_gamma{_suffix}").as_str(),
         &scenario.com_gamma,
     );
     let com_rho_bucket = get_optional_parameter(
         op,
-        format!("commodity_base_delta_rho_bucket{_suffix}").as_str(),
+        format!("com_base_vega_rho_bucket{_suffix}").as_str(),
         &scenario.base_com_delta_rho_cty,
     );
     let com_vega_rho = get_optional_parameter_array(
         op,
-        format!("commodity_base_opt_mat_vega_rho{_suffix}").as_str(),
+        format!("com_base_opt_mat_vega_rho{_suffix}").as_str(),
         &scenario.base_vega_rho,
     );
 

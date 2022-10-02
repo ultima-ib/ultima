@@ -4,6 +4,7 @@
 pub mod docs;
 mod helpers;
 pub mod measures;
+pub mod calc_params;
 pub mod prelude;
 mod sbm;
 mod drc;
@@ -11,7 +12,7 @@ mod statics;
 mod risk_weights;
 
 use base_engine::prelude::*;
-use prelude::{frtb_measure_vec, drc::common::drc_scalinng};
+use prelude::{frtb_measure_vec, drc::common::drc_scalinng, calc_params::frtb_calc_params};
 use sbm::buckets;
 use risk_weights::*;
 use crate::drc::drc_weights;
@@ -27,6 +28,7 @@ pub struct FRTBDataSet {
     pub frame: DataFrame,
     pub measures: MeasuresMap,
     pub build_params: HashMap<String, String>,
+    pub calc_params: Vec<CalcParameter>
 }
 impl FRTBDataSet {
     /// Helper function which appends bespoke measures to self.measures
@@ -54,6 +56,7 @@ impl DataSet for FRTBDataSet {
             frame: frames,
             measures: mm,
             build_params,
+            calc_params: frtb_calc_params(),
         };
         res.with_measures(frtb_measure_vec());
         res

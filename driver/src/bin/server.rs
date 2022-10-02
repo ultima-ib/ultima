@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
     let setup_path = cli.config;
     let requests_path = cli.requests;
 
-    let requests: Vec<AggregationRequest> = if cli.host
+    let _requests: Vec<AggregationRequest> = if cli.host
         && requests_path.is_none() { vec![] }
         else{
             let json =

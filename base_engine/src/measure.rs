@@ -3,13 +3,14 @@ use polars::prelude::*;
 use serde::Serialize;
 use std::collections::HashMap;
 
-//MeasureMap
+/// (Measure Name, Measure)
 pub type MeasuresMap = HashMap<String, Measure>;
-pub type CalcParams = HashMap<String, String>;
-pub type OCP = Option<CalcParams>;
+/// Optional Calculation Parameters
+pub type OCP = HashMap<String, String>;
+//pub type OCP = Option<CalcParams>;
 
 // TODO try to remove 'a
-type Calculator = Box<dyn Fn(&Option<CalcParams>) -> Expr + Send + Sync>;
+type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
 
 /// clone instead 'a
 /// Measure is the essentially a Struct of a funtion and a name

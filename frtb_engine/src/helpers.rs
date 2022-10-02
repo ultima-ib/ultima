@@ -9,8 +9,7 @@ use serde::{Deserialize, Serialize};
 /// if CRR2 feature is not activated, this will return BCBS
 /// if jurisdiction is not part of optional params or can't parse this will return BCBS
 pub(crate) fn get_jurisdiction(op: &OCP) -> Jurisdiction {
-    op.as_ref()
-        .and_then(|map| map.get("jurisdiction"))
+    op.get("jurisdiction")
         .and_then(|x| x.parse::<Jurisdiction>().ok())
         //.unwrap()
         .unwrap_or_else(|| {
@@ -24,8 +23,7 @@ pub(crate) fn get_optional_parameter<'a, T>(op: &'a OCP, param: &str, default: &
 where
     T: Deserialize<'a> + Copy,
 {
-    op.as_ref()
-        .and_then(|map| map.get(param))
+    op.get(param)
         .and_then(|x| serde_json::from_str::<T>(x).ok())
         .unwrap_or_else(|| *default)
 }
@@ -39,8 +37,7 @@ pub(crate) fn get_optional_parameter_vec<'a, T>(
 where
     T: Deserialize<'a> + Clone,
 {
-    op.as_ref()
-        .and_then(|map| map.get(param))
+    op.get(param)
         .and_then(|x| serde_json::from_str::<Vec<T>>(x).ok())
         .and_then(|v| {
             if v.len() == default.len() {
@@ -58,8 +55,7 @@ pub(crate) fn get_optional_parameter_array<'a>(
     param: &str,
     default: &Array2<f64>,
 ) -> Array2<f64> {
-    op.as_ref()
-        .and_then(|map| map.get(param))
+    op.get(param)
         .and_then(|x| serde_json::from_str::<Array2<f64>>(x).ok())
         .and_then(|arr| {
             if arr.shape() == default.shape() {
@@ -77,8 +73,7 @@ pub(crate) fn get_optional_parameter_opt<'a, T>(
     param: &str,
 ) -> Option<T>
 where T: Deserialize<'a> {
-    op.as_ref()
-        .and_then(|map| map.get(param))
+    op.get(param)
         .and_then(|x| serde_json::from_str::<T>(x).ok())
 }
 

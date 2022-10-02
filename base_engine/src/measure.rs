@@ -5,6 +5,9 @@ use std::collections::HashMap;
 
 //MeasureMap
 pub type MeasuresMap = HashMap<String, Measure>;
+pub type CalcParams = HashMap<String, String>;
+pub type OCP = Option<CalcParams>;
+
 // TODO try to remove 'a
 type Calculator = Box<dyn Fn(&Option<CalcParams>) -> Expr + Send + Sync>;
 
@@ -55,5 +58,3 @@ pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MeasuresMap {
     measure_map
 }
 
-pub type CalcParams = HashMap<String, String>;
-pub type OCP = Option<CalcParams>;

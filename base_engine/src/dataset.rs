@@ -11,7 +11,18 @@ use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 pub struct DataSetBase {
     pub frame: DataFrame,
     pub measures: MeasuresMap,
+    /// build_params are used in .prepare()
     pub build_params: HashMap<String, String>,
+    pub calc_params: Vec<CalcParameter>
+}
+
+/// This struct is purely for DataSet descriptive purposes.
+/// Recall measure may take
+#[derive(Debug, Default, Clone, Serialize)]
+pub struct CalcParameter {
+    pub name: String,
+    pub default: Option<String>,
+    pub type_hint: Option<String>,
 }
 
 /// The main Trait
@@ -25,18 +36,23 @@ pub trait DataSet: Send + Sync {
     /// Prepare runs ONCE before server starts.
     /// Any computations which are common to most queries could go in here.
     fn prepare(&mut self) {}
+    fn calc_params(&self) -> Vec<CalcParameter>{vec![]}
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
     fn validate(&self) -> bool {true}
 }
 
-impl<'a> DataSet for DataSetBase {
+impl DataSet for DataSetBase {
     fn frame(&self) -> &DataFrame {
         &self.frame
     }
     fn measures(&self) -> &MeasuresMap {
         &self.measures
+    }
+    /// It's ok to clone. Function is only called upon serialisation, so very rarely
+    fn calc_params(&self) -> Vec<CalcParameter>{
+        self.calc_params.clone()
     }
 
     fn build(conf: DataSourceConfig) -> Self {
@@ -46,6 +62,7 @@ impl<'a> DataSet for DataSetBase {
             frame: frames,
             measures: mm,
             build_params,
+            calc_params: vec![],
         }
     }
 
@@ -104,12 +121,14 @@ impl Serialize for dyn DataSet {
             .collect::<HashMap<&String, Option<&str>>>();
         
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
-
         let utf8_cols = utf8_columns(self.frame());
+        let calc_params = self.calc_params();
 
-        let mut seq = serializer.serialize_map(Some(2))?;
+        let mut seq = serializer.serialize_map(Some(3))?;
+
         seq.serialize_entry("fields", &utf8_cols)?;
         seq.serialize_entry("measures", &ordered_measures)?;
+        seq.serialize_entry("calc_params", &calc_params)?;
         seq.end()
     }
 }

@@ -14,8 +14,7 @@ use polars::prelude::*;
 /// This works for cases like GBP reporting with BCBS params
 pub(crate) fn ccy_regex(op: &OCP) -> String {
     let juri: Jurisdiction = get_jurisdiction(op);
-    op.as_ref()
-        .and_then(|map| map.get("reporting_ccy"))
+    op.get("reporting_ccy")
         .and_then(|s| {
             if s.len() == 3 {
                 Some(format!("^...{s}$"))

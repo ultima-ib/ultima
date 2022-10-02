@@ -189,7 +189,7 @@ fn drc_nonsec_charge_calculator(
     )
 }
 
-pub(crate) fn drc_nonsec_measures() -> Vec<Measure<'static>> {
+pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
     vec![
         Measure {
             name: "DRC_NonSec_GrossJTD".to_string(),

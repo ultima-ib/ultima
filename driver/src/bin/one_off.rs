@@ -1,13 +1,14 @@
 //! Server side entry point
 //! This to be conversted into server
 
-use base_engine::prelude::*;
-use driver::helpers::acquire;
+use base_engine::AggregationRequest;
+use clap::Parser;
+//use base_engine::prelude::*;
+use driver::helpers::{acquire, cli::CliOnce};
 
 use std::{fs, sync::Arc};
 use log::{info, error};
 use std::time::Instant;
-use clap::{Parser, Subcommand};
 
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
@@ -29,36 +30,37 @@ pub type DataSetType = frtb_engine::FRTBDataSet;
 #[cfg(not(feature = "FRTB"))]
 pub type DataSetType = base_engine::DataSetBase;
 
-// TODO to be passed as a command line argument
-const SETUP: &str = r"frtb_engine/tests/data/datasource_config.toml";
-const REQUEST: &str = r"./driver/src/request.json";
-
-fn main() {
+fn main() -> anyhow::Result<()> {
     // Read .env
     // TODO in production use env variables, not .env
     dotenv::dotenv().ok();
     // Allow pretty logs
     pretty_env_logger::init();
 
+    let cli = CliOnce::parse();
+    let setup_path = cli.config;
+    let requests_path = cli.requests;
+
     // Build Data
-    let data = acquire::data::<DataSetType>(SETUP);
+    let data = acquire::data::<DataSetType>(setup_path.as_str());
 
     let x = Arc::new(data);
 
     let json =
-        fs::read_to_string(REQUEST).expect("Unable to read request file");
+        fs::read_to_string(requests_path.as_str()).expect("Unable to read request file");
 
     // Later this will be RequestE (to match other requests as well)
     let requests: Vec<AggregationRequest> = serde_json::from_str(&json).unwrap();
 
     // From here we do not panic
     for request in requests{
-        info!("{:?}", request);
+        let rqst_str = serde_json::to_string(&request);
+        info!("{:?}", rqst_str);
         let now = Instant::now();
         match base_engine::execute_aggregation(request, Arc::clone(&x)) {
 
             Err(e) => {
-                error!("Application error: {:#?}", e);
+                error!("On request: {:?}, Application error: {:#?}", rqst_str, e);
                 continue; }
                 
             Ok(df) => {
@@ -67,7 +69,8 @@ fn main() {
                 println!("Time to Compute: {:.6?}", elapsed);
             }
         }
-    }
+    };
+    Ok(())
 }
 
 /*

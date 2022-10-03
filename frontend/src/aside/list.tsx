@@ -12,9 +12,10 @@ interface FieldListItemProps {
   field: string;
   isDragging: boolean;
   provided: DraggableProvided;
+  onClick?: () => void
 }
 
-function FieldListItem({ field, provided }: FieldListItemProps) {
+function FieldListItem({ field, provided, onClick }: FieldListItemProps) {
   return (
       <ListItem
           disablePadding
@@ -23,7 +24,7 @@ function FieldListItem({ field, provided }: FieldListItemProps) {
           {...provided.dragHandleProps}
           ref={provided.innerRef}
       >
-        <ListItemButton dense>
+        <ListItemButton dense onClick={onClick}>
           <ListItemText>
             {field}
           </ListItemText>
@@ -37,6 +38,7 @@ interface InnerListProps {
   fields: string[];
   height: string,
   extras?: any
+  onListItemClick?: (field: string) => void
 }
 
 function InnerList(props: InnerListProps) {
@@ -56,13 +58,14 @@ function InnerList(props: InnerListProps) {
                     field={field}
                     isDragging={dragSnapshot.isDragging}
                     provided={dragProvided}
+                    onClick={() => props.onListItemClick?.(field)}
                 />
                 {Extras && <Extras field={field}/>}
               </Box>
           )}
         </Draggable>
     );
-  }, [fields])
+  }, [fields, props.onListItemClick])
 
   return (
       <Box sx={{ width: '100%', height: props.height }}>
@@ -82,32 +85,18 @@ interface Props {
   listId?: string;
   listType?: string;
   fields: string[];
-  internalScroll?: boolean;
-  isDropDisabled?: boolean;
-  // may not be provided - and might be null
-  ignoreContainerClipping?: boolean;
-  useClone?: boolean;
   height: string,
   extras?: any
+  onListItemClick?: (field: string) => void
 }
 
-export default function FieldList(props: Props) {
-  const {
-    ignoreContainerClipping,
-    isDropDisabled,
-    listId = 'LIST',
-    listType,
-    fields,
-    height
-  } = props;
+export default function FieldList({extras, listId = 'LIST', listType, fields,  height,  onListItemClick}: Props) {
 
   return (
     <Droppable
       mode="virtual"
       droppableId={listId}
       type={listType}
-      ignoreContainerClipping={ignoreContainerClipping}
-      isDropDisabled={isDropDisabled}
       renderClone={(provided, snapshot, descriptor) => {
         return <FieldListItem
             field={fields[descriptor.source.index]}
@@ -123,7 +112,8 @@ export default function FieldList(props: Props) {
               fields={fields}
               height={height}
               dropProvided={dropProvided}
-              extras={props.extras}
+              extras={extras}
+              onListItemClick={onListItemClick}
               {...dropProvided.droppableProps}
           />
       )}

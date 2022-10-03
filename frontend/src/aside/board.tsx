@@ -46,9 +46,10 @@ interface ColumnProps {
   listId: string,
   height: string,
   extras?: any
+  onListItemClick?: (field: string) => void
 }
 
-export function Column({ title, fields, listId, height, extras }: ColumnProps) {
+export function Column({ title, fields, listId, height, extras, onListItemClick }: ColumnProps) {
   return (
       <Stack spacing={2} alignItems='center'>
         <Title content={title} />
@@ -57,8 +58,8 @@ export function Column({ title, fields, listId, height, extras }: ColumnProps) {
             listType="QUOTE"
             fields={fields}
             height={height}
-            internalScroll={true}
             extras={extras}
+            onListItemClick={onListItemClick}
         />
       </Stack>
   );
@@ -80,7 +81,7 @@ const FcBoard = (props: {
         const list: any[] = columns[source.droppableId as keyof DataSet];
         list.splice(source.index, 1)
         inputs.dispatcher({
-            action: InputStateUpdate.DataSet,
+            type: InputStateUpdate.DataSet,
             data: {
               // @ts-expect-error mismatched signature
               dataSet: {
@@ -124,6 +125,17 @@ const FcBoard = (props: {
     setActiveTab(newValue);
   };
 
+  const addToList = (list: keyof DataSet, what: string) => {
+      inputs.dispatcher({
+          type: InputStateUpdate.DataSet,
+          data: {
+              // @ts-expect-error mismatched signature
+              dataSet: {
+                  [list]: [what, ...columns[list]]
+              }
+          }
+      })
+  }
   return (
       <>
         <DragDropContext onDragEnd={onDragEnd}>
@@ -135,12 +147,20 @@ const FcBoard = (props: {
                   fields={columns.measures} // apply search
                   listId='measures'
                   height={'300px'}
+                  onListItemClick={(field) => {
+                      console.log('measures: clicked on', field)
+                      addToList('measuresSelected', field)
+                  }}
               />
               <Column
                   title="Fields"
                   fields={columns.fields} // apply search
                   listId='fields'
                   height={'300px'}
+                  onListItemClick={(field) => {
+                      console.log('fields: clicked on', field)
+                      addToList('groupby', field)
+                  }}
               />
             </Stack>
             <Stack sx={{width: '60%'}}>

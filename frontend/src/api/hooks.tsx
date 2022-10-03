@@ -5,6 +5,11 @@ import {useEffect, useState} from "react";
 interface FRTB {
     fields: string[]
     measures: { [p: string]: string | null }
+    calc_params: {
+        name: string,
+        default: string,
+        type_hint: string
+    }[]
 }
 
 export const useFRTB = () => {
@@ -12,8 +17,13 @@ export const useFRTB = () => {
     return {
         fields: resp.fields,
         measures: Object.entries(resp.measures).map(([measure, agg]) => {
-            return { measure, agg }
-        })
+            return { measure, agg,  }
+        }),
+        calcParams: resp.calc_params.map(it => ({
+            name: it.name,
+            defaultValue: it.default,
+            helperText: it.type_hint,
+        }))
     }
 }
 

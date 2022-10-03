@@ -3,12 +3,42 @@ import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import type {DataSet} from './types';
 import {reorderQuoteMap} from './reorder';
-import {Box, Checkbox, FormControlLabel, Stack} from "@mui/material";
+import {Box, Checkbox, FormControlLabel, Stack, Tab, Tabs, TextField} from "@mui/material";
 import QuoteList from "./list";
 import Title from "./Title";
 import {Filters} from "./Filters";
-import {Filter} from "./types";
+import {CalcParam, Filter} from "./types";
 import Agg from "./AggTypes";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+      <div
+          role="tabpanel"
+          hidden={value !== index}
+          id={`tabpanel-${index}`}
+          aria-labelledby={`simple-tab-${index}`}
+          {...other}
+      >
+        {value === index && children}
+      </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `tab-${index}`,
+    'aria-controls': `tabpanel-${index}`,
+  };
+}
+
 
 interface ColumnProps {
   title: string;
@@ -53,8 +83,15 @@ const SearchBox = () => {
   return <></>
 }
 
-const PresetSelector = () => {
-  return <></>
+const CalcParamsInput = ({ calcParam }: { calcParam: CalcParam }) => {
+  return (
+      <TextField
+          label={calcParam.name}
+          defaultValue={calcParam.defaultValue}
+          helperText={calcParam.helperText ?? ''}
+          variant="filled"
+      />
+  )
 }
 
 interface Props {
@@ -62,6 +99,7 @@ interface Props {
   filters: MutableRefObject<{ [p: number]: { [p: number]: Filter } }>
   hideZeros: [boolean, Dispatch<SetStateAction<boolean>>];
   totals: [boolean, Dispatch<SetStateAction<boolean>>];
+  calcParams: CalcParam[];
   withScrollableColumns?: boolean;
   isCombineEnabled?: boolean;
   containerHeight?: string;
@@ -104,6 +142,12 @@ const FcBoard = (props: Props) => {
     setColumns(data)
   };
 
+  const [activeTab, setActiveTab] = React.useState(0);
+
+  const handleActiveTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
   return (
       <>
         <DragDropContext onDragEnd={onDragEnd}>
@@ -124,38 +168,50 @@ const FcBoard = (props: Props) => {
               />
             </Stack>
             <Stack sx={{width: '60%'}}>
-              <PresetSelector />
-              <Column
-                  title="Group By"
-                  fields={columns.groupby ?? []}
-                  listId='groupby'
-                  height={'7rem'}
-              />
-              <Column
-                  title="Overwrites"
-                  fields={columns.overwrites ?? []}
-                  listId='overwrites'
-                  height={'7rem'}
-              />
-              <Column
-                  title="Measures"
-                  fields={columns.measuresSelected ?? []}
-                  listId='measuresSelected'
-                  height={'7rem'}
-                  extras={({field}: { field: string }) => (columns.canBeAggregated(field) ? (
-                      <Suspense>
-                        <Agg field={field} />
-                      </Suspense>
-                  ) : (<></>)) }
-              />
-              <Filters
-                  filters={props.filters}
-                  fields={columns.fields}
-                  sx={{ height:'7rem' }}
-              />
-              <Box>
-                <BooleanOption state={props.hideZeros} label="Hide Zeros" />
-                <BooleanOption state={props.totals} label="Totals" />
+              <Box sx={{ width: '100%' }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                  <Tabs value={activeTab} onChange={handleActiveTabChange} aria-label="basic tabs example">
+                    <Tab label="Item One" {...a11yProps(0)} />
+                    <Tab label="Item Two" {...a11yProps(1)} />
+                  </Tabs>
+                </Box>
+                <TabPanel value={activeTab} index={0}>
+                  <Column
+                      title="Group By"
+                      fields={columns.groupby ?? []}
+                      listId='groupby'
+                      height={'7rem'}
+                  />
+                  <Column
+                      title="Overwrites"
+                      fields={columns.overwrites ?? []}
+                      listId='overwrites'
+                      height={'7rem'}
+                  />
+                  <Column
+                      title="Measures"
+                      fields={columns.measuresSelected ?? []}
+                      listId='measuresSelected'
+                      height={'7rem'}
+                      extras={({field}: { field: string }) => (columns.canBeAggregated(field) ? (
+                          <Suspense>
+                            <Agg field={field} />
+                          </Suspense>
+                      ) : (<></>)) }
+                  />
+                  <Filters
+                      filters={props.filters}
+                      fields={columns.fields}
+                      sx={{ height:'7rem' }}
+                  />
+                </TabPanel>
+                <TabPanel value={activeTab} index={1}>
+                  <Box>
+                    <BooleanOption state={props.hideZeros} label="Hide Zeros" />
+                    <BooleanOption state={props.totals} label="Totals" />
+                  </Box>
+                  {props.calcParams.map((it) => ( <CalcParamsInput calcParam={it} /> ))}
+                </TabPanel>
               </Box>
             </Stack>
           </Box>

@@ -61,7 +61,7 @@ export const Initial = () => {
                 data: aggData,
                 updater: aggDataUpdater
             }}>
-                <Aside dataSet={dataSet} filters={filters} hideZeros={hideZeros} totals={totals} />
+                <Aside dataSet={dataSet} filters={filters} hideZeros={hideZeros} totals={totals} calcParams={frtb.calcParams} />
             </AggContext.Provider>
             <button onClick={run}>run</button>
         </div>

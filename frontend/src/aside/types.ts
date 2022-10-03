@@ -12,3 +12,9 @@ export interface Filter {
   op: string
   val: string
 }
+
+export interface CalcParam {
+  name: string,
+  defaultValue?: string
+  helperText?: string
+}

@@ -19,7 +19,7 @@ import {
     useRef,
     useState,
     Suspense,
-    useTransition
+    useTransition, useDeferredValue
 } from "react";
 import {Filter as FilterType} from "./types";
 import {useFilterColumns} from "../api/hooks";
@@ -74,7 +74,8 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
     }, [field, op, val, props.onChange])
     const [valueSearchInput, setValueSearchInput] = useState('');
 
-    const searchResults = useFilterColumns(field ?? '', valueSearchInput)
+    const deferredSearchInput = useDeferredValue(valueSearchInput)
+    const searchResults = useFilterColumns(field ?? '', deferredSearchInput)
 
     return (
         <>
@@ -104,8 +105,8 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
 
 
 function FilterList(props: { filters: { [p: number]: FilterType }, fields: string[], onRemove: () => void }) {
-    const [filters, setFilter] = useState<number[]>([])
-    const lastUsed = useRef<number>(0)
+    const [filters, setFilter] = useState<number[]>( Object.keys(props.filters) as unknown as number[])
+    const lastUsed = useRef<number>(filters.length)
 
     const addNewFilter = () => {
         lastUsed.current += 1;
@@ -152,8 +153,8 @@ export const Filters = (props: {
     filters: MutableRefObject<{ [p: number]: { [p: number]: FilterType } }>,
     fields: string[]
 } & BoxProps) => {
-    const [filters, setFilter] = useState<number[]>([])
-    const lastUsed = useRef<number>(0)
+    const [filters, setFilter] = useState<number[]>(Object.keys(props.filters.current) as unknown as number[])
+    const lastUsed = useRef<number>(filters.length)
 
     const addNewFilter = () => {
         lastUsed.current += 1;

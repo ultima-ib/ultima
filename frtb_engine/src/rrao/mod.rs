@@ -6,7 +6,8 @@
 
 use base_engine::{OCP, col};
 use ndarray::Array1;
-use polars::{prelude::{apply_multiple, Expr, GetOutput, DataType, NamedFrom, UniqueKeepStrategy}, 
+use polars::{prelude::{apply_multiple, Expr, GetOutput, DataType, NamedFrom, UniqueKeepStrategy,
+    IntoLazy, lit}, 
     df, series::Series};
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
@@ -51,7 +52,7 @@ pub(crate) fn rrao(op: &OCP) -> Expr {
 }
 
 pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
-    apply_multiple(|columns|{
+    apply_multiple(move |columns|{
         let mut df = df![
                 "id"   => &columns[0],
                 "e"    => &columns[1],
@@ -62,10 +63,19 @@ pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
         let res_len = columns[0].len();
 
         df = df.unique(Some(&["id".to_string()]), UniqueKeepStrategy::First)?;
+
+        df = df.lazy().with_column(
+            (col("e")*lit(exotic_weight) +
+            col("o")*lit(other_weight))
+            .alias("rrao")
+            )
+            .collect()?;
+        
+        let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
         
         return Ok(Series::new(
                 "res",
-                Array1::<f64>::from_elem(res_len, 0.)
+                Array1::<f64>::from_elem(res_len, res)
                     .as_slice()
                     .unwrap(),
             ));

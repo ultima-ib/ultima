@@ -1,4 +1,4 @@
-import React, {Suspense, useTransition} from 'react';
+import React, {Suspense} from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import {reorderQuoteMap} from './reorder';
@@ -202,7 +202,8 @@ const FcBoard = (props: {
                               })}
                           />
                         }
-                        label="Totals"/>
+                        label="Totals"
+                    />
                   </Box>
                   <Box sx={{ overflowY: 'scroll', maxHeight: '85vh' }}>
                       {

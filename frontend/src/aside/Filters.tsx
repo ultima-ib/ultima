@@ -1,9 +1,8 @@
 import Title from "./Title";
-import {Autocomplete, Box, BoxProps, Button, Divider, IconButton, ListItem, Stack, TextField} from "@mui/material";
+import {Autocomplete, Box, Button, Divider, IconButton, ListItem, Stack, TextField} from "@mui/material";
 import {
     Dispatch,
     Fragment,
-    MutableRefObject,
     SetStateAction,
     Suspense,
     useDeferredValue,
@@ -25,6 +24,7 @@ interface FilterSelectProps {
     inputValue?: string
     onInputChange?: (value: string) => void
     disabled?: boolean
+    filterOptions?: (o: string[]) => string[]
 }
 
 const FilterSelect = (props: FilterSelectProps) => {
@@ -37,6 +37,7 @@ const FilterSelect = (props: FilterSelectProps) => {
         <Autocomplete
             disablePortal
             disabled={props.disabled ?? false}
+            filterOptions={props.filterOptions}
             id={id}
             options={values}
             onChange={(event, newValue) => {
@@ -74,7 +75,7 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
         <>
             <FilterSelect label="Field" state={[field, (v) => startTransition(() => {
                 setField(v)
-                setValueSearchInput('')
+                // setValueSearchInput('')
                 setVal(null)
             })]} options={props.fields}/>
             <FilterSelect label="Operator" state={[op, setOp]} options={[
@@ -85,11 +86,13 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
             ]}/>
             <Suspense fallback={"Loading..."}>
                 <FilterSelect
+                    filterOptions={(x) => x}
                     disabled={pending}
                     label="Value"
-                    state={[val, (value) => startTransition(() => setVal(value))]} options={searchResults}
+                    state={[val, setVal]}
+                    options={searchResults}
                     inputValue={valueSearchInput}
-                    onInputChange={(value) => startTransition(() => setValueSearchInput(value))}
+                    onInputChange={(value) => setValueSearchInput(value)}
                 />
             </Suspense>
         </>

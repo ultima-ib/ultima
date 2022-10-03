@@ -1,29 +1,22 @@
 import Title from "./Title";
+import {Autocomplete, Box, BoxProps, Button, Divider, IconButton, ListItem, Stack, TextField} from "@mui/material";
 import {
-    ListItem,
-    Button,
-    Autocomplete,
-    TextField,
-    Divider,
-    Stack,
-    Box,
-    BoxProps, IconButton
-} from "@mui/material";
-import {
-    Fragment,
     Dispatch,
+    Fragment,
     MutableRefObject,
     SetStateAction,
+    Suspense,
+    useDeferredValue,
     useEffect,
     useId,
     useRef,
     useState,
-    Suspense,
-    useTransition, useDeferredValue
+    useTransition
 } from "react";
 import {Filter as FilterType} from "./types";
 import {useFilterColumns} from "../api/hooks";
 import CloseIcon from '@mui/icons-material/Close';
+import {InputStateUpdate, useInputs} from "./InputStateContext";
 
 interface FilterSelectProps {
     label: string
@@ -71,7 +64,7 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
         if (field !== null && op !== null && val !== null) {
             props.onChange(field, op, val)
         }
-    }, [field, op, val, props.onChange])
+    }, [field, op, val])
     const [valueSearchInput, setValueSearchInput] = useState('');
 
     const deferredSearchInput = useDeferredValue(valueSearchInput)
@@ -104,7 +97,8 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
 }
 
 
-function FilterList(props: { filters: { [p: number]: FilterType }, fields: string[], onRemove: () => void }) {
+function FilterList(props: { filters: { [p: number]: FilterType }, fields: string[], onRemove: () => void, filterNum: number }) {
+    const inputs = useInputs();
     const [filters, setFilter] = useState<number[]>( Object.keys(props.filters) as unknown as number[])
     const lastUsed = useRef<number>(filters.length)
 
@@ -123,7 +117,15 @@ function FilterList(props: { filters: { [p: number]: FilterType }, fields: strin
     const removeFilter = (index: number) => {
         return () => {
             setFilter((filters) => filters.filter((i) => i !== index))
-            delete props.filters[index]
+            delete inputs.filters[props.filterNum][index]
+            inputs.dispatcher({
+                type: InputStateUpdate.Filters,
+                data: {
+                    filters: {
+                        ...inputs.filters
+                    }
+                }
+            })
             props.onRemove()
         }
     }
@@ -138,9 +140,20 @@ function FilterList(props: { filters: { [p: number]: FilterType }, fields: strin
                         <CloseIcon />
                     </IconButton>
                     <Filter onChange={(field: string, op: string, val: string) => {
-                        props.filters[index] = {
-                            field, op, val
-                        }
+                        inputs.dispatcher({
+                            type: InputStateUpdate.Filters,
+                            data: {
+                                filters: {
+                                    ...inputs.filters,
+                                    [props.filterNum]: {
+                                        ...inputs.filters[props.filterNum],
+                                        [index]: {
+                                            field, op, val
+                                        }
+                                    }
+                                }
+                            }
+                        })
                     }} fields={props.fields}/>
                 </ListItem>
             ))}
@@ -149,24 +162,34 @@ function FilterList(props: { filters: { [p: number]: FilterType }, fields: strin
     </>;
 }
 
-export const Filters = (props: {
-    filters: MutableRefObject<{ [p: number]: { [p: number]: FilterType } }>,
-    fields: string[]
-} & BoxProps) => {
-    const [filters, setFilter] = useState<number[]>(Object.keys(props.filters.current) as unknown as number[])
-    const lastUsed = useRef<number>(filters.length)
+export const Filters = () => {
+    const inputs = useInputs();
+    const lastUsed = useRef<number>(Object.keys(inputs.filters).length)
 
     const addNewFilter = () => {
         lastUsed.current += 1;
-        props.filters.current[lastUsed.current] = {}
-        setFilter((f) => [...f, lastUsed.current])
+        inputs.dispatcher({
+            type: InputStateUpdate.Filters,
+            data: {
+                filters: {
+                    ...inputs.filters,
+                    [lastUsed.current]: {}
+                }
+            }
+        })
     }
 
     const removeFilter = (filter: number) => {
         return () => {
-            if (Object.keys(props.filters.current[filter]).length === 0) {
-                setFilter((filters) => filters.filter((i) => i !== filter))
-                delete props.filters.current[filter]
+            if (Object.keys(inputs.filters[filter]).length === 0) {
+                const copy = {...inputs.filters}
+                delete copy[filter]
+                inputs.dispatcher({
+                    type: InputStateUpdate.Filters,
+                    data: {
+                        filters: copy
+                    }
+                })
             }
         }
     }
@@ -183,9 +206,14 @@ export const Filters = (props: {
             <Title content='Filters'/>
             <Stack spacing={1} sx={{overflow: 'scroll', height: '8rem'}}>
                 {
-                    filters.map((filter) => (
-                        <Fragment key={filter}>
-                            <FilterList filters={props.filters.current[filter]} fields={props.fields} onRemove={removeFilter(filter)}/>
+                    Object.entries(inputs.filters).map(([filterNum, filter]) => (
+                        <Fragment key={filterNum}>
+                            <FilterList
+                                filterNum={filterNum as unknown as number}
+                                filters={filter}
+                                fields={inputs.dataSet.fields}
+                                onRemove={removeFilter(filterNum as unknown as number)}
+                            />
                             <Divider/>
                         </Fragment>
                     ))

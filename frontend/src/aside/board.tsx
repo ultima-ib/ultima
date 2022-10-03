@@ -1,14 +1,14 @@
-import React, {Dispatch, Suspense, MutableRefObject, SetStateAction} from 'react';
+import React, {Suspense} from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
-import type {DataSet} from './types';
 import {reorderQuoteMap} from './reorder';
 import {Box, Checkbox, FormControlLabel, Stack, Tab, Tabs, TextField} from "@mui/material";
 import QuoteList from "./list";
 import Title from "./Title";
 import {Filters} from "./Filters";
-import {CalcParam, Filter} from "./types";
+import {CalcParam, DataSet} from "./types";
 import Agg from "./AggTypes";
+import {InputStateUpdate, useInputs} from "./InputStateContext";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -21,9 +21,9 @@ function TabPanel(props: TabPanelProps) {
 
   return (
       <div
-          role="tabpanel"
+          role="tabPanel"
           hidden={value !== index}
-          id={`tabpanel-${index}`}
+          id={`tabPanel-${index}`}
           aria-labelledby={`simple-tab-${index}`}
           {...other}
       >
@@ -35,7 +35,7 @@ function TabPanel(props: TabPanelProps) {
 function a11yProps(index: number) {
   return {
     id: `tab-${index}`,
-    'aria-controls': `tabpanel-${index}`,
+    'aria-controls': `tabPanel-${index}`,
   };
 }
 
@@ -64,21 +64,6 @@ export function Column({ title, fields, listId, height, extras }: ColumnProps) {
   );
 }
 
-const BooleanOption = (props: {
-  state: [boolean, Dispatch<SetStateAction<boolean>>]
-  label: string
-}) => {
-  const [checked, setChecked] = props.state
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setChecked(event.target.checked);
-  };
-
-  return (
-      <FormControlLabel control={<Checkbox checked={checked} onChange={handleChange}/>} label={props.label}/>
-  )
-}
-
 const SearchBox = () => {
   return <></>
 }
@@ -94,32 +79,23 @@ const CalcParamsInput = ({ calcParam }: { calcParam: CalcParam }) => {
   )
 }
 
-interface Props {
-  dataSet: [DataSet, Dispatch<SetStateAction<DataSet>>];
-  filters: MutableRefObject<{ [p: number]: { [p: number]: Filter } }>
-  hideZeros: [boolean, Dispatch<SetStateAction<boolean>>];
-  totals: [boolean, Dispatch<SetStateAction<boolean>>];
-  calcParams: CalcParam[];
-  withScrollableColumns?: boolean;
-  isCombineEnabled?: boolean;
-  containerHeight?: string;
-  useClone?: boolean;
-}
-
-const FcBoard = (props: Props) => {
-  const [columns, setColumns] = props.dataSet
-
+const FcBoard = () => {
+  const inputs = useInputs();
+  const columns = inputs.dataSet;
   const onDragEnd = (result: DropResult): void => {
     const source: DraggableLocation = result.source;
     if (result.destination === null) {
       if (!(source.droppableId === "fields" || source.droppableId === "measures")) {
-        setColumns((prev: any) => {
-          const list: any[] = prev[source.droppableId];
-          list.splice(source.index, 1)
-          return {
-            ...prev,
-            [source.droppableId]: list
-          }
+        const list: any[] = columns[source.droppableId as keyof DataSet];
+        list.splice(source.index, 1)
+        inputs.dispatcher({
+            action: InputStateUpdate.DataSet,
+            data: {
+              // @ts-expect-error mismatched signature
+              dataSet: {
+                [source.droppableId]: list
+              }
+            }
         })
       }
       return;
@@ -139,7 +115,13 @@ const FcBoard = (props: Props) => {
       source,
       destination,
     });
-    setColumns(data)
+
+    inputs.dispatcher({
+      type: InputStateUpdate.DataSet,
+      data: {
+        dataSet: data
+      }
+    })
   };
 
   const [activeTab, setActiveTab] = React.useState(0);
@@ -193,24 +175,35 @@ const FcBoard = (props: Props) => {
                       fields={columns.measuresSelected ?? []}
                       listId='measuresSelected'
                       height={'7rem'}
-                      extras={({field}: { field: string }) => (columns.canBeAggregated(field) ? (
+                      extras={({field}: { field: string }) => (inputs.canMeasureBeAggregated(field) ? (
                           <Suspense>
                             <Agg field={field} />
                           </Suspense>
                       ) : (<></>)) }
                   />
-                  <Filters
-                      filters={props.filters}
-                      fields={columns.fields}
-                      sx={{ height:'7rem' }}
-                  />
+                  <Filters />
                 </TabPanel>
                 <TabPanel value={activeTab} index={1}>
                   <Box>
-                    <BooleanOption state={props.hideZeros} label="Hide Zeros" />
-                    <BooleanOption state={props.totals} label="Totals" />
+                    <FormControlLabel
+                        control={<Checkbox checked={inputs.hideZeros} onChange={(e) => inputs.dispatcher({
+                          type: InputStateUpdate.HideZeros,
+                          data: {hideZeros: e.target.checked}
+                        })}/>}
+                        label="Hide Zeros"/>
+
+                    <FormControlLabel
+                        control={
+                          <Checkbox checked={inputs.hideZeros} onChange={(e) => inputs.dispatcher({
+                            type: InputStateUpdate.Total,
+                            data: {totals: e.target.checked}
+                          })}/>
+                        }
+                        label="Totals"/>
                   </Box>
-                  {props.calcParams.map((it) => ( <CalcParamsInput calcParam={it} /> ))}
+                  <Box>
+                    {columns.calcParams.map((it) => ( <CalcParamsInput key={it.name} calcParam={it} /> ))}
+                  </Box>
                 </TabPanel>
               </Box>
             </Stack>

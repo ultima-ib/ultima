@@ -4,7 +4,7 @@ export interface DataSet {
   groupby: string[]
   overwrites: string[]
   measuresSelected: string[]
-  canBeAggregated: (measure: string) => boolean;
+  calcParams: CalcParam[],
 }
 
 export interface Filter {

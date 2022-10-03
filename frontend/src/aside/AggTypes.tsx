@@ -1,39 +1,21 @@
 import {MenuItem, FormControl, InputLabel, Select} from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
-import {createContext, useContext, useId} from "react";
+import {useId} from "react";
 import {useAggTypes} from "../api/hooks";
-
-const AGG_TYPES =  [
-    "max",
-    "count_unique",
-    "count",
-    "sum",
-    "min",
-    "quantile95low",
-    "var",
-    "first",
-    "mean"
-] as const
-
-export type AggType = typeof AGG_TYPES[number];
-
-export const AggContext = createContext<{
-    data: { [p: string]: AggType },
-    updater: (t: any) => void
-} | undefined>(undefined)
+import {InputStateUpdate, useInputs} from "./InputStateContext";
 
 const Agg = (props: {
     field: string
 }) => {
-    const aggCtx = useContext(AggContext)
+    const ctx = useInputs()
     const handleChange = (event: SelectChangeEvent) => {
-        if (aggCtx === undefined) {
-            console.error('aggCtx is undefined')
-            return
-        }
-        aggCtx.updater({
-            field: props.field,
-            agg: event.target.value as AggType
+        ctx.dispatcher({
+            type: InputStateUpdate.AggData,
+            data: {
+                aggData: {
+                    [props.field]: event.target.value
+                }
+            }
         })
     };
 
@@ -46,7 +28,7 @@ const Agg = (props: {
             <InputLabel id={id}>Agg Types</InputLabel>
             <Select
                 labelId={id}
-                value={aggCtx?.data[props.field] ?? ''}
+                value={ctx.aggData[props.field] ?? ''}
                 onChange={handleChange}
                 label="Agg Types"
             >

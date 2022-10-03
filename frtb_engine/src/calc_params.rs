@@ -18,18 +18,28 @@ pub(crate) fn frtb_calc_params() -> Vec<CalcParameter> {
         default: Some("true".into()),
         type_hint: Some("bool".into()),
     });
+    res.push(CalcParameter {
+        name: "exotic_rrao_weight".into(),
+        default: None,
+        type_hint: Some("float".into()),
+    });
+    res.push(CalcParameter {
+        name: "other_rrao_weight".into(),
+        default: None,
+        type_hint: Some("float".into()),
+    });
     //res.push(CalcParameter{name: "apply_fx_curv_div".into(), default: Some("true".into()), type_hint: Some("bool".into())});
 
     // scenario params
     let params = [
-        ("fx_delta_gamma", None, Some("f64".into())),
-        ("fx_vega_rho", None, Some("f64".into())),
-        ("fx_vega_gamma", None, Some("f64".into())),
-        ("fx_curv_gamma", None, Some("f64".into())),
+        ("fx_delta_gamma", None, Some("float".into())),
+        ("fx_vega_rho", None, Some("float".into())),
+        ("fx_vega_gamma", None, Some("float".into())),
+        ("fx_curv_gamma", None, Some("float".into())),
         ("com_delta_gamma", None, Some("matrix 11x11".into())),
         ("com_delta_rho_bucket", None, Some("vector 11".into())),
-        ("com_delta_rho_diff_loc", None, Some("f64".into())),
-        ("com_delta_rho_diff_tenor", None, Some("f64".into())),
+        ("com_delta_rho_diff_loc", None, Some("float".into())),
+        ("com_delta_rho_diff_tenor", None, Some("float".into())),
         ("com_delta_rho_overwrite", None, Some("RhoOverwrite".into())),
         ("com_vega_gamma", None, Some("matrix 11x11".into())),
         ("com_base_vega_rho_bucket", None, Some("vector 11".into())),

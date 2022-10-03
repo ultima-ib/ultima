@@ -391,6 +391,10 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
 
         //DRC
         drc_secnonctp_weights,
+
+        //RRAO
+        exotic: 0.01,
+        other: 0.001,
     }
 });
 
@@ -519,6 +523,11 @@ pub struct ScenarioConfig {
 
     //DRC
     pub drc_secnonctp_weights: DataFrame,
+
+    //RRAO
+    pub exotic: f64,
+    pub other: f64,
+
 }
 
 impl ScenarioConfig {

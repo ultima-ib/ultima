@@ -6,7 +6,7 @@ import {Box, Checkbox, FormControlLabel, Stack, Tab, Tabs, TextField} from "@mui
 import QuoteList from "./list";
 import Title from "./Title";
 import {Filters} from "./Filters";
-import {CalcParam, DataSet} from "./types";
+import type {DataSet} from "./types";
 import Agg from "./AggTypes";
 import {InputStateUpdate, useInputs} from "./InputStateContext";
 
@@ -68,12 +68,20 @@ const SearchBox = () => {
   return <></>
 }
 
-const CalcParamsInput = ({ calcParam }: { calcParam: CalcParam }) => {
+const CalcParamsInput = (props: {
+  label: string,
+  value: string,
+  helper: string,
+  onChange: (v: string) => void,
+}) => {
   return (
       <TextField
-          label={calcParam.name}
-          defaultValue={calcParam.defaultValue}
-          helperText={calcParam.helperText ?? ''}
+          label={props.name}
+          value={props.value}
+          helperText={props.helperText}
+          onChange={(e) => {
+            props.onChange(e.target.value)
+          }}
           variant="filled"
       />
   )
@@ -119,7 +127,10 @@ const FcBoard = () => {
     inputs.dispatcher({
       type: InputStateUpdate.DataSet,
       data: {
-        dataSet: data
+        dataSet: {
+          ...inputs.dataSet,
+          ...data
+        }
       }
     })
   };
@@ -150,7 +161,7 @@ const FcBoard = () => {
               />
             </Stack>
             <Stack sx={{width: '60%'}}>
-              <Box sx={{ width: '100%' }}>
+              <Box sx={{ width: '100%', height: '100%' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                   <Tabs value={activeTab} onChange={handleActiveTabChange} aria-label="basic tabs example">
                     <Tab label="Item One" {...a11yProps(0)} />
@@ -186,23 +197,49 @@ const FcBoard = () => {
                 <TabPanel value={activeTab} index={1}>
                   <Box>
                     <FormControlLabel
-                        control={<Checkbox checked={inputs.hideZeros} onChange={(e) => inputs.dispatcher({
-                          type: InputStateUpdate.HideZeros,
-                          data: {hideZeros: e.target.checked}
-                        })}/>}
-                        label="Hide Zeros"/>
+                        control={
+                          <Checkbox
+                              checked={inputs.hideZeros}
+                              onChange={(e) => inputs.dispatcher({
+                                type: InputStateUpdate.HideZeros,
+                                data: {hideZeros: e.target.checked}
+                              })}
+                          />
+                        }
+                        label="Hide Zeros"
+                    />
 
                     <FormControlLabel
                         control={
-                          <Checkbox checked={inputs.hideZeros} onChange={(e) => inputs.dispatcher({
-                            type: InputStateUpdate.Total,
-                            data: {totals: e.target.checked}
-                          })}/>
+                          <Checkbox
+                              checked={inputs.hideZeros}
+                              onChange={(e) => inputs.dispatcher({
+                                type: InputStateUpdate.Total,
+                                data: {totals: e.target.checked}
+                              })}
+                          />
                         }
                         label="Totals"/>
                   </Box>
-                  <Box>
-                    {columns.calcParams.map((it) => ( <CalcParamsInput key={it.name} calcParam={it} /> ))}
+                  <Box sx={{ overflowY: 'scroll', maxHeight: '85vh' }}>
+                    {columns.calcParams.map((it) => (
+                        <CalcParamsInput
+                            key={it.name}
+                            label={it.name}
+                            value={it.defaultValue ?? ''}
+                            helper={it.helperText}
+                            onChange={(v) => {
+                              inputs.dispatcher({
+                                type: InputStateUpdate.CalcParams,
+                                data: {
+                                  calcParams: {
+                                    [it.name]: v
+                                  }
+                                }
+                              })
+                            }}
+                        />
+                    ))}
                   </Box>
                 </TabPanel>
               </Box>

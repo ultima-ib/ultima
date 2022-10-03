@@ -7,17 +7,8 @@ export enum InputStateUpdate {
     HideZeros,
     Total,
     AggData,
+    CalcParams,
 }
-//
-// type Data2 = {
-//     aggData: any;
-//     calcParams: { defaultValue: string; name: string; helperText: string }[];
-//     canMeasureBeAggregated: (measure: string) => boolean;
-//     filters: {};
-//     totals: boolean;
-//     hideZeros: boolean;
-//     dataSet: { overwrites: any[]; measuresSelected: any[]; measures: string[]; groupby: any[]; fields: string[] }
-// }
 
 type Data = Partial<Omit<InputStateContext, 'dispatcher'>>
 export function inputStateReducer(state: InputStateContext, action: { type: InputStateUpdate, data: Data }) {
@@ -56,6 +47,14 @@ export function inputStateReducer(state: InputStateContext, action: { type: Inpu
                 }
             }
             break;
+        case InputStateUpdate.CalcParams:
+            update = {
+                calcParams: {
+                    ...state.calcParams,
+                    ...action.data.calcParams,
+                }
+            }
+            break;
     }
     return {
         ...state,
@@ -87,7 +86,7 @@ export interface InputStateContext {
     aggData: { [p: string]: string }
     hideZeros: boolean
     totals: boolean
-    calcParams: CalcParam[]
+    calcParams: { [p: string]: string }
     dispatcher: (params: { type: InputStateUpdate, data: Data }) => void
 }
 

@@ -36,7 +36,6 @@ export const Initial = () => {
         data.measuresSelected.forEach((measure: string) => {
             const m = frtb.measures.find(it => it.measure === measure)
             if (!m) return
-            // @ts-ignore
             const agg: string = context.aggData[m.measure as any];
             measures[m.measure] = agg ?? m.agg
         })
@@ -47,6 +46,7 @@ export const Initial = () => {
             overrides: data.overwrites,
             hide_zeros: context.hideZeros,
             totals: context.totals,
+            calc_params: context.calcParams,
         }
         console.log(JSON.stringify(obj, null, 2))
     }

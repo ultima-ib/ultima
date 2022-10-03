@@ -47,14 +47,6 @@ export function inputStateReducer(state: InputStateContext, action: { type: Inpu
                 }
             }
             break;
-        case InputStateUpdate.CalcParams:
-            update = {
-                calcParams: {
-                    ...state.calcParams,
-                    ...action.data.calcParams,
-                }
-            }
-            break;
     }
     return {
         ...state,
@@ -86,7 +78,6 @@ export interface InputStateContext {
     aggData: { [p: string]: string }
     hideZeros: boolean
     totals: boolean
-    calcParams: { [p: string]: string }
     dispatcher: (params: { type: InputStateUpdate, data: Data }) => void
 }
 

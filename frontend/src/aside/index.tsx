@@ -1,5 +1,5 @@
 import Aside from './board';
-import {useReducer} from "react";
+import {useReducer, useRef} from "react";
 import {Filter} from "./types";
 import {useFRTB} from "../api/hooks";
 import {InputStateContextProvider, inputStateReducer} from "./InputStateContext";
@@ -7,6 +7,7 @@ import {InputStateContextProvider, inputStateReducer} from "./InputStateContext"
 
 export const Initial = () => {
     const frtb = useFRTB();
+
 
     const init = {
         dataSet: {
@@ -25,10 +26,10 @@ export const Initial = () => {
         aggData: {},
         hideZeros: false,
         totals: false,
-        calcParams: [],
     }
     // @ts-expect-error: i can't get the signature in line with the type declaration
     const [context, dispatcher] = useReducer(inputStateReducer, init);
+    const calcParams = useRef<{[k: string]: string}>({});
 
     const run = () => {
         const data = context.dataSet
@@ -46,9 +47,14 @@ export const Initial = () => {
             overrides: data.overwrites,
             hide_zeros: context.hideZeros,
             totals: context.totals,
-            calc_params: context.calcParams,
+            calc_params: calcParams.current
         }
         console.log(JSON.stringify(obj, null, 2))
+    }
+
+
+    const onCalcParamsChange = (name: string, value: string) => {
+        calcParams.current[name] = value
     }
 
     return (
@@ -57,7 +63,7 @@ export const Initial = () => {
                 ...context,
                 dispatcher
             }}>
-                <Aside />
+                <Aside onCalcParamsChange={onCalcParamsChange} />
             </InputStateContextProvider>
             <button onClick={run}>run</button>
         </div>

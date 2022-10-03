@@ -1,4 +1,4 @@
-import React, {Suspense} from 'react';
+import React, {Suspense, useTransition} from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import {reorderQuoteMap} from './reorder';
@@ -68,26 +68,9 @@ const SearchBox = () => {
   return <></>
 }
 
-const CalcParamsInput = (props: {
-  label: string,
-  value: string,
-  helper: string,
-  onChange: (v: string) => void,
+const FcBoard = (props: {
+    onCalcParamsChange: (name: string, value: string) => void
 }) => {
-  return (
-      <TextField
-          label={props.name}
-          value={props.value}
-          helperText={props.helperText}
-          onChange={(e) => {
-            props.onChange(e.target.value)
-          }}
-          variant="filled"
-      />
-  )
-}
-
-const FcBoard = () => {
   const inputs = useInputs();
   const columns = inputs.dataSet;
   const onDragEnd = (result: DropResult): void => {
@@ -212,7 +195,7 @@ const FcBoard = () => {
                     <FormControlLabel
                         control={
                           <Checkbox
-                              checked={inputs.hideZeros}
+                              checked={inputs.totals}
                               onChange={(e) => inputs.dispatcher({
                                 type: InputStateUpdate.Total,
                                 data: {totals: e.target.checked}
@@ -222,24 +205,20 @@ const FcBoard = () => {
                         label="Totals"/>
                   </Box>
                   <Box sx={{ overflowY: 'scroll', maxHeight: '85vh' }}>
-                    {columns.calcParams.map((it) => (
-                        <CalcParamsInput
-                            key={it.name}
-                            label={it.name}
-                            value={it.defaultValue ?? ''}
-                            helper={it.helperText}
-                            onChange={(v) => {
-                              inputs.dispatcher({
-                                type: InputStateUpdate.CalcParams,
-                                data: {
-                                  calcParams: {
-                                    [it.name]: v
-                                  }
-                                }
-                              })
-                            }}
-                        />
-                    ))}
+                      {
+                          columns.calcParams.map((it) => (
+                              <TextField
+                                  key={it.name}
+                                  label={it.name}
+                                  defaultValue={it.defaultValue}
+                                  helperText={it.helperText}
+                                  onChange={(e) => {
+                                      props.onCalcParamsChange?.(it.name, e.target.value)
+                                  }}
+                                  variant="filled"
+                              />
+                          ))
+                      }
                   </Box>
                 </TabPanel>
               </Box>

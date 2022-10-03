@@ -24,13 +24,13 @@ const Agg = (props: {
     const id = useId();
 
     return (
-        <FormControl variant="standard" sx={{ minWidth: 120 }}>
-            <InputLabel id={id}>Agg Types</InputLabel>
+        <FormControl variant="filled" sx={{ minWidth: 120 }}>
+            <InputLabel id={id}>Agg Type</InputLabel>
             <Select
                 labelId={id}
                 value={ctx.aggData[props.field] ?? ''}
                 onChange={handleChange}
-                label="Agg Types"
+                label="Agg Type"
             >
                 {aggTypes.map(it => (
                     <MenuItem value={it} key={it}>{it}</MenuItem>

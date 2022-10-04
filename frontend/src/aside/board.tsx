@@ -1,4 +1,4 @@
-import React, {PropsWithChildren, Suspense} from 'react';
+import {PropsWithChildren, SyntheticEvent, ChangeEvent, Suspense, useDeferredValue, useEffect, useMemo, useState} from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import {reorderQuoteMap} from './reorder';
@@ -10,6 +10,7 @@ import type {DataSet} from "./types";
 import Agg from "./AggTypes";
 import {InputStateUpdate, useInputs} from "./InputStateContext";
 import {Resizable as ReResizable} from "re-resizable";
+import * as lunr from 'lunr'
 
 const ResizeHandle = () => {
     return <div
@@ -48,7 +49,6 @@ const Resizable = (props: PropsWithChildren) => (
 )
 
 interface TabPanelProps extends BoxProps {
-    children?: React.ReactNode;
     index: number;
     value: number;
 }
@@ -100,10 +100,34 @@ export function Column({title, fields, listId, height, extras, onListItemClick, 
     );
 }
 
-const SearchBox = () => {
-    // todo use luna: https://lunrjs.com/guides/getting_started.html
-    return <TextField label="Search" sx={{my: 1, mx: 1}} variant='filled'></TextField>
+const SearchBox = (props: { onChange: (text: string) => void }) => {
+    const [searchText, setSearchText] = useState('');
+    const onSearchTextChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setSearchText(event.target.value);
+    }
+    const deferredSearchText = useDeferredValue(searchText)
+    useEffect(() => {
+        props.onChange(deferredSearchText)
+    }, [deferredSearchText]);
+
+    return <TextField value={searchText} onChange={onSearchTextChange} label="Search" sx={{my: 1, mx: 1}} variant='filled'></TextField>
 }
+
+const createIndex = (input) => lunr(function () {
+    this.ref('ref')
+    this.field('name')
+    const docs = input
+        .map((it) => {
+            const result = it.replaceAll('_', ' ');
+            return {
+                ref: it,
+                name: result
+            }
+        })
+    for (let doc of docs) {
+        this.add(doc)
+    }
+})
 
 const FcBoard = (props: {
     onCalcParamsChange: (name: string, value: string) => void
@@ -155,9 +179,26 @@ const FcBoard = (props: {
         })
     };
 
-    const [activeTab, setActiveTab] = React.useState(0);
+    const measuresIndex = useMemo(() => createIndex(columns.measures), columns.measures);
+    const fieldsIndex = useMemo(() => createIndex(columns.fields), columns.fields);
 
-    const handleActiveTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    const [activeTab, setActiveTab] = useState(0);
+
+    const [searchValue, setSearchValue] = useState();
+
+    const doSearch = (orElse, index) => {
+        if (searchValue) {
+            const results = orElse.filter(it => it.includes(searchValue))
+            if (results.length >= 0) {
+                return results
+            } else {
+                return index.search(searchValue).map(it => it.ref)
+            }
+        } else {
+            return orElse
+        }
+    }
+    const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
     };
 
@@ -176,10 +217,10 @@ const FcBoard = (props: {
         <DragDropContext onDragEnd={onDragEnd}>
             <Resizable>
                 <Stack sx={{width: '40%'}}>
-                    <SearchBox/>
+                    <SearchBox onChange={v => setSearchValue(v)}/>
                     <Column
                         title="Measures"
-                        fields={columns.measures} // apply search
+                        fields={doSearch(columns.measures, measuresIndex)}
                         listId='measures'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {
@@ -189,7 +230,7 @@ const FcBoard = (props: {
                     />
                     <Column
                         title="Fields"
-                        fields={columns.fields} // apply search
+                        fields={doSearch(columns.fields, fieldsIndex)}
                         listId='fields'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {

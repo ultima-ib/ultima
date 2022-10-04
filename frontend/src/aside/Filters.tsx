@@ -205,7 +205,7 @@ export const Filters = () => {
 
     return (
         <Box sx={{overflowY: 'scroll', overflowX: 'hidden'}}>
-            <Title content='Filters'/>
+            {/*<Title content='Filters'/>*/}
             <Stack spacing={1} sx={{overflowY: 'scroll', overflowX: 'hidden'}}>
                 {
                     Object.entries(inputs.filters).map(([filterNum, filter]) => (

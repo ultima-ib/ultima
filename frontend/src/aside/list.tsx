@@ -67,9 +67,9 @@ function InnerList(props: InnerListProps) {
   }, [fields, props.onListItemClick])
 
   return (
-      <Box sx={{ width: '100%', height: '100%' }}>
+      <Box sx={{ width: '100%', height: '100%', minHeight: '100px' }}>
         <Virtuoso
-            style={{ height: '100%' }}
+            style={{ height: '100%', minHeight: '100px' }}
             // @ts-expect-error signature mismatch between libraries
             scrollerRef={dropProvided.innerRef}
             totalCount={fields.length}

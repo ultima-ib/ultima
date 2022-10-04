@@ -2,13 +2,25 @@ import {PropsWithChildren, SyntheticEvent, ChangeEvent, Suspense, useDeferredVal
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import {reorderQuoteMap} from './reorder';
-import {Box, BoxProps, Checkbox, FormControlLabel, Stack, StackProps, Tab, Tabs, TextField} from "@mui/material";
+import {
+    Accordion as MuiAccordion, AccordionDetails, AccordionProps, AccordionSummary,
+    Box,
+    BoxProps,
+    Checkbox,
+    FormControlLabel,
+    Stack,
+    StackProps,
+    Tab,
+    Tabs,
+    TextField
+} from "@mui/material";
 import QuoteList from "./list";
 import Title from "./Title";
 import {Filters} from "./Filters";
 import type {DataSet} from "./types";
 import Agg from "./AggTypes";
 import {InputStateUpdate, useInputs} from "./InputStateContext";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {Resizable as ReResizable} from "re-resizable";
 import * as lunr from 'lunr'
 
@@ -78,7 +90,7 @@ function a11yProps(index: number) {
 
 
 interface ColumnProps extends StackProps {
-    title: string;
+    title?: string;
     fields: string[];
     listId: string,
     extras?: any
@@ -88,7 +100,7 @@ interface ColumnProps extends StackProps {
 export function Column({title, fields, listId, height, extras, onListItemClick, ...stack}: ColumnProps) {
     return (
         <Stack spacing={2} alignItems='center' {...stack}>
-            <Title content={title}/>
+            {title && <Title content={title}/>}
             <QuoteList
                 listId={listId}
                 listType="QUOTE"
@@ -98,6 +110,27 @@ export function Column({title, fields, listId, height, extras, onListItemClick, 
             />
         </Stack>
     );
+}
+
+const Accordion = ({title, children, hideExpandButton, ...rest}: AccordionProps & { title: string, hideExpandButton?: boolean }) => (
+    <MuiAccordion {...rest}>
+        <AccordionSummary expandIcon={!hideExpandButton && <ExpandMoreIcon />}>
+            {title}
+        </AccordionSummary>
+        <AccordionDetails sx={{minHeight: '100px'}}>
+            {children}
+        </AccordionDetails>
+    </MuiAccordion>
+)
+
+const AccordionColumn = ({title, ...rest}: ColumnProps) => {
+    return (
+        <Accordion title={title}>
+            <Column
+                {...rest}
+            />
+        </Accordion>
+    )
 }
 
 const SearchBox = (props: { onChange: (text: string) => void }) => {
@@ -179,8 +212,8 @@ const FcBoard = (props: {
         })
     };
 
-    const measuresIndex = useMemo(() => createIndex(columns.measures), columns.measures);
-    const fieldsIndex = useMemo(() => createIndex(columns.fields), columns.fields);
+    const measuresIndex = useMemo(() => createIndex(columns.measures), [columns.measures]);
+    const fieldsIndex = useMemo(() => createIndex(columns.fields), [columns.fields]);
 
     const [activeTab, setActiveTab] = useState(0);
 
@@ -248,19 +281,19 @@ const FcBoard = (props: {
                         </Tabs>
                     </Box>
                     <TabPanel value={activeTab} index={0} sx={{height: '100%'}}>
-                        <Column
+                        <AccordionColumn
                             title="Group By"
                             fields={columns.groupby ?? []}
                             listId='groupby'
                             sx={{height: '20%'}}
                         />
-                        <Column
+                        <AccordionColumn
                             title="Overwrites"
                             fields={columns.overwrites ?? []}
                             listId='overwrites'
                             sx={{height: '20%'}}
                         />
-                        <Column
+                        <AccordionColumn
                             title="Measures"
                             fields={columns.measuresSelected ?? []}
                             listId='measuresSelected'
@@ -271,7 +304,9 @@ const FcBoard = (props: {
                                 </Suspense>
                             ) : (<></>))}
                         />
-                        <Filters/>
+                        <Accordion title="Filters" expanded hideExpandButton>
+                            <Filters/>
+                        </Accordion>
                     </TabPanel>
                     <TabPanel value={activeTab} index={1} sx={{height: '100%'}}>
                         <Box>

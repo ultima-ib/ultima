@@ -1,42 +1,62 @@
 //! RRAO module
 //! RRAO is calculated at Trade Level - hence we usually need to drop duplicates
-//! col("EXOTIC_RRAO"),
-//col("Notional"),
-//col("TradeId"),
+//! ,
 
 use base_engine::{OCP, col};
+use crate::helpers::first_appearance;
 use ndarray::Array1;
 use polars::{prelude::{apply_multiple, Expr, GetOutput, DataType, NamedFrom, UniqueKeepStrategy,
-    IntoLazy, lit}, 
+    IntoLazy, lit, ChunkSet, IntoSeries, when, NULL, Literal}, 
     df, series::Series};
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
-/*
+use base_engine::Measure;
+
+
 pub(crate) fn exotic_notional (op: &OCP) -> Expr {
-    let ccy_regex = ccy_regex(op);
+
+    let exotic_weight = get_optional_parameter(
+        op,
+        "exotic_rrao_weight",
+        &MEDIUM_CORR_SCENARIO.exotic,
+    );
+    
+    rrao_notional(exotic_weight, "EXOTIC_RRAO")
+}
+
+pub(crate) fn other_notional (op: &OCP) -> Expr {
+
+    let other_weight = get_optional_parameter(
+        op,
+        "other_rrao_weight",
+        &MEDIUM_CORR_SCENARIO.other,
+    );
+    
+    rrao_notional(other_weight, "OTHER_RRAO")
+}
+
+pub(crate) fn rrao_notional (weight: f64, rrao_type: &'static str) -> Expr {
 
     apply_multiple(
         move |columns| {
-            let mask1 = columns[0].utf8()?.equal("FX");
+            let first_appearance_mask = first_appearance(columns[0].utf8()?);
+            let rrao_type_mask = columns[1].bool()?;
 
-            // function to take rep_ccy as an argument
-            let mask2 = columns[1].utf8()?.contains(ccy_regex.as_str())?;
+            let notional = columns[2].cast(&DataType::Float64)?.f64()?.set(&(!first_appearance_mask | !rrao_type_mask), None)?;
 
-            // function to take rep_ccy as an argument
-            let mask3 = columns[3].utf8()?.equal("Delta");
+            let res = notional*weight;
 
-            // Set delta's which don't match mask1 or mask2 to None (ie NaN)
-            let delta = columns[2].f64()?.set(&!(mask1 & mask2 & mask3), None)?;
-
-            Ok(delta.into_series())
+            Ok(res.into_series())
         },
         &[
-            
+            col("TradeId") ,
+            col(rrao_type),
+            col("Notional"),
         ],
         GetOutput::from_type(DataType::Float64),
     )
 }
-*/
+
 pub(crate) fn rrao(op: &OCP) -> Expr {
     let exotic_weight = get_optional_parameter(
         op,
@@ -65,10 +85,12 @@ pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
         df = df.unique(Some(&["id".to_string()]), UniqueKeepStrategy::First)?;
 
         df = df.lazy().with_column(
-            (col("e")*lit(exotic_weight) +
-            col("o")*lit(other_weight))
-            .alias("rrao")
-            )
+            when(col("e"))
+            .then(col("n")*lit(exotic_weight))
+            .when(col("o"))
+            .then(col("n")*lit(other_weight))
+            .otherwise(NULL.lit())
+            .alias("rrao") )
             .collect()?;
         
         let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
@@ -82,4 +104,39 @@ pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
     },
     &[col("TradeId"), col("EXOTIC_RRAO"), col("OTHER_RRAO"), col("Notional")],
     GetOutput::from_type(DataType::Float64))
+}
+
+/// Exporting Measures
+pub(crate) fn rrao_measures() -> Vec<Measure> {
+    vec![
+        /*
+        Measure {
+            name: "Exotic_RRAO_Notional".to_string(),
+            calculator: Box::new(exotic_notional),
+            aggregation: None,
+            precomputefilter: Some(
+                col("EXOTIC_RRAO")
+                .or(col("OTHER_RRAO"))
+            ),
+        },
+        Measure {
+            name: "Other_RRAO_Notional".to_string(),
+            calculator: Box::new(other_notional),
+            aggregation: None,
+            precomputefilter: Some(
+                col("EXOTIC_RRAO")
+                .or(col("OTHER_RRAO"))
+            ),
+        },
+        */
+        Measure {
+            name: "RRAO_Charge".to_string(),
+            calculator: Box::new(rrao),
+            aggregation: Some("first"),
+            precomputefilter: Some(
+                col("EXOTIC_RRAO")
+                .or(col("OTHER_RRAO"))
+            ),
+        },
+    ]
 }

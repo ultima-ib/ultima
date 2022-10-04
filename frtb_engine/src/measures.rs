@@ -1,5 +1,7 @@
 //! This file defines all the measures, associated with this library
 
+use base_engine::Measure;
+
 use crate::sbm::common::sens_weights;
 
 use crate::sbm::commodity::curvature::com_curv_measures;
@@ -42,8 +44,7 @@ use crate::sbm::totals::sbm_total_measures;
 use crate::drc::drc_nonsec::drc_nonsec_measures;
 use crate::drc::drc_secnonctp::drc_secnonctp_measures;
 
-use base_engine::prelude::*;
-//use polars::prelude::*;
+use crate::rrao::rrao_measures;
 
 /// Exporting Measures
 pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
@@ -94,6 +95,7 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
 
     res.extend(drc_nonsec_measures());
     res.extend(drc_secnonctp_measures());
+    res.extend(rrao_measures());
 
     res.extend(non_rc_specific);
 

@@ -88,6 +88,8 @@ pub fn execute_aggregation(
         return Ok(df);
     }
 
+    //dbg!(&df.clone().lazy().select(&[col("Notional"), col("EXOTIC_RRAO"), col("OTHER_RRAO")]).collect());
+
     // Step 2.4 Applying Overwrites
     for ow in req.overrides() {
         df = ow.df_with_overwrite(df)?

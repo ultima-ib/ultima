@@ -91,10 +91,11 @@ impl DataSourceConfig {
                 )
                 .expect("Failed to concatinate provided frames"); // <- Ok to panic upon server startup
 
-                let mut tmp = f2a.clone();
+                let mut tmp = str_cols.clone();
                 tmp.extend(a2h.clone());
+
                 let mut df_attr = match ta {
-                    Some(y) => path_to_df(&y, &tmp, &[])
+                    Some(y) => path_to_df(&y, &tmp, &f64_cols)
                         .unique(Some(&f2a), UniqueKeepStrategy::First)
                         .unwrap(),
                     _ => empty_frame(&tmp),
@@ -139,7 +140,7 @@ impl DataSourceConfig {
                 // if df_attr is not empty at this point
                 if !df_attr.is_empty() {
                     concatinated_frame = concatinated_frame
-                        .join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Left, None)
+                        .join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Outer, None)
                         .expect("Could not join files with attributes. Review files_join_attributes field in the setup");
                 }
 

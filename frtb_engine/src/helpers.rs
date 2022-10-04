@@ -1,10 +1,12 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
-use crate::prelude::*;
-
+use base_engine::OCP;
 use log::warn;
-use ndarray::prelude::*;
+use ndarray::Array2;
+use polars::prelude::{ChunkedArray, Utf8Type, BooleanType};
 use serde::{Deserialize, Serialize};
+
+use crate::prelude::Jurisdiction;
 
 /// if CRR2 feature is not activated, this will return BCBS
 /// if jurisdiction is not part of optional params or can't parse this will return BCBS
@@ -118,4 +120,14 @@ pub(crate) enum ReturnMetric {
     WeightedNetLongJTD,
     WeightedNetAbsShortJTD,
     Hbr,
+}
+
+pub fn first_appearance(ca: &ChunkedArray<Utf8Type>) -> ChunkedArray<BooleanType> {
+    let mut unique_values = std::collections::HashSet::new();
+
+        let mask = ca.into_iter().map( |k| {
+                unique_values.insert(k)
+            })
+            .collect::<ChunkedArray<BooleanType>>();
+        mask
 }

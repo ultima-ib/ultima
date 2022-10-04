@@ -27,7 +27,7 @@ attributes_join_hierarchy = ["BookId"]
 # So one must provide the list
 f1_numeric_cols = ["GrossJTD", "PnL_Up", "PnL_Down", "SensitivitySpot", "Sensitivity_025Y","Sensitivity_05Y",
 "Sensitivity_1Y","Sensitivity_2Y","Sensitivity_3Y","Sensitivity_5Y",
-"Sensitivity_10Y","Sensitivity_15Y","Sensitivity_20Y","Sensitivity_30Y",]
+"Sensitivity_10Y","Sensitivity_15Y","Sensitivity_20Y","Sensitivity_30Y","Notional"]
 # Columns which must be cast to str in the preprocessing step
 f1_cast_to_str = ["BucketBCBS", "RiskFactor", "RiskFactorType", "GirrVegaUnderlyingMaturity", "MaturityDate", "COB", "CommodityLocation"]
 # Build Params. Optional additional parameters to be passed to DataSet.prepare() and can be used in .build() as well

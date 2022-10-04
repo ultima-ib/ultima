@@ -167,7 +167,7 @@ const FcBoard = (props: {
             data: {
                 // @ts-expect-error mismatched signature
                 dataSet: {
-                    [list]: [what, ...columns[list]]
+                    [list]: [...columns[list], what]
                 }
             }
         })
@@ -199,86 +199,84 @@ const FcBoard = (props: {
                     />
                 </Stack>
                 <Stack sx={{width: '60%', height: '100%'}}>
-                    <>
-                        <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
-                            <Tabs value={activeTab} onChange={handleActiveTabChange}
-                                  aria-label="basic tabs example">
-                                <Tab label="Item One" {...a11yProps(0)} />
-                                <Tab label="Item Two" {...a11yProps(1)} />
-                            </Tabs>
-                        </Box>
-                        <TabPanel value={activeTab} index={0} sx={{height: '100%'}}>
-                            <Column
-                                title="Group By"
-                                fields={columns.groupby ?? []}
-                                listId='groupby'
-                                sx={{height: '20%'}}
-                            />
-                            <Column
-                                title="Overwrites"
-                                fields={columns.overwrites ?? []}
-                                listId='overwrites'
-                                sx={{height: '20%'}}
-                            />
-                            <Column
-                                title="Measures"
-                                fields={columns.measuresSelected ?? []}
-                                listId='measuresSelected'
-                                sx={{height: '20%'}}
-                                extras={({field}: { field: string }) => (inputs.canMeasureBeAggregated(field) ? (
-                                    <Suspense>
-                                        <Agg field={field}/>
-                                    </Suspense>
-                                ) : (<></>))}
-                            />
-                            <Filters/>
-                        </TabPanel>
-                        <TabPanel value={activeTab} index={1} sx={{height: '100%'}}>
-                            <Box>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={inputs.hideZeros}
-                                            onChange={(e) => inputs.dispatcher({
-                                                type: InputStateUpdate.HideZeros,
-                                                data: {hideZeros: e.target.checked}
-                                            })}
-                                        />
-                                    }
-                                    label="Hide Zeros"
-                                />
-
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={inputs.totals}
-                                            onChange={(e) => inputs.dispatcher({
-                                                type: InputStateUpdate.Total,
-                                                data: {totals: e.target.checked}
-                                            })}
-                                        />
-                                    }
-                                    label="Totals"
-                                />
-                            </Box>
-                            <Box sx={{overflowY: 'scroll', maxHeight: '80vh'}}>
-                                {
-                                    columns.calcParams.map((it) => (
-                                        <TextField
-                                            key={it.name}
-                                            label={it.name}
-                                            defaultValue={it.defaultValue}
-                                            helperText={it.helperText}
-                                            onChange={(e) => {
-                                                props.onCalcParamsChange?.(it.name, e.target.value)
-                                            }}
-                                            variant="filled"
-                                        />
-                                    ))
+                    <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
+                        <Tabs value={activeTab} onChange={handleActiveTabChange}
+                              aria-label="basic tabs example">
+                            <Tab label="Item One" {...a11yProps(0)} />
+                            <Tab label="Item Two" {...a11yProps(1)} />
+                        </Tabs>
+                    </Box>
+                    <TabPanel value={activeTab} index={0} sx={{height: '100%'}}>
+                        <Column
+                            title="Group By"
+                            fields={columns.groupby ?? []}
+                            listId='groupby'
+                            sx={{height: '20%'}}
+                        />
+                        <Column
+                            title="Overwrites"
+                            fields={columns.overwrites ?? []}
+                            listId='overwrites'
+                            sx={{height: '20%'}}
+                        />
+                        <Column
+                            title="Measures"
+                            fields={columns.measuresSelected ?? []}
+                            listId='measuresSelected'
+                            sx={{height: '20%'}}
+                            extras={({field}: { field: string }) => (inputs.canMeasureBeAggregated(field) ? (
+                                <Suspense>
+                                    <Agg field={field}/>
+                                </Suspense>
+                            ) : (<></>))}
+                        />
+                        <Filters/>
+                    </TabPanel>
+                    <TabPanel value={activeTab} index={1} sx={{height: '100%'}}>
+                        <Box>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={inputs.hideZeros}
+                                        onChange={(e) => inputs.dispatcher({
+                                            type: InputStateUpdate.HideZeros,
+                                            data: {hideZeros: e.target.checked}
+                                        })}
+                                    />
                                 }
-                            </Box>
-                        </TabPanel>
-                    </>
+                                label="Hide Zeros"
+                            />
+
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={inputs.totals}
+                                        onChange={(e) => inputs.dispatcher({
+                                            type: InputStateUpdate.Total,
+                                            data: {totals: e.target.checked}
+                                        })}
+                                    />
+                                }
+                                label="Totals"
+                            />
+                        </Box>
+                        <Box sx={{overflowY: 'scroll', maxHeight: '80vh'}}>
+                            {
+                                columns.calcParams.map((it) => (
+                                    <TextField
+                                        key={it.name}
+                                        label={it.name}
+                                        defaultValue={it.defaultValue}
+                                        helperText={it.helperText}
+                                        onChange={(e) => {
+                                            props.onCalcParamsChange?.(it.name, e.target.value)
+                                        }}
+                                        variant="filled"
+                                    />
+                                ))
+                            }
+                        </Box>
+                    </TabPanel>
                 </Stack>
             </Resizable>
         </DragDropContext>

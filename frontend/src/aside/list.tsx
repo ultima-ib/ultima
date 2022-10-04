@@ -36,7 +36,6 @@ function FieldListItem({ field, provided, onClick }: FieldListItemProps) {
 interface InnerListProps {
   dropProvided: DroppableProvided;
   fields: string[];
-  height: string,
   extras?: any
   onListItemClick?: (field: string) => void
 }
@@ -68,9 +67,9 @@ function InnerList(props: InnerListProps) {
   }, [fields, props.onListItemClick])
 
   return (
-      <Box sx={{ width: '100%', height: props.height }}>
+      <Box sx={{ width: '100%', height: '100%' }}>
         <Virtuoso
-            style={{ height: props.height }}
+            style={{ height: '100%' }}
             // @ts-expect-error signature mismatch between libraries
             scrollerRef={dropProvided.innerRef}
             totalCount={fields.length}
@@ -85,12 +84,11 @@ interface Props {
   listId?: string;
   listType?: string;
   fields: string[];
-  height: string,
   extras?: any
   onListItemClick?: (field: string) => void
 }
 
-export default function FieldList({extras, listId = 'LIST', listType, fields,  height,  onListItemClick}: Props) {
+export default function FieldList({extras, listId = 'LIST', listType, fields,  onListItemClick}: Props) {
 
   return (
     <Droppable
@@ -110,7 +108,6 @@ export default function FieldList({extras, listId = 'LIST', listType, fields,  h
       ) => (
           <InnerList
               fields={fields}
-              height={height}
               dropProvided={dropProvided}
               extras={extras}
               onListItemClick={onListItemClick}

@@ -75,7 +75,6 @@ const Filter = (props: { onChange: (field: string, op: string, val: string) => v
         <>
             <FilterSelect label="Field" state={[field, (v) => startTransition(() => {
                 setField(v)
-                // setValueSearchInput('')
                 setVal(null)
             })]} options={props.fields}/>
             <FilterSelect label="Operator" state={[op, setOp]} options={[
@@ -205,9 +204,9 @@ export const Filters = () => {
     }, [])
 
     return (
-        <Box sx={{overflow: 'scroll'}}>
+        <Box sx={{overflowY: 'scroll', overflowX: 'hidden'}}>
             <Title content='Filters'/>
-            <Stack spacing={1} sx={{overflow: 'scroll', height: '8rem'}}>
+            <Stack spacing={1} sx={{overflowY: 'scroll', overflowX: 'hidden'}}>
                 {
                     Object.entries(inputs.filters).map(([filterNum, filter]) => (
                         <Fragment key={filterNum}>

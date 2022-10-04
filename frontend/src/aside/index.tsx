@@ -3,6 +3,7 @@ import {useReducer, useRef} from "react";
 import {Filter} from "./types";
 import {useFRTB} from "../api/hooks";
 import {InputStateContextProvider, inputStateReducer} from "./InputStateContext";
+import {Box} from "@mui/material";
 
 
 export const Initial = () => {
@@ -58,15 +59,17 @@ export const Initial = () => {
     }
 
     return (
-        <div>
+        <Box sx={{display: 'flex', height: '100%'}}>
             <InputStateContextProvider value={{
                 ...context,
                 dispatcher
             }}>
                 <Aside onCalcParamsChange={onCalcParamsChange} />
             </InputStateContextProvider>
-            <button onClick={run}>run</button>
-        </div>
+            <div>
+                <button onClick={run}>run</button>
+            </div>
+        </Box>
     )
 }
 

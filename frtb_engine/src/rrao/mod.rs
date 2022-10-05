@@ -44,7 +44,7 @@ pub(crate) fn rrao_notional (weight: f64, rrao_type: &'static str) -> Expr {
 
             let notional = columns[2].cast(&DataType::Float64)?.f64()?.set(&(!first_appearance_mask | !rrao_type_mask), None)?;
 
-            let res = notional*weight;
+            let res = dbg!(notional*weight);
 
             Ok(res.into_series())
         },
@@ -109,7 +109,7 @@ pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
 /// Exporting Measures
 pub(crate) fn rrao_measures() -> Vec<Measure> {
     vec![
-        /*
+        
         Measure {
             name: "Exotic_RRAO_Notional".to_string(),
             calculator: Box::new(exotic_notional),
@@ -128,7 +128,7 @@ pub(crate) fn rrao_measures() -> Vec<Measure> {
                 .or(col("OTHER_RRAO"))
             ),
         },
-        */
+        
         Measure {
             name: "RRAO_Charge".to_string(),
             calculator: Box::new(rrao),

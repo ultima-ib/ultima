@@ -102,46 +102,28 @@ impl DataSourceConfig {
                 };
 
                 //here we expect if hms is provided then a2h is not empty
-                let mut df_hms = match  hms{
+                let df_hms = match  hms{
                         Some(y) =>{ path_to_df(&y, &a2h, &[])
                                             .unique(Some(&a2h), UniqueKeepStrategy::First)
                                             .expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
                                             in the datasource_config.toml") },
                         _ => empty_frame(&a2h) };
 
-                // Cast to Categorical, needed for Join later
-                // Set a global string cache
-                // https://docs.rs/polars/0.13.3/polars/docs/performance/index.html
-                use polars::toggle_string_cache;
-                toggle_string_cache(true);
-
-                for i in a2h.iter() {
-                    df_hms
-                        .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
-                        .unwrap();
-                    df_attr
-                        .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
-                        .unwrap();
-                }
-                for i in f2a.iter() {
-                    df_attr
-                        .try_apply(i, |s| s.cast(&DataType::Categorical(None)))
-                        .unwrap();
-                    concatinated_frame.try_apply(i, |s| s.cast(&DataType::Categorical(None)))
-                            .expect("Could not parse. Pehaps files_join_attributes was provided but not found in the dataset.");
-                }
-
                 // join with hms if a2h was provided
                 if !a2h.is_empty() {
-                    df_attr = df_attr
-                        .join(&df_hms, a2h.clone(), a2h.clone(), JoinType::Left, None)
+                    let a2h_expr = a2h.iter().map(|c|col(c)).collect::<Vec<Expr>>();
+                    df_attr = df_attr.lazy()
+                        .join(df_hms.lazy(), a2h_expr.clone(), a2h_expr, JoinType::Left)
+                        .collect()
                         .expect("Could not join attributes to hms. Review attributes_join_hierarchy field in the setup");
                 }
-                // if df_attr is not empty at this point
-                if !df_attr.is_empty() {
-                    concatinated_frame = concatinated_frame
-                        .join(&df_attr, f2a.clone(), f2a.clone(), JoinType::Outer, None)
-                        .expect("Could not join files with attributes. Review files_join_attributes field in the setup");
+                // if files to attributes was provided
+                if !f2a.is_empty() {
+                    let f2a_expr = f2a.iter().map(|c|col(c)).collect::<Vec<Expr>>();
+                    concatinated_frame = concatinated_frame.lazy()
+                        .join(df_attr.lazy(), f2a_expr.clone(), f2a_expr, JoinType::Outer)
+                        .collect()
+                        .expect("Could not join files with attributes-hms. Review files_join_attributes field in the setup");
                 }
 
                 // if measures were provided

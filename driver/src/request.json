@@ -3,9 +3,10 @@
     "type": "AggregationRequest", 
 
     "filters": [[{"op": "Eq", "field": "Group", "value": "Ultima"}]],
-    "groupby": ["COB", "Desk"],
+    "groupby": ["COB"],
     "measures": [
-        ["RRAO_Charge", "first"]
+        ["Exotic_RRAO_Notional", "sum"],
+        ["Other_RRAO_Notional", "sum"]
             ],
     
     "hide_zeros": false,

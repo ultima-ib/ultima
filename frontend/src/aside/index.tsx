@@ -1,9 +1,12 @@
 import Aside from './board';
-import {useReducer, useRef} from "react";
+import {useReducer, useRef, useState} from "react";
 import {Filter} from "./types";
 import {useFRTB} from "../api/hooks";
 import {InputStateContextProvider, inputStateReducer} from "./InputStateContext";
 import {Box} from "@mui/material";
+import TopBar from "../AppBar";
+import DataTable from "../table";
+import {GenerateTableDataRequest} from "../api/types";
 
 
 export const Initial = () => {
@@ -32,6 +35,8 @@ export const Initial = () => {
     const [context, dispatcher] = useReducer(inputStateReducer, init);
     const calcParams = useRef<{[k: string]: string}>({});
 
+    const [buildTableReq, setBuildTableReq] = useState<GenerateTableDataRequest | undefined>(undefined);
+
     const run = () => {
         const data = context.dataSet
         const measures: { [p: string]: string }  = {}
@@ -50,6 +55,7 @@ export const Initial = () => {
             totals: context.totals,
             calc_params: calcParams.current
         }
+        setBuildTableReq(obj)
         console.log(JSON.stringify(obj, null, 2))
     }
 
@@ -65,10 +71,11 @@ export const Initial = () => {
                 dispatcher
             }}>
                 <Aside onCalcParamsChange={onCalcParamsChange} />
+                <TopBar onRunClick={run}>
+                    {buildTableReq && <DataTable input={buildTableReq}/>}
+                </TopBar>
+
             </InputStateContextProvider>
-            <div>
-                <button onClick={run}>run</button>
-            </div>
         </Box>
     )
 }

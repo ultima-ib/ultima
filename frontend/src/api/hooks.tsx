@@ -1,6 +1,8 @@
 import {AGG_TYPES, FRTB} from "./routes";
 import useFetch from 'fetch-suspense';
 import {useEffect, useState} from "react";
+import {GenerateTableDataRequest, GenerateTableDataResponse} from "./types";
+import response from '../responce.json'
 
 interface FRTB {
     fields: string[]
@@ -37,4 +39,8 @@ export const useFilterColumns = (column: string, search: string = '.*') => {
     } else {
         return results as string []
     }
+}
+
+export const useTableData = (input: GenerateTableDataRequest): GenerateTableDataResponse => {
+    return response as unknown as GenerateTableDataResponse
 }

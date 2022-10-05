@@ -1,0 +1,41 @@
+import {
+    AppBar,
+    Box,
+    Toolbar,
+    Slide,
+    Button, Container,
+} from '@mui/material'
+import useScrollTrigger from '@mui/material/useScrollTrigger';
+import {PropsWithChildren, useRef} from "react";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+
+
+interface TopBarProps {
+    onRunClick: () => void
+}
+
+export const TOP_BAR_HEIGHT = '64px'
+
+export default function TopBar(props: PropsWithChildren<TopBarProps>) {
+    const scrollTarget = useRef()
+    const trigger = useScrollTrigger({
+        target: scrollTarget.current
+    });
+
+    return (
+        <Box sx={{width: '100%', height: '100%', overflow: 'scroll'}} ref={scrollTarget}>
+            <Slide appear={false} direction="down" in={!trigger}>
+                <AppBar position='sticky'>
+                    <Toolbar>
+                        <Button sx={{mr: 2}} startIcon={<PlayArrowIcon/>} color='inherit' onClick={props.onRunClick}>
+                            Run
+                        </Button>
+                    </Toolbar>
+                </AppBar>
+            </Slide>
+            <Container>
+                {props.children}
+            </Container>
+        </Box>
+    );
+}

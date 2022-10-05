@@ -1,13 +1,26 @@
-import {PropsWithChildren, SyntheticEvent, ChangeEvent, Suspense, useDeferredValue, useEffect, useMemo, useState} from 'react';
+import {
+    ChangeEvent,
+    PropsWithChildren,
+    Suspense,
+    SyntheticEvent,
+    useDeferredValue,
+    useEffect,
+    useMemo,
+    useState
+} from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
 import {DragDropContext} from '@hello-pangea/dnd';
 import {reorderQuoteMap} from './reorder';
 import {
-    Accordion as MuiAccordion, AccordionDetails, AccordionProps, AccordionSummary,
+    Accordion as MuiAccordion,
+    AccordionDetails,
+    AccordionProps,
+    AccordionSummary,
     Box,
     BoxProps,
     Checkbox,
     FormControlLabel,
+    IconButton,
     Stack,
     StackProps,
     Tab,
@@ -23,10 +36,10 @@ import {InputStateUpdate, useInputs} from "./InputStateContext";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {Resizable as ReResizable} from "re-resizable";
 import * as lunr from 'lunr'
+import DeleteIcon from '@mui/icons-material/Close';
 
 const ResizeHandle = () => {
     return <div
-        data-fuck=""
         style={{
             background: 'rgba(0, 0, 0, 0.3)',
             height: '100%',
@@ -112,9 +125,14 @@ export function Column({title, fields, listId, height, extras, onListItemClick, 
     );
 }
 
-const Accordion = ({title, children, hideExpandButton, ...rest}: AccordionProps & { title: string, hideExpandButton?: boolean }) => (
+const Accordion = ({
+                       title,
+                       children,
+                       hideExpandButton,
+                       ...rest
+                   }: AccordionProps & { title: string, hideExpandButton?: boolean }) => (
     <MuiAccordion {...rest}>
-        <AccordionSummary expandIcon={!hideExpandButton && <ExpandMoreIcon />}>
+        <AccordionSummary expandIcon={!hideExpandButton && <ExpandMoreIcon/>}>
             {title}
         </AccordionSummary>
         <AccordionDetails sx={{minHeight: '100px'}}>
@@ -125,7 +143,7 @@ const Accordion = ({title, children, hideExpandButton, ...rest}: AccordionProps 
 
 const AccordionColumn = ({title, ...rest}: ColumnProps) => {
     return (
-        <Accordion title={title}>
+        <Accordion title={title ?? ''}>
             <Column
                 {...rest}
             />
@@ -143,24 +161,36 @@ const SearchBox = (props: { onChange: (text: string) => void }) => {
         props.onChange(deferredSearchText)
     }, [deferredSearchText]);
 
-    return <TextField value={searchText} onChange={onSearchTextChange} label="Search" sx={{my: 1, mx: 1}} variant='filled'></TextField>
+    return <TextField value={searchText} onChange={onSearchTextChange} label="Search" sx={{my: 1, mx: 1}}
+                      variant='filled'></TextField>
 }
 
-const createIndex = (input: string[]) => lunr(function () {
-    this.ref('ref')
-    this.field('name')
-    const docs = input
-        .map((it) => {
-            const result = it.replaceAll('_', ' ');
-            return {
-                ref: it,
-                name: result
+const DeleteButton = (props: { field: string, from: keyof Omit<DataSet, 'calcParams'>}) => {
+    const inputs = useInputs();
+
+    const onDelete = () => {
+        const returnTo = props.from === 'measuresSelected' ? 'measures' : 'fields'
+        const fromList = inputs.dataSet[props.from].filter(it => it !== props.field);
+        const orgList = inputs.dataSet[returnTo];
+        const toList = orgList.includes(props.field) ? orgList : [...orgList, props.field]
+
+        inputs.dispatcher({
+            type: InputStateUpdate.DataSet,
+            data: {
+                dataSet: {
+                    [props.from]: fromList,
+                    [returnTo]: toList
+                }
             }
         })
-    for (let doc of docs) {
-        this.add(doc)
     }
-})
+
+    return (
+        <IconButton onClick={onDelete}>
+            <DeleteIcon/>
+        </IconButton>
+    )
+}
 
 const FcBoard = (props: {
     onCalcParamsChange: (name: string, value: string) => void
@@ -169,20 +199,8 @@ const FcBoard = (props: {
     const columns = inputs.dataSet;
     const onDragEnd = (result: DropResult): void => {
         const source: DraggableLocation = result.source;
+        // dragged nowhere, bail
         if (result.destination === null) {
-            if (!(source.droppableId === "fields" || source.droppableId === "measures")) {
-                const list: any[] = columns[source.droppableId as keyof DataSet];
-                list.splice(source.index, 1)
-                inputs.dispatcher({
-                    type: InputStateUpdate.DataSet,
-                    data: {
-                        // @ts-expect-error mismatched signature
-                        dataSet: {
-                            [source.droppableId]: list
-                        }
-                    }
-                })
-            }
             return;
         }
         const destination: DraggableLocation = result.destination;
@@ -212,20 +230,17 @@ const FcBoard = (props: {
         })
     };
 
-    const measuresIndex = useMemo(() => createIndex(columns.measures), [columns.measures]);
-    const fieldsIndex = useMemo(() => createIndex(columns.fields), [columns.fields]);
-
     const [activeTab, setActiveTab] = useState(0);
 
     const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
 
-    const doSearch = (orElse: string[], index: lunr.Index) => {
+    const doSearch = (orElse: string[]) => {
         if (searchValue) {
             const results = orElse.filter(it => it.toLowerCase().includes(searchValue.toLowerCase()))
             if (results.length >= 0) {
                 return results
             } else {
-                return index.search(searchValue).map(it => it.ref)
+                return []
             }
         } else {
             return orElse
@@ -253,7 +268,7 @@ const FcBoard = (props: {
                     <SearchBox onChange={v => setSearchValue(v)}/>
                     <Column
                         title="Measures"
-                        fields={doSearch(columns.measures, measuresIndex)}
+                        fields={doSearch(columns.measures)}
                         listId='measures'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {
@@ -263,7 +278,7 @@ const FcBoard = (props: {
                     />
                     <Column
                         title="Fields"
-                        fields={doSearch(columns.fields, fieldsIndex)}
+                        fields={doSearch(columns.fields)}
                         listId='fields'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {
@@ -286,25 +301,28 @@ const FcBoard = (props: {
                             fields={columns.groupby ?? []}
                             listId='groupby'
                             sx={{height: '20%'}}
-                            // extras={/* delete button */ <></>}
+                            extras={({field}) => <DeleteButton field={field} from='groupby' />}
                         />
                         <AccordionColumn
                             title="Overwrites"
                             fields={columns.overwrites ?? []}
                             listId='overwrites'
                             sx={{height: '20%'}}
-                            // extras={/* delete button */ <></>}
+                            extras={({field}) => <DeleteButton field={field} from='overwrites' />}
                         />
                         <AccordionColumn
                             title="Measures"
                             fields={columns.measuresSelected ?? []}
                             listId='measuresSelected'
                             sx={{height: '20%'}}
-                            extras={({field}: { field: string }) => (inputs.canMeasureBeAggregated(field) ? (
-                                <Suspense>
-                                    <Agg field={field}/>
-                                </Suspense>
-                            ) : (<></>))}
+                            extras={({field}: { field: string }) => (<>
+                                {inputs.canMeasureBeAggregated(field) &&
+                                    <Suspense>
+                                        <Agg field={field}/>
+                                    </Suspense>
+                                }
+                                <DeleteButton field={field} from='measuresSelected'/>
+                            </>)}
                         />
                         <Accordion title="Filters" expanded hideExpandButton>
                             <Filters/>

@@ -6,7 +6,7 @@ use base_engine::{OCP, col};
 use crate::helpers::first_appearance;
 use ndarray::Array1;
 use polars::{prelude::{apply_multiple, Expr, GetOutput, DataType, NamedFrom, UniqueKeepStrategy,
-    IntoLazy, lit, ChunkSet, IntoSeries, when, NULL, Literal}, 
+    IntoLazy, lit, ChunkSet, IntoSeries, when, NULL, Literal, ChunkFillNullValue}, 
     df, series::Series};
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
@@ -40,11 +40,11 @@ pub(crate) fn rrao_notional (weight: f64, rrao_type: &'static str) -> Expr {
     apply_multiple(
         move |columns| {
             let first_appearance_mask = first_appearance(columns[0].utf8()?);
-            let rrao_type_mask = columns[1].bool()?;
+            let rrao_type_mask = columns[1].bool()?.fill_null_with_values(false)?;
 
-            let notional = columns[2].cast(&DataType::Float64)?.f64()?.set(&(!first_appearance_mask | !rrao_type_mask), None)?;
+            let notional = columns[2].cast(&DataType::Float64)?.f64()?.set(&( !first_appearance_mask | !rrao_type_mask ), None)?;
 
-            let res = dbg!(notional*weight);
+            let res = notional*weight;
 
             Ok(res.into_series())
         },

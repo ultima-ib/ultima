@@ -7,6 +7,7 @@
     "measures": [
         ["Exotic_RRAO_Notional", "sum"],
         ["Other_RRAO_Notional", "sum"]
+
             ],
     
     "hide_zeros": false,

@@ -146,7 +146,7 @@ const SearchBox = (props: { onChange: (text: string) => void }) => {
     return <TextField value={searchText} onChange={onSearchTextChange} label="Search" sx={{my: 1, mx: 1}} variant='filled'></TextField>
 }
 
-const createIndex = (input) => lunr(function () {
+const createIndex = (input: string[]) => lunr(function () {
     this.ref('ref')
     this.field('name')
     const docs = input
@@ -217,11 +217,11 @@ const FcBoard = (props: {
 
     const [activeTab, setActiveTab] = useState(0);
 
-    const [searchValue, setSearchValue] = useState();
+    const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
 
-    const doSearch = (orElse, index) => {
+    const doSearch = (orElse: string[], index: lunr.Index) => {
         if (searchValue) {
-            const results = orElse.filter(it => it.includes(searchValue))
+            const results = orElse.filter(it => it.toLowerCase().includes(searchValue.toLowerCase()))
             if (results.length >= 0) {
                 return results
             } else {

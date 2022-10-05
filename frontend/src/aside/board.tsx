@@ -276,8 +276,8 @@ const FcBoard = (props: {
                     <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
                         <Tabs value={activeTab} onChange={handleActiveTabChange}
                               aria-label="basic tabs example">
-                            <Tab label="Item One" {...a11yProps(0)} />
-                            <Tab label="Item Two" {...a11yProps(1)} />
+                            <Tab label="Aggregate" {...a11yProps(0)} />
+                            <Tab label="Params" {...a11yProps(1)} />
                         </Tabs>
                     </Box>
                     <TabPanel value={activeTab} index={0} sx={{height: '100%'}}>
@@ -286,12 +286,14 @@ const FcBoard = (props: {
                             fields={columns.groupby ?? []}
                             listId='groupby'
                             sx={{height: '20%'}}
+                            // extras={/* delete button */ <></>}
                         />
                         <AccordionColumn
                             title="Overwrites"
                             fields={columns.overwrites ?? []}
                             listId='overwrites'
                             sx={{height: '20%'}}
+                            // extras={/* delete button */ <></>}
                         />
                         <AccordionColumn
                             title="Measures"

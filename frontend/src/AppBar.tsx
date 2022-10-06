@@ -1,10 +1,4 @@
-import {
-    AppBar,
-    Box,
-    Toolbar,
-    Slide,
-    Button, Container,
-} from '@mui/material'
+import {AppBar, Box, Toolbar, Slide, Button} from '@mui/material'
 import useScrollTrigger from '@mui/material/useScrollTrigger';
 import {PropsWithChildren, useRef} from "react";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -30,9 +24,7 @@ export default function TopBar(props: PropsWithChildren<TopBarProps>) {
                     </Toolbar>
                 </AppBar>
             </Slide>
-            <Container>
-                {props.children}
-            </Container>
+            {props.children}
         </Box>
     );
 }

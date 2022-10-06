@@ -1,5 +1,5 @@
 import Aside from './board';
-import {useReducer, useRef, useState} from "react";
+import {useReducer, useRef, useState, Suspense} from "react";
 import {Filter} from "./types";
 import {useFRTB} from "../api/hooks";
 import {InputStateContextProvider, inputStateReducer} from "./InputStateContext";
@@ -39,12 +39,11 @@ export const Initial = () => {
 
     const run = () => {
         const data = context.dataSet
-        const measures: { [p: string]: string }  = {}
-        data.measuresSelected.forEach((measure: string) => {
+        const measures = data.measuresSelected.map((measure: string) => {
             const m = frtb.measures.find(it => it.measure === measure)
             if (!m) return
             const agg: string = context.aggData[m.measure as any];
-            measures[m.measure] = agg ?? m.agg
+            return [m.measure, agg ?? m.agg]
         })
         const obj = {
             filters: Object.values(context.filters).map((it: any) => Object.values(it) as Filter[]),
@@ -72,7 +71,9 @@ export const Initial = () => {
             }}>
                 <Aside onCalcParamsChange={onCalcParamsChange} />
                 <TopBar onRunClick={run}>
-                    {buildTableReq && <DataTable input={buildTableReq}/>}
+                    <Suspense fallback="Loading...">
+                        {buildTableReq && <DataTable input={buildTableReq}/>}
+                    </Suspense>
                 </TopBar>
 
             </InputStateContextProvider>

@@ -42,5 +42,11 @@ export const useFilterColumns = (column: string, search: string = '.*') => {
 }
 
 export const useTableData = (input: GenerateTableDataRequest): GenerateTableDataResponse => {
-    return response as unknown as GenerateTableDataResponse
+    return useFetch(FRTB, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(input)
+    }) as GenerateTableDataResponse
 }

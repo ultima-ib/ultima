@@ -55,6 +55,7 @@ const FilterSelect = (props: FilterSelectProps) => {
     return (
         <Autocomplete
             multiple={multiple}
+            disableCloseOnSelect={multiple}
             disablePortal
             disabled={props.disabled ?? false}
             filterOptions={props.filterOptions}

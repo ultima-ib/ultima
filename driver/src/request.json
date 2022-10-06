@@ -5,8 +5,9 @@
     "filters": [[{"op": "Eq", "field": "Group", "value": "Ultima"}]],
     "groupby": ["COB"],
     "measures": [
-        ["Exotic_RRAO_Notional", "sum"],
-        ["Other_RRAO_Notional", "sum"]
+        ["Exotic_RRAO_Charge", "sum"],
+        ["Other_RRAO_Charge", "sum"],
+        ["RRAO_Charge", "first"]
 
             ],
     

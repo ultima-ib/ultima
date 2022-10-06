@@ -1,6 +1,6 @@
 mod common;
 use common::*;
-use ndarray::prelude::*;
+use ndarray::arr1;
 
 #[test]
 fn drc_nonsec() {

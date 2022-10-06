@@ -47,8 +47,8 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
             |columns| {
                 let mult: Vec<f64> = vec![1.; columns[0].len()];
                 let mult = Float64Chunked::from_vec("multiplicator", mult);
-                let mask = columns[1].bool()?;
-                let mult = mult.set(mask, Some(1.5))?.into_series();
+                let mask = columns[1].bool()?.fill_null_with_values(false)?;
+                let mult = mult.set(&mask, Some(1.5))?.into_series();
                 columns[0].f64()?.divide(&mult)
             },
             &[col("FxCurvDivEligibility")],

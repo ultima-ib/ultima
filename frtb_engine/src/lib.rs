@@ -1,14 +1,16 @@
 //! FRTB job entry point
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
+mod sbm;
+mod drc;
+mod rrao;
+
 pub mod calc_params;
 pub mod docs;
-mod drc;
 mod helpers;
 pub mod measures;
 pub mod prelude;
 mod risk_weights;
-mod sbm;
 mod statics;
 
 use crate::drc::drc_weights;

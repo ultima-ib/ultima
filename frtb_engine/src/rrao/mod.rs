@@ -7,7 +7,7 @@ use crate::helpers::first_appearance;
 use ndarray::Array1;
 use polars::{prelude::{apply_multiple, Expr, GetOutput, DataType, NamedFrom, UniqueKeepStrategy,
     IntoLazy, lit, ChunkSet, IntoSeries, when, NULL, Literal, ChunkFillNullValue}, 
-    df, series::Series};
+    df, series::Series, error::PolarsError};
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
 use base_engine::Measure;
@@ -111,7 +111,7 @@ pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
                 "res",
                 Array1::<f64>::from_elem(res_len, res)
                     .as_slice()
-                    .unwrap(),
+                    .ok_or_else(|| PolarsError::ComputeError("Couldn't convert result into slice".into()))?,
             ));
     },
     &[col("TradeId"), col("EXOTIC_RRAO"), col("OTHER_RRAO"), col("Notional")],

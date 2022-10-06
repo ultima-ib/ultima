@@ -12,11 +12,11 @@ use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
 use base_engine::Measure;
 
-pub(crate) fn exotic_notional (op: &OCP) -> Expr {
+pub(crate) fn exotic_notional (_: &OCP) -> Expr {
     rrao_weighted_notional(None, "EXOTIC_RRAO")
 }
 
-pub(crate) fn other_notional (op: &OCP) -> Expr {    
+pub(crate) fn other_notional (_: &OCP) -> Expr {    
     rrao_weighted_notional(None, "OTHER_RRAO")
 }
 

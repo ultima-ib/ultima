@@ -8,7 +8,10 @@ interface DataTableProps {
 }
 
 const DataTable = (props: DataTableProps) => {
-    const data = useTableData(props.input)
+    const {data, error} = useTableData(props.input)
+    if (error || !data) {
+        return <>{error}</>
+    }
     const headers = data.columns.map(it => it.name)
     const zipped = fancyZip(data.columns.map(col => col.values))
 

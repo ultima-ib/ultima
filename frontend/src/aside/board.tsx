@@ -222,11 +222,7 @@ const FcBoard = (props: {
         if (destination.droppableId === "fields" || destination.droppableId === "measures") {
             return
         }
-        const data = reorderQuoteMap({
-            quoteMap: columns,
-            source,
-            destination,
-        });
+        const data = reorderQuoteMap(columns, source, destination);
 
         inputs.dispatcher({
             type: InputStateUpdate.DataSet,
@@ -268,7 +264,7 @@ const FcBoard = (props: {
             data: {
                 // @ts-expect-error mismatched signature
                 dataSet: {
-                    [from]: columns[from].filter(it => it !== what),
+                    // [from]: columns[from].filter(it => it !== what),
                     [list]: [...columns[list], what]
                 }
             }
@@ -349,9 +345,8 @@ const FcBoard = (props: {
                                 <DeleteButton field={field} from='measuresSelected'/>
                             </>)}
                         />
-                        <Accordion title="Filters" expanded hideExpandButton>
-                            <Filters/>
-                        </Accordion>
+                        <Filters/>
+
                     </TabPanel>
                     <TabPanel value={activeTab} index={1} sx={{height: '100%'}}>
                         <Box>

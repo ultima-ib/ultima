@@ -41,12 +41,17 @@ export const useFilterColumns = (column: string, search: string = '.*') => {
     }
 }
 
-export const useTableData = (input: GenerateTableDataRequest): GenerateTableDataResponse => {
-    return useFetch(FRTB, {
+export const useTableData = (input: GenerateTableDataRequest): { data?: GenerateTableDataResponse, error?: string } => {
+    const resp = useFetch(FRTB, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(input)
-    }) as GenerateTableDataResponse
+    }, { metadata: true })
+    if (resp.status === 200) {
+        return { data: resp.response as GenerateTableDataResponse }
+    } else {
+        return { error: resp.response.toString() }
+    }
 }

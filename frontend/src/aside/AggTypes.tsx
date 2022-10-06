@@ -9,6 +9,9 @@ const Agg = (props: {
 }) => {
     const ctx = useInputs()
     const handleChange = (event: SelectChangeEvent) => {
+        if (event.target.value === '') {
+            return
+        }
         ctx.dispatcher({
             type: InputStateUpdate.AggData,
             data: {
@@ -31,6 +34,7 @@ const Agg = (props: {
                 value={ctx.aggData[props.field] ?? ''}
                 onChange={handleChange}
                 label="Agg Type"
+                required
             >
                 {aggTypes.map(it => (
                     <MenuItem value={it} key={it}>{it}</MenuItem>

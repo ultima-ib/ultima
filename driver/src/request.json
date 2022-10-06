@@ -3,10 +3,10 @@
     "type": "AggregationRequest", 
 
     "filters": [[{"op": "Eq", "field": "Group", "value": "Ultima"}]],
-    "groupby": ["COB"],
+    "groupby": ["COB", "Country", "CommodityLocation"],
     "measures": [
-        ["Exotic_RRAO_Charge", "sum"],
-        ["Other_RRAO_Charge", "sum"],
+        ["EQ_TotalCharge_Medium", "first"],
+        ["Commodity_TotalCharge_MAX", "first"],
         ["RRAO_Charge", "first"]
 
             ],

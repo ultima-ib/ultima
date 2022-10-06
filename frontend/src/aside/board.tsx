@@ -39,9 +39,9 @@ import DeleteIcon from '@mui/icons-material/Close';
 const ResizeHandle = () => {
     return <div
         style={{
-            background: 'rgba(0, 0, 0, 0.3)',
+            background: 'var(--color)',
             height: '100%',
-            width: '2px',
+            width: '1px',
         }}
     />
 }
@@ -52,7 +52,7 @@ const Resizable = (props: PropsWithChildren) => (
             right: <ResizeHandle/>
         }}
         minWidth='300px'
-        defaultSize={{width: '35%', height: '100%'}}
+        defaultSize={{width: '40%', height: '100%'}}
         enable={{
             top: false,
             right: true,
@@ -64,7 +64,7 @@ const Resizable = (props: PropsWithChildren) => (
             topLeft: false
         }}
         style={{
-            display: 'flex', gap: '1em', marginRight: '0.5em', minWidth: '300px'
+            display: 'flex', gap: '1em', minWidth: '300px'
         }}
     >
         {props.children}
@@ -106,9 +106,10 @@ interface ColumnProps extends StackProps {
     listId: string,
     extras?: (v: { field: string}) => ReactElement
     onListItemClick?: (field: string) => void
+    multiColumn?: boolean,
 }
 
-export function Column({title, fields, listId, height, extras, onListItemClick, ...stack}: ColumnProps) {
+export function Column({title, fields, listId, height, extras, onListItemClick, multiColumn, ...stack}: ColumnProps) {
     return (
         <Stack spacing={2} alignItems='center' {...stack}>
             {title && <Title content={title}/>}
@@ -118,6 +119,7 @@ export function Column({title, fields, listId, height, extras, onListItemClick, 
                 fields={fields}
                 extras={extras}
                 onListItemClick={onListItemClick}
+                multiColumn={multiColumn ?? false}
             />
         </Stack>
     );
@@ -315,6 +317,7 @@ const FcBoard = (props: {
                             fields={columns.groupby ?? []}
                             listId='groupby'
                             sx={{height: '20%'}}
+                            multiColumn
                             extras={({field}) => <DeleteButton field={field} from='groupby' />}
                             onAccordionStateChange={(event: SyntheticEvent, isExpanded: boolean) => {
                                 setGroupByAccordionExpanded(isExpanded)
@@ -325,6 +328,7 @@ const FcBoard = (props: {
                             fields={columns.overwrites ?? []}
                             listId='overwrites'
                             sx={{height: '20%'}}
+                            multiColumn
                             extras={({field}) => <DeleteButton field={field} from='overwrites' />}
                         />
                         <AccordionColumn

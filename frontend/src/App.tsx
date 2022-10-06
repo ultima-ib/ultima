@@ -14,6 +14,8 @@ const darkTheme = createTheme({
 function App() {
     return (
         <ThemeProvider theme={darkTheme}>
+            <style dangerouslySetInnerHTML={{ __html: "html { --color: rgba(255, 255, 255, 0.5); }"}}>
+            </style>
             <CssBaseline>
                 <Aside />
             </CssBaseline>

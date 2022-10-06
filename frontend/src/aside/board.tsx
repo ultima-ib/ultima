@@ -130,10 +130,18 @@ const Accordion = ({
                        ...rest
                    }: AccordionProps & { title: string, hideExpandButton?: boolean }) => (
     <MuiAccordion {...rest}>
-        <AccordionSummary expandIcon={!hideExpandButton && <ExpandMoreIcon/>}>
+        <AccordionSummary expandIcon={!hideExpandButton && <ExpandMoreIcon/>} sx={{my: 0}}>
             {title}
         </AccordionSummary>
-        <AccordionDetails sx={{minHeight: '100px'}}>
+        <AccordionDetails sx={{
+            minHeight: '100px',
+            '.MuiAccordionDetails-root': {
+                px: 1,
+            },
+            '.MuiListItemButton-root': {
+                px: 1,
+            }
+        }}>
             {children}
         </AccordionDetails>
     </MuiAccordion>

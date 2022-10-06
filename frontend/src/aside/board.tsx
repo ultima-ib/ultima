@@ -1,6 +1,6 @@
 import {
     ChangeEvent,
-    PropsWithChildren,
+    PropsWithChildren, ReactElement,
     Suspense,
     SyntheticEvent,
     useDeferredValue,
@@ -84,7 +84,7 @@ function TabPanel(props: TabPanelProps) {
             role="tabPanel"
             hidden={value !== index}
             id={`tabPanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
+            aria-labelledby={`tab-${index}`}
             {...other}
         >
             {value === index && children}
@@ -104,7 +104,7 @@ interface ColumnProps extends StackProps {
     title?: string;
     fields: string[];
     listId: string,
-    extras?: any
+    extras?: (v: { field: string}) => ReactElement
     onListItemClick?: (field: string) => void
 }
 
@@ -139,9 +139,9 @@ const Accordion = ({
     </MuiAccordion>
 )
 
-const AccordionColumn = ({title, ...rest}: ColumnProps) => {
+const AccordionColumn = ({title, expanded, onAccordionStateChange: onChange, ...rest}: ColumnProps & { expanded?: boolean, onAccordionStateChange?: (event: SyntheticEvent, expanded: boolean) => void; }) => {
     return (
-        <Accordion title={title ?? ''}>
+        <Accordion expanded={expanded} title={title ?? ''} onChange={onChange}>
             <Column
                 {...rest}
             />
@@ -233,6 +233,9 @@ const FcBoard = (props: {
 
     const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
 
+    const [measuresAccordionExpanded, setMeasuresAccordionExpanded] = useState(false);
+    const [groupByAccordionExpanded, setGroupByAccordionExpanded] = useState(false);
+
     const doSearch = (orElse: string[]) => {
         if (searchValue) {
             const results = orElse.filter(it => it.toLowerCase().includes(searchValue.toLowerCase()))
@@ -249,16 +252,22 @@ const FcBoard = (props: {
         setActiveTab(newValue);
     };
 
-    const addToList = (list: keyof DataSet, what: string) => {
+    const addToList = (list: 'measuresSelected' | 'groupby', what: string, from: keyof Omit<DataSet, 'calcParams'>) => {
         inputs.dispatcher({
             type: InputStateUpdate.DataSet,
             data: {
                 // @ts-expect-error mismatched signature
                 dataSet: {
+                    [from]: columns[from].filter(it => it !== what),
                     [list]: [...columns[list], what]
                 }
             }
         })
+        if (list === 'measuresSelected') {
+            setMeasuresAccordionExpanded(true)
+        } else {
+            setGroupByAccordionExpanded(true)
+        }
     }
     return (
         <DragDropContext onDragEnd={onDragEnd}>
@@ -271,8 +280,7 @@ const FcBoard = (props: {
                         listId='measures'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {
-                            console.log('measures: clicked on', field)
-                            addToList('measuresSelected', field)
+                            addToList('measuresSelected', field, 'measures')
                         }}
                     />
                     <Column
@@ -281,26 +289,28 @@ const FcBoard = (props: {
                         listId='fields'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {
-                            console.log('fields: clicked on', field)
-                            addToList('groupby', field)
+                            addToList('groupby', field, 'fields')
                         }}
                     />
                 </Stack>
                 <Stack sx={{width: '60%', height: '100%'}}>
                     <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
-                        <Tabs value={activeTab} onChange={handleActiveTabChange}
-                              aria-label="basic tabs example">
+                        <Tabs value={activeTab} onChange={handleActiveTabChange}>
                             <Tab label="Aggregate" {...a11yProps(0)} />
                             <Tab label="Params" {...a11yProps(1)} />
                         </Tabs>
                     </Box>
-                    <TabPanel value={activeTab} index={0} sx={{height: '100%'}}>
+                    <TabPanel value={activeTab} index={0} sx={{height: '100%', overflow: 'scroll'}}>
                         <AccordionColumn
+                            expanded={groupByAccordionExpanded}
                             title="Group By"
                             fields={columns.groupby ?? []}
                             listId='groupby'
                             sx={{height: '20%'}}
                             extras={({field}) => <DeleteButton field={field} from='groupby' />}
+                            onAccordionStateChange={(event: SyntheticEvent, isExpanded: boolean) => {
+                                setGroupByAccordionExpanded(isExpanded)
+                            }}
                         />
                         <AccordionColumn
                             title="Overwrites"
@@ -310,11 +320,15 @@ const FcBoard = (props: {
                             extras={({field}) => <DeleteButton field={field} from='overwrites' />}
                         />
                         <AccordionColumn
+                            expanded={measuresAccordionExpanded}
+                            onAccordionStateChange={(event: SyntheticEvent, isExpanded: boolean) => {
+                                setMeasuresAccordionExpanded(isExpanded)
+                            }}
                             title="Measures"
                             fields={columns.measuresSelected ?? []}
                             listId='measuresSelected'
                             sx={{height: '20%'}}
-                            extras={({field}: { field: string }) => (<>
+                            extras={({field}) => (<>
                                 {inputs.canMeasureBeAggregated(field) &&
                                     <Suspense>
                                         <Agg field={field}/>

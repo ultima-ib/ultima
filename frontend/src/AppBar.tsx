@@ -20,7 +20,7 @@ export default function TopBar(props: PropsWithChildren<TopBarProps>) {
     });
 
     return (
-        <Box sx={{width: '100%', height: '100%', overflow: 'scroll'}} ref={scrollTarget}>
+        <Box sx={{width: '100%', height: '100%', overflow: 'auto'}} ref={scrollTarget}>
             <Slide appear={false} direction="down" in={!trigger}>
                 <AppBar position='sticky'>
                     <Toolbar>

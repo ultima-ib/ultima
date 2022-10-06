@@ -308,7 +308,7 @@ const FcBoard = (props: {
                             <Tab label="Params" {...a11yProps(1)} />
                         </Tabs>
                     </Box>
-                    <TabPanel value={activeTab} index={0} sx={{height: '100%', overflow: 'scroll'}}>
+                    <TabPanel value={activeTab} index={0} sx={{height: '100%', overflow: 'auto'}}>
                         <AccordionColumn
                             expanded={groupByAccordionExpanded}
                             title="Group By"
@@ -377,7 +377,7 @@ const FcBoard = (props: {
                                 label="Totals"
                             />
                         </Box>
-                        <Box sx={{overflowY: 'scroll', maxHeight: '80vh'}}>
+                        <Box sx={{overflowY: 'auto', maxHeight: '80vh'}}>
                             {
                                 columns.calcParams.map((it) => (
                                     <TextField

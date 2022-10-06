@@ -204,9 +204,9 @@ export const Filters = () => {
     }, [])
 
     return (
-        <Box sx={{overflowY: 'scroll', overflowX: 'hidden'}}>
+        <Box sx={{overflowY: 'auto', overflowX: 'hidden'}}>
             {/*<Title content='Filters'/>*/}
-            <Stack spacing={1} sx={{overflowY: 'scroll', overflowX: 'hidden'}}>
+            <Stack spacing={1} sx={{overflowY: 'auto', overflowX: 'hidden'}}>
                 {
                     Object.entries(inputs.filters).map(([filterNum, filter]) => (
                         <Fragment key={filterNum}>

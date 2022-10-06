@@ -9,12 +9,9 @@ import useScrollTrigger from '@mui/material/useScrollTrigger';
 import {PropsWithChildren, useRef} from "react";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
-
 interface TopBarProps {
     onRunClick: () => void
 }
-
-export const TOP_BAR_HEIGHT = '64px'
 
 export default function TopBar(props: PropsWithChildren<TopBarProps>) {
     const scrollTarget = useRef()

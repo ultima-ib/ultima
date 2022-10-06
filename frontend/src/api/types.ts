@@ -15,5 +15,5 @@ export interface GenerateTableDataResponse {
         name: string,
         datatype: string,
         values: bigint[]
-    },
+    }[],
 }

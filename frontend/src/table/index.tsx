@@ -1,7 +1,6 @@
 import {GenerateTableDataRequest} from "../api/types";
 import {useTableData} from "../api/hooks";
 import {Box} from "@mui/material";
-import {TOP_BAR_HEIGHT} from "../AppBar";
 
 interface DataTableProps {
     input: GenerateTableDataRequest,

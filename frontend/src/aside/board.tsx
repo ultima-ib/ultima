@@ -5,7 +5,6 @@ import {
     SyntheticEvent,
     useDeferredValue,
     useEffect,
-    useMemo,
     useState
 } from 'react';
 import type {DraggableLocation, DropResult} from '@hello-pangea/dnd';
@@ -35,7 +34,6 @@ import Agg from "./AggTypes";
 import {InputStateUpdate, useInputs} from "./InputStateContext";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {Resizable as ReResizable} from "re-resizable";
-import * as lunr from 'lunr'
 import DeleteIcon from '@mui/icons-material/Close';
 
 const ResizeHandle = () => {
@@ -177,6 +175,7 @@ const DeleteButton = (props: { field: string, from: keyof Omit<DataSet, 'calcPar
         inputs.dispatcher({
             type: InputStateUpdate.DataSet,
             data: {
+                // @ts-expect-error signature mismatch
                 dataSet: {
                     [props.from]: fromList,
                     [returnTo]: toList

@@ -408,16 +408,16 @@ fn csr_nonsec_bcbs_delta() {
     ]);
     let request = r#"
     {"measures": [
-        ["CSR_nonSec_DeltaSens", "sum"],
-["CSR_nonSec_DeltaSens_Weighted", "sum"],
-["CSR_nonSec_DeltaSb", "first"],
-["CSR_nonSec_DeltaKb_Low", "first"],
-["CSR_nonSec_DeltaKb_Medium", "first"],
-["CSR_nonSec_DeltaKb_High", "first"],
-            ["CSR_nonSec_DeltaCharge_Low", "first"],
-["CSR_nonSec_DeltaCharge_Medium", "first"],
-["CSR_nonSec_DeltaCharge_High", "first"],
-["CSR_nonSec_DeltaCharge_MAX", "first"]
+        ["CSR nonSec DeltaSens", "sum"],
+["CSR nonSec DeltaSens Weighted", "sum"],
+["CSR nonSec DeltaSb", "first"],
+["CSR nonSec DeltaKb Low", "first"],
+["CSR nonSec DeltaKb Medium", "first"],
+["CSR nonSec DeltaKb High", "first"],
+            ["CSR nonSec DeltaCharge Low", "first"],
+["CSR nonSec DeltaCharge Medium", "first"],
+["CSR nonSec DeltaCharge High", "first"],
+["CSR nonSec DeltaCharge MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -446,16 +446,16 @@ fn csr_nonsec_crr2_delta() {
     ]);
     let request = r#"
     {"measures": [
-        ["CSR_nonSec_DeltaSens", "sum"],
-["CSR_nonSec_DeltaSens_Weighted", "sum"],
-["CSR_nonSec_DeltaSb", "first"],
-["CSR_nonSec_DeltaKb_Low", "first"],
-["CSR_nonSec_DeltaKb_Medium", "first"],
-["CSR_nonSec_DeltaKb_High", "first"],
-            ["CSR_nonSec_DeltaCharge_Low", "first"],
-["CSR_nonSec_DeltaCharge_Medium", "first"],
-["CSR_nonSec_DeltaCharge_High", "first"],
-["CSR_nonSec_DeltaCharge_MAX", "first"]
+        ["CSR nonSec DeltaSens", "sum"],
+["CSR nonSec DeltaSens Weighted", "sum"],
+["CSR nonSec DeltaSb", "first"],
+["CSR nonSec DeltaKb Low", "first"],
+["CSR nonSec DeltaKb Medium", "first"],
+["CSR nonSec DeltaKb High", "first"],
+            ["CSR nonSec DeltaCharge Low", "first"],
+["CSR nonSec DeltaCharge Medium", "first"],
+["CSR nonSec DeltaCharge High", "first"],
+["CSR nonSec DeltaCharge MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -481,15 +481,15 @@ fn csr_nonsec_bcbs_vega() {
     ]);
     let request = r#"
     {"measures": [ 
-        ["CSR_nonSec_VegaSens", "sum"],
-        ["CSR_nonSec_VegaSens_Weighted", "sum"],
-        ["CSR_nonSec_VegaSb", "first"],
-        ["CSR_nonSec_VegaKb_Low", "first"],
-        ["CSR_nonSec_VegaKb_Medium", "first"],
-        ["CSR_nonSec_VegaKb_High", "first"],
-        ["CSR_nonSec_VegaCharge_Low", "first"],
-        ["CSR_nonSec_VegaCharge_Medium", "first"],
-        ["CSR_nonSec_VegaCharge_High", "first"]
+        ["CSR nonSec VegaSens", "sum"],
+        ["CSR nonSec VegaSens Weighted", "sum"],
+        ["CSR nonSec VegaSb", "first"],
+        ["CSR nonSec VegaKb Low", "first"],
+        ["CSR nonSec VegaKb Medium", "first"],
+        ["CSR nonSec VegaKb High", "first"],
+        ["CSR nonSec VegaCharge Low", "first"],
+        ["CSR nonSec VegaCharge Medium", "first"],
+        ["CSR nonSec VegaCharge High", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "Rates"}]],
@@ -517,15 +517,15 @@ fn csr_nonsec_crr2_vega() {
     ]);
     let request = r#"
     {"measures": [ 
-        ["CSR_nonSec_VegaSens", "sum"],
-        ["CSR_nonSec_VegaSens_Weighted", "sum"],
-        ["CSR_nonSec_VegaSb", "first"],
-        ["CSR_nonSec_VegaKb_Low", "first"],
-        ["CSR_nonSec_VegaKb_Medium", "first"],
-        ["CSR_nonSec_VegaKb_High", "first"],
-        ["CSR_nonSec_VegaCharge_Low", "first"],
-        ["CSR_nonSec_VegaCharge_Medium", "first"],
-        ["CSR_nonSec_VegaCharge_High", "first"]
+        ["CSR nonSec VegaSens", "sum"],
+        ["CSR nonSec VegaSens Weighted", "sum"],
+        ["CSR nonSec VegaSb", "first"],
+        ["CSR nonSec VegaKb Low", "first"],
+        ["CSR nonSec VegaKb Medium", "first"],
+        ["CSR nonSec VegaKb High", "first"],
+        ["CSR nonSec VegaCharge Low", "first"],
+        ["CSR nonSec VegaCharge Medium", "first"],
+        ["CSR nonSec VegaCharge High", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "Rates"}]],

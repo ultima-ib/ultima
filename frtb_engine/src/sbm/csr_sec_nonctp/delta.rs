@@ -281,7 +281,7 @@ fn csrsecnonctp_delta_max(op: &OCP) -> Expr {
 pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaSens".to_string(),
+            name: "CSR Sec nonCTP DeltaSens".to_string(),
             calculator: Box::new(total_csr_sec_nonctp_delta_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -291,7 +291,7 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaSens_Weighted".to_string(),
+            name: "CSR Sec nonCTP DeltaSens Weighted".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -301,9 +301,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaKb_Low".to_string(),
+            name: "CSR Sec nonCTP DeltaKb Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_kb_low),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -311,9 +311,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaKb_Medium".to_string(),
+            name: "CSR Sec nonCTP DeltaKb Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_kb_medium),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -321,9 +321,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaKb_High".to_string(),
+            name: "CSR Sec nonCTP DeltaKb High".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_kb_high),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -331,9 +331,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaSb".to_string(),
+            name: "CSR Sec nonCTP DeltaSb".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_sb),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -341,9 +341,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaCharge_Low".to_string(),
+            name: "CSR Sec nonCTP DeltaCharge Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_charge_low),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -351,9 +351,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaCharge_Medium".to_string(),
+            name: "CSR Sec nonCTP DeltaCharge Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_charge_medium),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -361,9 +361,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaCharge_High".to_string(),
+            name: "CSR Sec nonCTP DeltaCharge High".to_string(),
             calculator: Box::new(csr_sec_nonctp_delta_charge_high),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -371,9 +371,9 @@ pub(crate) fn csrsecnonctp_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_DeltaCharge_MAX".to_string(),
+            name: "CSR Sec nonCTP DeltaCharge MAX".to_string(),
             calculator: Box::new(csrsecnonctp_delta_max),
-            aggregation: None,
+            aggregation: Some("first"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

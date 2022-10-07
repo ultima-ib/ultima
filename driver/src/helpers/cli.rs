@@ -2,7 +2,7 @@ use clap::Parser;
 
 // TODO remove these default values
 const CONFIG: &str = r"frtb_engine/tests/data/datasource_config.toml";
-const REQUESTS: &str = r"./driver/src/request.json";
+pub const REQUESTS: &str = r"./driver/src/request.json";
 
 /// Cli for one_off run
 /// TODO potentially to be depreciated in favour of CliServer
@@ -28,7 +28,6 @@ pub struct CliServer {
     #[arg(short, long, value_name = "PATH_TO_CONFIG_FILE", default_value_t = CONFIG.into())]
     pub config: String,
     /// Sets the request.json
-    /// In future this to be a mandatory field
     #[arg(short, long, value_name = "PATH_TO_TEMPLATES_FILE")]
     pub requests: Option<String>,
 

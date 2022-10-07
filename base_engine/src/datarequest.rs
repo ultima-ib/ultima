@@ -21,6 +21,8 @@ pub enum DataRequestE {
 #[serde(tag = "type")]
 pub struct AggregationRequest {
     // general fields
+    #[serde(default)]
+    name: Option<String>,
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
     measures: Vec<(String, String)>,

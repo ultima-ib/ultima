@@ -545,16 +545,16 @@ fn commodity_delta() {
     ]);
     let request = r#"
     {"measures": [
-        ["Commodity_DeltaSens", "sum"],
-        ["Commodity_DeltaSens_Weighted", "sum"],
-        ["Commodity_DeltaSb", "first"],
-        ["Commodity_DeltaKb_Low", "first"],
-        ["Commodity_DeltaKb_Medium", "first"],
-        ["Commodity_DeltaKb_High", "first"],
-        ["Commodity_DeltaCharge_Low", "first"],
-        ["Commodity_DeltaCharge_Medium", "first"],
-        ["Commodity_DeltaCharge_High", "first"],
-        ["Commodity_DeltaCharge_MAX", "first"]
+        ["Commodity DeltaSens", "sum"],
+        ["Commodity DeltaSens Weighted", "sum"],
+        ["Commodity DeltaSb", "first"],
+        ["Commodity DeltaKb Low", "first"],
+        ["Commodity DeltaKb Medium", "first"],
+        ["Commodity DeltaKb High", "first"],
+        ["Commodity DeltaCharge Low", "first"],
+        ["Commodity DeltaCharge Medium", "first"],
+        ["Commodity DeltaCharge High", "first"],
+        ["Commodity DeltaCharge MAX", "first"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],

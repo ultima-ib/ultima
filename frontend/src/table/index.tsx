@@ -3,6 +3,15 @@ import {useTableData} from "../api/hooks";
 import {Paper, TableContainer, Table, TableHead, TableBody, TableRow, TableCell} from "@mui/material";
 import {fancyZip} from "../utils";
 
+const formatValue = (value: string | null | number) => {
+    if (typeof value === 'string') {
+        return value
+    } else if (value === null) {
+        return ''
+    } else {
+        return value.toFixed(2)
+    }
+}
 interface DataTableProps {
     input: GenerateTableDataRequest,
 }
@@ -27,7 +36,7 @@ const DataTable = (props: DataTableProps) => {
                     <TableBody>
                         {zipped.map((values) => (
                             <TableRow>
-                                {values.map(it => <TableCell>{(it ?? '').toString()}</TableCell>)}
+                                {values.map(it => <TableCell>{formatValue(it)}</TableCell>)}
                             </TableRow>
                         ))}
                     </TableBody>

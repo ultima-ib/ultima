@@ -14,6 +14,6 @@ export interface GenerateTableDataResponse {
     columns: {
         name: string,
         datatype: string,
-        values: (string | bigint)[]
+        values: (string | number | null)[]
     }[],
 }

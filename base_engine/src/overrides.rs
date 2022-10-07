@@ -11,8 +11,7 @@ use crate::filters::{fltr_chain, AndOrFltrChain};
 /// Json looks like this:
 /// {   "column": "SensWeights",
 ///     "value": "[0.005]",
-///     "when": [{"Eq":[["RiskClass", "DRC_NonSec"]]},
-///          {"Eq":[["CreditQuality", "AA"]]}]
+///     "filters": []
 /// }
 /// */
 /// ```

@@ -106,7 +106,7 @@ where
 {
     apply_multiple(
         move |columns| {
-            let df = df![
+            let mut df = df![
                 "rcat"=>  &columns[0],
                 "rc" =>   &columns[1],
                 "rf" =>   &columns[2],
@@ -126,7 +126,7 @@ where
                 "w"   =>  &columns[16],
             ]?;
 
-            let df = df
+            df = df
                 .lazy()
                 .filter(
                     col("rc")
@@ -168,7 +168,8 @@ where
                 variable_name: Some("tenor".to_string()),
                 value_name: Some("weighted_sens".to_string()),
             };
-            let df = df.melt2(ma)?;
+            
+            df = df.melt2(ma)?;
 
             let kbs_sbs = all_kbs_sbs_onsq(
                 df,

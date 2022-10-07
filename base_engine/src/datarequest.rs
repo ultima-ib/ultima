@@ -1,6 +1,6 @@
 use super::measure::OCP;
 use crate::filters::AndOrFltrChain;
-use crate::overrides::Overwrite;
+use crate::overrides::Override;
 
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +30,7 @@ pub struct AggregationRequest {
     #[serde(default)]
     filters: AndOrFltrChain,
     #[serde(default)]
-    overwrites: Vec<Overwrite>,
+    overrides: Vec<Override>,
     #[serde(default)]
     calc_params: OCP,
     /// drop rows where all results are NULL or 0
@@ -58,7 +58,7 @@ impl AggregationRequest {
         &self.calc_params
     }
 
-    pub fn overrides(&self) -> &Vec<Overwrite> {
-        &self.overwrites
+    pub fn overrides(&self) -> &Vec<Override> {
+        &self.overrides
     }
 }

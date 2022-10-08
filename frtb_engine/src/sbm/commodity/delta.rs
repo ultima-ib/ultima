@@ -104,6 +104,27 @@ fn commodity_delta_charge<F>(
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
+
+   let mut columns =  vec![
+            col("RiskCategory"),
+            col("RiskClass"),
+            col("RiskFactor"),
+            col("CommodityLocation"),
+            col("BucketBCBS"),
+            col("SensitivitySpot"),
+            col("Sensitivity_025Y"),
+            col("Sensitivity_05Y"),
+            col("Sensitivity_1Y"),
+            col("Sensitivity_2Y"),
+            col("Sensitivity_3Y"),
+            col("Sensitivity_5Y"),
+            col("Sensitivity_10Y"),
+            col("Sensitivity_15Y"),
+            col("Sensitivity_20Y"),
+            col("Sensitivity_30Y"),
+            col("SensWeights"),
+        ];
+
     apply_multiple(
         move |columns| {
             let mut df = df![
@@ -206,25 +227,7 @@ where
             }
             across_bucket_agg(kbs, sbs, &com_gamma, res_len, SBMChargeType::DeltaVega)
         },
-        &[
-            col("RiskCategory"),
-            col("RiskClass"),
-            col("RiskFactor"),
-            col("CommodityLocation"),
-            col("BucketBCBS"),
-            col("SensitivitySpot"),
-            col("Sensitivity_025Y"),
-            col("Sensitivity_05Y"),
-            col("Sensitivity_1Y"),
-            col("Sensitivity_2Y"),
-            col("Sensitivity_3Y"),
-            col("Sensitivity_5Y"),
-            col("Sensitivity_10Y"),
-            col("Sensitivity_15Y"),
-            col("Sensitivity_20Y"),
-            col("Sensitivity_30Y"),
-            col("SensWeights"),
-        ],
+        columns,
         GetOutput::from_type(DataType::Float64),
     )
 }

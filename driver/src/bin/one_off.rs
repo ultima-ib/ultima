@@ -72,6 +72,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 /*
+cargo run --all-features --release -- -r "./driver/src/carbon_derivatives.json"
 /// Sample request
 const JSON: &str = r#"
 {"type": "Request",

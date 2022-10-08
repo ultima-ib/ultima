@@ -72,7 +72,7 @@ pub(crate) fn get_optional_parameter_array<'a>(
 /// we need to assert arr shape, so we have a separate func for arrs
 pub(crate) fn get_optional_parameter_opt<'a, T>(op: &'a OCP, param: &str) -> Option<T>
 where
-    T: Deserialize<'a>,
+    T: Deserialize<'a>+std::fmt::Debug,
 {
     op.get(param)
         .and_then(|x| serde_json::from_str::<T>(x).ok())

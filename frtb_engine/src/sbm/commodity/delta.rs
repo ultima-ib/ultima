@@ -64,22 +64,22 @@ fn commodity_delta_charge_distributor(
     );
     let commodity_rho_bucket = get_optional_parameter(
         op,
-        format!("com_delta_rho_bucket{_suffix}").as_str(),
+        "com_delta_rho_bucket_base",
         &scenario.base_com_delta_rho_cty,
     );
     let commodity_rho_diff_loc = get_optional_parameter(
         op,
-        format!("com_delta_rho_diff_loc{_suffix}").as_str(),
+        "com_delta_rho_diff_loc_base",
         &scenario.base_com_rho_basis_diff,
     );
     let commodity_rho_diff_tenor = get_optional_parameter(
         op,
-        format!("com_delta_rho_diff_tenor{_suffix}").as_str(),
+        "com_delta_rho_diff_tenor_base",
         &scenario.base_com_rho_tenor,
     );
 
     let rho_overwrite: Option<RhoOverwrite> =
-        get_optional_parameter_opt(op, format!("com_delta_rho_overwrite{_suffix}").as_str());
+        get_optional_parameter_opt(op, "com_delta_rho_overwrite_base");
 
     commodity_delta_charge(
         commodity_rho_bucket,
@@ -171,6 +171,7 @@ where
 
             df = df.melt2(ma)?;
 
+            // If Rho Override was provided, we need to check if such column is present
             let kbs_sbs = all_kbs_sbs_onsq(
                 df,
                 "tenor",

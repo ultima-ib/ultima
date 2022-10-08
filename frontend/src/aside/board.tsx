@@ -1,6 +1,7 @@
 import {
     ChangeEvent,
-    PropsWithChildren, ReactElement,
+    PropsWithChildren,
+    ReactElement,
     Suspense,
     SyntheticEvent,
     useDeferredValue,
@@ -28,7 +29,7 @@ import {
 } from "@mui/material";
 import QuoteList from "./list";
 import Title from "./Title";
-import {Filters} from "./Filters";
+import {Filters} from "./filters";
 import type {DataSet} from "./types";
 import Agg from "./AggTypes";
 import {InputStateUpdate, useInputs} from "./InputStateContext";
@@ -345,7 +346,17 @@ const FcBoard = (props: {
                                 <DeleteButton field={field} from='measuresSelected'/>
                             </>)}
                         />
-                        <Filters/>
+                        <Filters
+                            fields={columns.fields}
+                            onFiltersChange={(filters) => {
+                                inputs.dispatcher({
+                                    type: InputStateUpdate.Filters,
+                                    data: {
+                                        filters
+                                    }
+                                })
+                            }}
+                        />
 
                     </TabPanel>
                     <TabPanel value={activeTab} index={1} sx={{height: '100%'}}>

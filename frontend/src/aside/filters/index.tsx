@@ -1,4 +1,4 @@
-import Title from "./Title";
+import Title from "../Title";
 import {
     Autocomplete,
     Box,
@@ -18,18 +18,16 @@ import {
     Suspense,
     useDeferredValue,
     useEffect,
-    useId,
-    useRef,
+    useId, useReducer,
     useState,
     useTransition
 } from "react";
-import {Filter as FilterType} from "./types";
-import {useFilterColumns} from "../api/hooks";
+import {Filter as FilterType} from "../types";
+import {useFilterColumns} from "../../api/hooks";
 import CloseIcon from '@mui/icons-material/Close';
-import {InputStateUpdate, useInputs} from "./InputStateContext";
-
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import {ActionType, reducer, Filters as FiltersType} from "./reducer";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small"/>;
 const checkedIcon = <CheckBoxIcon fontSize="small"/>;
@@ -131,122 +129,102 @@ const Filter = (props: { onChange: (field: string, op: string, val: string | str
     )
 }
 
+interface FilterListProps {
+    filters: { [p: number]: FilterType }
+    fields: string[]
+    removeFilter: (index: number) => void,
+    addFilter: () => void,
+    onChange: (field: string, op: string, val: string | string[], index: number) => void
+}
 
-function FilterList(props: { filters: { [p: number]: FilterType }, fields: string[], onRemove: () => void, filterNum: number }) {
-    const inputs = useInputs();
-    const [filters, setFilter] = useState<number[]>(Object.keys(props.filters) as unknown as number[])
-    const lastUsed = useRef<number>(filters.length)
-
-    const addNewFilter = () => {
-        lastUsed.current += 1;
-        setFilter((f) => [...f, lastUsed.current])
-    }
-
-    useEffect(() => {
-        if (lastUsed.current === 0) {
-            addNewFilter()
-        }
-    }, [])
-
-
-    const removeFilter = (index: number) => {
-        return () => {
-            setFilter((filters) => filters.filter((i) => i !== index))
-            delete inputs.filters[props.filterNum][index]
-            inputs.dispatcher({
-                type: InputStateUpdate.Filters,
-                data: {
-                    filters: {
-                        ...inputs.filters
-                    }
-                }
-            })
-            props.onRemove()
-        }
-    }
+function FilterList(props: FilterListProps) {
     return <>
-        {filters.map((index) => (
+        {Object.keys(props.filters).map(it => it as unknown as number).map((index) => (
             <ListItem component='div' key={index} dense disableGutters sx={{
                 gap: 0.5,
                 justifyContent: 'center',
-                // height: '100%'
             }}>
-                <IconButton onClick={removeFilter(index)} sx={{p: 0, alignSelf: 'last baseline'}}>
+                <IconButton onClick={() => props.removeFilter(index)} sx={{p: 0, alignSelf: 'last baseline'}}>
                     <CloseIcon/>
                 </IconButton>
-                <Filter onChange={(field, op, val) => {
-                    inputs.dispatcher({
-                        type: InputStateUpdate.Filters,
-                        data: {
-                            filters: {
-                                ...inputs.filters,
-                                [props.filterNum]: {
-                                    ...inputs.filters[props.filterNum],
-                                    [index]: {
-                                        field, op, value: val
-                                    }
-                                }
-                            }
-                        }
-                    })
-                }} fields={props.fields}/>
+                <Filter onChange={(f, o, v) => props.onChange(f, o, v, index)} fields={props.fields}/>
             </ListItem>
         ))}
-        <Button onClick={addNewFilter}>add filter</Button>
+        <Button onClick={props.addFilter}>add filter</Button>
     </>;
 }
 
-export const Filters = () => {
-    const inputs = useInputs();
-    const lastUsed = useRef<number>(Object.keys(inputs.filters).length)
+let lastUsed = 1;
 
+export const Filters = (props: { fields?: string[], onFiltersChange: (f: FiltersType) => void }) => {
+    const [filters, dispatch] = useReducer(reducer, ({
+        [0]: {
+            [1]: {}
+        }
+    }))
+
+    useEffect(() => {
+        props.onFiltersChange(filters)
+    }, [filters])
     const addNewFilter = () => {
-        lastUsed.current += 1;
-        inputs.dispatcher({
-            type: InputStateUpdate.Filters,
-            data: {
-                filters: {
-                    ...inputs.filters,
-                    [lastUsed.current]: {}
-                }
-            }
+        lastUsed += 1;
+        dispatch({
+            type: ActionType.NewAnd,
+            index: lastUsed
         })
     }
 
-    const removeFilter = (filter: number) => {
-        return () => {
-            if (Object.keys(inputs.filters[filter]).length === 0) {
-                const copy = {...inputs.filters}
-                delete copy[filter]
-                inputs.dispatcher({
-                    type: InputStateUpdate.Filters,
-                    data: {
-                        filters: copy
-                    }
-                })
-            }
+    const addNewOrFilter = (index: number) => {
+        lastUsed += 1;
+        dispatch({
+            type: ActionType.NewOr,
+            andIndex: index,
+            index: lastUsed
+        })
+    }
+
+    const removeOrFilter = (andIndex: number) => {
+        return (index: number) => {
+            dispatch({
+                type: ActionType.RemoveOr,
+                andIndex,
+                index,
+            })
+            dispatch({
+                type: ActionType.RemoveAnd,
+                index
+            })
         }
     }
 
-
-    useEffect(() => {
-        if (lastUsed.current === 0) {
-            addNewFilter()
+    const updateFilter = (andIndex: number) => {
+        return (field: string, op: string, value: string | string[], index: number) => {
+            dispatch({
+                type: ActionType.Update,
+                andIndex,
+                index,
+                field,
+                op,
+                value
+            })
         }
-    }, [])
+    }
 
     return (
         <Box sx={{height: '70%'}}>
             <Title content='Filters'/>
             <Stack component={Paper} spacing={1} sx={{overflowX: 'hidden', height: '100%'}}>
                 {
-                    Object.entries(inputs.filters).map(([filterNum, filter]) => (
+                    Object.entries(filters)
+                        .map(([filterNum, filter]): [number, FiltersType[number]] => [filterNum as unknown as number, filter as FiltersType[number]])
+                        .map(([filterNum, filter]) => (
                         <Fragment key={filterNum}>
                             <FilterList
-                                filterNum={filterNum as unknown as number}
                                 filters={filter}
-                                fields={inputs.dataSet.fields}
-                                onRemove={removeFilter(filterNum as unknown as number)}
+                                fields={props.fields ?? []}
+                                removeFilter={removeOrFilter(filterNum)}
+                                addFilter={() => addNewOrFilter(filterNum)}
+                                onChange={updateFilter(filterNum)}
                             />
                             <Divider/>
                         </Fragment>

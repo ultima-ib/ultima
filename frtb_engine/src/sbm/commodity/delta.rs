@@ -124,10 +124,14 @@ where
             col("Sensitivity_30Y"),
             col("SensWeights"),
         ];
+    
+    if let Some(rho_ovrd) = &rho_overwrite{
+        columns.push(col(&rho_ovrd.column))
+    }
 
     apply_multiple(
         move |columns| {
-            let mut df = df![
+            let mut _df = df![
                 "rcat"=>  &columns[0],
                 "rc" =>   &columns[1],
                 "rf" =>   &columns[2],
@@ -146,6 +150,20 @@ where
                 "y30" =>  &columns[15],
                 "w"   =>  &columns[16],
             ]?;
+            //
+            let mut names = vec!["rcat", "rc","rf","loc","b","y0","y025","y05","y1","y2","y3","y5","y10","y15","y20","y30","w"];
+            if let Some(rho_ovrd) = &rho_overwrite{
+                names.push(&rho_ovrd.column)
+            };
+            //let cols = col
+            columns.iter_mut().zip(names.iter()).for_each(|(s, name)|{s.rename(name);});
+            let mut df = DataFrame::new(columns.to_vec())?;
+
+            let mut grp_by = vec![col("b"), col("rf"), col("loc")];
+            if let Some(rho_ovrd) = &rho_overwrite{
+                grp_by.push(col(&rho_ovrd.column))
+            };
+
 
             df = df
                 .lazy()
@@ -154,7 +172,7 @@ where
                         .eq(lit("Commodity"))
                         .and(col("rcat").eq(lit("Delta"))),
                 )
-                .groupby([col("b"), col("rf"), col("loc")])
+                .groupby(grp_by)
                 .agg([
                     (col("y0") * col("w").arr().get(0)).sum(),
                     (col("y025") * col("w").arr().get(1)).sum(),
@@ -171,8 +189,13 @@ where
                 // No need to fill null here
                 .collect()?;
 
+            let mut id_vars = vec!["b".to_string(), "rf".to_string(), "loc".to_string()];
+            if let Some(rho_ovrd) = &rho_overwrite{
+                id_vars.push(rho_ovrd.column.clone())
+            };
+
             let ma = MeltArgs {
-                id_vars: vec!["b".to_string(), "rf".to_string(), "loc".to_string()],
+                id_vars,
                 value_vars: vec![
                     "y0".to_string(),
                     "y025".to_string(),

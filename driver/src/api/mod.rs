@@ -40,7 +40,7 @@ struct Pagination {
 const PER_PAGE: u16 = 100;
 
 // /{column_name}?page=2&per_page=30
-#[get("/{column_name}")]
+#[get("/columns/{column_name}")]
 async fn column_search(
     path: web::Path<String>,
     page: web::Query<Pagination>,
@@ -152,14 +152,20 @@ async fn measures() -> impl Responder {
     web::Json(res)
 }
 
+#[get("/templates")]
+async fn templates(_: HttpRequest, templates: Data<Vec<AggregationRequest>>) -> impl Responder {
+    web::Json(templates)
+}
+
 // TODO Why can't I use ds: impl DataSet ?
-pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>) -> std::io::Result<Server> {
+pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<AggregationRequest>) -> std::io::Result<Server> {
     // Read .env
     dotenv::dotenv().ok();
     // Allow pretty logs
     pretty_env_logger::init();
 
     let ds = Data::new(ds);
+    let _templates = Data::new(_templates);
 
     let server = HttpServer::new(move || {
         App::new()
@@ -169,10 +175,12 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>) -> std::io::Resul
                 web::scope("/FRTB")
                     .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
                     .route("", web::post().to(execute))
-                    .service(column_search),
+                    .service(column_search)
+                    .service(templates),
             )
             .route("/aggtypes", web::get().to(measures))
             .app_data(ds.clone())
+            .app_data(_templates.clone())
     })
     .listen(listener)?
     .run();

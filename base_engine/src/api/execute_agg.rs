@@ -97,6 +97,8 @@ pub fn execute_aggregation(
 
     // Step 2.4 Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
+    // fill nulls with a "null" - needed for better totals views
+    let groups_fill_nulls: Vec<Expr> = groups.clone().into_iter().map(|e|e.fill_null(lit(""))).collect();
 
     // Step 2.5 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
@@ -107,6 +109,7 @@ pub fn execute_aggregation(
         .groupby_stable(&groups)
         .agg(&aggregateions)
         .limit(1_000)
+        .with_columns(&groups_fill_nulls)
         .collect()?;
 
     let ordered_cols = aggregated_df.get_column_names_owned();
@@ -119,6 +122,7 @@ pub fn execute_aggregation(
             // Columns which we are goinf to aggregate this time
             // (groups minus it's last element)
             let grp_by = &groups[0..i];
+            let grp_by_fill_null = &groups_fill_nulls[0..i];
             // Not doing this, since we otherwise loose soring
             //let last_gr_col_name = &req._groupby()[i];
             //with_cols.push(lit("Total").alias(last_gr_col_name));
@@ -129,7 +133,7 @@ pub fn execute_aggregation(
                 .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)
-                //.with_columns(&with_cols)
+                .with_columns(&grp_by_fill_null)
                 .collect()?;
             total_frames.push(_df)
         }
@@ -139,10 +143,13 @@ pub fn execute_aggregation(
         aggregated_df = diag_concat_df(&total_frames)?;
     }
 
+    let groups_totals: Vec<Expr> = groups.clone().into_iter().map(|e|e.fill_null(lit("Total"))).collect();
+
     f1 = aggregated_df
         .lazy()
         .sort_by_exprs(&groups, vec![false; groups.len()], false)
-        .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>());
+        .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>())
+        .with_columns(groups_totals);
 
     // POSTPROCESSING
     // Remove zeros, optional

@@ -127,7 +127,7 @@ fn csrsecnonctp_curv_max(op: &OCP) -> Expr {
 pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR_Sec_nonCTP_CurvatureDelta".to_string(),
+            name: "CSR Sec nonCTP CurvatureDelta".to_string(),
             calculator: Box::new(csr_sec_nonctp_curv_delta),
             aggregation: None,
             precomputefilter: Some(
@@ -137,7 +137,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_CurvatureDelta_Weighted".to_string(),
+            name: "CSR Sec nonCTP CurvatureDelta Weighted".to_string(),
             calculator: Box::new(csr_sec_nonctp_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -147,7 +147,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_PnLup".to_string(),
+            name: "CSR Sec nonCTP PnLup".to_string(),
             calculator: Box::new(csr_sec_nonctp_pnl_up),
             aggregation: None,
             precomputefilter: Some(
@@ -157,7 +157,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_PnLdown".to_string(),
+            name: "CSR Sec nonCTP PnLdown".to_string(),
             calculator: Box::new(csr_sec_nonctp_pnl_down),
             aggregation: None,
             precomputefilter: Some(
@@ -167,7 +167,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_CVRup".to_string(),
+            name: "CSR Sec nonCTP CVRup".to_string(),
             calculator: Box::new(csr_sec_nonctp_cvr_up),
             aggregation: None,
             precomputefilter: Some(
@@ -177,7 +177,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_CVRdown".to_string(),
+            name: "CSR Sec nonCTP CVRdown".to_string(),
             calculator: Box::new(csr_sec_nonctp_cvr_down),
             aggregation: None,
             precomputefilter: Some(
@@ -187,7 +187,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_KbPlus_Medium".to_string(),
+            name: "CSR Sec nonCTP Curvature KbPlus Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -197,7 +197,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_KbMinus_Medium".to_string(),
+            name: "CSR Sec nonCTP Curvature KbMinus Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -207,7 +207,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_Kb_Medium".to_string(),
+            name: "CSR Sec nonCTP Curvature Kb Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -217,7 +217,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_Sb_Medium".to_string(),
+            name: "CSR Sec nonCTP Curvature Sb Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_sb_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -227,7 +227,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_CurvatureCharge_Medium".to_string(),
+            name: "CSR Sec nonCTP CurvatureCharge Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_charge_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -237,7 +237,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_KbPlus_Low".to_string(),
+            name: "CSR Sec nonCTP Curvature KbPlus Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -247,7 +247,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_KbMinus_Low".to_string(),
+            name: "CSR Sec nonCTP Curvature KbMinus Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -257,7 +257,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_Kb_Low".to_string(),
+            name: "CSR Sec nonCTP Curvature Kb Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -267,7 +267,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_Sb_Low".to_string(),
+            name: "CSR Sec nonCTP Curvature Sb Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_sb_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -277,7 +277,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_CurvatureCharge_Low".to_string(),
+            name: "CSR Sec nonCTP CurvatureCharge Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_charge_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -287,7 +287,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_KbPlus_High".to_string(),
+            name: "CSR Sec nonCTP Curvature KbPlus High".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -297,7 +297,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_KbMinus_High".to_string(),
+            name: "CSR Sec nonCTP Curvature KbMinus High".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -307,7 +307,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_Kb_High".to_string(),
+            name: "CSR Sec nonCTP Curvature Kb High".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_kb_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -317,7 +317,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_Curvature_Sb_High".to_string(),
+            name: "CSR Sec nonCTP Curvature Sb High".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_sb_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -327,7 +327,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_CurvatureCharge_High".to_string(),
+            name: "CSR Sec nonCTP CurvatureCharge High".to_string(),
             calculator: Box::new(csr_sec_nonctp_curvature_charge_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -337,7 +337,7 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_CurvatureCharge_MAX".to_string(),
+            name: "CSR Sec nonCTP CurvatureCharge MAX".to_string(),
             calculator: Box::new(csrsecnonctp_curv_max),
             aggregation: Some("first"),
             precomputefilter: Some(

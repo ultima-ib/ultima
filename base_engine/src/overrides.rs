@@ -11,19 +11,18 @@ use crate::filters::{fltr_chain, AndOrFltrChain};
 /// Json looks like this:
 /// {   "column": "SensWeights",
 ///     "value": "[0.005]",
-///     "when": [{"Eq":[["RiskClass", "DRC_NonSec"]]},
-///          {"Eq":[["CreditQuality", "AA"]]}]
+///     "filters": []
 /// }
 /// */
 /// ```
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Overwrite {
-    column: String,
+pub struct Override {
+    field: String,
     value: String,
     filters: AndOrFltrChain,
 }
 
-impl Overwrite {
+impl Override {
     pub fn override_builder(&self, val: Expr) -> Expr {
         // Empty filter means the whole column will get overwritten
         let fltr = fltr_chain(&self.filters);
@@ -31,17 +30,17 @@ impl Overwrite {
         if let Some(f) = fltr {
             when(f)
                 .then(val)
-                .otherwise(col(&self.column))
-                .alias(&self.column)
+                .otherwise(col(&self.field))
+                .alias(&self.field)
         } else {
             // otherwise we simply override the whole column
-            val.alias(&self.column)
+            val.alias(&self.field)
         }
     }
 
     pub fn df_with_overwrite(&self, df: DataFrame) -> PolarsResult<DataFrame> {
-        let dt = df.column(&self.column)?.dtype();
-        let lt = string_to_lit(&self.value, dt, &self.column)?;
+        let dt = df.column(&self.field)?.dtype();
+        let lt = string_to_lit(&self.value, dt, &self.field)?;
         let new_col_as_expr = self.override_builder(lt);
         df.lazy().with_column(new_col_as_expr).collect()
     }

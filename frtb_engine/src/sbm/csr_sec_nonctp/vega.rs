@@ -95,7 +95,7 @@ fn csrsecnonctp_vega_max(op: &OCP) -> Expr {
 pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR_Sec_nonCTP_VegaSens".to_string(),
+            name: "CSR Sec nonCTP VegaSens".to_string(),
             calculator: Box::new(total_csr_sec_nonctp_vega_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -105,7 +105,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaSens_Weighted".to_string(),
+            name: "CSR Sec nonCTP VegaSens Weighted".to_string(),
             calculator: Box::new(total_csr_sec_nonctp_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -115,7 +115,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaSb".to_string(),
+            name: "CSR Sec nonCTP VegaSb".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_sb),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -125,7 +125,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaCharge_Low".to_string(),
+            name: "CSR Sec nonCTP VegaCharge Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_charge_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -135,7 +135,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaKb_Low".to_string(),
+            name: "CSR Sec nonCTP VegaKb Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_kb_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -145,7 +145,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaCharge_Medium".to_string(),
+            name: "CSR Sec nonCTP VegaCharge Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_charge_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -155,7 +155,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaKb_Medium".to_string(),
+            name: "CSR Sec nonCTP VegaKb Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_kb_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -165,7 +165,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaCharge_High".to_string(),
+            name: "CSR Sec nonCTP VegaCharge High".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_charge_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -175,7 +175,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaKb_High".to_string(),
+            name: "CSR Sec nonCTP VegaKb High".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_kb_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -185,7 +185,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_VegaCharge_MAX".to_string(),
+            name: "CSR Sec nonCTP VegaCharge MAX".to_string(),
             calculator: Box::new(csrsecnonctp_vega_max),
             aggregation: Some("first"),
             precomputefilter: Some(

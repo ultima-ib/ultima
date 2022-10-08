@@ -7,13 +7,21 @@ use crate::helpers::first_appearance;
 use ndarray::Array1;
 use polars::{prelude::{apply_multiple, Expr, GetOutput, DataType, NamedFrom, UniqueKeepStrategy,
     IntoLazy, lit, ChunkSet, IntoSeries, when, NULL, Literal, ChunkFillNullValue}, 
-    df, series::Series};
+    df, series::Series, error::PolarsError};
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
 use base_engine::Measure;
 
+pub(crate) fn exotic_notional (_: &OCP) -> Expr {
+    rrao_weighted_notional(None, "EXOTIC_RRAO")
+}
 
-pub(crate) fn exotic_notional (op: &OCP) -> Expr {
+pub(crate) fn other_notional (_: &OCP) -> Expr {    
+    rrao_weighted_notional(None, "OTHER_RRAO")
+}
+
+
+pub(crate) fn exotic_charge (op: &OCP) -> Expr {
 
     let exotic_weight = get_optional_parameter(
         op,
@@ -21,10 +29,10 @@ pub(crate) fn exotic_notional (op: &OCP) -> Expr {
         &MEDIUM_CORR_SCENARIO.exotic,
     );
     
-    rrao_notional(exotic_weight, "EXOTIC_RRAO")
+    rrao_weighted_notional(Some(exotic_weight), "EXOTIC_RRAO")
 }
 
-pub(crate) fn other_notional (op: &OCP) -> Expr {
+pub(crate) fn other_charge (op: &OCP) -> Expr {
 
     let other_weight = get_optional_parameter(
         op,
@@ -32,10 +40,10 @@ pub(crate) fn other_notional (op: &OCP) -> Expr {
         &MEDIUM_CORR_SCENARIO.other,
     );
     
-    rrao_notional(other_weight, "OTHER_RRAO")
+    rrao_weighted_notional(Some(other_weight), "OTHER_RRAO")
 }
 
-pub(crate) fn rrao_notional (weight: f64, rrao_type: &'static str) -> Expr {
+pub(crate) fn rrao_weighted_notional (weight: Option<f64>, rrao_type: &'static str) -> Expr {
 
     apply_multiple(
         move |columns| {
@@ -44,7 +52,11 @@ pub(crate) fn rrao_notional (weight: f64, rrao_type: &'static str) -> Expr {
 
             let notional = columns[2].cast(&DataType::Float64)?.f64()?.set(&( !first_appearance_mask | !rrao_type_mask ), None)?;
 
-            let res = notional*weight;
+            let res = if let Some(weight) = weight{
+                    notional*weight
+                } else {
+                    notional
+                };
 
             Ok(res.into_series())
         },
@@ -99,7 +111,7 @@ pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
                 "res",
                 Array1::<f64>::from_elem(res_len, res)
                     .as_slice()
-                    .unwrap(),
+                    .ok_or_else(|| PolarsError::ComputeError("Couldn't convert result into slice".into()))?,
             ));
     },
     &[col("TradeId"), col("EXOTIC_RRAO"), col("OTHER_RRAO"), col("Notional")],
@@ -109,7 +121,6 @@ pub(crate) fn rrao_charge (exotic_weight: f64, other_weight: f64) -> Expr {
 /// Exporting Measures
 pub(crate) fn rrao_measures() -> Vec<Measure> {
     vec![
-        
         Measure {
             name: "Exotic_RRAO_Notional".to_string(),
             calculator: Box::new(exotic_notional),
@@ -128,7 +139,24 @@ pub(crate) fn rrao_measures() -> Vec<Measure> {
                 .or(col("OTHER_RRAO"))
             ),
         },
-        
+        Measure {
+            name: "Exotic_RRAO_Charge".to_string(),
+            calculator: Box::new(exotic_charge),
+            aggregation: None,
+            precomputefilter: Some(
+                col("EXOTIC_RRAO")
+                .or(col("OTHER_RRAO"))
+            ),
+        },
+        Measure {
+            name: "Other_RRAO_Charge".to_string(),
+            calculator: Box::new(other_charge),
+            aggregation: None,
+            precomputefilter: Some(
+                col("EXOTIC_RRAO")
+                .or(col("OTHER_RRAO"))
+            ),
+        },
         Measure {
             name: "RRAO_Charge".to_string(),
             calculator: Box::new(rrao),

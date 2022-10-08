@@ -115,7 +115,7 @@ fn com_curv_max(op: &OCP) -> Expr {
 pub(crate) fn com_curv_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "Commodity_CurvatureDelta".to_string(),
+            name: "Commodity CurvatureDelta".to_string(),
             calculator: Box::new(com_curv_delta),
             aggregation: None,
             precomputefilter: Some(
@@ -125,7 +125,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_CurvatureDelta_Weighted".to_string(),
+            name: "Commodity CurvatureDelta Weighted".to_string(),
             calculator: Box::new(com_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -135,7 +135,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_PnLup".to_string(),
+            name: "Commodity PnLup".to_string(),
             calculator: Box::new(com_pnl_up),
             aggregation: None,
             precomputefilter: Some(
@@ -145,7 +145,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_PnLdown".to_string(),
+            name: "Commodity PnLdown".to_string(),
             calculator: Box::new(com_pnl_down),
             aggregation: None,
             precomputefilter: Some(
@@ -155,7 +155,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_CVRup".to_string(),
+            name: "Commodity CVRup".to_string(),
             calculator: Box::new(com_cvr_up),
             aggregation: None,
             precomputefilter: Some(
@@ -165,7 +165,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_CVRdown".to_string(),
+            name: "Commodity CVRdown".to_string(),
             calculator: Box::new(com_cvr_down),
             aggregation: None,
             precomputefilter: Some(
@@ -175,7 +175,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_KbPlus_Medium".to_string(),
+            name: "Commodity Curvature KbPlus Medium".to_string(),
             calculator: Box::new(com_curvature_kb_plus_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -185,7 +185,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_KbMinus_Medium".to_string(),
+            name: "Commodity Curvature KbMinus Medium".to_string(),
             calculator: Box::new(com_curvature_kb_minus_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -195,7 +195,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_Kb_Medium".to_string(),
+            name: "Commodity Curvature Kb Medium".to_string(),
             calculator: Box::new(com_curvature_kb_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -205,7 +205,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_Sb_Medium".to_string(),
+            name: "Commodity Curvature Sb Medium".to_string(),
             calculator: Box::new(com_curvature_sb_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -215,7 +215,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_CurvatureCharge_Medium".to_string(),
+            name: "Commodity CurvatureCharge Medium".to_string(),
             calculator: Box::new(com_curvature_charge_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -225,7 +225,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_KbPlus_Low".to_string(),
+            name: "Commodity Curvature KbPlus Low".to_string(),
             calculator: Box::new(com_curvature_kb_plus_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -235,7 +235,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_KbMinus_Low".to_string(),
+            name: "Commodity Curvature KbMinus Low".to_string(),
             calculator: Box::new(com_curvature_kb_minus_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -245,7 +245,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_Kb_Low".to_string(),
+            name: "Commodity Curvature Kb Low".to_string(),
             calculator: Box::new(com_curvature_kb_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -255,7 +255,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_Sb_Low".to_string(),
+            name: "Commodity Curvature Sb Low".to_string(),
             calculator: Box::new(com_curvature_sb_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -265,7 +265,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_CurvatureCharge_Low".to_string(),
+            name: "Commodity CurvatureCharge Low".to_string(),
             calculator: Box::new(com_curvature_charge_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -275,7 +275,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_KbPlus_High".to_string(),
+            name: "Commodity Curvature KbPlus High".to_string(),
             calculator: Box::new(com_curvature_kb_plus_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -285,7 +285,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_KbMinus_High".to_string(),
+            name: "Commodity Curvature KbMinus High".to_string(),
             calculator: Box::new(com_curvature_kb_minus_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -295,7 +295,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_Kb_High".to_string(),
+            name: "Commodity Curvature Kb High".to_string(),
             calculator: Box::new(com_curvature_kb_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -305,7 +305,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_Curvature_Sb_High".to_string(),
+            name: "Commodity Curvature Sb High".to_string(),
             calculator: Box::new(com_curvature_sb_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -315,7 +315,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_CurvatureCharge_High".to_string(),
+            name: "Commodity CurvatureCharge High".to_string(),
             calculator: Box::new(com_curvature_charge_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -325,7 +325,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_CurvatureCharge_MAX".to_string(),
+            name: "Commodity CurvatureCharge MAX".to_string(),
             calculator: Box::new(com_curv_max),
             aggregation: Some("first"),
             precomputefilter: Some(

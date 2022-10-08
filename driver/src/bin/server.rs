@@ -5,7 +5,7 @@ use std::{net::TcpListener, sync::Arc};
 use base_engine::AggregationRequest;
 use clap::Parser;
 use driver::api::run_server;
-use driver::helpers::{acquire, cli::CliServer};
+use driver::helpers::{acquire, cli::CliServer, cli::REQUESTS};
 //use log::info;
 
 #[cfg(target_os = "linux")]
@@ -34,8 +34,16 @@ async fn main() -> std::io::Result<()> {
     let setup_path = cli.config;
     let requests_path = cli.requests;
 
-    let _requests: Vec<AggregationRequest> = if cli.host && requests_path.is_none() {
-        vec![]
+    let _requests: Vec<AggregationRequest> = if cli.host {
+        // TODO remove this part. When going live, for cli host 
+        // ie this block will be replaced to return vec![] if requests_path is None.
+        let json = fs::read_to_string(
+            requests_path
+            .unwrap_or(REQUESTS.into())
+            .as_str(),
+        )
+        .expect("Couldn't read requests path");
+        serde_json::from_str(&json).expect("Couldn't parse requests file")
     } else {
         let json = fs::read_to_string(
             requests_path
@@ -43,14 +51,8 @@ async fn main() -> std::io::Result<()> {
                 .as_str(),
         )
         .expect("Couldn't read requests path");
-        serde_json::from_str(&json).unwrap()
+        serde_json::from_str(&json).expect("Couldn't parse requests file")
     };
-
-    //let json =
-    //    fs::read_to_string(requests_path.as_str()).ok();
-    //
-    //// Later this will be RequestE (to match other requests as well)
-    //let requests: Vec<AggregationRequest> = serde_json::from_str(&json).unwrap();
 
     let addr: SocketAddr = cli
         .address // command line arg first
@@ -63,5 +65,5 @@ async fn main() -> std::io::Result<()> {
 
     let listener = TcpListener::bind(addr).expect("Failed to bind random port");
 
-    run_server(listener, Arc::new(data))?.await
+    run_server(listener, Arc::new(data), _requests)?.await
 }

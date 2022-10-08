@@ -227,22 +227,32 @@ where
 
         // CALCULATE Kb Sb for a bucket
         if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
-            let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1 - 1];
+            let name_rho = bucket_rho_diff_rf
+                .get(b_as_idx_plus_1 - 1)
+                .ok_or_else(||
+                    PolarsError::ComputeError(format!("Bucket {} is outside of range of bucket rho, which is of len {}",b_as_idx_plus_1,bucket_rho_diff_rf.len() )
+                    .into()));
+//
+            //};
             // CALCULATE Kb Sb for a bucket
             let is_special_bucket = Some(b_as_idx_plus_1) == special_bucket;
-            let a = bucket_kb_sb_onsq(
-                bucket_df,
-                tenor_col,
-                rho_diff_tenor,
-                name_col,
-                name_rho,
-                basis_col,
-                rho_diff_rft,
-                risk_col,
-                scenario_fn,
-                is_special_bucket,
-                rho_overwrite,
-            );
+            let a = match  name_rho {
+                Ok(name_rho) =>
+                    bucket_kb_sb_onsq(
+                    bucket_df,
+                    tenor_col,
+                    rho_diff_tenor,
+                    name_col,
+                    *name_rho,
+                    basis_col,
+                    rho_diff_rft,
+                    risk_col,
+                    scenario_fn,
+                    is_special_bucket,
+                    rho_overwrite,
+                    ),
+                Err(e) => Err(e)};
+
             let mut res = arc_mtx.lock().unwrap();
             res[b_as_idx_plus_1 - 1] = a;
         }

@@ -29,23 +29,34 @@ pub(crate) fn csrnonsec_total_high(op: &OCP) -> Expr {
     ])
 }
 
+/// Not a real measure. Used for analysis only
+fn csrnonsec_total_max(op: &OCP) -> Expr {
+    max_exprs(&[csrnonsec_total_low(op), csrnonsec_total_medium(op), csrnonsec_total_high(op)])
+}
+
 pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR_nonSec_TotalCharge_Low".to_string(),
+            name: "CSR nonSec TotalCharge Low".to_string(),
             calculator: Box::new(csrnonsec_total_low),
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
         },
         Measure {
-            name: "CSR_nonSec_TotalCharge_Medium".to_string(),
+            name: "CSR nonSec TotalCharge Medium".to_string(),
             calculator: Box::new(csrnonsec_total_medium),
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
         },
         Measure {
-            name: "CSR_nonSec_TotalCharge_High".to_string(),
+            name: "CSR nonSec TotalCharge High".to_string(),
             calculator: Box::new(csrnonsec_total_high),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
+        },
+        Measure {
+            name: "CSR nonSec TotalCharge MAX".to_string(),
+            calculator: Box::new(csrnonsec_total_max),
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
         },

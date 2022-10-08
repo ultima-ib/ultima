@@ -29,25 +29,36 @@ pub(crate) fn csrsecnonctp_total_high(op: &OCP) -> Expr {
     ])
 }
 
+fn csrsecnonctp_total_max(op: &OCP) -> Expr {
+    max_exprs(&[csrsecnonctp_total_low(op), csrsecnonctp_total_medium(op), csrsecnonctp_total_high(op)])
+}
+
 pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR_Sec_nonCTP_TotalCharge_Low".to_string(),
+            name: "CSR Sec nonCTP TotalCharge Low".to_string(),
             calculator: Box::new(csrsecnonctp_total_low),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_TotalCharge_Medium".to_string(),
+            name: "CSR Sec nonCTP TotalCharge Medium".to_string(),
             calculator: Box::new(csrsecnonctp_total_medium),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         },
         Measure {
-            name: "CSR_Sec_nonCTP_TotalCharge_High".to_string(),
+            name: "CSR Sec nonCTP TotalCharge High".to_string(),
             calculator: Box::new(csrsecnonctp_total_high),
             aggregation: Some("first"),
-            precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
+        },
+
+        Measure {
+            name: "CSR Sec nonCTP TotalCharge MAX".to_string(),
+            calculator: Box::new(csrsecnonctp_total_max),
+            aggregation: Some("first"),
+            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         },
     ]
 }

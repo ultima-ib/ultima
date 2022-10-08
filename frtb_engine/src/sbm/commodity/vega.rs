@@ -97,7 +97,7 @@ fn com_vega_max(op: &OCP) -> Expr {
 pub(crate) fn com_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "Commodity_VegaSens".to_string(),
+            name: "Commodity VegaSens".to_string(),
             calculator: Box::new(total_com_vega_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -107,7 +107,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaSens_Weighted".to_string(),
+            name: "Commodity VegaSens Weighted".to_string(),
             calculator: Box::new(total_com_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -117,7 +117,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaSb".to_string(),
+            name: "Commodity VegaSb".to_string(),
             calculator: Box::new(com_vega_sb),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -127,7 +127,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaKb_Low".to_string(),
+            name: "Commodity VegaKb Low".to_string(),
             calculator: Box::new(com_vega_kb_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -137,7 +137,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaCharge_Low".to_string(),
+            name: "Commodity VegaCharge Low".to_string(),
             calculator: Box::new(com_vega_charge_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -147,7 +147,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaKb_Medium".to_string(),
+            name: "Commodity VegaKb Medium".to_string(),
             calculator: Box::new(com_vega_kb_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -157,7 +157,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaCharge_Medium".to_string(),
+            name: "Commodity VegaCharge Medium".to_string(),
             calculator: Box::new(com_vega_charge_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -167,7 +167,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaKb_High".to_string(),
+            name: "Commodity VegaKb High".to_string(),
             calculator: Box::new(com_vega_kb_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -177,7 +177,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaCharge_High".to_string(),
+            name: "Commodity VegaCharge High".to_string(),
             calculator: Box::new(com_vega_charge_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -187,7 +187,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_VegaCharge_MAX".to_string(),
+            name: "Commodity VegaCharge MAX".to_string(),
             calculator: Box::new(com_vega_max),
             aggregation: Some("first"),
             precomputefilter: Some(

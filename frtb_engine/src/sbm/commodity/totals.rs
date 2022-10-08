@@ -36,25 +36,25 @@ fn com_total_max(op: &OCP) -> Expr {
 pub(crate) fn com_total_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "Commodity_TotalCharge_Low".to_string(),
+            name: "Commodity TotalCharge Low".to_string(),
             calculator: Box::new(com_total_low),
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),
         },
         Measure {
-            name: "Commodity_TotalCharge_Medium".to_string(),
+            name: "Commodity TotalCharge Medium".to_string(),
             calculator: Box::new(com_total_medium),
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),
         },
         Measure {
-            name: "Commodity_TotalCharge_High".to_string(),
+            name: "Commodity TotalCharge High".to_string(),
             calculator: Box::new(com_total_high),
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),
         },
         Measure {
-            name: "Commodity_TotalCharge_MAX".to_string(),
+            name: "Commodity TotalCharge MAX".to_string(),
             calculator: Box::new(com_total_max),
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),

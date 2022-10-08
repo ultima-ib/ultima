@@ -111,15 +111,15 @@ fn drc_nonsec_crr2() {
 /// This is just testing overwrite functionality
 /// Drc BCBS with this overwrite is equal to Drc CRR2
 #[test]
-fn overwrites() {
+fn overrides() {
     let expected_res = arr1(&[3814.762221]);
 
     let request = r#"
-    {"filters": [],
+    {   "filters": [],
 
         "groupby": ["RiskClass", "Desk"],
         
-        "overwrites": [{   "column": "SensWeights",
+        "overrides": [{   "field": "SensWeights",
                           "value": "[0.005]",
                           "filters": [
                                     [{"op":"Eq", "field":"RiskClass", "value":"DRC_NonSec"}],

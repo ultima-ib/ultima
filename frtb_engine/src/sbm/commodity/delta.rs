@@ -106,7 +106,7 @@ where
 {
     apply_multiple(
         move |columns| {
-            let df = df![
+            let mut df = df![
                 "rcat"=>  &columns[0],
                 "rc" =>   &columns[1],
                 "rf" =>   &columns[2],
@@ -126,7 +126,7 @@ where
                 "w"   =>  &columns[16],
             ]?;
 
-            let df = df
+            df = df
                 .lazy()
                 .filter(
                     col("rc")
@@ -168,7 +168,8 @@ where
                 variable_name: Some("tenor".to_string()),
                 value_name: Some("weighted_sens".to_string()),
             };
-            let df = df.melt2(ma)?;
+
+            df = df.melt2(ma)?;
 
             let kbs_sbs = all_kbs_sbs_onsq(
                 df,
@@ -244,7 +245,7 @@ fn com_delta_max(op: &OCP) -> Expr {
 pub(crate) fn com_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "Commodity_DeltaSens".to_string(),
+            name: "Commodity DeltaSens".to_string(),
             calculator: Box::new(total_commodity_delta_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -254,7 +255,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaSens_Weighted".to_string(),
+            name: "Commodity DeltaSens Weighted".to_string(),
             calculator: Box::new(commodity_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -264,7 +265,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaSb".to_string(),
+            name: "Commodity DeltaSb".to_string(),
             calculator: Box::new(commodity_delta_sb),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -274,7 +275,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaKb_Low".to_string(),
+            name: "Commodity DeltaKb Low".to_string(),
             calculator: Box::new(commodity_delta_kb_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -284,7 +285,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaKb_Medium".to_string(),
+            name: "Commodity DeltaKb Medium".to_string(),
             calculator: Box::new(commodity_delta_kb_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -294,7 +295,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaKb_High".to_string(),
+            name: "Commodity DeltaKb High".to_string(),
             calculator: Box::new(commodity_delta_kb_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -304,7 +305,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaCharge_Low".to_string(),
+            name: "Commodity DeltaCharge Low".to_string(),
             calculator: Box::new(commodity_delta_charge_low),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -314,7 +315,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaCharge_Medium".to_string(),
+            name: "Commodity DeltaCharge Medium".to_string(),
             calculator: Box::new(commodity_delta_charge_medium),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -324,7 +325,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaCharge_High".to_string(),
+            name: "Commodity DeltaCharge High".to_string(),
             calculator: Box::new(commodity_delta_charge_high),
             aggregation: Some("first"),
             precomputefilter: Some(
@@ -334,7 +335,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "Commodity_DeltaCharge_MAX".to_string(),
+            name: "Commodity DeltaCharge MAX".to_string(),
             calculator: Box::new(com_delta_max),
             aggregation: Some("first"),
             precomputefilter: Some(

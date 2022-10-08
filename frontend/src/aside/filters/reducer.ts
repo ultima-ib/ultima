@@ -39,12 +39,12 @@ export function reducer(prevState: Filters, action: AndFilter | OrFilter | Updat
         }
         case ActionType.RemoveAnd:
             const data = action as AndFilter;
-            if (Object.keys(prevState[data.index]).length === 0) {
+            if (Object.keys(prevState?.[data.index])?.length === 0) {
                 const copy = {...prevState}
                 delete copy[data.index]
                 return copy
             }
-            break;
+            return prevState
         case ActionType.NewOr: {
             const data = action as OrFilter;
             return {

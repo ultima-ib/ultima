@@ -20,7 +20,7 @@ export interface CalcParam {
 }
 
 export interface Override {
-  field: string,
-  value: string,
+  field?: string,
+  value?: string,
   filters: Filter[][],
 }

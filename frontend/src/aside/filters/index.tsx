@@ -12,7 +12,7 @@ import {
     TextField
 } from "@mui/material";
 import {
-    Dispatch,
+    Dispatch, ElementType,
     Fragment,
     SetStateAction,
     Suspense,
@@ -156,7 +156,7 @@ function FilterList(props: FilterListProps) {
 
 let lastUsed = 1;
 
-export const Filters = (props: { fields?: string[], onFiltersChange: (f: FiltersType) => void }) => {
+export const Filters = (props: { fields?: string[], onFiltersChange: (f: FiltersType) => void, component?: ElementType }) => {
     const [filters, dispatch] = useReducer(reducer, ({
         [0]: {
             [1]: {}
@@ -192,7 +192,7 @@ export const Filters = (props: { fields?: string[], onFiltersChange: (f: Filters
             })
             dispatch({
                 type: ActionType.RemoveAnd,
-                index
+                index: andIndex
             })
         }
     }
@@ -210,10 +210,11 @@ export const Filters = (props: { fields?: string[], onFiltersChange: (f: Filters
         }
     }
 
+    const Component = props.component ?? Paper
     return (
-        <Box sx={{height: '70%'}}>
-            <Title content='Filters'/>
-            <Stack component={Paper} spacing={1} sx={{overflowX: 'hidden', height: '100%'}}>
+        <>
+            <Title content='Filters' component={Component} />
+            <Stack component={Component} spacing={1} sx={{overflowX: 'hidden', height: '100%'}}>
                 {
                     Object.entries(filters)
                         .map(([filterNum, filter]): [number, FiltersType[number]] => [filterNum as unknown as number, filter as FiltersType[number]])
@@ -232,6 +233,6 @@ export const Filters = (props: { fields?: string[], onFiltersChange: (f: Filters
                 }
                 <Button onClick={addNewFilter}>add and filter</Button>
             </Stack>
-        </Box>
+        </>
     )
 }

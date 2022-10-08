@@ -36,6 +36,7 @@ import {InputStateUpdate, useInputs} from "./InputStateContext";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {Resizable as ReResizable} from "re-resizable";
 import DeleteIcon from '@mui/icons-material/Close';
+import {Overrides} from "./Overrides";
 
 const ResizeHandle = () => {
     return <div
@@ -320,14 +321,7 @@ const FcBoard = (props: {
                                 setGroupByAccordionExpanded(isExpanded)
                             }}
                         />
-                        <AccordionColumn
-                            title="Overwrites"
-                            fields={columns.overwrites ?? []}
-                            listId='overwrites'
-                            sx={{height: '20%'}}
-                            multiColumn
-                            extras={({field}) => <DeleteButton field={field} from='overwrites' />}
-                        />
+                        <Overrides />
                         <AccordionColumn
                             expanded={measuresAccordionExpanded}
                             onAccordionStateChange={(event: SyntheticEvent, isExpanded: boolean) => {
@@ -346,18 +340,19 @@ const FcBoard = (props: {
                                 <DeleteButton field={field} from='measuresSelected'/>
                             </>)}
                         />
-                        <Filters
-                            fields={columns.fields}
-                            onFiltersChange={(filters) => {
-                                inputs.dispatcher({
-                                    type: InputStateUpdate.Filters,
-                                    data: {
-                                        filters
-                                    }
-                                })
-                            }}
-                        />
-
+                        <Box sx={{height: '70%'}}>
+                            <Filters
+                                fields={columns.fields}
+                                onFiltersChange={(filters) => {
+                                    inputs.dispatcher({
+                                        type: InputStateUpdate.Filters,
+                                        data: {
+                                            filters
+                                        }
+                                    })
+                                }}
+                            />
+                        </Box>
                     </TabPanel>
                     <TabPanel value={activeTab} index={1} sx={{height: '100%'}}>
                         <Box>

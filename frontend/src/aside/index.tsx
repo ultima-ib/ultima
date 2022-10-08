@@ -1,6 +1,6 @@
 import Aside from './board';
 import {useReducer, useRef, useState, Suspense} from "react";
-import {Filter} from "./types";
+import {Filter, Override} from "./types";
 import {useFRTB} from "../api/hooks";
 import {InputStateContextProvider, inputStateReducer} from "./InputStateContext";
 import {Box} from "@mui/material";
@@ -26,6 +26,7 @@ export const Initial = () => {
             const m = frtb.measures.find(it => it.measure === measure)
             return m !== undefined && m.agg === null
         },
+        overrides: {},
         filters: {},
         aggData: {},
         hideZeros: false,
@@ -45,11 +46,12 @@ export const Initial = () => {
             const agg: string = context.aggData[m.measure as any];
             return [m.measure, agg ?? m.agg]
         })
+        const mapFilters = (f: object) => Object.values(f).map((it: any) => Object.values(it) as Filter[])
         const obj = {
-            filters: Object.values(context.filters).map((it: any) => Object.values(it) as Filter[]),
+            filters: mapFilters(context.filters),
             groupby: data.groupby,
             measures,
-            overrides: data.overwrites,
+            overrides: Object.values(context.overrides) as Override[],
             hide_zeros: context.hideZeros,
             totals: context.totals,
             calc_params: calcParams.current

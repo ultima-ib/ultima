@@ -1,5 +1,5 @@
 import {createContext, useContext} from "react";
-import {CalcParam, DataSet, Filter as FilterType} from "./types";
+import {CalcParam, DataSet, Filter as FilterType, Override} from "./types";
 
 export enum InputStateUpdate {
     DataSet,
@@ -8,6 +8,7 @@ export enum InputStateUpdate {
     Total,
     AggData,
     CalcParams,
+    Overrides,
 }
 
 type Data = Partial<Omit<InputStateContext, 'dispatcher'>>
@@ -47,6 +48,14 @@ export function inputStateReducer(state: InputStateContext, action: { type: Inpu
                 }
             }
             break;
+        case InputStateUpdate.Overrides: {
+            update = {
+                overrides: {
+                    ...state.overrides,
+                    ...action.data.overrides,
+                }
+            }
+        }
     }
     return {
         ...state,
@@ -76,6 +85,7 @@ export interface InputStateContext {
      * }
      */
     aggData: { [p: string]: string }
+    overrides: { [i: number]: Override }
     hideZeros: boolean
     totals: boolean
     dispatcher: (params: { type: InputStateUpdate, data: Data }) => void

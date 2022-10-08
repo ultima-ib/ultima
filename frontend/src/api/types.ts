@@ -1,11 +1,11 @@
-import {Filter} from '../aside/types';
+import {Filter, Override} from '../aside/types';
 
 export interface GenerateTableDataRequest {
     measures: { [p: string]: string };
     calc_params: { [p: string]: string };
     filters: Filter[][];
     groupby: string[];
-    overrides: string[];
+    overrides: Override[];
     hide_zeros: boolean;
     totals: boolean;
 }

@@ -1,40 +1,52 @@
-import {FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from "@mui/material";
-import {useTemplates} from "../api/hooks";
-import {useId, useState} from "react";
-import {Template} from "../api/types";
-import {InputStateUpdate, useInputs} from "./InputStateContext";
+import {
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    SelectChangeEvent,
+} from "@mui/material"
+import { useTemplates } from "../api/hooks"
+import { useId, useState } from "react"
+import { Template } from "../api/types"
+import { InputStateUpdate, useInputs } from "./InputStateContext"
 
 export const Templates = () => {
     const templates = useTemplates()
-    const inputs = useInputs();
-    const [selectedTemplate, setSelectedTemplate] = useState<Template | undefined>(undefined);
+    const inputs = useInputs()
+    const [selectedTemplate, setSelectedTemplate] = useState<
+        Template | undefined
+    >(undefined)
 
     const handleChange = (event: SelectChangeEvent) => {
-        const name = event.target.value as string
-        const selectedTemplate = templates.find(it => it.name === name)
-        if (selectedTemplate === undefined) { return }
-        setSelectedTemplate(selectedTemplate);
+        const name = event.target.value
+        const foundTemplate = templates.find((it) => it.name === name)
+        if (foundTemplate === undefined) {
+            return
+        }
+        setSelectedTemplate(foundTemplate)
         inputs.dispatcher({
             type: InputStateUpdate.TemplateSelect,
-            data: selectedTemplate
+            data: foundTemplate,
         })
-    };
+    }
 
-    const id = useId();
+    const id = useId()
     const labelId = `${id}-label`
 
     return (
-        <FormControl fullWidth variant='filled'>
+        <FormControl fullWidth variant="filled">
             <InputLabel id={labelId}>Templates</InputLabel>
             <Select
                 labelId={labelId}
                 id={id}
-                value={selectedTemplate?.name ?? ''}
+                value={selectedTemplate?.name ?? ""}
                 label="Templates"
                 onChange={handleChange}
             >
-                {templates.map(template => (
-                    <MenuItem value={template.name} key={template.name}>{template.name}</MenuItem>
+                {templates.map((template) => (
+                    <MenuItem value={template.name} key={template.name}>
+                        {template.name}
+                    </MenuItem>
                 ))}
             </Select>
         </FormControl>

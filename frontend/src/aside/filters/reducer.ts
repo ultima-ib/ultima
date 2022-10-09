@@ -1,13 +1,13 @@
-import {Filter} from "../types";
+import { Filter } from "../types"
 
-export type Filters = { [p: number]: { [p: number]: Filter } }
+export type Filters = Record<number, Record<number, Filter>>
 
 export enum ActionType {
     NewAnd,
     NewOr,
     RemoveAnd,
     RemoveOr,
-    Update
+    Update,
 }
 
 export interface Action {
@@ -19,61 +19,66 @@ export interface AndFilter extends Action {
 }
 
 export interface OrFilter extends Action {
-    andIndex: number,
-    index: number,
+    andIndex: number
+    index: number
 }
 
-
-export interface UpdateFilter extends OrFilter, Filter { }
+export interface UpdateFilter extends OrFilter, Filter {}
 
 const EMPTY_FILTER: Filters = {}
 
-export function reducer(prevState: Filters, action: AndFilter | OrFilter | UpdateFilter): Filters {
+export function reducer(
+    prevState: Filters,
+    action: AndFilter | OrFilter | UpdateFilter,
+): Filters {
     switch (action.type) {
         case ActionType.NewAnd: {
-            const data = action as AndFilter;
+            const data = action as AndFilter
             return {
                 ...prevState,
                 [data.index]: EMPTY_FILTER,
             }
         }
-        case ActionType.RemoveAnd:
-            const data = action as AndFilter;
-            if (Object.keys(prevState?.[data.index])?.length === 0) {
-                const copy = {...prevState}
+        case ActionType.RemoveAnd: {
+            const data = action as AndFilter
+            if (Object.keys(prevState[data.index]).length === 0) {
+                const copy = { ...prevState }
+                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                 delete copy[data.index]
                 return copy
             }
             return prevState
+        }
         case ActionType.NewOr: {
-            const data = action as OrFilter;
+            const data = action as OrFilter
             return {
                 ...prevState,
                 [data.andIndex]: {
                     ...prevState[data.andIndex],
-                    [data.index]: EMPTY_FILTER
-                }
+                    [data.index]: EMPTY_FILTER,
+                },
             }
         }
         case ActionType.RemoveOr: {
-            const data = action as OrFilter;
+            const data = action as OrFilter
             const copy = { ...prevState[data.andIndex] }
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete copy[data.index]
             return {
                 ...prevState,
-                [data.andIndex]: copy
+                [data.andIndex]: copy,
             }
         }
         case ActionType.Update: {
-            const { andIndex, index, op, value, field } = action as UpdateFilter;
+            const { andIndex, index, op, value, field } = action as UpdateFilter
             return {
                 ...prevState,
                 [andIndex]: {
                     ...prevState[andIndex],
-                    [index]: { op, value, field }
-                }
+                    [index]: { op, value, field },
+                },
             }
         }
     }
-    throw Error('unreachable')
+    throw Error("unreachable")
 }

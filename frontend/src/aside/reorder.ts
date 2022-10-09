@@ -1,7 +1,7 @@
-import type {DraggableLocation} from '@hello-pangea/dnd';
-import type {DataSet as Data} from './types';
+import type { DraggableLocation } from "@hello-pangea/dnd"
+import type { DataSet as Data } from "./types"
 
-type DataSet = Omit<Data, 'calcParams'>
+type DataSet = Omit<Data, "calcParams">
 
 // a little function to help us with reordering the result
 function reorder<TItem>(
@@ -9,27 +9,33 @@ function reorder<TItem>(
     startIndex: number,
     endIndex: number,
 ): TItem[] {
-    const result = [...list];
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
+    const result = [...list]
+    const [removed] = result.splice(startIndex, 1)
+    result.splice(endIndex, 0, removed)
 
-    return result;
+    return result
 }
 
-export default reorder;
+export default reorder
 
-export const reorderQuoteMap = (quoteMap: DataSet, source: DraggableLocation, destination: DraggableLocation) => {
-    const current: string[] = [...(quoteMap[source.droppableId as keyof DataSet] ?? [])];
-    const next: string[] = [...(quoteMap[destination.droppableId as keyof DataSet] ?? [])];
-    const target = current[source.index];
-    console.log({current, next})
+export const reorderQuoteMap = (
+    quoteMap: DataSet,
+    source: DraggableLocation,
+    destination: DraggableLocation,
+) => {
+    const current: string[] = [...quoteMap[source.droppableId as keyof DataSet]]
+    const next: string[] = [
+        ...quoteMap[destination.droppableId as keyof DataSet],
+    ]
+    const target = current[source.index]
+
     // moving to same list
     if (source.droppableId === destination.droppableId) {
         const reordered: string[] = reorder(
             current,
             source.index,
             destination.index,
-        );
+        )
         return {
             ...quoteMap,
             [source.droppableId]: reordered,
@@ -37,24 +43,29 @@ export const reorderQuoteMap = (quoteMap: DataSet, source: DraggableLocation, de
     }
 
     if (
-        (source.droppableId === 'measures' && destination.droppableId !== 'measuresSelected') ||
-        (source.droppableId === 'fields' && destination.droppableId === 'measuresSelected')
+        (source.droppableId === "measures" &&
+            destination.droppableId !== "measuresSelected") ||
+        (source.droppableId === "fields" &&
+            destination.droppableId === "measuresSelected")
     ) {
         // impossible
         return quoteMap
     }
 
     // remove from original
-    if (destination.droppableId !== "fields" && destination.droppableId !== "measures") {
-        current.splice(source.index, 1);
+    if (
+        destination.droppableId !== "fields" &&
+        destination.droppableId !== "measures"
+    ) {
+        current.splice(source.index, 1)
     }
 
     // insert into next
-    next.splice(destination.index, 0, target);
+    next.splice(destination.index, 0, target)
 
     return {
         ...quoteMap,
         [source.droppableId]: current,
         [destination.droppableId]: next,
     }
-};
+}

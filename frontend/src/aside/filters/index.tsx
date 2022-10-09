@@ -1,7 +1,6 @@
-import Title from "../Title";
+import Title from "../Title"
 import {
     Autocomplete,
-    Box,
     Button,
     Checkbox,
     Divider,
@@ -9,32 +8,40 @@ import {
     ListItem,
     Paper,
     Stack,
-    TextField
-} from "@mui/material";
+    TextField,
+} from "@mui/material"
 import {
-    Dispatch, ElementType,
+    Dispatch,
+    ElementType,
     Fragment,
     SetStateAction,
     Suspense,
     useDeferredValue,
     useEffect,
-    useId, useReducer,
+    useId,
+    useReducer,
     useState,
-    useTransition
-} from "react";
-import {Filter as FilterType} from "../types";
-import {useFilterColumns} from "../../api/hooks";
-import CloseIcon from '@mui/icons-material/Close';
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import {ActionType, reducer, Filters as FiltersType} from "./reducer";
+    useTransition,
+} from "react"
+import { Filter as FilterType } from "../types"
+import { useFilterColumns } from "../../api/hooks"
+import CloseIcon from "@mui/icons-material/Close"
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
+import CheckBoxIcon from "@mui/icons-material/CheckBox"
+import { ActionType, reducer, Filters as FiltersType } from "./reducer"
 
-const icon = <CheckBoxOutlineBlankIcon fontSize="small"/>;
-const checkedIcon = <CheckBoxIcon fontSize="small"/>;
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />
+const checkedIcon = <CheckBoxIcon fontSize="small" />
 
 interface FilterSelectProps {
     label: string
-    state: [string | string[] | null, Dispatch<SetStateAction<string | null>> | Dispatch<SetStateAction<string | string[] | null>>]
+    state: [
+        string | string[] | null,
+        (
+            | Dispatch<SetStateAction<string | null>>
+            | Dispatch<SetStateAction<string | string[] | null>>
+        ),
+    ]
     options: string[]
     inputValue?: string
     onInputChange?: (value: string) => void
@@ -44,12 +51,12 @@ interface FilterSelectProps {
 }
 
 const FilterSelect = (props: FilterSelectProps) => {
-    const [value, setValue] = props.state;
+    const [value, setValue] = props.state
 
-    const id = useId();
+    const id = useId()
 
     const values = props.options
-    const multiple = props.multiple ?? false;
+    const multiple = props.multiple ?? false
     return (
         <Autocomplete
             multiple={multiple}
@@ -59,32 +66,42 @@ const FilterSelect = (props: FilterSelectProps) => {
             filterOptions={props.filterOptions}
             id={id}
             options={values}
-            renderOption={(props, option, {selected}) => (
-                <li {...props}>
-                    {multiple && <Checkbox
-                        icon={icon}
-                        checkedIcon={checkedIcon}
-                        style={{marginRight: 8}}
-                        checked={selected}
-                    />}
+            renderOption={(renderProps, option, { selected }) => (
+                <li {...renderProps}>
+                    {multiple && (
+                        <Checkbox
+                            icon={icon}
+                            checkedIcon={checkedIcon}
+                            style={{ marginRight: 8 }}
+                            checked={selected}
+                        />
+                    )}
                     {option}
                 </li>
             )}
             onChange={(event, newValue) => {
-                setValue(newValue as unknown as any ?? null);
+                setValue(
+                    (newValue as unknown as string | string[] | undefined) ??
+                        null,
+                )
             }}
             inputValue={props.inputValue}
-            onInputChange={(event, value) => {
-                props.onInputChange?.(value)
+            onInputChange={(event, newValue) => {
+                props.onInputChange?.(newValue)
             }}
-            sx={{width: '100%'}}
-            value={value ? value : (multiple ? [] : null)}
-            renderInput={(params) => <TextField {...params} variant="standard" label={props.label}/>}
+            sx={{ width: "100%" }}
+            value={value ? value : multiple ? [] : null}
+            renderInput={(params) => (
+                <TextField {...params} variant="standard" label={props.label} />
+            )}
         />
     )
 }
 
-const Filter = (props: { onChange: (field: string, op: string, val: string | string[]) => void, fields: string[] }) => {
+const Filter = (props: {
+    onChange: (field: string, op: string, val: string | string[]) => void
+    fields: string[]
+}) => {
     const [field, setField] = useState<string | null>(null)
     const [op, setOp] = useState<string | null>(null)
     const [val, setVal] = useState<string | string[] | null>(null)
@@ -96,23 +113,30 @@ const Filter = (props: { onChange: (field: string, op: string, val: string | str
             props.onChange(field, op, val)
         }
     }, [field, op, val])
-    const [valueSearchInput, setValueSearchInput] = useState('');
+    const [valueSearchInput, setValueSearchInput] = useState("")
 
     const deferredSearchInput = useDeferredValue(valueSearchInput)
-    const searchResults = useFilterColumns(field ?? '', deferredSearchInput)
+    const searchResults = useFilterColumns(field ?? "", deferredSearchInput)
 
     return (
         <>
-            <FilterSelect label="Field" state={[field, (v: unknown) => startTransition(() => {
-                setField(v as string | null)
-                setVal(null)
-            })]} options={props.fields}/>
-            <FilterSelect label="Operator" state={[op, setOp]} options={[
-                'Eq',
-                'Neq',
-                'In',
-                'NotIn',
-            ]}/>
+            <FilterSelect
+                label="Field"
+                state={[
+                    field,
+                    (v: unknown) =>
+                        startTransition(() => {
+                            setField(v as string | null)
+                            setVal(null)
+                        }),
+                ]}
+                options={props.fields}
+            />
+            <FilterSelect
+                label="Operator"
+                state={[op, setOp]}
+                options={["Eq", "Neq", "In", "NotIn"]}
+            />
             <Suspense fallback={"Loading..."}>
                 <FilterSelect
                     filterOptions={(x) => x}
@@ -122,7 +146,7 @@ const Filter = (props: { onChange: (field: string, op: string, val: string | str
                     options={searchResults}
                     inputValue={valueSearchInput}
                     onInputChange={(value) => setValueSearchInput(value)}
-                    multiple={op === 'In' || op === 'NotIn'}
+                    multiple={op === "In" || op === "NotIn"}
                 />
             </Suspense>
         </>
@@ -130,56 +154,83 @@ const Filter = (props: { onChange: (field: string, op: string, val: string | str
 }
 
 interface FilterListProps {
-    filters: { [p: number]: FilterType }
+    filters: Record<number, FilterType>
     fields: string[]
-    removeFilter: (index: number) => void,
-    addFilter: () => void,
-    onChange: (field: string, op: string, val: string | string[], index: number) => void
+    removeFilter: (index: number) => void
+    addFilter: () => void
+    onChange: (
+        field: string,
+        op: string,
+        val: string | string[],
+        index: number,
+    ) => void
 }
 
 function FilterList(props: FilterListProps) {
-    return <>
-        {Object.keys(props.filters).map(it => it as unknown as number).map((index) => (
-            <ListItem component='div' key={index} dense disableGutters sx={{
-                gap: 0.5,
-                justifyContent: 'center',
-            }}>
-                <IconButton onClick={() => props.removeFilter(index)} sx={{p: 0, alignSelf: 'last baseline'}}>
-                    <CloseIcon/>
-                </IconButton>
-                <Filter onChange={(f, o, v) => props.onChange(f, o, v, index)} fields={props.fields}/>
-            </ListItem>
-        ))}
-        <Button onClick={props.addFilter}>add filter</Button>
-    </>;
+    return (
+        <>
+            {Object.keys(props.filters)
+                .map((it) => it as unknown as number)
+                .map((index) => (
+                    <ListItem
+                        component="div"
+                        key={index}
+                        dense
+                        disableGutters
+                        sx={{
+                            gap: 0.5,
+                            justifyContent: "center",
+                        }}
+                    >
+                        <IconButton
+                            onClick={() => props.removeFilter(index)}
+                            sx={{ p: 0, alignSelf: "last baseline" }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                        <Filter
+                            onChange={(f, o, v) =>
+                                props.onChange(f, o, v, index)
+                            }
+                            fields={props.fields}
+                        />
+                    </ListItem>
+                ))}
+            <Button onClick={props.addFilter}>add filter</Button>
+        </>
+    )
 }
 
-let lastUsed = 1;
+let lastUsed = 1
 
-export const Filters = (props: { fields?: string[], onFiltersChange: (f: FiltersType) => void, component?: ElementType }) => {
-    const [filters, dispatch] = useReducer(reducer, ({
-        [0]: {
-            [1]: {}
-        }
-    }))
+export const Filters = (props: {
+    fields?: string[]
+    onFiltersChange: (f: FiltersType) => void
+    component?: ElementType
+}) => {
+    const [filters, dispatch] = useReducer(reducer, {
+        0: {
+            1: {},
+        },
+    })
 
     useEffect(() => {
         props.onFiltersChange(filters)
     }, [filters])
     const addNewFilter = () => {
-        lastUsed += 1;
+        lastUsed += 1
         dispatch({
             type: ActionType.NewAnd,
-            index: lastUsed
+            index: lastUsed,
         })
     }
 
     const addNewOrFilter = (index: number) => {
-        lastUsed += 1;
+        lastUsed += 1
         dispatch({
             type: ActionType.NewOr,
             andIndex: index,
-            index: lastUsed
+            index: lastUsed,
         })
     }
 
@@ -192,20 +243,25 @@ export const Filters = (props: { fields?: string[], onFiltersChange: (f: Filters
             })
             dispatch({
                 type: ActionType.RemoveAnd,
-                index: andIndex
+                index: andIndex,
             })
         }
     }
 
     const updateFilter = (andIndex: number) => {
-        return (field: string, op: string, value: string | string[], index: number) => {
+        return (
+            field: string,
+            op: string,
+            value: string | string[],
+            index: number,
+        ) => {
             dispatch({
                 type: ActionType.Update,
                 andIndex,
                 index,
                 field,
                 op,
-                value
+                value,
             })
         }
     }
@@ -213,12 +269,20 @@ export const Filters = (props: { fields?: string[], onFiltersChange: (f: Filters
     const Component = props.component ?? Paper
     return (
         <>
-            <Title content='Filters' component={Component} />
-            <Stack component={Component} spacing={1} sx={{overflowX: 'hidden', height: '100%'}}>
-                {
-                    Object.entries(filters)
-                        .map(([filterNum, filter]): [number, FiltersType[number]] => [filterNum as unknown as number, filter as FiltersType[number]])
-                        .map(([filterNum, filter]) => (
+            <Title content="Filters" component={Component} />
+            <Stack
+                component={Component}
+                spacing={1}
+                sx={{ overflowX: "hidden", height: "100%" }}
+            >
+                {Object.entries(filters)
+                    .map(
+                        ([filterNum, filter]): [
+                            number,
+                            FiltersType[number],
+                        ] => [filterNum as unknown as number, filter],
+                    )
+                    .map(([filterNum, filter]) => (
                         <Fragment key={filterNum}>
                             <FilterList
                                 filters={filter}
@@ -227,10 +291,9 @@ export const Filters = (props: { fields?: string[], onFiltersChange: (f: Filters
                                 addFilter={() => addNewOrFilter(filterNum)}
                                 onChange={updateFilter(filterNum)}
                             />
-                            <Divider/>
+                            <Divider />
                         </Fragment>
-                    ))
-                }
+                    ))}
                 <Button onClick={addNewFilter}>add and filter</Button>
             </Stack>
         </>

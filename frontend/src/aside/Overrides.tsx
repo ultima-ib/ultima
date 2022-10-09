@@ -1,6 +1,6 @@
-import {Filters} from "./filters";
-import {Filters as FiltersType} from "./filters/reducer";
-import Title from "./Title";
+import { Filters } from "./filters"
+import { Filters as FiltersType } from "./filters/reducer"
+import Title from "./Title"
 import {
     Autocomplete,
     Box,
@@ -10,42 +10,50 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
-    TextField
-} from "@mui/material";
-import LaunchIcon from '@mui/icons-material/Launch';
-import {Dispatch, SetStateAction, useState} from 'react';
-import {InputStateUpdate, useInputs} from "./InputStateContext";
-import {Override} from "./types";
-import {mapFilters} from "../utils";
+    TextField,
+} from "@mui/material"
+import LaunchIcon from "@mui/icons-material/Launch"
+import { Dispatch, SetStateAction, useState } from "react"
+import { InputStateUpdate, useInputs } from "./InputStateContext"
+import { Override } from "./types"
+import { mapFilters } from "../utils"
 
-let overrideUsed = 0;
+let overrideUsed = 0
 
-const OverridesDialog = (props: { open: [boolean, Dispatch<SetStateAction<boolean>>]}) => {
-    const [open, setOpen] = props.open;
+const OverridesDialog = (props: {
+    open: [boolean, Dispatch<SetStateAction<boolean>>]
+}) => {
+    const [open, setOpen] = props.open
     const inputs = useInputs()
 
     const handleClose = () => {
-        setOpen(false);
-    };
+        setOpen(false)
+    }
 
     const handleSetOverrides = () => {
         console.log(inputs.overrides)
-        setOpen(false);
-    };
+        setOpen(false)
+    }
 
     const fields = inputs.dataSet.fields
 
-    const updateOverride = (index: number, field: string | undefined, value: string | undefined, filters: FiltersType) => {
-
+    const updateOverride = (
+        index: number,
+        field: string | undefined,
+        value: string | undefined,
+        filters: FiltersType,
+    ) => {
         inputs.dispatcher({
             type: InputStateUpdate.Overrides,
             data: {
                 overrides: {
                     [index]: {
-                        field, value, filters: mapFilters(filters)
-                    }
-                }
-            }
+                        field,
+                        value,
+                        filters: mapFilters(filters),
+                    },
+                },
+            },
         })
     }
     const addOverride = () => {
@@ -55,50 +63,78 @@ const OverridesDialog = (props: { open: [boolean, Dispatch<SetStateAction<boolea
             data: {
                 overrides: {
                     [overrideUsed]: {
-                        field: undefined, value: undefined, filters: []
-                    }
-                }
-            }
+                        field: undefined,
+                        value: undefined,
+                        filters: [],
+                    },
+                },
+            },
         })
     }
     return (
         <div>
-            <Dialog open={open} onClose={handleClose} scroll='paper' fullWidth>
+            <Dialog open={open} onClose={handleClose} scroll="paper" fullWidth>
                 <DialogTitle>Overrides</DialogTitle>
-                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 4}}>
-                    {
-                        Object.entries(inputs.overrides)
-                            .map(([index, override]): [number, Override] => [index as unknown as number, override])
-                            .map(([index, override]) => (
-                                <Box key={index}>
-                                    <Autocomplete
-                                        disablePortal
-                                        options={fields}
-                                        value={override.field ?? null}
-                                        onChange={(event, newValue) => {
-                                            updateOverride(index, newValue as unknown as string,override.value, override.filters)
-                                        }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} variant="filled" label={"Field"}/>
-                                        )}
-                                    />
-                                    <TextField
-                                        autoFocus
-                                        margin="dense"
-                                        label="New value"
-                                        fullWidth
-                                        variant="filled"
-                                        value={override.value ?? ''}
-                                        onChange={(event) => {
-                                            updateOverride(index, override.field, event.target.value, override.filters)
-                                        }}
-                                    />
-                                    <Filters component={Box} onFiltersChange={(filters) => {
-                                        updateOverride(index, override.field, override.value, filters)
-                                    }} fields={fields}/>
-                                </Box>
-                            ))
-                    }
+                <DialogContent
+                    sx={{ display: "flex", flexDirection: "column", gap: 4 }}
+                >
+                    {Object.entries(inputs.overrides)
+                        .map(([index, override]): [number, Override] => [
+                            index as unknown as number,
+                            override,
+                        ])
+                        .map(([index, override]) => (
+                            <Box key={index}>
+                                <Autocomplete
+                                    disablePortal
+                                    options={fields}
+                                    value={override.field ?? null}
+                                    onChange={(event, newValue) => {
+                                        updateOverride(
+                                            index,
+                                            newValue as unknown as string,
+                                            override.value,
+                                            override.filters,
+                                        )
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            variant="filled"
+                                            label={"Field"}
+                                        />
+                                    )}
+                                />
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    label="New value"
+                                    fullWidth
+                                    variant="filled"
+                                    value={override.value ?? ""}
+                                    onChange={(event) => {
+                                        updateOverride(
+                                            index,
+                                            override.field,
+                                            event.target.value,
+                                            override.filters,
+                                        )
+                                    }}
+                                />
+                                <Filters
+                                    component={Box}
+                                    onFiltersChange={(filters) => {
+                                        updateOverride(
+                                            index,
+                                            override.field,
+                                            override.value,
+                                            filters,
+                                        )
+                                    }}
+                                    fields={fields}
+                                />
+                            </Box>
+                        ))}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={addOverride}>Add Override</Button>
@@ -106,16 +142,15 @@ const OverridesDialog = (props: { open: [boolean, Dispatch<SetStateAction<boolea
                 </DialogActions>
             </Dialog>
         </div>
-    );
+    )
 }
 
-
 export function Overrides() {
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false)
 
     return (
         <>
-            <Divider sx={{borderBottomWidth: 'medium'}} />
+            <Divider sx={{ borderBottomWidth: "medium" }} />
             <Title content="Overrides" onClick={() => setDialogOpen(true)}>
                 <>
                     <LaunchIcon />

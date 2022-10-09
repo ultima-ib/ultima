@@ -1,27 +1,23 @@
-import {Filter, Override} from '../aside/types';
+import { Filter, Override } from "../aside/types"
 
-interface BaseTableData {
-    calc_params: { [p: string]: string };
-    filters: Filter[][];
-    groupby: string[];
-    overrides: Override[];
-    hide_zeros: boolean;
-    totals: boolean;
-}
-
-export interface GenerateTableDataRequest extends BaseTableData {
-    measures: { [p: string]: string };
+export interface GenerateTableDataRequest {
+    measures: [string, string][]
+    calc_params: Record<string, string>
+    filters: Filter[][]
+    groupby: string[]
+    overrides: Override[]
+    hide_zeros: boolean
+    totals: boolean
 }
 
 export interface GenerateTableDataResponse {
     columns: {
-        name: string,
-        datatype: string,
+        name: string
+        datatype: string
         values: (string | number | null)[]
-    }[],
+    }[]
 }
 
-export interface Template extends BaseTableData {
-    measures: [string, string][]
+export interface Template extends GenerateTableDataRequest {
     name: string
 }

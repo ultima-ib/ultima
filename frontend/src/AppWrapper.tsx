@@ -1,4 +1,4 @@
-import Aside from './aside/board';
+import Aside from './aside';
 import {useReducer, useRef, useState, Suspense} from "react";
 import {Override} from "./aside/types";
 import {useFRTB} from "./api/hooks";
@@ -10,7 +10,7 @@ import {GenerateTableDataRequest} from "./api/types";
 import {mapFilters} from "./utils";
 
 
-export const Initial = () => {
+export const AppWrapper = () => {
     const frtb = useFRTB();
 
     const calcParams = useRef<{[k: string]: string}>({});
@@ -82,4 +82,4 @@ export const Initial = () => {
     )
 }
 
-export default Initial
+export default AppWrapper

@@ -204,7 +204,7 @@ const DeleteButton = (props: { field: string, from: keyof Omit<DataSet, 'calcPar
     )
 }
 
-const FcBoard = (props: {
+const Aside = (props: {
     onCalcParamsChange: (name: string, value: string) => void
 }) => {
     const inputs = useInputs();
@@ -261,13 +261,12 @@ const FcBoard = (props: {
         setActiveTab(newValue);
     };
 
-    const addToList = (list: 'measuresSelected' | 'groupby', what: string, from: keyof Omit<DataSet, 'calcParams'>) => {
+    const addToList = (list: 'measuresSelected' | 'groupby', what: string) => {
         inputs.dispatcher({
             type: InputStateUpdate.DataSet,
             data: {
                 // @ts-expect-error mismatched signature
                 dataSet: {
-                    // [from]: columns[from].filter(it => it !== what),
                     [list]: [...columns[list], what]
                 }
             }
@@ -289,7 +288,7 @@ const FcBoard = (props: {
                         listId='measures'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {
-                            addToList('measuresSelected', field, 'measures')
+                            addToList('measuresSelected', field)
                         }}
                     />
                     <Column
@@ -298,7 +297,7 @@ const FcBoard = (props: {
                         listId='fields'
                         sx={{height: '45%'}}
                         onListItemClick={(field) => {
-                            addToList('groupby', field, 'fields')
+                            addToList('groupby', field)
                         }}
                     />
                 </Stack>
@@ -408,4 +407,4 @@ const FcBoard = (props: {
         </DragDropContext>
     )
 }
-export default FcBoard
+export default Aside

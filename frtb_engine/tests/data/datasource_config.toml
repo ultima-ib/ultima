@@ -1,25 +1,25 @@
 title = "setup.toml Example"
 type = "CSV"
-# first file path 
-# "C:/rust/DeltaGirr100_100_400000.csv"
-# "C:/rust/ultima/frtb_engine/tests/data/Delta.csv"
-# "C:/rust/SensEq.csv"
-# "C:/rust/VegaEq.csv"
-# "C:/rust/DeltaCSR.csv"
-# "C:/rust/drc.csv"
-# "C:/rust/Commodity.csv"
-files = ["C:/rust/ultima/frtb_engine/tests/data/Delta.csv"]
+# first file path
+# "/home/hamza/code/ultima/DeltaGirr100_100_400000.csv"
+# "/home/hamza/code/ultima/ultima/frtb_engine/tests/data/Delta.csv"
+# "/home/hamza/code/ultima/SensEq.csv"
+# "/home/hamza/code/ultima/VegaEq.csv"
+# "/home/hamza/code/ultima/DeltaCSR.csv"
+# "/home/hamza/code/ultima/drc.csv"
+# "/home/hamza/code/ultima/Commodity.csv"
+files = ["/home/hamza/code/ultima/ultima/frtb_engine/tests/data/Delta.csv"]
 # trade attributes
-# "C:/rust/TradeAttributes2.csv"
-#"C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"
-attributes_path = "C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"
+# "/home/hamza/code/ultima/TradeAttributes2.csv"
+#"/home/hamza/code/ultima/ultima/frtb_engine/tests/data/TradeAttributes.csv"
+attributes_path = "/home/hamza/code/ultima/ultima/frtb_engine/tests/data/TradeAttributes.csv"
 # HMS
-hierarchy_path = "C:/rust/ultima/frtb_engine/tests/data/hms.csv"
+hierarchy_path = "/home/hamza/code/ultima/ultima/frtb_engine/tests/data/hms.csv"
 # file_1/file_2/file_3 <-> trade attributes
 files_join_attributes = ["TradeId"]
 # attributes <-> hierarchy
 # must be provided if hierarchy file is provided
-attributes_join_hierarchy = ["BookId"] 
+attributes_join_hierarchy = ["BookId"]
 # Measure columns. Optional field. Used as a constraint on which numeric columns
 # can be aggregated eg ("SensitivitySpot", _)
 # f1_measure_cols=[]

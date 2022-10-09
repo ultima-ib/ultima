@@ -31,7 +31,6 @@ toml = {workspace = true}
 mimalloc = { version = "0.1.29", default-features = false }
 dotenv = "0.15"
 clap = {version="4", features=["derive"]}
-jemallocator = "0.5.0"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 jemallocator = "0.5.0"

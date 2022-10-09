@@ -5,3 +5,5 @@ Cargo.lock
 /.idea
 /.vscode
 /yearfrac
+
+node_modules

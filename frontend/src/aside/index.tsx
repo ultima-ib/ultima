@@ -7,6 +7,7 @@ import {Box} from "@mui/material";
 import TopBar from "../AppBar";
 import DataTable from "../table";
 import {GenerateTableDataRequest} from "../api/types";
+import {mapFilters} from "../utils";
 
 
 export const Initial = () => {
@@ -46,7 +47,6 @@ export const Initial = () => {
             const agg: string = context.aggData[m.measure as any];
             return [m.measure, agg ?? m.agg]
         })
-        const mapFilters = (f: object) => Object.values(f).map((it: any) => Object.values(it) as Filter[])
         const obj = {
             filters: mapFilters(context.filters),
             groupby: data.groupby,

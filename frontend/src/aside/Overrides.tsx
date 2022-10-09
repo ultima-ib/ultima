@@ -13,9 +13,10 @@ import {
     TextField
 } from "@mui/material";
 import LaunchIcon from '@mui/icons-material/Launch';
-import {Dispatch, Fragment, SetStateAction, useState} from 'react';
+import {Dispatch, SetStateAction, useState} from 'react';
 import {InputStateUpdate, useInputs} from "./InputStateContext";
-import {Filter, Override} from "./types";
+import {Override} from "./types";
+import {mapFilters} from "../utils";
 
 let overrideUsed = 0;
 
@@ -35,7 +36,7 @@ const OverridesDialog = (props: { open: [boolean, Dispatch<SetStateAction<boolea
     const fields = inputs.dataSet.fields
 
     const updateOverride = (index: number, field: string | undefined, value: string | undefined, filters: FiltersType) => {
-        const mapFilters = (f: object) => Object.values(f).map((it: any) => Object.values(it) as Filter[])
+
         inputs.dispatcher({
             type: InputStateUpdate.Overrides,
             data: {

@@ -8,6 +8,7 @@ use crate::sbm::girr::delta::girr_corr_matrix;
 use ndarray::{s, Array1, Array2, Axis};
 use once_cell::sync::Lazy;
 use polars::prelude::DataFrame;
+use serde::Serialize;
 use strum::EnumString;
 
 pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
@@ -421,17 +422,18 @@ pub static LOW_CORR_SCENARIO: Lazy<ScenarioConfig> =
 
 // Corresponds to three correlation scenarios
 // 21.6
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize)]
 pub enum ScenarioName {
     High,
     Medium,
     Low,
 }
-
+#[derive(Serialize)]
 // This struct to keep all parameters, per Corr Scenario
 // Weights, Gammas, Rhos etc
 pub struct ScenarioConfig {
     pub name: ScenarioName,
+    #[serde(skip)]
     pub scenario_fn: fn(f64) -> f64,
 
     pub erm2_crr2: Vec<String>,

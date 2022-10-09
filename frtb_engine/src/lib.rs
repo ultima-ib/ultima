@@ -11,7 +11,7 @@ mod helpers;
 pub mod measures;
 pub mod prelude;
 mod risk_weights;
-mod statics;
+pub mod statics;
 
 use crate::drc::drc_weights;
 use base_engine::prelude::*;

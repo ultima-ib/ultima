@@ -182,25 +182,25 @@ fn csr_nonsec_delta_charge_distributor(
 
     let base_csr_nonsec_rho_tenor = get_optional_parameter(
         op,
-        "base_csr_nonsec_tenor_rho",
+        "csr_nonsec_delta_diff_tenor_rho_base",
         &scenario.base_csr_nonsec_rho_tenor,
     );
 
     let name_rho_vec = get_optional_parameter_vec(
         op,
-        "base_csr_nonsec_diff_name_rho_per_bucket",
+        "csr_nonsec_delta_diff_name_rho_per_bucket_base",
         &name_rho_vec,
     );
 
     let base_csr_nonsec_rho_basis = get_optional_parameter(
         op,
-        "base_csr_nonsec_diff_basis_rho",
+        "csr_nonsec_delta_diff_basis_rho_base",
         &scenario.base_csr_nonsec_rho_basis,
     );
 
     let gamma = get_optional_parameter_array(
         op,
-        format!("csr_nonsec_curv_gamma{_suffix}").as_str(),
+        format!("csr_nonsec_delta_gamma{_suffix}").as_str(),
         gamma,
     );
 

@@ -1,4 +1,6 @@
 //! This module builds App and is Server bin specific
+#[cfg(feature = "FRTB")]
+use frtb_engine::statics::{MEDIUM_CORR_SCENARIO};
 
 pub mod pagination;
 
@@ -26,6 +28,16 @@ use base_engine::{prelude::PolarsResult, AggregationRequest, DataSet};
 // use uuid::Uuid;
 // use tracing::Instrument; //enters the span we pass as argument
 // every time self, the future, is polled; it exits the span every time the future is parked.
+
+#[get("/scenarios/{scen}")]
+async fn scenarios(path: web::Path<String>) -> Result<HttpResponse> {
+    let scenario = path.into_inner();
+    match &scenario as &str {
+        #[cfg(feature = "FRTB")]
+        "medium" => Ok(HttpResponse::Ok().json(&*MEDIUM_CORR_SCENARIO)),
+        _ => Err(actix_web::error::ErrorBadRequest("Only medium scenario can be displayed currently"))
+    }
+}
 
 #[get("/health_check")]
 async fn health_check(_: HttpRequest) -> impl Responder {
@@ -176,7 +188,8 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<A
                     .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
                     .route("", web::post().to(execute))
                     .service(column_search)
-                    .service(templates),
+                    .service(templates)
+                    .service(scenarios),
             )
             .route("/aggtypes", web::get().to(measures))
             .app_data(ds.clone())

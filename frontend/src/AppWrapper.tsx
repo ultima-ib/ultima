@@ -1,13 +1,13 @@
-import Aside from './board';
+import Aside from './aside/board';
 import {useReducer, useRef, useState, Suspense} from "react";
-import {Filter, Override} from "./types";
-import {useFRTB} from "../api/hooks";
-import {InputStateContextProvider, inputStateReducer} from "./InputStateContext";
+import {Override} from "./aside/types";
+import {useFRTB} from "./api/hooks";
+import {InputStateContextProvider, inputStateReducer} from "./aside/InputStateContext";
 import {Box} from "@mui/material";
-import TopBar from "../AppBar";
-import DataTable from "../table";
-import {GenerateTableDataRequest} from "../api/types";
-import {mapFilters} from "../utils";
+import TopBar from "./AppBar";
+import DataTable from "./table";
+import {GenerateTableDataRequest} from "./api/types";
+import {mapFilters} from "./utils";
 
 
 export const Initial = () => {
@@ -81,7 +81,5 @@ export const Initial = () => {
         </Box>
     )
 }
-
-export { Aside }
 
 export default Initial

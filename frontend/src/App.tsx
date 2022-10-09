@@ -1,10 +1,12 @@
-import Aside from "./aside";
+import AppWrapper from "./AppWrapper";
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { createContext, useMemo, useState } from "react";
+import {createContext, useContext, useMemo, useState} from "react";
 
 const ColorModeContext = createContext({ toggleColorMode: () => {} });
+
+export const useColorMode = () => useContext(ColorModeContext)
 
 function App() {
     const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
@@ -25,7 +27,7 @@ function App() {
                     mode,
                 },
             }),
-        [prefersDarkMode],
+        [mode],
     );
     return (
         <ColorModeContext.Provider value={colorMode}>
@@ -33,7 +35,7 @@ function App() {
                 <style dangerouslySetInnerHTML={{ __html: `html { --color: rgba(${mode === 'light' ? '255, 255, 255' : '0, 0, 0'}, 0.5); }`}}>
                 </style>
                 <CssBaseline>
-                    <Aside />
+                    <AppWrapper />
                 </CssBaseline>
             </ThemeProvider>
         </ColorModeContext.Provider>

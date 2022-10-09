@@ -8,13 +8,13 @@ type = "CSV"
 # "/home/hamza/code/ultima/DeltaCSR.csv"
 # "/home/hamza/code/ultima/drc.csv"
 # "/home/hamza/code/ultima/Commodity.csv"
-files = ["C:/rust/ultima/frtb_engine/tests/data/Delta.csv"]
+files = ["./frtb_engine/tests/data/Delta.csv"]
 # trade attributes
 # "/home/hamza/code/ultima/TradeAttributes2.csv"
 #"/home/hamza/code/ultima/ultima/frtb_engine/tests/data/TradeAttributes.csv"
-attributes_path = "C:/rust/ultima/frtb_engine/tests/data/TradeAttributes.csv"
+attributes_path = "./frtb_engine/tests/data/TradeAttributes.csv"
 # HMS
-hierarchy_path = "C:/rust/ultima/frtb_engine/tests/data/hms.csv"
+hierarchy_path = "./frtb_engine/tests/data/hms.csv"
 # file_1/file_2/file_3 <-> trade attributes
 files_join_attributes = ["TradeId"]
 # attributes <-> hierarchy

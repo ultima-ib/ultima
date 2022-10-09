@@ -1,0 +1,24 @@
+{
+  "name": "root",
+  "version": "0.0.0",
+  "description": "The Ultimate BI tool",
+  "private": "true",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnatolyBug/ultima.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AnatolyBug/ultima/issues"
+  },
+  "homepage": "https://github.com/AnatolyBug/ultima#readme",
+  "devDependencies": {
+    "cypress": "^10.9.0",
+    "typescript": "^4.8.4"
+  }
+}

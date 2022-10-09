@@ -81,7 +81,7 @@ const FilterSelect = (props: FilterSelectProps) => {
             )}
             onChange={(event, newValue) => {
                 setValue(
-                    (newValue as unknown as string | string[] | undefined) ??
+                    (newValue as unknown as string | undefined) ??
                         null,
                 )
             }}

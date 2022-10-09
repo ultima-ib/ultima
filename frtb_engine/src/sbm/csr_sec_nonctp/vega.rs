@@ -59,12 +59,12 @@ fn csr_sec_nonctp_vega_charge_distributor(
     );
     let csr_sec_nonctp_rho_bucket = get_optional_parameter(
         op,
-        "base_csr_sec_nonctp_rho_diff_name_bucket",
+        "csr_sec_nonctp_vega_rho_diff_name_per_bucket_base",
         &scenario.base_csr_sec_nonctp_rho_diff_name,
     );
     let csr_sec_nonctp_vega_rho = get_optional_parameter_array(
         op,
-        "base_csr_sec_nonctp_opt_mat_vega_rho",
+        "csr_sec_nonctp_opt_mat_vega_rho_base",
         &scenario.base_vega_rho,
     );
 

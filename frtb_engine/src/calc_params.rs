@@ -50,6 +50,12 @@ pub(crate) fn frtb_calc_params() -> Vec<CalcParameter> {
         ("csr_ctp_vega_rho_diff_name_per_bucket_base", None, Some("vector-depends on regulation. For BCBS 16.".into())),
         ("csr_ctp_opt_mat_vega_rho_base", None, Some("matrix 5x5".into())),
 
+        ("csr_sec_nonctp_delta_diff_tenor_rho_base", None, Some("float".into())),
+        ("csr_sec_nonctp_delta_diff_name_rho_per_bucket_base", None, Some("vector 25".into())),
+        ("csr_sec_nonctp_delta_diff_tranche_rho_base", None, Some("float".into())),
+        ("csr_sec_nonctp_vega_rho_diff_name_per_bucket_base", None, Some("vector 25".into())),
+        ("csr_sec_nonctp_opt_mat_vega_rho_base", None, Some("matrix 5x5".into())),
+
 
     ];
     for (name, default, type_hint) in params {
@@ -80,6 +86,11 @@ pub(crate) fn frtb_calc_params() -> Vec<CalcParameter> {
         ("csr_ctp_vega_gamma", None, Some("matrix-depends on regulation. 16x16 for BCBS.".into())),
         ("csr_ctp_curv_diff_name_rho_per_bucket", None, Some("vector-depends on regulation. For BCBS 16.".into())),
         ("csr_ctp_curv_gamma", None, Some("matrix-depends on regulation. 16x16 for BCBS.".into())),
+
+        ("csr_sec_nonctp_delta_gamma", None, Some("matrix 25x25".into())),
+        ("csr_sec_nonctp_vega_gamma", None, Some("matrix 25x25".into())),
+        ("csr_sec_nonctp_curv_diff_name_rho_per_bucket", None, Some("vector-depends on regulation. For BCBS 16.".into())),
+        ("csr_sec_nonctp_curv_gamma", None, Some("matrix-depends on regulation. 16x16 for BCBS.".into())),
 
         ];
 

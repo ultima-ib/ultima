@@ -109,25 +109,25 @@ fn csr_sec_nonctp_delta_charge_distributor(
 
     let rho_tenor = get_optional_parameter(
         op,
-        "base_csr_sec_nonctp_diff_tenor_rho",
+        "csr_sec_nonctp_delta_diff_tenor_rho_base",
         &scenario.base_csr_sec_nonctp_rho_tenor,
     );
 
     let rho_name = get_optional_parameter_vec(
         op,
-        "base_csr_sec_nonctp_diff_name_rho",
+        "csr_sec_nonctp_delta_diff_name_rho_per_bucket_base",
         &scenario.csr_sec_nonctp_rho_diff_name_curv.to_vec(),
     );
 
     let rho_tranche = get_optional_parameter(
         op,
-        "base_csr_sec_nonctp_diff_tranche_rho",
+        "csr_sec_nonctp_delta_diff_tranche_rho_base",
         &scenario.base_csr_sec_nonctp_rho_diff_tranche,
     );
 
     let gamma = get_optional_parameter_array(
         op,
-        format!("base_csr_sec_nonctp_gamma{_suffix}").as_str(),
+        format!("csr_sec_nonctp_delta_gamma{_suffix}").as_str(),
         &scenario.csr_sec_nonctp_gamma,
     );
 

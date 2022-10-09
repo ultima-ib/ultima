@@ -96,7 +96,7 @@ fn csr_sec_nonctp_curvature_charge_distributor(
     );
     let curv_rho = get_optional_parameter(
         op,
-        format!("csr_sec_nonctp_curv_rho{_suffix}").as_str(),
+        format!("csr_sec_nonctp_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
         &scenario.csr_sec_nonctp_rho_diff_name_curv,
     );
 

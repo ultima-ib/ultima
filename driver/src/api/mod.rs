@@ -1,6 +1,6 @@
 //! This module builds App and is Server bin specific
 #[cfg(feature = "FRTB")]
-use frtb_engine::statics::{HIGH_CORR_SCENARIO, MEDIUM_CORR_SCENARIO, LOW_CORR_SCENARIO};
+use frtb_engine::statics::{MEDIUM_CORR_SCENARIO};
 
 pub mod pagination;
 
@@ -33,10 +33,9 @@ use base_engine::{prelude::PolarsResult, AggregationRequest, DataSet};
 async fn scenarios(path: web::Path<String>) -> Result<HttpResponse> {
     let scenario = path.into_inner();
     match &scenario as &str {
-        "high" => Ok(HttpResponse::Ok().json(&*HIGH_CORR_SCENARIO)),
+        #[cfg(feature = "FRTB")]
         "medium" => Ok(HttpResponse::Ok().json(&*MEDIUM_CORR_SCENARIO)),
-        "low" => Ok(HttpResponse::Ok().json(&*LOW_CORR_SCENARIO)),
-        _ => Err(actix_web::error::ErrorBadRequest("no such scenario"))
+        _ => Err(actix_web::error::ErrorBadRequest("Only medium scenario can be displayed currently"))
     }
 }
 

@@ -105,12 +105,12 @@ fn csrsecctp_curvature_charge_distributor(
 
     let csr_secctp_curv_gamma = get_optional_parameter_array(
         op,
-        format!("csr_secctp_curv_gamma{_suffix}").as_str(),
+        format!("csr_ctp_curv_gamma{_suffix}").as_str(),
         gamma,
     );
     let csr_secctp_curv_rho = get_optional_parameter_vec(
         op,
-        format!("csr_secctp_curv_rho{_suffix}").as_str(),
+        format!("csr_ctp_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
         &name_rho_vec,
     );
 

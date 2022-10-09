@@ -85,17 +85,17 @@ fn csrsecctp_vega_charge_distributor(
 
     let csr_gamma = get_optional_parameter_array(
         op,
-        format!("csr_sec_ctp_vega_gamma{_suffix}").as_str(),
+        format!("csr_ctp_vega_gamma{_suffix}").as_str(),
         gamma,
     );
     let base_csr_rho_bucket = get_optional_parameter_vec(
         op,
-        format!("csr_sec_ctp_rho_diff_name_bucket{_suffix}").as_str(),
+        format!("csr_ctp_vega_rho_diff_name_per_bucket_base").as_str(),
         &name_rho_vec,
     );
     let csr_vega_rho = get_optional_parameter_array(
         op,
-        format!("csr_sec_ctp_opt_mat_vega_rho{_suffix}").as_str(),
+        format!("csr_ctp_opt_mat_vega_rho_base").as_str(),
         rho_opt,
     );
 

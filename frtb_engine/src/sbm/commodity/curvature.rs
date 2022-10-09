@@ -84,7 +84,7 @@ fn com_curvature_charge_distributor(
     );
     let com_curv_rho = get_optional_parameter(
         op,
-        format!("commodity_curv_rho{_suffix}").as_str(),
+        format!("commodity_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
         &scenario.com_curv_rho_cty,
     );
 

@@ -85,15 +85,15 @@ fn csr_nonsec_vega_charge_distributor(
     };
 
     let csr_gamma =
-        get_optional_parameter_array(op, format!("csr_vega_gamma{_suffix}").as_str(), gamma);
+        get_optional_parameter_array(op, format!("csr_nonsec_vega_gamma{_suffix}").as_str(), gamma);
     let base_csr_rho_bucket = get_optional_parameter_vec(
         op,
-        format!("csr_rho_diff_name_bucket{_suffix}").as_str(),
+        format!("csr_nonsec_vega_diff_name_rho_per_bucket_base").as_str(),
         &name_rho_vec,
     );
     let csr_vega_rho = get_optional_parameter_array(
         op,
-        format!("csr_opt_mat_vega_rho{_suffix}").as_str(),
+        format!("csr_nonsec_opt_mat_vega_rho_base").as_str(),
         rho_opt,
     );
 

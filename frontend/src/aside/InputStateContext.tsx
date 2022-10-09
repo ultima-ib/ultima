@@ -1,5 +1,7 @@
 import {createContext, useContext} from "react";
-import {CalcParam, DataSet, Filter as FilterType, Override} from "./types";
+import {DataSet, Filter, Filter as FilterType, Override} from "./types";
+import type {Template} from '../api/types'
+import {Filters} from "./filters/reducer";
 
 export enum InputStateUpdate {
     DataSet,
@@ -7,8 +9,8 @@ export enum InputStateUpdate {
     HideZeros,
     Total,
     AggData,
-    CalcParams,
     Overrides,
+    TemplateSelect,
 }
 
 type Data = Partial<Omit<InputStateContext, 'dispatcher'>>
@@ -55,6 +57,48 @@ export function inputStateReducer(state: InputStateContext, action: { type: Inpu
                     ...action.data.overrides,
                 }
             }
+            break
+        }
+        case InputStateUpdate.TemplateSelect: {
+            const data = action.data as Template;
+            console.log(data)
+            const dataSet = {
+                ...state.dataSet,
+                groupby: data.groupby,
+                measuresSelected: data.measures.map(it => it[0]),
+            }
+
+            const buildFilters = (filters: FilterType[][]): Filters => {
+                const build: Filters = {};
+                filters.forEach((newFilters, index) => {
+                    const inner: { [p: number]: Filter } = {}
+                    newFilters.forEach((newFilter, index) => {
+                        inner[index] = newFilter
+                    })
+                    build[index] = inner
+                })
+                return build
+            }
+            data.overrides.map(override => ({
+                value: override.value,
+                field: override.field,
+                filters: buildFilters(override.filters)
+            }))
+            Object.entries(data.calc_params).forEach(([name, value]) => {
+                state.calcParamsUpdater(name, value)
+            })
+
+            const aggData: { [p: string]: string } = {}
+            data.measures.forEach(([key, value]) => {
+                aggData[key] = value
+            })
+            update = {
+                dataSet,
+                filters: buildFilters(data.filters),
+                hideZeros: data.hide_zeros,
+                totals: data.totals,
+                aggData,
+            }
         }
     }
     return {
@@ -78,7 +122,7 @@ export interface InputStateContext {
      *     },
      * }
      */
-    filters: { [p: number]: { [p: number]: FilterType } }
+    filters: Filters
     /**
      * {
      *     colToAgg: "how to aggregate"
@@ -88,6 +132,7 @@ export interface InputStateContext {
     overrides: { [i: number]: Override }
     hideZeros: boolean
     totals: boolean
+    calcParamsUpdater: (name: string, value: string) => void,
     dispatcher: (params: { type: InputStateUpdate, data: Data }) => void
 }
 

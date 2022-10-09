@@ -1,7 +1,6 @@
 import {Filter, Override} from '../aside/types';
 
-export interface GenerateTableDataRequest {
-    measures: { [p: string]: string };
+interface BaseTableData {
     calc_params: { [p: string]: string };
     filters: Filter[][];
     groupby: string[];
@@ -10,10 +9,19 @@ export interface GenerateTableDataRequest {
     totals: boolean;
 }
 
+export interface GenerateTableDataRequest extends BaseTableData {
+    measures: { [p: string]: string };
+}
+
 export interface GenerateTableDataResponse {
     columns: {
         name: string,
         datatype: string,
         values: (string | number | null)[]
     }[],
+}
+
+export interface Template extends BaseTableData {
+    measures: [string, string][]
+    name: string
 }

@@ -2,7 +2,6 @@ export interface DataSet {
   fields: string[]
   measures: string[]
   groupby: string[]
-  overwrites: string[]
   measuresSelected: string[]
   calcParams: CalcParam[],
 }

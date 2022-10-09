@@ -1,6 +1,6 @@
-import {AGG_TYPES, FRTB, COLUMNS} from "./routes";
+import {AGG_TYPES, FRTB, COLUMNS, TEMPLATES} from "./routes";
 import useFetch from 'fetch-suspense';
-import {GenerateTableDataRequest, GenerateTableDataResponse} from "./types";
+import {GenerateTableDataRequest, GenerateTableDataResponse, Template} from "./types";
 
 interface FRTB {
     fields: string[]
@@ -30,6 +30,11 @@ export const useFRTB = () => {
 export const useAggTypes = () => {
     return useFetch(AGG_TYPES) as string[]
 }
+
+export const useTemplates = () => {
+    return useFetch(TEMPLATES) as Template[]
+}
+
 export const useFilterColumns = (column: string, search: string = '.*') => {
     const results = useFetch(`${COLUMNS}/${column}?page=0&pattern=${search === '' ? '.*' : search}`)
     if (results === '') {

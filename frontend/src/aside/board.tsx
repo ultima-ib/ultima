@@ -37,6 +37,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {Resizable as ReResizable} from "re-resizable";
 import DeleteIcon from '@mui/icons-material/Close';
 import {Overrides} from "./Overrides";
+import {Templates} from "./Templates";
 
 const ResizeHandle = () => {
     return <div
@@ -302,6 +303,9 @@ const FcBoard = (props: {
                     />
                 </Stack>
                 <Stack sx={{width: '60%', height: '100%'}}>
+                    <Suspense fallback="Loading templates....">
+                        <Templates />
+                    </Suspense>
                     <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
                         <Tabs value={activeTab} onChange={handleActiveTabChange}>
                             <Tab label="Aggregate" {...a11yProps(0)} />

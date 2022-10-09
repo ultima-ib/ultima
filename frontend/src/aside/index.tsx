@@ -13,6 +13,10 @@ import {mapFilters} from "../utils";
 export const Initial = () => {
     const frtb = useFRTB();
 
+    const calcParams = useRef<{[k: string]: string}>({});
+    const onCalcParamsChange = (name: string, value: string) => {
+        calcParams.current[name] = value
+    }
 
     const init = {
         dataSet: {
@@ -32,10 +36,10 @@ export const Initial = () => {
         aggData: {},
         hideZeros: false,
         totals: false,
+        calcParamsUpdater: onCalcParamsChange,
     }
     // @ts-expect-error: i can't get the signature in line with the type declaration
     const [context, dispatcher] = useReducer(inputStateReducer, init);
-    const calcParams = useRef<{[k: string]: string}>({});
 
     const [buildTableReq, setBuildTableReq] = useState<GenerateTableDataRequest | undefined>(undefined);
 
@@ -58,11 +62,6 @@ export const Initial = () => {
         }
         setBuildTableReq(obj)
         console.log(JSON.stringify(obj, null, 2))
-    }
-
-
-    const onCalcParamsChange = (name: string, value: string) => {
-        calcParams.current[name] = value
     }
 
     return (

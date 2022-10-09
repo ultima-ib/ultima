@@ -5,5 +5,5 @@ Cargo.lock
 /.idea
 /.vscode
 /yearfrac
-/frtb_engine/tests/data/datasource_config.toml
 node_modules
+frtb_engine/tests/data/datasource_config.toml

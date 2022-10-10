@@ -55,12 +55,12 @@ fn csr_sec_nonctp_vega_charge_distributor(
     let csr_sec_nonctp_gamma = get_optional_parameter_array(
         op,
         format!("csr_sec_nonctp_vega_gamma{_suffix}").as_str(),
-        &scenario.csr_sec_nonctp_gamma,
+        &scenario.csr_sec_nonctp_delta_vega_gamma,
     );
     let csr_sec_nonctp_rho_bucket = get_optional_parameter(
         op,
         "csr_sec_nonctp_vega_rho_diff_name_per_bucket_base",
-        &scenario.base_csr_sec_nonctp_rho_diff_name,
+        &scenario.csr_sec_nonctp_delta_vega_diff_name_rho_per_bucket_base,
     );
     let csr_sec_nonctp_vega_rho = get_optional_parameter_array(
         op,

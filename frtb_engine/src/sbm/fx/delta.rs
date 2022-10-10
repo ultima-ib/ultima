@@ -100,7 +100,7 @@ fn fx_delta_charge_distributor(
     let fx_delta_gamma = get_optional_parameter(
         op,
         format!("fx_delta_gamma{_suffix}").as_ref() as &str,
-        &scenario.fx_gamma,
+        &scenario.fx_delta_vega_gamma,
     );
 
     fx_delta_charge(fx_delta_gamma, rtrn, ccy_regex)

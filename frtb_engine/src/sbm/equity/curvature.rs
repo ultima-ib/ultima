@@ -83,13 +83,13 @@ fn eq_curvature_charge_distributor(
 
     let eq_curv_gamma = get_optional_parameter_array(
         op,
-        format!("equity_curv_gamma{_suffix}").as_str(),
-        &scenario.eq_gamma_curv,
+        format!("eq_curv_gamma{_suffix}").as_str(),
+        &scenario.eq_curv_gamma,
     );
     let eq_curv_rho = get_optional_parameter(
         op,
-        format!("equity_curv_rho{_suffix}").as_str(),
-        &scenario.eq_curv_rho_bucket,
+        format!("eq_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
+        &scenario.eq_curv_diff_name_rho_per_bucket,
     );
     eq_curvature_charge(
         eq_curv_rho.to_vec(),

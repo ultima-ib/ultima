@@ -68,17 +68,17 @@ fn equity_delta_charge_distributor(
     let eq_gamma = get_optional_parameter_array(
         op,
         format!("eq_delta_gamma{_suffix}").as_str(),
-        &scenario.eq_gamma,
+        &scenario.eq_delta_vega_gamma,
     );
     let base_eq_rho_bucket = get_optional_parameter(
         op,
-        format!("base_eq_rho_bucket{_suffix}").as_str(),
-        &scenario.base_eq_delta_rho_bucket,
+        "eq_delta_diff_name_rho_per_bucket_base",
+        &scenario.eq_delta_vega_diff_name_rho_per_bucket_base,
     );
     let eq_rho_diff_type = get_optional_parameter(
         op,
-        format!("eq_rho_diff_type{_suffix}").as_str(),
-        &scenario.base_eq_rho_mult,
+        "eq_delta_diff_type_rho_base",
+        &scenario.eq_delta_diff_type_rho_base,
     );
 
     equity_delta_charge(

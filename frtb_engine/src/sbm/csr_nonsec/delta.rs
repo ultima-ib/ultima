@@ -158,8 +158,8 @@ fn csr_nonsec_delta_charge_distributor(
                 col("SensWeightsCRR2").arr().get(4),
             ],
             col("BucketCRR2"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
-            &scenario.csr_nonsec_gamma_crr2,
+            Vec::from(scenario.csr_nonsec_delta_diff_name_rho_per_bucket_base_crr2),
+            &scenario.csr_nonsec_delta_vega_gamma_crr2,
             20usize,
             Some(18usize),
         ),
@@ -173,8 +173,8 @@ fn csr_nonsec_delta_charge_distributor(
                 col("SensWeights").arr().get(4),
             ],
             col("BucketBCBS"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
-            &scenario.csr_nonsec_gamma,
+            Vec::from(scenario.csr_nonsec_delta_vega_diff_name_rho_per_bucket_base_bcbs),
+            &scenario.csr_nonsec_delta_vega_gamma_bcbs,
             18,
             Some(16),
         ),
@@ -183,7 +183,7 @@ fn csr_nonsec_delta_charge_distributor(
     let base_csr_nonsec_rho_tenor = get_optional_parameter(
         op,
         "csr_nonsec_delta_diff_tenor_rho_base",
-        &scenario.base_csr_nonsec_rho_tenor,
+        &scenario.csr_nonsec_delta_diff_tenor_rho_base,
     );
 
     let name_rho_vec = get_optional_parameter_vec(
@@ -195,7 +195,7 @@ fn csr_nonsec_delta_charge_distributor(
     let base_csr_nonsec_rho_basis = get_optional_parameter(
         op,
         "csr_nonsec_delta_diff_basis_rho_base",
-        &scenario.base_csr_nonsec_rho_basis,
+        &scenario.csr_nonsec_delta_diff_basis_rho_base,
     );
 
     let gamma = get_optional_parameter_array(

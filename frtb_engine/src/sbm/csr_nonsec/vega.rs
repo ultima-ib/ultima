@@ -68,18 +68,18 @@ fn csr_nonsec_vega_charge_distributor(
         Jurisdiction::CRR2 => (
             col("SensWeightsCRR2").arr().get(0),
             col("BucketCRR2"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_crr2),
+            Vec::from(scenario.csr_nonsec_delta_diff_name_rho_per_bucket_base_crr2),
             &scenario.base_vega_rho,
-            &scenario.csr_nonsec_gamma_crr2,
+            &scenario.csr_nonsec_delta_vega_gamma_crr2,
             Some("18"),
         ),
 
         Jurisdiction::BCBS => (
             col("SensWeights").arr().get(0),
             col("BucketBCBS"),
-            Vec::from(scenario.base_csr_nonsec_rho_name_bcbs),
+            Vec::from(scenario.csr_nonsec_delta_vega_diff_name_rho_per_bucket_base_bcbs),
             &scenario.base_vega_rho,
-            &scenario.csr_nonsec_gamma,
+            &scenario.csr_nonsec_delta_vega_gamma_bcbs,
             Some("16"),
         ),
     };
@@ -88,12 +88,12 @@ fn csr_nonsec_vega_charge_distributor(
         get_optional_parameter_array(op, format!("csr_nonsec_vega_gamma{_suffix}").as_str(), gamma);
     let base_csr_rho_bucket = get_optional_parameter_vec(
         op,
-        format!("csr_nonsec_vega_diff_name_rho_per_bucket_base").as_str(),
+        "csr_nonsec_vega_diff_name_rho_per_bucket_base",
         &name_rho_vec,
     );
     let csr_vega_rho = get_optional_parameter_array(
         op,
-        format!("csr_nonsec_opt_mat_vega_rho_base").as_str(),
+        "csr_nonsec_opt_mat_vega_rho_base",
         rho_opt,
     );
 

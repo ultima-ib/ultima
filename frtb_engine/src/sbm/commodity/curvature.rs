@@ -80,12 +80,12 @@ fn com_curvature_charge_distributor(
     let com_curv_gamma = get_optional_parameter_array(
         op,
         format!("commodity_curv_gamma{_suffix}").as_str(),
-        &scenario.com_gamma_curv,
+        &scenario.com_curv_gamma,
     );
     let com_curv_rho = get_optional_parameter(
         op,
-        format!("commodity_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
-        &scenario.com_curv_rho_cty,
+        format!("com_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
+        &scenario.com_curv_diff_name_rho_per_bucket,
     );
 
     // Same methodology as EQ Curvature

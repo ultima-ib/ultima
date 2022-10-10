@@ -18,21 +18,6 @@ pub static GIRR_RISK_WEIGHTS: Lazy<[f64; 10]> = Lazy::new(|| {
     ]
 });
 
-/// TODO Apply this RW on the fly
-/// 21.44 Buckets where RW above can be divided by /sqrt(2)
-#[allow(dead_code)]
-pub static GIRR_BUCKET_DIV_SQRT2: Lazy<Vec<String>> = Lazy::new(|| {
-    vec![
-        "EUR".to_string(),
-        "USD".to_string(),
-        "GBP".to_string(),
-        "AUD".to_string(),
-        "JPY".to_string(),
-        "SEK".to_string(),
-        "CAD".to_string(),
-    ]
-});
-
 pub fn total_ir_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "GIRR", total_delta_sens())
 }
@@ -131,36 +116,36 @@ fn girr_delta_charge_distributor(
     // Take MEDIUM scenario here because scenario_fn is to be applied post factum
     let girr_delta_rho_same_curve = get_optional_parameter_array(
         op,
-        "base_girr_delta_rho_same_curve",
-        &MEDIUM_CORR_SCENARIO.base_girr_delta_rho_same_curve,
+        "girr_delta_rho_same_curve_base",
+        &MEDIUM_CORR_SCENARIO.girr_delta_rho_same_curve_base,
     );
     let girr_delta_rho_diff_curve = get_optional_parameter(
         op,
-        "base_girr_delta_rho_diff_curve",
-        &MEDIUM_CORR_SCENARIO.base_girr_delta_rho_diff_curve,
+        "girr_delta_rho_diff_curve_base",
+        &MEDIUM_CORR_SCENARIO.girr_delta_rho_diff_curve_base,
     );
     let girr_delta_rho_infl = get_optional_parameter(
         op,
-        "base_girr_delta_rho_infl",
-        &MEDIUM_CORR_SCENARIO.base_girr_delta_rho_infl,
+        "girr_delta_rho_infl_base",
+        &MEDIUM_CORR_SCENARIO.girr_delta_rho_infl_base,
     );
     let girr_delta_rho_xccy = get_optional_parameter(
         op,
-        "base_girr_delta_rho_xccy",
-        &MEDIUM_CORR_SCENARIO.base_girr_delta_rho_xccy,
+        "girr_delta_rho_xccy_base",
+        &MEDIUM_CORR_SCENARIO.girr_delta_rho_xccy_base,
     );
 
     let girr_delta_gamma = get_optional_parameter(
         op,
         format!("girr_delta_gamma{_suffix}").as_str(),
-        &scenario.girr_gamma,
+        &scenario.girr_delta_vega_gamma,
     );
     let girr_delta_gamma_crr2_erm2 = get_optional_parameter(
         op,
         format!("girr_delta_gamma_erm2{_suffix}").as_str(),
-        &scenario.girr_gamma_crr2_erm2,
+        &scenario.girr_delta_vega_gamma_erm2,
     );
-    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_crr2);
+    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_ccys);
 
     girr_delta_charge(
         girr_delta_gamma,

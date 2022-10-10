@@ -79,10 +79,10 @@ fn girr_curvature_charge_distributor(
     );
     let girr_vega_gamma_crr2_erm2 = get_optional_parameter(
         op,
-        format!("girr_curv_gamma_crr2_erm2{_suffix}").as_str(),
-        &scenario.girr_curv_gamma_crr2_erm2,
+        format!("girr_curv_gamma_erm2{_suffix}").as_str(),
+        &scenario.girr_curv_gamma_erm2,
     );
-    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_crr2);
+    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_ccys);
 
     girr_curvature_charge(
         girr_curv_gamma,

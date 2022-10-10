@@ -161,8 +161,8 @@ fn csr_sec_ctp_delta_charge_distributor(
                 col("SensWeightsCRR2").arr().get(4),
             ],
             col("BucketCRR2"),
-            Vec::from(scenario.base_csr_ctp_rho_name_crr2),
-            &scenario.csr_ctp_gamma_crr2,
+            Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_crr2),
+            &scenario.csr_ctp_delta_vega_gamma_crr2,
             18usize,
             Option::<usize>::None,
         ),
@@ -175,8 +175,8 @@ fn csr_sec_ctp_delta_charge_distributor(
                 col("SensWeights").arr().get(4),
             ],
             col("BucketBCBS"),
-            Vec::from(scenario.base_csr_ctp_rho_name_bcbs),
-            &scenario.csr_ctp_gamma,
+            Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_bcbs),
+            &scenario.csr_ctp_delta_vega_gamma_bcbs,
             16usize,
             Option::<usize>::None,
         ),
@@ -185,17 +185,17 @@ fn csr_sec_ctp_delta_charge_distributor(
     // Checking if request contains overrides
     let base_csr_ctp_rho_tenor = get_optional_parameter(
         op,
-        "csr_ctp_tenor_rho_base",
-        &scenario.base_csr_ctp_rho_tenor,
+        "csr_ctp_delta_diff_tenor_rho_base",
+        &scenario.csr_ctp_delta_diff_tenor_rho_base,
     );
 
     let name_rho_vec =
-        get_optional_parameter_vec(op, "csr_ctp_diff_name_rho_per_bucket_base", &name_rho_vec);
+        get_optional_parameter_vec(op, "csr_ctp_delta_diff_name_rho_per_bucket_base", &name_rho_vec);
 
     let base_csr_ctp_rho_basis = get_optional_parameter(
         op,
         "csr_ctp_diff_basis_rho_base",
-        &scenario.base_csr_nonsec_rho_basis,
+        &scenario.csr_nonsec_delta_diff_basis_rho_base,
     );
     
     let gamma = get_optional_parameter_array(op, format!("csr_ctp_delta_gamma{_suffix}").as_str(), gamma);

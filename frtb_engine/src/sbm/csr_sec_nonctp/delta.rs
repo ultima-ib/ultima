@@ -110,25 +110,25 @@ fn csr_sec_nonctp_delta_charge_distributor(
     let rho_tenor = get_optional_parameter(
         op,
         "csr_sec_nonctp_delta_diff_tenor_rho_base",
-        &scenario.base_csr_sec_nonctp_rho_tenor,
+        &scenario.csr_sec_nonctp_delta_diff_tenor_rho_base,
     );
 
     let rho_name = get_optional_parameter_vec(
         op,
         "csr_sec_nonctp_delta_diff_name_rho_per_bucket_base",
-        &scenario.csr_sec_nonctp_rho_diff_name_curv.to_vec(),
+        &scenario.csr_sec_nonctp_curv_diff_name_rho_per_bucket.to_vec(),
     );
 
     let rho_tranche = get_optional_parameter(
         op,
         "csr_sec_nonctp_delta_diff_tranche_rho_base",
-        &scenario.base_csr_sec_nonctp_rho_diff_tranche,
+        &scenario.csr_sec_nonctp_delta_diff_tranche_rho_base,
     );
 
     let gamma = get_optional_parameter_array(
         op,
         format!("csr_sec_nonctp_delta_gamma{_suffix}").as_str(),
-        &scenario.csr_sec_nonctp_gamma,
+        &scenario.csr_sec_nonctp_delta_vega_gamma,
     );
 
     // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets

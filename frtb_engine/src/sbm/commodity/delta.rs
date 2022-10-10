@@ -60,22 +60,22 @@ fn commodity_delta_charge_distributor(
     let com_gamma = get_optional_parameter_array(
         op,
         format!("com_delta_gamma{_suffix}").as_str(),
-        &scenario.com_gamma,
+        &scenario.com_delta_vega_gamma,
     );
     let commodity_rho_bucket = get_optional_parameter(
         op,
-        "com_delta_rho_bucket_base",
-        &scenario.base_com_delta_rho_cty,
+        "com_delta_diff_cty_rho_per_bucket_base",
+        &scenario.com_delta_vega_diff_cty_rho_per_bucket_base,
     );
     let commodity_rho_diff_loc = get_optional_parameter(
         op,
         "com_delta_rho_diff_loc_base",
-        &scenario.base_com_rho_basis_diff,
+        &scenario.com_delta_rho_diff_loc_base,
     );
     let commodity_rho_diff_tenor = get_optional_parameter(
         op,
         "com_delta_rho_diff_tenor_base",
-        &scenario.base_com_rho_tenor,
+        &scenario.com_delta_rho_diff_tenor_base,
     );
 
     let rho_overwrite: Option<RhoOverwrite> =

@@ -92,12 +92,12 @@ fn csr_sec_nonctp_curvature_charge_distributor(
     let curv_gamma = get_optional_parameter_array(
         op,
         format!("csr_sec_nonctp_curv_gamma{_suffix}").as_str(),
-        &scenario.csr_sec_nonctp_gamma_curv,
+        &scenario.csr_sec_nonctp_curv_gamma,
     );
     let curv_rho = get_optional_parameter(
         op,
         format!("csr_sec_nonctp_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
-        &scenario.csr_sec_nonctp_rho_diff_name_curv,
+        &scenario.csr_sec_nonctp_curv_diff_name_rho_per_bucket,
     );
 
     csrnonsec_curvature_charge(

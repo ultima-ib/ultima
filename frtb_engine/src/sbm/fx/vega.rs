@@ -59,13 +59,13 @@ fn fx_vega_charge_distributor(
 
     let fx_vega_rho = get_optional_parameter_array(
         op,
-        format!("fx_vega_rho{_suffix}").as_str(),
-        &scenario.fx_vega_rho,
+        format!("fx_opt_mat_vega_rho{_suffix}").as_str(),
+        &scenario.fx_opt_mat_vega_rho,
     );
     let fx_vega_gamma = get_optional_parameter(
         op,
         format!("fx_vega_gamma{_suffix}").as_str(),
-        &scenario.fx_gamma,
+        &scenario.fx_delta_vega_gamma,
     );
 
     fx_vega_charge(fx_vega_rho, fx_vega_gamma, rtrn)

@@ -94,15 +94,15 @@ fn girr_vega_charge_distributor(
     let girr_vega_gamma = get_optional_parameter(
         op,
         format!("girr_vega_gamma{_suffix}").as_str(),
-        &scenario.girr_gamma,
+        &scenario.girr_delta_vega_gamma,
     );
 
     let girr_vega_gamma_crr2_erm2 = get_optional_parameter(
         op,
         format!("girr_vega_gamma_erm2{_suffix}").as_str(),
-        &scenario.girr_gamma_crr2_erm2,
+        &scenario.girr_delta_vega_gamma_erm2,
     );
-    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_crr2);
+    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_ccys);
 
     girr_vega_charge(
         girr_vega_rho,

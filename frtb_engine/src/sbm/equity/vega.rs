@@ -56,15 +56,15 @@ fn equity_vega_charge_distributor(
     let eq_gamma = get_optional_parameter_array(
         op,
         format!("eq_vega_gamma{_suffix}").as_str(),
-        &scenario.eq_gamma,
+        &scenario.eq_delta_vega_gamma,
     );
     let base_eq_rho_bucket = get_optional_parameter(
         op,
-        "base_eq_rho_diff_name_bucket",
-        &scenario.base_eq_delta_rho_bucket,
+        "eq_vega_rho_diff_name_per_bucket_base",
+        &scenario.eq_delta_vega_diff_name_rho_per_bucket_base,
     );
     let eq_vega_rho =
-        get_optional_parameter_array(op, "base_eq_opt_mat_vega_rho", &scenario.base_vega_rho);
+        get_optional_parameter_array(op, "eq_opt_mat_vega_rho_base", &scenario.base_vega_rho);
 
     equity_vega_charge(
         eq_vega_rho,

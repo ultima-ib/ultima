@@ -92,16 +92,16 @@ fn csrnonsec_curvature_charge_distributor(
         Jurisdiction::CRR2 => (
             col("CurvatureRiskWeightCRR2"),
             col("BucketCRR2"),
-            Vec::from(scenario.csr_nonsec_rho_name_crr2_curv),
-            &scenario.csr_nonsec_gamma_crr2_curv,
+            Vec::from(scenario.csr_nonsec_curv_diff_name_rho_per_bucket_crr2),
+            &scenario.csr_nonsec_curv_gamma_crr2,
             Some(18),
         ),
 
         Jurisdiction::BCBS => (
             col("CurvatureRiskWeight"),
             col("BucketBCBS"),
-            Vec::from(scenario.csr_nonsec_rho_name_bcbs_curv),
-            &scenario.csr_nonsec_gamma_curv,
+            Vec::from(scenario.csr_nonsec_curv_diff_name_rho_per_bucket_bcbs),
+            &scenario.csr_nonsec_curv_gamma_bcbs,
             Some(16),
         ),
     };

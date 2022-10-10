@@ -1,20 +1,19 @@
 import { MenuItem, FormControl, InputLabel, Select } from "@mui/material"
-import type { SelectChangeEvent } from "@mui/material/Select"
-import { useId } from "react"
+import {useId, useEffect} from "react"
 import { useAggTypes } from "../api/hooks"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 
 const Agg = (props: { field: string }) => {
     const ctx = useInputs()
-    const handleChange = (event: SelectChangeEvent) => {
-        if (event.target.value === "") {
+    const handleChange = (value: string) => {
+        if (value === "") {
             return
         }
         ctx.dispatcher({
             type: InputStateUpdate.AggData,
             data: {
                 aggData: {
-                    [props.field]: event.target.value,
+                    [props.field]: value,
                 },
             },
         })
@@ -24,6 +23,13 @@ const Agg = (props: { field: string }) => {
 
     const id = useId()
 
+    useEffect(() => {
+        if (ctx.aggData?.[props.field] === undefined) {
+            const sum = aggTypes.find(it => it.toLowerCase() === "sum");
+            handleChange(sum ?? '')
+        }
+    }, [])
+
     return (
         <FormControl variant="filled" sx={{ minWidth: 120 }}>
             <InputLabel id={id}>Agg Type</InputLabel>
@@ -31,7 +37,7 @@ const Agg = (props: { field: string }) => {
                 labelId={id}
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 value={ctx.aggData[props.field] ?? ""}
-                onChange={handleChange}
+                onChange={(e) => handleChange(e.target.value)}
                 label="Agg Type"
                 required
             >

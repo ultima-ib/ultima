@@ -17,7 +17,8 @@ pub struct DataSetBase {
 }
 
 /// This struct is purely for DataSet descriptive purposes.
-/// Recall measure may take
+/// Recall measure may take parameters in form of HashMap<paramName, paramValue>
+/// This struct returns all possible paramNames for the given Dataset (for UI purposes only)
 #[derive(Debug, Default, Clone, Serialize)]
 pub struct CalcParameter {
     pub name: String,
@@ -35,9 +36,11 @@ pub trait DataSet: Send + Sync {
     where
         Self: Sized;
     // These methods could be overwritten.
+
     /// Prepare runs ONCE before server starts.
     /// Any computations which are common to most queries could go in here.
     fn prepare(&mut self) {}
+
     fn calc_params(&self) -> Vec<CalcParameter> {
         vec![]
     }

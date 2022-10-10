@@ -72,6 +72,11 @@ fn string_to_lit(value: &str, dt: &DataType, column: &str) -> PolarsResult<Expr>
                 .map_err(|_|PolarsError::SchemaMisMatch(format!("Argument {} could not be parsed into column {} format. Argument should be a digit",value , column).into()))?;
             Ok(Expr::Literal(LiteralValue::try_from(AnyValue::Float64(f))?))
         }
+        // Boolean column
+        DataType::Boolean => Ok(Expr::Literal(LiteralValue::try_from(AnyValue::Boolean(
+            serde_json::from_str::<bool>(value)
+                        .map_err(|_|PolarsError::SchemaMisMatch(format!("Argument {} could not be parsed into column {} format. Argument should be a boolean",value, column).into()))?
+        ))?)),
         // All Other columns are
         DataType::Utf8 => Ok(Expr::Literal(LiteralValue::try_from(AnyValue::Utf8(
             value,

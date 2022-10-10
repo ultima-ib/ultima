@@ -54,8 +54,8 @@ export const reorderQuoteMap = (
 
     // remove from original
     if (
-        destination.droppableId !== "fields" &&
-        destination.droppableId !== "measures"
+        source.droppableId.toLowerCase() !== "fields" &&
+        source.droppableId.toLowerCase() !== "measures"
     ) {
         current.splice(source.index, 1)
     }

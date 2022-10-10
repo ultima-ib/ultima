@@ -310,6 +310,9 @@ const Aside = (props: {
     }
 
     const addToList = (list: "measuresSelected" | "groupby", what: string) => {
+        if (columns[list].includes(what)) {
+            return
+        }
         inputs.dispatcher({
             type: InputStateUpdate.DataSet,
             data: {

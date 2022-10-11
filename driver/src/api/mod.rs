@@ -17,12 +17,13 @@ use actix_web::{
     //error::InternalError, http::StatusCode,
     Result,
 };
+use dashmap::DashMap;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
-use base_engine::api::aggregations::BASE_CALCS;
+use base_engine::{api::aggregations::BASE_CALCS, DataFrame, execution_with_cache::CACHE};
 use base_engine::{prelude::PolarsResult, AggregationRequest, DataSet};
 
 // use uuid::Uuid;
@@ -56,7 +57,7 @@ const PER_PAGE: u16 = 100;
 async fn column_search(
     path: web::Path<String>,
     page: web::Query<Pagination>,
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<dyn DataSet>,
 ) -> Result<HttpResponse> {
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
@@ -84,72 +85,39 @@ async fn column_search(
     }
 }
 
-#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
-async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
-    web::Json(ds)
+//#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
+async fn dataset_info<DS: Serialize + ?Sized>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
+    let a = Arc::clone(&*ds);
+    web::Json(a)
 }
-/* TODO this is not good enough, as we need to return a more detailed message to the client
-pub fn error_chain_fmt(
-    e: &impl std::error::Error,
-    f: &mut std::fmt::Formatter<'_>,
-) -> std::fmt::Result {
-    writeln!(f, "{}\n", e)?;
-    let mut current = e.source();
-    while let Some(cause) = current {
-        writeln!(f, "Caused by:\n\t{}", cause)?;
-        current = cause.source();
-    }
-    Ok(())
-}
-
-impl std::fmt::Debug for UserError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        error_chain_fmt(self, f)
-    }
-}
-
-/// Client facing error
-/// TODO return the above debug message to the client
-#[derive(thiserror::Error)]
-pub enum UserError {
-    #[error("Computation failed")]
-    ComputeError(#[source] anyhow::Error),
-    #[error("Something went wrong")]
-    UnexpectedError(#[from] anyhow::Error),
-}
-
-/// TODO we actually want to return more detailed error message to the client
-#[tracing::instrument( name = "Request Execution", skip(data) )]
-async fn execute(data: Data<Arc<dyn DataSet>>, req: web::Json<AggregationRequest>)
--> Result<HttpResponse, InternalError<UserError>>  {
-    let r = req.into_inner();
-    // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
-    let res = task::spawn_blocking(move || {
-        base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
-    }).await
-    .context("Failed to spawn blocking task.")
-    .map_err(|e|InternalError::new(UserError::UnexpectedError(e), StatusCode::INTERNAL_SERVER_ERROR))?;
-    match  res {
-        Ok(df) => Ok(HttpResponse::Ok().json(df)),
-        Err(e) => {tracing::error!("Failed to execute query: {:?}", e);
-                                    Err(InternalError::new(UserError::ComputeError(e.into()), StatusCode::INTERNAL_SERVER_ERROR))}
-    }
-}
-*/
 
 #[tracing::instrument(name = "Request Execution", skip(data))]
 async fn execute(
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<dyn DataSet>,
     req: web::Json<AggregationRequest>,
+    cache: Data<CACHE>
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
+    let _cache = cache.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
-        base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
+
+        let _with_cache = true;
+
+        // Work in progress
+        //if with_cache{
+        //    base_engine::execute_with_cache(data, r, )
+        //} else {
+        //    base_engine::execute_aggregation(r, Arc::clone(&*data))
+        //}
+        base_engine::execute_aggregation(r, Arc::clone(&*data))
+
     })
     .await
     .context("Failed to spawn blocking task.")
     .map_err(actix_web::error::ErrorInternalServerError)?;
+
+
     match res {
         Ok(df) => Ok(HttpResponse::Ok().json(df)),
         Err(e) => {
@@ -176,8 +144,11 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<A
     // Allow pretty logs
     pretty_env_logger::init();
 
-    let ds = Data::new(ds);
+    //let ds = Data::new(ds);
+    let ds = Data::from(ds);
     let _templates = Data::new(_templates);
+
+    let cache = Data::new(CACHE::new());
 
     let server = HttpServer::new(move || {
         App::new()
@@ -185,7 +156,7 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<A
             .service(health_check)
             .service(
                 web::scope("/FRTB")
-                    .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                    .route("", web::get().to(dataset_info::<dyn DataSet>))
                     .route("", web::post().to(execute))
                     .service(column_search)
                     .service(templates)
@@ -194,6 +165,7 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<A
             .route("/aggtypes", web::get().to(measures))
             .app_data(ds.clone())
             .app_data(_templates.clone())
+            .app_data(cache.clone())
     })
     .listen(listener)?
     .run();

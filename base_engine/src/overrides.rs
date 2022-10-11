@@ -15,7 +15,7 @@ use crate::filters::{fltr_chain, AndOrFltrChain};
 /// }
 /// */
 /// ```
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Hash, Eq, PartialEq)]
 pub struct Override {
     field: String,
     value: String,

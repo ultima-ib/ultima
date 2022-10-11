@@ -11,6 +11,7 @@ polars = {workspace = true, features=["strings", "ndarray", "lazy", "is_in", "dt
 serde_json = {workspace = true}
 toml = {workspace = true}
 once_cell = {workspace = true}
+dashmap = {workspace = true}
 log = "0.4"
 derivative = "2.2"
 

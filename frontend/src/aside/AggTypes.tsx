@@ -1,5 +1,5 @@
 import { MenuItem, FormControl, InputLabel, Select } from "@mui/material"
-import {useId, useEffect} from "react"
+import { useId, useEffect } from "react"
 import { useAggTypes } from "../api/hooks"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 
@@ -25,8 +25,8 @@ const Agg = (props: { field: string }) => {
 
     useEffect(() => {
         if (ctx.aggData?.[props.field] === undefined) {
-            const sum = aggTypes.find(it => it.toLowerCase() === "sum");
-            handleChange(sum ?? '')
+            const sum = aggTypes.find((it) => it.toLowerCase() === "sum")
+            handleChange(sum ?? "")
         }
     }, [])
 

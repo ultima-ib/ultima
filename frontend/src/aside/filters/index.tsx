@@ -80,10 +80,7 @@ const FilterSelect = (props: FilterSelectProps) => {
                 </li>
             )}
             onChange={(event, newValue) => {
-                setValue(
-                    (newValue as unknown as string | undefined) ??
-                        null,
-                )
+                setValue((newValue as unknown as string | undefined) ?? null)
             }}
             inputValue={props.inputValue}
             onInputChange={(event, newValue) => {
@@ -270,11 +267,7 @@ export const Filters = (props: {
     return (
         <>
             <Title content="Filters" component={Component} />
-            <Stack
-                component={Component}
-                spacing={1}
-                sx={{ overflowX: "hidden", height: "100%" }}
-            >
+            <Stack component={Component} spacing={1}>
                 {Object.entries(filters)
                     .map(
                         ([filterNum, filter]): [

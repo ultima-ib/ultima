@@ -182,16 +182,19 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<A
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .service(health_check)
             .service(
-                web::scope("/FRTB")
-                    .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
-                    .route("", web::post().to(execute))
-                    .service(column_search)
-                    .service(templates)
-                    .service(scenarios),
+                web::scope("/api")
+                .service(health_check)
+                .service(
+                    web::scope("/FRTB")
+                        .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                        .route("", web::post().to(execute))
+                        .service(column_search)
+                        .service(templates)
+                        .service(scenarios),
+                )
+                .route("/aggtypes", web::get().to(measures))
             )
-            .route("/aggtypes", web::get().to(measures))
             .app_data(ds.clone())
             .app_data(_templates.clone())
     })

@@ -16,6 +16,7 @@ import {
     AccordionProps,
     AccordionSummary,
     Box,
+    BoxProps,
     Checkbox,
     FormControlLabel,
     IconButton,
@@ -37,7 +38,6 @@ import DeleteIcon from "@mui/icons-material/Close"
 import { Overrides } from "./Overrides"
 import { Templates } from "./Templates"
 import { useTheme } from "@mui/material/styles"
-import { a11yProps, TabPanel, useTabs } from "../tabs"
 
 interface ResizableProps {
     top?: boolean
@@ -102,6 +102,34 @@ const Resizable = (props: PropsWithChildren<ResizableProps>) => {
             {props.children}
         </ReResizable>
     )
+}
+
+interface TabPanelProps extends BoxProps {
+    index: number
+    value: number
+}
+
+function TabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props
+
+    return (
+        <Box
+            role="tabPanel"
+            hidden={value !== index}
+            id={`tabPanel-${index}`}
+            aria-labelledby={`tab-${index}`}
+            {...other}
+        >
+            {value === index && children}
+        </Box>
+    )
+}
+
+function a11yProps(index: number) {
+    return {
+        id: `tab-${index}`,
+        "aria-controls": `tabPanel-${index}`,
+    }
 }
 
 interface ColumnProps {
@@ -284,7 +312,7 @@ const Aside = (props: {
         })
     }
 
-    const { activeTab, handleActiveTabChange } = useTabs()
+    const [activeTab, setActiveTab] = useState(0)
 
     const [searchValue, setSearchValue] = useState<string | undefined>(
         undefined,
@@ -306,6 +334,9 @@ const Aside = (props: {
         } else {
             return orElse
         }
+    }
+    const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
+        setActiveTab(newValue)
     }
 
     const addToList = (list: "measuresSelected" | "groupby", what: string) => {

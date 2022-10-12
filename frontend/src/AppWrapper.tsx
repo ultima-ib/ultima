@@ -6,13 +6,11 @@ import {
     InputStateContextProvider,
     inputStateReducer,
 } from "./aside/InputStateContext"
-import { Box, Tab, Tabs, Grid, IconButton } from "@mui/material"
+import { Box } from "@mui/material"
 import TopBar from "./AppBar"
 import DataTable from "./table"
 import { GenerateTableDataRequest } from "./api/types"
 import { mapFilters } from "./utils"
-import { a11yProps, TabPanel, useTabs } from "./tabs"
-import AddIcon from "@mui/icons-material/Add"
 
 export const AppWrapper = () => {
     const frtb = useFRTB()
@@ -46,25 +44,17 @@ export const AppWrapper = () => {
 
     const [context, dispatcher] = useReducer(inputStateReducer, init)
 
-    const {
-        activeTab: activeTabRight,
-        handleActiveTabChange: handleActiveTabChangeRight,
-    } = useTabs()
-    const {
-        activeTab: activeTabLeft,
-        handleActiveTabChange: handleActiveTabChangeLeft,
-    } = useTabs()
-
     const [buildTableReq, setBuildTableReq] = useState<
-        Record<number, GenerateTableDataRequest | undefined>
-    >({})
+        GenerateTableDataRequest | undefined
+    >(undefined)
 
     const run = () => {
         const data = context.dataSet
         const measures = data.measuresSelected.map(
             (measure: string): [string, string] => {
                 const m = frtb.measures.find((it) => it.measure === measure)!
-                const agg: string | undefined = context.aggData[m.measure]
+                const agg: string = context.aggData[m.measure]
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 return [m.measure, agg ?? m.agg]
             },
         )
@@ -77,46 +67,9 @@ export const AppWrapper = () => {
             totals: context.totals,
             calc_params: calcParams.current,
         }
-        setBuildTableReq((reqs) => {
-            return {
-                ...reqs,
-                [activeTabRight]: obj,
-            }
-        })
+        setBuildTableReq(obj)
         console.log(JSON.stringify(obj, null, 2))
     }
-
-    const addNewPage = () => {
-        const next = Object.keys(buildTableReq).length + 1
-        setBuildTableReq((reqs) => {
-            return {
-                ...reqs,
-                [next]: undefined,
-            }
-        })
-    }
-
-    const tabs = (activeTab: number) =>
-        Object.entries(buildTableReq)
-            .map(
-                ([tab, req]): [
-                    number,
-                    GenerateTableDataRequest | undefined,
-                ] => [parseInt(tab), req],
-            )
-            .map(([tab, req]) => {
-                return (
-                    <TabPanel index={tab} key={tab} value={activeTab}>
-                        {req && <DataTable input={req} />}
-                    </TabPanel>
-                )
-            })
-
-    const addButton = Object.keys(buildTableReq).length > 0 && (
-        <IconButton onClick={addNewPage}>
-            <AddIcon />
-        </IconButton>
-    )
 
     return (
         <Box sx={{ display: "flex", height: "100%" }}>
@@ -129,42 +82,7 @@ export const AppWrapper = () => {
                 <Aside onCalcParamsChange={onCalcParamsChange} />
                 <TopBar onRunClick={run}>
                     <Suspense fallback="Loading...">
-                        <Grid container columns={2} gap={2}>
-                            <Grid>
-                                <Tabs
-                                    value={activeTabRight}
-                                    onChange={handleActiveTabChangeRight}
-                                >
-                                    {Object.keys(buildTableReq).map((tab, index) => (
-                                        <Tab
-                                            key={tab}
-                                            label={`Page ${index + 1}`}
-                                            {...a11yProps(tab)}
-                                        />
-                                    ))}
-                                    {addButton}
-                                </Tabs>
-                                {tabs(activeTabRight)}
-                            </Grid>
-                            <Grid>
-                                <Tabs
-                                    value={activeTabLeft}
-                                    onChange={handleActiveTabChangeLeft}
-                                >
-                                    {Object.entries(buildTableReq).map(
-                                        ([tab, data], index) =>
-                                            data && (
-                                                <Tab
-                                                    key={tab}
-                                                    label={`Page ${index + 1}`}
-                                                    {...a11yProps(tab)}
-                                                />
-                                            ),
-                                    )}
-                                </Tabs>
-                                {tabs(activeTabLeft)}
-                            </Grid>
-                        </Grid>
+                        {buildTableReq && <DataTable input={buildTableReq} />}
                     </Suspense>
                 </TopBar>
             </InputStateContextProvider>

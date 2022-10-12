@@ -92,12 +92,15 @@ export const AppWrapper = () => {
         })
     })
 
-    const copyTable = (tableData: GenerateTableDataRequest) => {
+    const copyTable = (tableData: GenerateTableDataRequest | undefined) => {
+        if (tableData === undefined) { return }
         const data = {
             ...tableData,
             name: 'Shared Content'
         }
-        navigator.clipboard.writeText(JSON.stringify(data, null, 2))
+        navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
+            // show snackbar
+        })
     }
 
     return (

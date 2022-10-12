@@ -9,6 +9,7 @@ import { useColorMode } from "./App"
 
 interface TopBarProps {
     onRunClick: () => void
+    onCompareClick: () => void
 }
 
 export default function TopBar(props: PropsWithChildren<TopBarProps>) {
@@ -34,14 +35,25 @@ export default function TopBar(props: PropsWithChildren<TopBarProps>) {
                             alignItems: "center",
                         }}
                     >
-                        <Button
-                            sx={{ mr: 2 }}
-                            startIcon={<PlayArrowIcon />}
-                            color="inherit"
-                            onClick={props.onRunClick}
-                        >
-                            Run
-                        </Button>
+                        <Box>
+                            <Button
+                                sx={{ mr: 2 }}
+                                startIcon={<PlayArrowIcon />}
+                                color="inherit"
+                                onClick={props.onRunClick}
+                            >
+                                Run
+                            </Button>
+                            <Button
+                                sx={{ mr: 2 }}
+                                startIcon={<PlayArrowIcon />}
+                                color="inherit"
+                                onClick={props.onCompareClick}
+                            >
+                                Compare
+                            </Button>
+                        </Box>
+
                         <IconButton
                             sx={{ ml: 1 }}
                             onClick={colorMode.toggleColorMode}

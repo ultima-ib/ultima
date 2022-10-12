@@ -10,6 +10,7 @@ import {
     TableCell,
 } from "@mui/material"
 import { fancyZip } from "../utils"
+import {forwardRef} from "react";
 
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
@@ -22,9 +23,10 @@ const formatValue = (value: string | null | number) => {
 }
 interface DataTableProps {
     input: GenerateTableDataRequest
+    unique: string
 }
 
-const DataTable = (props: DataTableProps) => {
+const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>((props, ref) => {
     const { data, error } = useTableData(props.input)
     if (error || !data) {
         return <>{error}</>
@@ -36,18 +38,18 @@ const DataTable = (props: DataTableProps) => {
         <Paper sx={{ overflow: "hidden", width: "100%" }}>
             <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
                 <Table stickyHeader>
-                    <TableHead>
+                    <TableHead ref={ref}>
                         <TableRow>
                             {headers.map((it) => (
-                                <TableCell key={it}>{it}</TableCell>
+                                <TableCell key={props.unique + it}>{it}</TableCell>
                             ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {zipped.map((values, index) => (
-                            <TableRow key={headers[index]}>
+                            <TableRow key={props.unique + headers[index]}>
                                 {values.map((it) => (
-                                    <TableCell key={it}>
+                                    <TableCell key={props.unique + it}>
                                         {formatValue(it)}
                                     </TableCell>
                                 ))}
@@ -58,6 +60,6 @@ const DataTable = (props: DataTableProps) => {
             </TableContainer>
         </Paper>
     )
-}
+})
 
 export default DataTable

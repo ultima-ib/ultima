@@ -47,7 +47,7 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>((props, re
                     </TableHead>
                     <TableBody>
                         {zipped.map((values, index) => (
-                            <TableRow key={props.unique + headers[index]}>
+                            <TableRow key={props.unique + index + headers[index]}>
                                 {values.map((it) => (
                                     <TableCell key={props.unique + it}>
                                         {formatValue(it)}

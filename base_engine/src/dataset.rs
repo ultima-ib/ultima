@@ -126,7 +126,6 @@ impl Serialize for dyn DataSet {
     where
         S: Serializer,
     {
-        //let df = self.frame();
         let measures = self
             .measures()
             .iter()

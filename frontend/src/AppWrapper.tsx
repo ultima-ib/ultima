@@ -17,7 +17,6 @@ export const AppWrapper = () => {
 
     const calcParams = useRef<Record<string, string>>({})
     const onCalcParamsChange = (name: string, value: string) => {
-        console.log("calc param change")
         calcParams.current[name] = value
     }
 
@@ -93,6 +92,17 @@ export const AppWrapper = () => {
         })
     })
 
+    const copyTable = (tableData: GenerateTableDataRequest | undefined) => {
+        if (tableData === undefined) { return }
+        const data = {
+            ...tableData,
+            name: 'Shared Content'
+        }
+        navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
+            // show snackbar
+        })
+    }
+
     return (
         <Box sx={{ display: "flex", height: "100%" }}>
             <InputStateContextProvider
@@ -105,7 +115,8 @@ export const AppWrapper = () => {
                 <TopBar
                     onRunClick={run(setBuildTableReq)}
                     onCompareClick={run(setBuildComparisonTableReq)}
-                >
+                    copyMainTable={() => copyTable(buildTableReq)}
+                    copyComparisonTable={() => copyTable(buildComparisonTableReq)}>
                     <Suspense fallback="Loading...">
                         <Box
                             sx={{

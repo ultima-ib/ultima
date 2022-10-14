@@ -501,7 +501,7 @@ const Aside = (props: {
                             />
                         </Box>
                         <Box sx={{ overflowY: "auto", maxHeight: "80vh" }}>
-                            {columns.calcParams.map((it) => (
+                            {/*{columns.calcParams.map((it) => (
                                 <TextField
                                     key={it.name}
                                     label={it.name}
@@ -515,7 +515,8 @@ const Aside = (props: {
                                     }}
                                     variant="filled"
                                 />
-                            ))}
+                            ))}*/}
+                        {/*  We need to display a large   */}
                         </Box>
                     </TabPanel>
                 </Stack>

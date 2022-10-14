@@ -10,7 +10,7 @@ import {
     TableCell,
 } from "@mui/material"
 import { fancyZip } from "../utils"
-import {forwardRef} from "react";
+import { forwardRef } from "react"
 
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
@@ -26,40 +26,53 @@ interface DataTableProps {
     unique: string
 }
 
-const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>((props, ref) => {
-    const { data, error } = useTableData(props.input)
-    if (error || !data) {
-        return <>{error}</>
-    }
-    const headers = data.columns.map((it) => it.name)
-    const zipped = fancyZip(data.columns.map((col) => col.values))
+const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
+    (props, ref) => {
+        const { data, error } = useTableData(props.input)
+        if (error || !data) {
+            return <>{error}</>
+        }
+        const headers = data.columns.map((it) => it.name)
+        const zipped = fancyZip(data.columns.map((col) => col.values))
 
-    return (
-        <Paper sx={{ overflow: "hidden", width: "100%" }}>
-            <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
-                <Table stickyHeader>
-                    <TableHead ref={ref}>
-                        <TableRow>
-                            {headers.map((it) => (
-                                <TableCell key={props.unique + it}>{it}</TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {zipped.map((values, index) => (
-                            <TableRow key={props.unique + index + headers[index]}>
-                                {values.map((it) => (
+        console.log(zipped)
+        return (
+            <Paper sx={{ overflow: "hidden", width: "100%" }}>
+                <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
+                    <Table stickyHeader>
+                        <TableHead ref={ref}>
+                            <TableRow>
+                                {headers.map((it) => (
                                     <TableCell key={props.unique + it}>
-                                        {formatValue(it)}
+                                        {it}
                                     </TableCell>
                                 ))}
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Paper>
-    )
-})
+                        </TableHead>
+                        <TableBody>
+                            {zipped.map((values, index) => (
+                                <TableRow key={props.unique + index}>
+                                    {values.map((it, innerIndex) => (
+                                        <TableCell
+                                            key={
+                                                props.unique +
+                                                innerIndex +
+                                                headers[innerIndex] +
+                                                index +
+                                                it
+                                            }
+                                        >
+                                            {formatValue(it)}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
+        )
+    },
+)
 
 export default DataTable

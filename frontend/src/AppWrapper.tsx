@@ -1,5 +1,5 @@
 import Aside from "./aside"
-import {useReducer, useRef, useState, Suspense, useEffect} from "react"
+import { useReducer, useRef, useState, Suspense, useEffect } from "react"
 import { useFRTB } from "./api/hooks"
 import {
     InputStateContext,
@@ -17,6 +17,7 @@ export const AppWrapper = () => {
 
     const calcParams = useRef<Record<string, string>>({})
     const onCalcParamsChange = (name: string, value: string) => {
+        console.log("calc param change")
         calcParams.current[name] = value
     }
 
@@ -44,11 +45,15 @@ export const AppWrapper = () => {
 
     const [context, dispatcher] = useReducer(inputStateReducer, init)
 
-    const [buildTableReq, setBuildTableReq] = useState<GenerateTableDataRequest | undefined>(undefined)
-    const [buildComparisonTableReq, setBuildComparisonTableReq] = useState<GenerateTableDataRequest | undefined>(undefined)
+    const [buildTableReq, setBuildTableReq] = useState<
+        GenerateTableDataRequest | undefined
+    >(undefined)
+    const [buildComparisonTableReq, setBuildComparisonTableReq] = useState<
+        GenerateTableDataRequest | undefined
+    >(undefined)
 
-    const mainDataTableHeadRef = useRef<HTMLTableSectionElement | null>(null);
-    const compareDataTableRef = useRef<HTMLTableSectionElement | null>(null);
+    const mainDataTableHeadRef = useRef<HTMLTableSectionElement | null>(null)
+    const compareDataTableRef = useRef<HTMLTableSectionElement | null>(null)
 
     const run = (setter: typeof setBuildTableReq) => () => {
         const data = context.dataSet
@@ -97,14 +102,31 @@ export const AppWrapper = () => {
                 }}
             >
                 <Aside onCalcParamsChange={onCalcParamsChange} />
-                <TopBar onRunClick={run(setBuildTableReq)} onCompareClick={run(setBuildComparisonTableReq)}>
+                <TopBar
+                    onRunClick={run(setBuildTableReq)}
+                    onCompareClick={run(setBuildComparisonTableReq)}
+                >
                     <Suspense fallback="Loading...">
-                        <Box sx={{
-                            display: 'flex',
-                            gap: 2,
-                        }}>
-                            {buildTableReq && <DataTable unique='main' ref={mainDataTableHeadRef} input={buildTableReq} />}
-                            {buildComparisonTableReq && <DataTable unique='comp' ref={compareDataTableRef} input={buildComparisonTableReq} />}
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                            }}
+                        >
+                            {buildTableReq && (
+                                <DataTable
+                                    unique="main"
+                                    ref={mainDataTableHeadRef}
+                                    input={buildTableReq}
+                                />
+                            )}
+                            {buildComparisonTableReq && (
+                                <DataTable
+                                    unique="comp"
+                                    ref={compareDataTableRef}
+                                    input={buildComparisonTableReq}
+                                />
+                            )}
                         </Box>
                     </Suspense>
                 </TopBar>

@@ -15,19 +15,29 @@ const JSONTemplateDialog = (props: {
     open: [boolean, Dispatch<SetStateAction<boolean>>]
 }) => {
     const [open, setOpen] = props.open
+    const [helperText, setHelperText] = useState('')
+    const error = helperText !== ''
     const inputs = useInputs()
 
     const textFieldRef = useRef<HTMLTextAreaElement | null>(null)
 
     const handleClose = () => {
+        setHelperText('')
         setOpen(false)
     }
 
     const setTemplate = () => {
         if (textFieldRef.current) {
+            let data;
+            try {
+                data = JSON.parse(textFieldRef.current.value)
+            } catch (e) {
+                setHelperText(`Failed to parse JSON: ${e}`)
+                return
+            }
             inputs.dispatcher({
                 type: InputStateUpdate.TemplateSelect,
-                data: JSON.parse(textFieldRef.current.value),
+                data,
             })
         }
         handleClose()
@@ -37,9 +47,13 @@ const JSONTemplateDialog = (props: {
             <DialogTitle>Custom Template</DialogTitle>
             <DialogContent>
                 <TextField
+                    error={error}
                     multiline
-                    label="Copied JSON"
+                    helperText={helperText}
+                    label="JSON"
                     inputRef={textFieldRef}
+                    fullWidth
+                    sx={{marginTop: 2, marginBottom: 2}}
                 />
             </DialogContent>
             <DialogActions>
@@ -79,7 +93,7 @@ export const Templates = () => {
     return (
         <>
             <Box sx={{ display: "flex" }}>
-                <FormControl fullWidth variant="filled">
+                <FormControl fullWidth variant="filled" sx={{ my: 1, mx: 1 }}>
                     <InputLabel id={labelId}>Templates</InputLabel>
                     <Select
                         labelId={labelId}

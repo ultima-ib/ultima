@@ -105,18 +105,21 @@ pub(crate) fn utf8_columns(df: &DataFrame) -> Vec<String> {
     res
 }
 
-//pub(crate) fn utf8_columns_unique_vals(df: &DataFrame) -> PolarsResult<HashMap<String, Vec<Option<String>>>> {
-//    let mut res = HashMap::new();
-//    for c in df.get_columns() {
-//        if let DataType::Utf8 = c.dtype() {
-//            res.insert(c.name().to_string(),
-//             c.unique()?.utf8()?.into_iter()
-//                .map(|x|
-//                    x.map(|y|y.to_string())).collect::<Vec<Option<String>>>());
-//        }
-//    }
-//    Ok(res)
-//}
+/// DataTypes supported for overrides are defined in [overrides::string_to_lit]
+pub(crate) fn overrides_columns(df: &DataFrame) -> Vec<String> {
+    let mut res = vec![];
+    for c in df.get_columns() {
+        match c.dtype() {
+            DataType::Utf8|DataType::Boolean|DataType::Float64 => res.push(c.name().to_string()),
+            DataType::List(x)  => match x.as_ref(){
+                DataType::Float64 => res.push(c.name().to_string()),
+                _ => (),
+            },
+            _ => (),
+        }
+    }
+    res
+}
 
 impl Serialize for dyn DataSet {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -132,13 +135,15 @@ impl Serialize for dyn DataSet {
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
         let utf8_cols = utf8_columns(self.frame());
+        let ovrrd_cols = overrides_columns(self.frame());
         let calc_params = self.calc_params();
 
-        let mut seq = serializer.serialize_map(Some(3))?;
+        let mut seq = serializer.serialize_map(Some(4))?;
 
         seq.serialize_entry("fields", &utf8_cols)?;
         seq.serialize_entry("measures", &ordered_measures)?;
         seq.serialize_entry("calc_params", &calc_params)?;
+        seq.serialize_entry("overrides", &ovrrd_cols)?;
         seq.end()
     }
 }

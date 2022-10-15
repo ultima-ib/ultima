@@ -12,3 +12,19 @@ export const mapFilters = (f: Filters): Filter[][] =>
             (it) => hasValue(it.value) && hasValue(it.op) && hasValue(it.field),
         ),
     )
+
+export const fancyFilter = <T>(
+    array: T[],
+    predicate: (it: T) => boolean,
+): [T[], T[]] => {
+    const unmatched: T[] = []
+    const matched = array.filter((it) => {
+        if (predicate(it)) {
+            return true
+        } else {
+            unmatched.push(it)
+            return false
+        }
+    })
+    return [matched, unmatched]
+}

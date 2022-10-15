@@ -1,10 +1,9 @@
 use polars::prelude::*;
 use polars_arrow::export::arrow;
 use pyo3::exceptions::PyValueError;
-use pyo3::ffi::{Py_uintptr_t, PyListObject};
+use pyo3::ffi::Py_uintptr_t;
 use pyo3::prelude::*;
-use pyo3::types::PyList;
-use pyo3::{PyAny, PyObject, PyResult};
+use pyo3::{PyAny, PyResult};
 use rayon::prelude::*;
 
 pub fn main(bucket: String, files: Vec<String>) -> Vec<DataFrame> {

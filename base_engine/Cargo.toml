@@ -8,11 +8,14 @@ edition = "2021"
 [dependencies]
 serde = {workspace = true, features=["derive"]}
 polars = {workspace = true, features=["strings", "ndarray", "lazy", "is_in", "dtype-categorical", "serde", "csv-file", "diagonal_concat", "list"]}
+polars-arrow = {version="0.24.3"}
+pyo3 = {version="0.17.2"}
 serde_json = {workspace = true}
 toml = {workspace = true}
 once_cell = {workspace = true}
 log = "0.4"
 derivative = "2.2"
+rayon="1.5.3"
 
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.

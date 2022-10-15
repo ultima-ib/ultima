@@ -16,6 +16,7 @@ const CalcParamsList = () => {
                     label={it.name}
                     value={state.calcParams[it.name]}
                     helperText={it.helperText}
+                    fullWidth
                     onChange={(e) => {
                         dispatch({
                             type: CalcParamsReducerActionType.SetValue,

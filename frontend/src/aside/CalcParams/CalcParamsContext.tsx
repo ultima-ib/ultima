@@ -20,7 +20,7 @@ export interface CalcParamsContext {
 
 const Context = createContext<CalcParamsContext | null>(null)
 
-export const ContextProvider = (props: PropsWithChildren<never>) => {
+export const ContextProvider = (props: PropsWithChildren) => {
     const inputs = useInputs()
 
     const [state, dispatch] = useReducer(

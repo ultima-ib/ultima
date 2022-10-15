@@ -49,7 +49,7 @@ export function reducer(
                 selected: [...prevState.selected, selected],
                 calcParams: {
                     ...prevState.calcParams,
-                    [selected.name]: "data.value",
+                    [selected.name]: '',
                 },
             }
         }

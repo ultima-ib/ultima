@@ -6,6 +6,7 @@ const hasValue = <T>(it: T | null | undefined): boolean =>
 
 export const fancyZip = <T>(rows: T[][]): T[][] =>
     rows[0].map((_, c) => rows.map((row) => row[c]))
+
 export const mapFilters = (f: Filters): Filter[][] =>
     Object.values(f).map((ands) =>
         Object.values(ands).filter(

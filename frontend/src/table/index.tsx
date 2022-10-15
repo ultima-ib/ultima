@@ -21,6 +21,7 @@ const formatValue = (value: string | null | number) => {
         return value.toFixed(2)
     }
 }
+
 interface DataTableProps {
     input: GenerateTableDataRequest
     unique: string
@@ -51,16 +52,14 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                         </TableHead>
                         <TableBody>
                             {zipped.map((values, index) => (
-                                <TableRow key={props.unique + index}>
+                                <TableRow
+                                    key={`${props.unique}${index.toString()}`}
+                                >
                                     {values.map((it, innerIndex) => (
                                         <TableCell
-                                            key={
-                                                props.unique +
-                                                innerIndex +
-                                                headers[innerIndex] +
-                                                index +
-                                                it
-                                            }
+                                            key={`${props.unique}${
+                                                headers[innerIndex]
+                                            }${index}${it?.toString() ?? ""}`}
                                         >
                                             {formatValue(it)}
                                         </TableCell>
@@ -74,5 +73,7 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         )
     },
 )
+
+DataTable.displayName = "DataTable"
 
 export default DataTable

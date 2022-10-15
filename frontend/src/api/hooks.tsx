@@ -1,4 +1,10 @@
-import { AGG_TYPES, FRTB as FRTB_ROUTE, COLUMNS, TEMPLATES, OVERRIDES } from "./routes"
+import {
+    AGG_TYPES,
+    FRTB as FRTB_ROUTE,
+    COLUMNS,
+    TEMPLATES,
+    OVERRIDES,
+} from "./routes"
 import useFetch from "fetch-suspense"
 import {
     GenerateTableDataRequest,

@@ -44,6 +44,10 @@ pub trait DataSet: Send + Sync {
     fn calc_params(&self) -> Vec<CalcParameter> {
         vec![]
     }
+
+    fn overridable_columns(&self) -> Vec<String> {
+        overrides_columns(self.frame())
+    }
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
@@ -105,25 +109,27 @@ pub(crate) fn utf8_columns(df: &DataFrame) -> Vec<String> {
     res
 }
 
-//pub(crate) fn utf8_columns_unique_vals(df: &DataFrame) -> PolarsResult<HashMap<String, Vec<Option<String>>>> {
-//    let mut res = HashMap::new();
-//    for c in df.get_columns() {
-//        if let DataType::Utf8 = c.dtype() {
-//            res.insert(c.name().to_string(),
-//             c.unique()?.utf8()?.into_iter()
-//                .map(|x|
-//                    x.map(|y|y.to_string())).collect::<Vec<Option<String>>>());
-//        }
-//    }
-//    Ok(res)
-//}
+/// DataTypes supported for overrides are defined in [overrides::string_to_lit]
+pub(crate) fn overrides_columns(df: &DataFrame) -> Vec<String> {
+    let mut res = vec![];
+    for c in df.get_columns() {
+        match c.dtype() {
+            DataType::Utf8|DataType::Boolean|DataType::Float64 => res.push(c.name().to_string()),
+            DataType::List(x)  => match x.as_ref(){
+                DataType::Float64 => res.push(c.name().to_string()),
+                _ => (),
+            },
+            _ => (),
+        }
+    }
+    res
+}
 
 impl Serialize for dyn DataSet {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        //let df = self.frame();
         let measures = self
             .measures()
             .iter()
@@ -134,7 +140,7 @@ impl Serialize for dyn DataSet {
         let utf8_cols = utf8_columns(self.frame());
         let calc_params = self.calc_params();
 
-        let mut seq = serializer.serialize_map(Some(3))?;
+        let mut seq = serializer.serialize_map(Some(4))?;
 
         seq.serialize_entry("fields", &utf8_cols)?;
         seq.serialize_entry("measures", &ordered_measures)?;

@@ -17,6 +17,7 @@ import { Dispatch, SetStateAction, useState } from "react"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 import { Override } from "./types"
 import { mapFilters } from "../utils"
+import { useOverrides } from "../api/hooks"
 
 let overrideUsed = 0
 
@@ -31,11 +32,10 @@ const OverridesDialog = (props: {
     }
 
     const handleSetOverrides = () => {
-        console.log(inputs.overrides)
         setOpen(false)
     }
 
-    const fields = inputs.dataSet.fields
+    const fields = useOverrides()
 
     const updateOverride = (
         index: number,

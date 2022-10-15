@@ -15,11 +15,6 @@ import { mapFilters } from "./utils"
 export const AppWrapper = () => {
     const frtb = useFRTB()
 
-    const calcParams = useRef<Record<string, string>>({})
-    const onCalcParamsChange = (name: string, value: string) => {
-        calcParams.current[name] = value
-    }
-
     const init: InputStateContext = {
         dataSet: {
             fields: frtb.fields,
@@ -37,7 +32,7 @@ export const AppWrapper = () => {
         aggData: {},
         hideZeros: false,
         totals: false,
-        calcParamsUpdater: onCalcParamsChange,
+        calcParams: {},
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         dispatcher: () => {},
     }
@@ -71,7 +66,7 @@ export const AppWrapper = () => {
             overrides: Object.values(context.overrides),
             hide_zeros: context.hideZeros,
             totals: context.totals,
-            calc_params: calcParams.current,
+            calc_params: context.calcParams,
         }
         setter(obj)
         console.log(JSON.stringify(obj, null, 2))
@@ -82,8 +77,7 @@ export const AppWrapper = () => {
             if (mainDataTableHeadRef.current && compareDataTableRef.current) {
                 const mainHead = mainDataTableHeadRef.current
                 const compareHead = compareDataTableRef.current
-                console.log(mainHead.scrollHeight, compareHead.scrollHeight)
-                if (mainHead?.scrollHeight > compareHead?.scrollHeight) {
+                if (mainHead.scrollHeight > compareHead.scrollHeight) {
                     compareHead.style.height = `${mainHead.scrollHeight}px`
                 } else {
                     mainHead.style.height = `${compareHead.scrollHeight}px`
@@ -93,14 +87,21 @@ export const AppWrapper = () => {
     })
 
     const copyTable = (tableData: GenerateTableDataRequest | undefined) => {
-        if (tableData === undefined) { return }
+        if (tableData === undefined) {
+            return
+        }
         const data = {
             ...tableData,
-            name: 'Shared Content'
+            name: "Shared Content",
         }
-        navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(() => {
-            // show snackbar
-        })
+        navigator.clipboard
+            .writeText(JSON.stringify(data, null, 2))
+            .then(() => {
+                // todo: show snackbar
+            })
+            .catch(() => {
+                // todo: show snackbar
+            })
     }
 
     return (
@@ -111,13 +112,22 @@ export const AppWrapper = () => {
                     dispatcher,
                 }}
             >
-                <Aside onCalcParamsChange={onCalcParamsChange} />
+                <Aside />
                 <TopBar
                     onRunClick={run(setBuildTableReq)}
-                    onCompareClick={buildComparisonTableReq ? () => setBuildComparisonTableReq(undefined) : run(setBuildComparisonTableReq) }
-                    compareButtonLabel={buildComparisonTableReq ? 'Stop Comparing' : 'Compare'}
+                    onCompareClick={
+                        buildComparisonTableReq
+                            ? () => setBuildComparisonTableReq(undefined)
+                            : run(setBuildComparisonTableReq)
+                    }
+                    compareButtonLabel={
+                        buildComparisonTableReq ? "Stop Comparing" : "Compare"
+                    }
                     copyMainTable={() => copyTable(buildTableReq)}
-                    copyComparisonTable={() => copyTable(buildComparisonTableReq)}>
+                    copyComparisonTable={() =>
+                        copyTable(buildComparisonTableReq)
+                    }
+                >
                     <Suspense fallback="Loading...">
                         <Box
                             sx={{

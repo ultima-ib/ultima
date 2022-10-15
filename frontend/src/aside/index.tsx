@@ -38,6 +38,7 @@ import DeleteIcon from "@mui/icons-material/Close"
 import { Overrides } from "./Overrides"
 import { Templates } from "./Templates"
 import { useTheme } from "@mui/material/styles"
+import CalcParams from "./CalcParams"
 
 interface ResizableProps {
     top?: boolean
@@ -272,9 +273,7 @@ const DeleteButton = (props: {
     )
 }
 
-const Aside = (props: {
-    onCalcParamsChange: (name: string, value: string) => void
-}) => {
+const Aside = () => {
     const inputs = useInputs()
     const columns = inputs.dataSet
     const onDragEnd = (result: DropResult): void => {
@@ -463,7 +462,7 @@ const Aside = (props: {
                     <TabPanel
                         value={activeTab}
                         index={1}
-                        sx={{ height: "100%" }}
+                        sx={{ height: "100%", overflow: "hidden" }}
                     >
                         <Box>
                             <FormControlLabel
@@ -501,21 +500,7 @@ const Aside = (props: {
                             />
                         </Box>
                         <Box sx={{ overflowY: "auto", maxHeight: "80vh" }}>
-                            {columns.calcParams.map((it) => (
-                                <TextField
-                                    key={it.name}
-                                    label={it.name}
-                                    defaultValue={it.defaultValue}
-                                    helperText={it.helperText}
-                                    onChange={(e) => {
-                                        props.onCalcParamsChange(
-                                            it.name,
-                                            e.target.value,
-                                        )
-                                    }}
-                                    variant="filled"
-                                />
-                            ))}
+                            <CalcParams />
                         </Box>
                     </TabPanel>
                 </Stack>

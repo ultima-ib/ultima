@@ -1,9 +1,18 @@
 import {
-    FormControl, IconButton, Box,
+    FormControl,
+    IconButton,
+    Box,
     InputLabel,
     MenuItem,
     Select,
-    SelectChangeEvent, Tooltip, DialogTitle, DialogContent, TextField, DialogActions, Button, Dialog,
+    SelectChangeEvent,
+    Tooltip,
+    DialogTitle,
+    DialogContent,
+    TextField,
+    DialogActions,
+    Button,
+    Dialog,
 } from "@mui/material"
 import { useTemplates } from "../api/hooks"
 import { Dispatch, SetStateAction, useId, useRef, useState } from "react"
@@ -15,24 +24,24 @@ const JSONTemplateDialog = (props: {
     open: [boolean, Dispatch<SetStateAction<boolean>>]
 }) => {
     const [open, setOpen] = props.open
-    const [helperText, setHelperText] = useState('')
-    const error = helperText !== ''
+    const [helperText, setHelperText] = useState("")
+    const error = helperText !== ""
     const inputs = useInputs()
 
     const textFieldRef = useRef<HTMLTextAreaElement | null>(null)
 
     const handleClose = () => {
-        setHelperText('')
+        setHelperText("")
         setOpen(false)
     }
 
     const setTemplate = () => {
         if (textFieldRef.current) {
-            let data;
+            let data: Template
             try {
-                data = JSON.parse(textFieldRef.current.value)
+                data = JSON.parse(textFieldRef.current.value) as Template
             } catch (e) {
-                setHelperText(`Failed to parse JSON: ${e}`)
+                setHelperText(`Failed to parse JSON: ${e as string}`)
                 return
             }
             inputs.dispatcher({
@@ -53,7 +62,7 @@ const JSONTemplateDialog = (props: {
                     label="JSON"
                     inputRef={textFieldRef}
                     fullWidth
-                    sx={{marginTop: 2, marginBottom: 2}}
+                    sx={{ marginTop: 2, marginBottom: 2 }}
                 />
             </DialogContent>
             <DialogActions>
@@ -66,7 +75,9 @@ const JSONTemplateDialog = (props: {
 export const Templates = () => {
     const templates = useTemplates()
     const inputs = useInputs()
-    const [selectedTemplate, setSelectedTemplate] = useState<Template | undefined>(undefined)
+    const [selectedTemplate, setSelectedTemplate] = useState<
+        Template | undefined
+    >(undefined)
 
     const handleChange = (event: SelectChangeEvent) => {
         const name = event.target.value

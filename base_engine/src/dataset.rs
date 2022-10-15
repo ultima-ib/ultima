@@ -44,6 +44,10 @@ pub trait DataSet: Send + Sync {
     fn calc_params(&self) -> Vec<CalcParameter> {
         vec![]
     }
+
+    fn overridable_columns(&self) -> Vec<String> {
+        overrides_columns(self.frame())
+    }
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
@@ -134,7 +138,6 @@ impl Serialize for dyn DataSet {
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
         let utf8_cols = utf8_columns(self.frame());
-        let ovrrd_cols = overrides_columns(self.frame());
         let calc_params = self.calc_params();
 
         let mut seq = serializer.serialize_map(Some(4))?;
@@ -142,7 +145,6 @@ impl Serialize for dyn DataSet {
         seq.serialize_entry("fields", &utf8_cols)?;
         seq.serialize_entry("measures", &ordered_measures)?;
         seq.serialize_entry("calc_params", &calc_params)?;
-        seq.serialize_entry("overrides", &ovrrd_cols)?;
         seq.end()
     }
 }

@@ -88,54 +88,6 @@ async fn column_search(
 async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
     web::Json(ds)
 }
-/* TODO this is not good enough, as we need to return a more detailed message to the client
-pub fn error_chain_fmt(
-    e: &impl std::error::Error,
-    f: &mut std::fmt::Formatter<'_>,
-) -> std::fmt::Result {
-    writeln!(f, "{}\n", e)?;
-    let mut current = e.source();
-    while let Some(cause) = current {
-        writeln!(f, "Caused by:\n\t{}", cause)?;
-        current = cause.source();
-    }
-    Ok(())
-}
-
-impl std::fmt::Debug for UserError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        error_chain_fmt(self, f)
-    }
-}
-
-/// Client facing error
-/// TODO return the above debug message to the client
-#[derive(thiserror::Error)]
-pub enum UserError {
-    #[error("Computation failed")]
-    ComputeError(#[source] anyhow::Error),
-    #[error("Something went wrong")]
-    UnexpectedError(#[from] anyhow::Error),
-}
-
-/// TODO we actually want to return more detailed error message to the client
-#[tracing::instrument( name = "Request Execution", skip(data) )]
-async fn execute(data: Data<Arc<dyn DataSet>>, req: web::Json<AggregationRequest>)
--> Result<HttpResponse, InternalError<UserError>>  {
-    let r = req.into_inner();
-    // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
-    let res = task::spawn_blocking(move || {
-        base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
-    }).await
-    .context("Failed to spawn blocking task.")
-    .map_err(|e|InternalError::new(UserError::UnexpectedError(e), StatusCode::INTERNAL_SERVER_ERROR))?;
-    match  res {
-        Ok(df) => Ok(HttpResponse::Ok().json(df)),
-        Err(e) => {tracing::error!("Failed to execute query: {:?}", e);
-                                    Err(InternalError::new(UserError::ComputeError(e.into()), StatusCode::INTERNAL_SERVER_ERROR))}
-    }
-}
-*/
 
 #[tracing::instrument(name = "Request Execution", skip(data))]
 async fn execute(
@@ -168,6 +120,10 @@ async fn measures() -> impl Responder {
 async fn templates(_: HttpRequest, templates: Data<Vec<AggregationRequest>>) -> impl Responder {
     web::Json(templates)
 }
+#[get("/overrides")]
+async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
+    web::Json(data.overridable_columns())
+}
 
 // TODO Why can't I use ds: impl DataSet ?
 pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<AggregationRequest>) -> std::io::Result<Server> {
@@ -191,6 +147,7 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<A
                         .route("", web::post().to(execute))
                         .service(column_search)
                         .service(templates)
+                        .service(overridable_columns)
                         .service(scenarios),
                 )
                 .route("/aggtypes", web::get().to(measures))

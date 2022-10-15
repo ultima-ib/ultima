@@ -114,7 +114,8 @@ export const AppWrapper = () => {
                 <Aside onCalcParamsChange={onCalcParamsChange} />
                 <TopBar
                     onRunClick={run(setBuildTableReq)}
-                    onCompareClick={run(setBuildComparisonTableReq)}
+                    onCompareClick={buildComparisonTableReq ? () => setBuildComparisonTableReq(undefined) : run(setBuildComparisonTableReq) }
+                    compareButtonLabel={buildComparisonTableReq ? 'Stop Comparing' : 'Compare'}
                     copyMainTable={() => copyTable(buildTableReq)}
                     copyComparisonTable={() => copyTable(buildComparisonTableReq)}>
                     <Suspense fallback="Loading...">

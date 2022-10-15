@@ -66,6 +66,7 @@ function CopyRequestToClipboardMenu(props: CopyRequestToClipboardMenuProps) {
 interface TopBarProps {
     onRunClick: () => void
     onCompareClick: () => void
+    compareButtonLabel: string
 }
 
 export default function TopBar(props: PropsWithChildren<TopBarProps & CopyRequestToClipboardMenuProps>) {
@@ -106,7 +107,7 @@ export default function TopBar(props: PropsWithChildren<TopBarProps & CopyReques
                                 color="inherit"
                                 onClick={props.onCompareClick}
                             >
-                                Compare
+                                {props.compareButtonLabel}
                             </Button>
                             <CopyRequestToClipboardMenu
                                 copyComparisonTable={props.copyComparisonTable}

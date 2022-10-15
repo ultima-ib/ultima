@@ -7,10 +7,13 @@ import { useState } from "react"
 
 const CalcParamsList = () => {
     const { state, dispatch } = useCalcParamsContext()
+    const list = state.list.filter((it) =>
+        Object.keys(state.calcParams).includes(it.name),
+    )
 
     return (
         <>
-            {state.selected.map((it) => (
+            {list.map((it) => (
                 <TextField
                     key={it.name}
                     label={it.name}
@@ -55,14 +58,16 @@ const AddCalcParam = () => {
             <Autocomplete
                 disablePortal
                 sx={{ flex: 1 }}
-                options={state.available}
+                options={state.list.filter(
+                    (it) => !Object.keys(state.calcParams).includes(it.name),
+                )}
                 getOptionLabel={(it) => it.name}
                 value={value}
                 onChange={(event, newValue) => {
                     setValue(newValue)
                 }}
                 renderInput={(params) => (
-                    <TextField {...params} variant="filled" label={"Field"} />
+                    <TextField {...params} variant="filled" label="Field" />
                 )}
             />
             <IconButton onClick={handleAdd}>

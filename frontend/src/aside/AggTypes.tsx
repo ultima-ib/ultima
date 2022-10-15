@@ -24,6 +24,7 @@ const Agg = (props: { field: string }) => {
     const id = useId()
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (ctx.aggData?.[props.field] === undefined) {
             const sum = aggTypes.find((it) => it.toLowerCase() === "sum")
             handleChange(sum ?? "")

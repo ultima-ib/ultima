@@ -5,7 +5,6 @@ import {
     useEffect,
     useReducer,
 } from "react"
-import { fancyFilter } from "../../utils"
 import {
     CalcParamsReducerAction,
     CalcParamsReducerState,
@@ -27,17 +26,20 @@ export const ContextProvider = (props: PropsWithChildren) => {
         reducer,
         { available: [], selected: [], calcParams: {} },
         (): CalcParamsReducerState => {
-            const [withDefaults, withoutDefaults] = fancyFilter(
-                inputs.dataSet.calcParams,
-                (it) => it.defaultValue !== null,
-            )
-            const calcParams: Record<string, string> = {}
-            withDefaults.forEach((it) => {
-                calcParams[it.name] = it.defaultValue!
-            })
+            const calcParams: Record<string, string> = inputs.calcParams
+            inputs.dataSet.calcParams
+                .filter(
+                    (it) =>
+                        it.defaultValue !== null &&
+                        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                        calcParams[it.name] === undefined,
+                )
+                .forEach((it) => {
+                    calcParams[it.name] = it.defaultValue!
+                })
+
             return {
-                available: withoutDefaults,
-                selected: withDefaults,
+                list: inputs.dataSet.calcParams,
                 calcParams,
             }
         },

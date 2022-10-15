@@ -462,7 +462,7 @@ const Aside = () => {
                     <TabPanel
                         value={activeTab}
                         index={1}
-                        sx={{ height: "100%" }}
+                        sx={{ height: "100%", overflow: "hidden" }}
                     >
                         <Box>
                             <FormControlLabel

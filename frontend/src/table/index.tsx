@@ -21,6 +21,7 @@ const formatValue = (value: string | null | number) => {
         return value.toFixed(2)
     }
 }
+
 interface DataTableProps {
     input: GenerateTableDataRequest
     unique: string
@@ -58,7 +59,7 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                                         <TableCell
                                             key={`${props.unique}${
                                                 headers[innerIndex]
-                                            }${index}${it.toString()}`}
+                                            }${index}${it?.toString() ?? ""}`}
                                         >
                                             {formatValue(it)}
                                         </TableCell>

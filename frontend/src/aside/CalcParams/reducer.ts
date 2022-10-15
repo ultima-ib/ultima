@@ -6,8 +6,8 @@ export enum CalcParamsReducerActionType {
 }
 
 export interface CalcParamsReducerState {
-    available: CalcParam[]
-    selected: CalcParam[]
+    list: CalcParam[]
+    // name: <value>
     calcParams: Record<string, string>
 }
 
@@ -42,17 +42,15 @@ export function reducer(
         }
         case CalcParamsReducerActionType.AddCalcParam: {
             const data = action.data as AddAction
-            console.log(data)
             const selected = data.param
             return {
-                available: prevState.available.filter((it) => it !== selected),
-                selected: [...prevState.selected, selected],
+                ...prevState,
                 calcParams: {
                     ...prevState.calcParams,
-                    [selected.name]: '',
+                    [selected.name]: "",
                 },
             }
         }
     }
-    return { available: [], selected: [], calcParams: {} }
+    return { list: [], calcParams: {} }
 }

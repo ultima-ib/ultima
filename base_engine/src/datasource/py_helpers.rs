@@ -16,7 +16,7 @@ pub fn main(bucket: String, files: Vec<String>) -> Vec<DataFrame> {
             let from_python = Python::with_gil(|py|-> PyResult<Vec<Series>> {
                 
                 let app: Py<PyAny> = PyModule::from_code(py, test, "", "")?
-                    .getattr("s3_csv_to_lst_srs")?
+                    .getattr("s3_csv_filename_to_lst_srs")?
                     .into();
             
                 let r: Vec<Py<PyAny>> = app.call1(py, (bucket.clone(), s) )?.extract(py)?;

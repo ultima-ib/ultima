@@ -13,6 +13,7 @@ export enum InputStateUpdate {
     AggData,
     Overrides,
     TemplateSelect,
+    CalcParamUpdate,
 }
 
 type Data = Partial<Omit<InputStateContext, "dispatcher">>
@@ -90,9 +91,6 @@ export function inputStateReducer(
                 field: override.field,
                 filters: buildFilters(override.filters),
             }))
-            Object.entries(data.calc_params).forEach(([name, value]) => {
-                state.calcParamsUpdater(name, value)
-            })
 
             const aggData: Record<string, string> = {}
             data.measures.forEach(([key, value]) => {
@@ -103,7 +101,14 @@ export function inputStateReducer(
                 filters: buildFilters(data.filters),
                 hideZeros: data.hide_zeros,
                 totals: data.totals,
+                calcParams: data.calc_params,
                 aggData,
+            }
+            break
+        }
+        case InputStateUpdate.CalcParamUpdate: {
+            update = {
+                calcParams: action.data.calcParams,
             }
         }
     }
@@ -138,7 +143,7 @@ export interface InputStateContext {
     overrides: Record<number, Override>
     hideZeros: boolean
     totals: boolean
-    calcParamsUpdater: (name: string, value: string) => void
+    calcParams: Record<string, string>
     dispatcher: (params: { type: InputStateUpdate; data: Data }) => void
 }
 

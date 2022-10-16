@@ -10,6 +10,7 @@ import {
     TableCell,
 } from "@mui/material"
 import { fancyZip } from "../utils"
+import { forwardRef } from "react"
 
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
@@ -20,44 +21,59 @@ const formatValue = (value: string | null | number) => {
         return value.toFixed(2)
     }
 }
+
 interface DataTableProps {
     input: GenerateTableDataRequest
+    unique: string
 }
 
-const DataTable = (props: DataTableProps) => {
-    const { data, error } = useTableData(props.input)
-    if (error || !data) {
-        return <>{error}</>
-    }
-    const headers = data.columns.map((it) => it.name)
-    const zipped = fancyZip(data.columns.map((col) => col.values))
+const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
+    (props, ref) => {
+        const { data, error } = useTableData(props.input)
+        if (error || !data) {
+            return <>{error}</>
+        }
+        const headers = data.columns.map((it) => it.name)
+        const zipped = fancyZip(data.columns.map((col) => col.values))
 
-    return (
-        <Paper sx={{ overflow: "hidden", width: "100%" }}>
-            <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
-                <Table stickyHeader>
-                    <TableHead>
-                        <TableRow>
-                            {headers.map((it) => (
-                                <TableCell key={it}>{it}</TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {zipped.map((values, index) => (
-                            <TableRow key={headers[index]}>
-                                {values.map((it) => (
-                                    <TableCell key={it}>
-                                        {formatValue(it)}
+        console.log(zipped)
+        return (
+            <Paper sx={{ overflow: "hidden", width: "100%" }}>
+                <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
+                    <Table stickyHeader>
+                        <TableHead ref={ref}>
+                            <TableRow>
+                                {headers.map((it) => (
+                                    <TableCell key={props.unique + it}>
+                                        {it}
                                     </TableCell>
                                 ))}
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Paper>
-    )
-}
+                        </TableHead>
+                        <TableBody>
+                            {zipped.map((values, index) => (
+                                <TableRow
+                                    key={`${props.unique}${index.toString()}`}
+                                >
+                                    {values.map((it, innerIndex) => (
+                                        <TableCell
+                                            key={`${props.unique}${
+                                                headers[innerIndex]
+                                            }${index}${it?.toString() ?? ""}`}
+                                        >
+                                            {formatValue(it)}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
+        )
+    },
+)
+
+DataTable.displayName = "DataTable"
 
 export default DataTable

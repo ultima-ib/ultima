@@ -1,5 +1,5 @@
 import Aside from "./aside"
-import { useReducer, useRef, useState, Suspense } from "react"
+import { useReducer, useRef, useState, Suspense, useEffect } from "react"
 import { useFRTB } from "./api/hooks"
 import {
     InputStateContext,
@@ -14,11 +14,6 @@ import { mapFilters } from "./utils"
 
 export const AppWrapper = () => {
     const frtb = useFRTB()
-
-    const calcParams = useRef<Record<string, string>>({})
-    const onCalcParamsChange = (name: string, value: string) => {
-        calcParams.current[name] = value
-    }
 
     const init: InputStateContext = {
         dataSet: {
@@ -37,7 +32,7 @@ export const AppWrapper = () => {
         aggData: {},
         hideZeros: false,
         totals: false,
-        calcParamsUpdater: onCalcParamsChange,
+        calcParams: {},
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         dispatcher: () => {},
     }
@@ -47,8 +42,14 @@ export const AppWrapper = () => {
     const [buildTableReq, setBuildTableReq] = useState<
         GenerateTableDataRequest | undefined
     >(undefined)
+    const [buildComparisonTableReq, setBuildComparisonTableReq] = useState<
+        GenerateTableDataRequest | undefined
+    >(undefined)
 
-    const run = () => {
+    const mainDataTableHeadRef = useRef<HTMLTableSectionElement | null>(null)
+    const compareDataTableRef = useRef<HTMLTableSectionElement | null>(null)
+
+    const run = (setter: typeof setBuildTableReq) => () => {
         const data = context.dataSet
         const measures = data.measuresSelected.map(
             (measure: string): [string, string] => {
@@ -65,10 +66,42 @@ export const AppWrapper = () => {
             overrides: Object.values(context.overrides),
             hide_zeros: context.hideZeros,
             totals: context.totals,
-            calc_params: calcParams.current,
+            calc_params: context.calcParams,
         }
-        setBuildTableReq(obj)
+        setter(obj)
         console.log(JSON.stringify(obj, null, 2))
+    }
+
+    useEffect(() => {
+        requestIdleCallback(() => {
+            if (mainDataTableHeadRef.current && compareDataTableRef.current) {
+                const mainHead = mainDataTableHeadRef.current
+                const compareHead = compareDataTableRef.current
+                if (mainHead.scrollHeight > compareHead.scrollHeight) {
+                    compareHead.style.height = `${mainHead.scrollHeight}px`
+                } else {
+                    mainHead.style.height = `${compareHead.scrollHeight}px`
+                }
+            }
+        })
+    })
+
+    const copyTable = (tableData: GenerateTableDataRequest | undefined) => {
+        if (tableData === undefined) {
+            return
+        }
+        const data = {
+            ...tableData,
+            name: "Shared Content",
+        }
+        navigator.clipboard
+            .writeText(JSON.stringify(data, null, 2))
+            .then(() => {
+                // todo: show snackbar
+            })
+            .catch(() => {
+                // todo: show snackbar
+            })
     }
 
     return (
@@ -79,10 +112,44 @@ export const AppWrapper = () => {
                     dispatcher,
                 }}
             >
-                <Aside onCalcParamsChange={onCalcParamsChange} />
-                <TopBar onRunClick={run}>
+                <Aside />
+                <TopBar
+                    onRunClick={run(setBuildTableReq)}
+                    onCompareClick={
+                        buildComparisonTableReq
+                            ? () => setBuildComparisonTableReq(undefined)
+                            : run(setBuildComparisonTableReq)
+                    }
+                    compareButtonLabel={
+                        buildComparisonTableReq ? "Stop Comparing" : "Compare"
+                    }
+                    copyMainTable={() => copyTable(buildTableReq)}
+                    copyComparisonTable={() =>
+                        copyTable(buildComparisonTableReq)
+                    }
+                >
                     <Suspense fallback="Loading...">
-                        {buildTableReq && <DataTable input={buildTableReq} />}
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                            }}
+                        >
+                            {buildTableReq && (
+                                <DataTable
+                                    unique="main"
+                                    ref={mainDataTableHeadRef}
+                                    input={buildTableReq}
+                                />
+                            )}
+                            {buildComparisonTableReq && (
+                                <DataTable
+                                    unique="comp"
+                                    ref={compareDataTableRef}
+                                    input={buildComparisonTableReq}
+                                />
+                            )}
+                        </Box>
                     </Suspense>
                 </TopBar>
             </InputStateContextProvider>

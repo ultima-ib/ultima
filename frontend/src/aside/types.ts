@@ -14,7 +14,7 @@ export interface Filter {
 
 export interface CalcParam {
     name: string
-    defaultValue?: string
+    defaultValue: string | null
     helperText?: string
 }
 

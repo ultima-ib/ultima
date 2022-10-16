@@ -136,6 +136,10 @@ async fn measures() -> impl Responder {
 async fn templates(_: HttpRequest, templates: Data<Vec<AggregationRequest>>) -> impl Responder {
     web::Json(templates)
 }
+#[get("/overrides")]
+async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
+    web::Json(data.overridable_columns())
+}
 
 // TODO Why can't I use ds: impl DataSet ?
 pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<AggregationRequest>) -> std::io::Result<Server> {

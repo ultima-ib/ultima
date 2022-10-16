@@ -46,6 +46,7 @@ impl Override {
     }
 }
 
+/// This function also defines Column DataTypes which we can override  
 fn string_to_lit(value: &str, dt: &DataType, column: &str) -> PolarsResult<Expr> {
     match dt {
         // RW column is a list for example

@@ -1,4 +1,10 @@
-import { AGG_TYPES, FRTB as FRTB_ROUTE, COLUMNS, TEMPLATES } from "./routes"
+import {
+    AGG_TYPES,
+    FRTB as FRTB_ROUTE,
+    COLUMNS,
+    TEMPLATES,
+    OVERRIDES,
+} from "./routes"
 import useFetch from "fetch-suspense"
 import {
     GenerateTableDataRequest,
@@ -33,6 +39,10 @@ export const useFRTB = () => {
 
 export const useAggTypes = () => {
     return useFetch(AGG_TYPES) as string[]
+}
+
+export const useOverrides = () => {
+    return useFetch(OVERRIDES) as string[]
 }
 
 export const useTemplates = () => {

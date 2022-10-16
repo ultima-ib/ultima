@@ -59,6 +59,29 @@ pub enum DataSourceConfig {
         #[serde(default)]
         build_params: HashMap<String, String>,
     },
+    AwsCsv {
+        bucket: String,
+        #[serde(rename = "files")]
+        file_paths: Vec<String>,
+        #[serde(default, rename = "attributes_path")]
+        attr: Option<String>,
+        #[serde(default, rename = "hierarchy_path")]
+        hms: Option<String>,
+        #[serde(default)]
+        files_join_attributes: Vec<String>,
+        #[serde(default)]
+        attributes_join_hierarchy: Vec<String>,
+        #[serde(default)]
+        measures: Vec<String>,
+        #[serde(default)]
+        f1_numeric_cols: Vec<String>,
+        #[serde(default)]
+        f1_cast_to_str: Vec<String>,
+        /// parameters to be used for build and prepare
+        #[serde(default)]
+        build_params: HashMap<String, String>,
+
+    }
 }
 
 impl DataSourceConfig {
@@ -143,7 +166,8 @@ impl DataSourceConfig {
                 };
 
                 (concatinated_frame, measures, build_params)
-            }
+            },
+            DataSourceConfig::AwsCsv{..} => unimplemented!(),
         }
     }
 }

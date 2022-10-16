@@ -37,45 +37,73 @@ import { Resizable as ReResizable } from "re-resizable"
 import DeleteIcon from "@mui/icons-material/Close"
 import { Overrides } from "./Overrides"
 import { Templates } from "./Templates"
+import { useTheme } from "@mui/material/styles"
+import CalcParams from "./CalcParams"
 
-const ResizeHandle = () => {
-    return (
-        <div
-            style={{
-                background: "var(--color)",
-                height: "100%",
-                width: "1px",
-            }}
-        />
-    )
+interface ResizableProps {
+    top?: boolean
+    right?: boolean
+    bottom?: boolean
+    left?: boolean
+    topRight?: boolean
+    bottomRight?: boolean
+    bottomLeft?: boolean
+    topLeft?: boolean
+    defaultHeight?: string
+    defaultWidth: string
 }
 
-const Resizable = (props: PropsWithChildren) => (
-    <ReResizable
-        handleComponent={{
-            right: <ResizeHandle />,
-        }}
-        minWidth="300px"
-        defaultSize={{ width: "40%", height: "100%" }}
-        enable={{
-            top: false,
-            right: true,
-            bottom: false,
-            left: false,
-            topRight: false,
-            bottomRight: false,
-            bottomLeft: false,
-            topLeft: false,
-        }}
-        style={{
-            display: "flex",
-            gap: "1em",
-            minWidth: "300px",
-        }}
-    >
-        {props.children}
-    </ReResizable>
-)
+const Resizable = (props: PropsWithChildren<ResizableProps>) => {
+    const theme = useTheme()
+
+    return (
+        <ReResizable
+            handleComponent={{
+                right: (
+                    <div
+                        style={{
+                            background: theme.palette.text.secondary,
+                            height: "100%",
+                            width: "1px",
+                        }}
+                    />
+                ),
+                bottom: (
+                    <div
+                        style={{
+                            background: theme.palette.text.secondary,
+                            height: "1px",
+                            width: "100%",
+                        }}
+                    />
+                ),
+            }}
+            minWidth="300px"
+            defaultSize={{
+                width: props.defaultWidth,
+                height: props.defaultHeight ?? "100%",
+            }}
+            enable={{
+                top: props.top ?? false,
+                right: props.right ?? false,
+                bottom: props.bottom ?? false,
+                left: props.left ?? false,
+                topRight: props.topRight ?? false,
+                bottomRight: props.bottomRight ?? false,
+                bottomLeft: props.bottomLeft ?? false,
+                topLeft: props.topLeft ?? false,
+            }}
+            style={{
+                display: "flex",
+                gap: "1em",
+                minWidth: "300px",
+                backgroundColor: theme.palette.background.paper,
+            }}
+        >
+            {props.children}
+        </ReResizable>
+    )
+}
 
 interface TabPanelProps extends BoxProps {
     index: number
@@ -105,7 +133,7 @@ function a11yProps(index: number) {
     }
 }
 
-interface ColumnProps extends StackProps {
+interface ColumnProps {
     title?: string
     fields: string[]
     listId: string
@@ -122,10 +150,10 @@ export function Column({
     onListItemClick,
     multiColumn,
     ...stack
-}: ColumnProps) {
+}: ColumnProps & StackProps) {
     return (
         <Stack spacing={2} alignItems="center" {...stack}>
-            {title && <Title content={title} />}
+            {title && <Title content={title} component={Box} />}
             <QuoteList
                 listId={listId}
                 listType="QUOTE"
@@ -177,7 +205,12 @@ const AccordionColumn = ({
     onAccordionStateChange?: (event: SyntheticEvent, expanded: boolean) => void
 }) => {
     return (
-        <Accordion expanded={expanded} title={title ?? ""} onChange={onChange}>
+        <Accordion
+            expanded={expanded}
+            title={title ?? ""}
+            onChange={onChange}
+            sx={{ width: "100%" }}
+        >
             <Column {...rest} />
         </Accordion>
     )
@@ -240,9 +273,7 @@ const DeleteButton = (props: {
     )
 }
 
-const Aside = (props: {
-    onCalcParamsChange: (name: string, value: string) => void
-}) => {
+const Aside = () => {
     const inputs = useInputs()
     const columns = inputs.dataSet
     const onDragEnd = (result: DropResult): void => {
@@ -286,8 +317,6 @@ const Aside = (props: {
         undefined,
     )
 
-    const [measuresAccordionExpanded, setMeasuresAccordionExpanded] =
-        useState(false)
     const [groupByAccordionExpanded, setGroupByAccordionExpanded] =
         useState(false)
 
@@ -322,15 +351,13 @@ const Aside = (props: {
                 },
             },
         })
-        if (list === "measuresSelected") {
-            setMeasuresAccordionExpanded(true)
-        } else {
+        if (list === "groupby") {
             setGroupByAccordionExpanded(true)
         }
     }
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <Resizable>
+            <Resizable right defaultWidth="40%">
                 <Stack sx={{ width: "40%" }}>
                     <SearchBox onChange={(v) => setSearchValue(v)} />
                     <Column
@@ -375,7 +402,6 @@ const Aside = (props: {
                             title="Group By"
                             fields={columns.groupby}
                             listId="groupby"
-                            sx={{ height: "20%" }}
                             multiColumn
                             extras={({ field }) => (
                                 <DeleteButton field={field} from="groupby" />
@@ -388,34 +414,39 @@ const Aside = (props: {
                             }}
                         />
                         <Overrides />
-                        <AccordionColumn
-                            expanded={measuresAccordionExpanded}
-                            onAccordionStateChange={(
-                                event: SyntheticEvent,
-                                isExpanded: boolean,
-                            ) => {
-                                setMeasuresAccordionExpanded(isExpanded)
-                            }}
-                            title="Measures"
-                            fields={columns.measuresSelected}
-                            listId="measuresSelected"
-                            sx={{ height: "20%" }}
-                            extras={({ field }) => (
-                                <>
-                                    {inputs.canMeasureBeAggregated(field) && (
-                                        <Suspense>
-                                            <Agg field={field} />
-                                        </Suspense>
-                                    )}
-                                    <DeleteButton
-                                        field={field}
-                                        from="measuresSelected"
-                                    />
-                                </>
-                            )}
-                        />
-                        <Box sx={{ height: "70%" }}>
+                        <Resizable
+                            bottom
+                            defaultHeight="20%"
+                            defaultWidth="100%"
+                        >
+                            <Column
+                                title="Measures"
+                                fields={columns.measuresSelected}
+                                listId="measuresSelected"
+                                sx={{
+                                    width: "100%",
+                                    overflowX: "scroll",
+                                }}
+                                extras={({ field }) => (
+                                    <>
+                                        {inputs.canMeasureBeAggregated(
+                                            field,
+                                        ) && (
+                                            <Suspense>
+                                                <Agg field={field} />
+                                            </Suspense>
+                                        )}
+                                        <DeleteButton
+                                            field={field}
+                                            from="measuresSelected"
+                                        />
+                                    </>
+                                )}
+                            />
+                        </Resizable>
+                        <Box sx={{ width: "100%" }}>
                             <Filters
+                                component={Box}
                                 fields={columns.fields}
                                 onFiltersChange={(filters) => {
                                     inputs.dispatcher({
@@ -431,7 +462,7 @@ const Aside = (props: {
                     <TabPanel
                         value={activeTab}
                         index={1}
-                        sx={{ height: "100%" }}
+                        sx={{ height: "100%", overflow: "hidden" }}
                     >
                         <Box>
                             <FormControlLabel
@@ -469,21 +500,7 @@ const Aside = (props: {
                             />
                         </Box>
                         <Box sx={{ overflowY: "auto", maxHeight: "80vh" }}>
-                            {columns.calcParams.map((it) => (
-                                <TextField
-                                    key={it.name}
-                                    label={it.name}
-                                    defaultValue={it.defaultValue}
-                                    helperText={it.helperText}
-                                    onChange={(e) => {
-                                        props.onCalcParamsChange(
-                                            it.name,
-                                            e.target.value,
-                                        )
-                                    }}
-                                    variant="filled"
-                                />
-                            ))}
+                            <CalcParams />
                         </Box>
                     </TabPanel>
                 </Stack>

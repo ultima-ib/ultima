@@ -79,29 +79,3 @@ impl Hash for AggregationRequest {
         self.calc_params.iter().collect::<BTreeMap<_, _>>().hash(state);
     }
 }
-
-/// This struct is a Helper to allow hashing [AggregationRequest] 
-/// Note [AggregationRequest].calc_params is a Hashmap and hence is not Hashable
-#[derive(Serialize, Deserialize, Debug, Clone, Hash)]
-#[serde(tag = "type")]
-struct HashableAggregationRequest {
-    // general fields
-    #[serde(default)]
-    name: Option<String>,
-    /// Measure: (Name, Action) where Name will be looked up in
-    /// MeasuresMap of the DataSet
-    measures: Vec<(String, String)>,
-    groupby: Vec<String>,
-    #[serde(default)]
-    filters: AndOrFltrChain,
-    #[serde(default)]
-    overrides: Vec<Override>,
-    #[serde(default)]
-    calc_params: BTreeMap<String, String>,
-    /// drop rows where all results are NULL or 0
-    #[serde(default)]
-    pub hide_zeros: bool,
-    /// Show totals
-    #[serde(default)]
-    pub totals: bool,
-}

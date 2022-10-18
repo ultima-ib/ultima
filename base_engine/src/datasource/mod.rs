@@ -80,8 +80,7 @@ pub enum DataSourceConfig {
         /// parameters to be used for build and prepare
         #[serde(default)]
         build_params: HashMap<String, String>,
-
-    }
+    },
 }
 
 impl DataSourceConfig {
@@ -134,7 +133,7 @@ impl DataSourceConfig {
 
                 // join with hms if a2h was provided
                 if !a2h.is_empty() {
-                    let a2h_expr = a2h.iter().map(|c|col(c)).collect::<Vec<Expr>>();
+                    let a2h_expr = a2h.iter().map(|c| col(c)).collect::<Vec<Expr>>();
                     df_attr = df_attr.lazy()
                         .join(df_hms.lazy(), a2h_expr.clone(), a2h_expr, JoinType::Left)
                         .collect()
@@ -142,7 +141,7 @@ impl DataSourceConfig {
                 }
                 // if files to attributes was provided
                 if !f2a.is_empty() {
-                    let f2a_expr = f2a.iter().map(|c|col(c)).collect::<Vec<Expr>>();
+                    let f2a_expr = f2a.iter().map(|c| col(c)).collect::<Vec<Expr>>();
                     concatinated_frame = concatinated_frame.lazy()
                         .join(df_attr.lazy(), f2a_expr.clone(), f2a_expr, JoinType::Outer)
                         .collect()
@@ -166,8 +165,8 @@ impl DataSourceConfig {
                 };
 
                 (concatinated_frame, measures, build_params)
-            },
-            DataSourceConfig::AwsCsv{..} => unimplemented!(),
+            }
+            DataSourceConfig::AwsCsv { .. } => unimplemented!(),
         }
     }
 }

@@ -527,7 +527,6 @@ pub struct ScenarioConfig {
     //RRAO
     pub exotic: f64,
     pub other: f64,
-
 }
 
 impl ScenarioConfig {
@@ -605,7 +604,8 @@ impl ScenarioConfig {
             *x = function(*x);
         });
 
-        let mut csr_sec_nonctp_rho_diff_name_curv = self.csr_sec_nonctp_curv_diff_name_rho_per_bucket;
+        let mut csr_sec_nonctp_rho_diff_name_curv =
+            self.csr_sec_nonctp_curv_diff_name_rho_per_bucket;
         csr_sec_nonctp_rho_diff_name_curv.iter_mut().for_each(|x| {
             *x = function(*x);
         });

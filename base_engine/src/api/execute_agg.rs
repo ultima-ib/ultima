@@ -98,7 +98,11 @@ pub fn execute_aggregation(
     // Step 2.4 Build GROUPBY
     let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
     // fill nulls with a "null" - needed for better totals views
-    let groups_fill_nulls: Vec<Expr> = groups.clone().into_iter().map(|e|e.fill_null(lit(""))).collect();
+    let groups_fill_nulls: Vec<Expr> = groups
+        .clone()
+        .into_iter()
+        .map(|e| e.fill_null(lit("")))
+        .collect();
 
     // Step 2.5 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
@@ -143,7 +147,11 @@ pub fn execute_aggregation(
         aggregated_df = diag_concat_df(&total_frames)?;
     }
 
-    let groups_totals: Vec<Expr> = groups.clone().into_iter().map(|e|e.fill_null(lit("Total"))).collect();
+    let groups_totals: Vec<Expr> = groups
+        .clone()
+        .into_iter()
+        .map(|e| e.fill_null(lit("Total")))
+        .collect();
 
     f1 = aggregated_df
         .lazy()

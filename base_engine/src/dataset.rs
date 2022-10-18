@@ -114,8 +114,10 @@ pub(crate) fn overrides_columns(df: &DataFrame) -> Vec<String> {
     let mut res = vec![];
     for c in df.get_columns() {
         match c.dtype() {
-            DataType::Utf8|DataType::Boolean|DataType::Float64 => res.push(c.name().to_string()),
-            DataType::List(x)  => match x.as_ref(){
+            DataType::Utf8 | DataType::Boolean | DataType::Float64 => {
+                res.push(c.name().to_string())
+            }
+            DataType::List(x) => match x.as_ref() {
                 DataType::Float64 => res.push(c.name().to_string()),
                 _ => (),
             },

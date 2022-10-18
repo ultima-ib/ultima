@@ -31,7 +31,11 @@ pub(crate) fn csrnonsec_total_high(op: &OCP) -> Expr {
 
 /// Not a real measure. Used for analysis only
 fn csrnonsec_total_max(op: &OCP) -> Expr {
-    max_exprs(&[csrnonsec_total_low(op), csrnonsec_total_medium(op), csrnonsec_total_high(op)])
+    max_exprs(&[
+        csrnonsec_total_low(op),
+        csrnonsec_total_medium(op),
+        csrnonsec_total_high(op),
+    ])
 }
 
 pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {

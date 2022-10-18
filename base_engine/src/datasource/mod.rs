@@ -5,11 +5,11 @@ use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::Measure;
-pub mod py_helpers;
 pub mod helpers;
-use helpers::{path_to_df,empty_frame};
+use helpers::{path_to_df,empty_frame, finish};
 
-use self::helpers::finish;
+#[cfg(feature="aws_s3")]
+pub mod awss3;
 
 /// reads setup.toml
 /// # Panics
@@ -40,6 +40,7 @@ where
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
+#[non_exhaustive]
 pub enum DataSourceConfig {
     CSV {
         #[serde(default, rename = "files")]
@@ -62,6 +63,7 @@ pub enum DataSourceConfig {
         #[serde(default)]
         build_params: HashMap<String, String>,
     },
+    #[cfg(feature = "aws_s3")]
     AwsCsv {
         bucket: String,
         #[serde(rename = "files")]
@@ -137,7 +139,25 @@ impl DataSourceConfig {
 
                 finish(a2h, f2a, measures, df_attr, df_hms, concatinated_frame, build_params)
             },
-            DataSourceConfig::AwsCsv{..} => unimplemented!(),
+            #[cfg(feature = "aws_s3")]
+            DataSourceConfig::AwsCsv{
+                bucket,
+                file_paths: files,
+                attr: ta,
+                hms,
+                files_join_attributes: f2a,
+                attributes_join_hierarchy: a2h,
+                measures,
+                f1_cast_to_str: mut str_cols,
+                f1_numeric_cols: f64_cols,
+                build_params} => {
+                    let frames = awss3::multi_download(bucket.as_str(), &files.iter().map(|p|p.as_str()).collect::<Vec<&str>>());
+                    let concatinated_frame = diag_concat_df(
+                        &frames
+                    )
+                    .expect("Failed to concatinate provided frames");
+                    unimplemented!()
+                },
         }
     }
 }

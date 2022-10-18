@@ -1,7 +1,7 @@
 //! For FX RiskFactor is the original source of risk, could be offshore
 //! BucketBCBS/CRR2 to be
 
-use ndarray::{Array1, Array};
+use ndarray::{Array, Array1};
 
 use crate::{
     helpers::get_jurisdiction,

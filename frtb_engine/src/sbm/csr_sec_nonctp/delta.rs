@@ -116,7 +116,9 @@ fn csr_sec_nonctp_delta_charge_distributor(
     let rho_name = get_optional_parameter_vec(
         op,
         "csr_sec_nonctp_delta_diff_name_rho_per_bucket_base",
-        &scenario.csr_sec_nonctp_curv_diff_name_rho_per_bucket.to_vec(),
+        &scenario
+            .csr_sec_nonctp_curv_diff_name_rho_per_bucket
+            .to_vec(),
     );
 
     let rho_tranche = get_optional_parameter(

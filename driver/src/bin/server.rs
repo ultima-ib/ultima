@@ -35,14 +35,10 @@ async fn main() -> std::io::Result<()> {
     let requests_path = cli.requests;
 
     let _requests: Vec<AggregationRequest> = if cli.host {
-        // TODO remove this part. When going live, for cli host 
+        // TODO remove this part. When going live, for cli host
         // ie this block will be replaced to return vec![] if requests_path is None.
-        let json = fs::read_to_string(
-            requests_path
-            .unwrap_or(REQUESTS.into())
-            .as_str(),
-        )
-        .expect("Couldn't read requests path");
+        let json = fs::read_to_string(requests_path.unwrap_or(REQUESTS.into()).as_str())
+            .expect("Couldn't read requests path");
         serde_json::from_str(&json).expect("Couldn't parse requests file")
     } else {
         let json = fs::read_to_string(

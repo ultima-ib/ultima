@@ -85,8 +85,7 @@ pub enum DataSourceConfig {
         /// parameters to be used for build and prepare
         #[serde(default)]
         build_params: HashMap<String, String>,
-
-    }
+    },
 }
 
 impl DataSourceConfig {
@@ -161,5 +160,6 @@ impl DataSourceConfig {
         }
     }
 }
+
 
 

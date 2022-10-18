@@ -30,7 +30,11 @@ pub(crate) fn csrsecnonctp_total_high(op: &OCP) -> Expr {
 }
 
 fn csrsecnonctp_total_max(op: &OCP) -> Expr {
-    max_exprs(&[csrsecnonctp_total_low(op), csrsecnonctp_total_medium(op), csrsecnonctp_total_high(op)])
+    max_exprs(&[
+        csrsecnonctp_total_low(op),
+        csrsecnonctp_total_medium(op),
+        csrsecnonctp_total_high(op),
+    ])
 }
 
 pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
@@ -53,7 +57,6 @@ pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
             aggregation: Some("first"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         },
-
         Measure {
             name: "CSR Sec nonCTP TotalCharge MAX".to_string(),
             calculator: Box::new(csrsecnonctp_total_max),

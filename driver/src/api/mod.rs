@@ -1,6 +1,6 @@
 //! This module builds App and is Server bin specific
 #[cfg(feature = "FRTB")]
-use frtb_engine::statics::{MEDIUM_CORR_SCENARIO};
+use frtb_engine::statics::MEDIUM_CORR_SCENARIO;
 
 pub mod pagination;
 
@@ -35,7 +35,9 @@ async fn scenarios(path: web::Path<String>) -> Result<HttpResponse> {
     match &scenario as &str {
         #[cfg(feature = "FRTB")]
         "medium" => Ok(HttpResponse::Ok().json(&*MEDIUM_CORR_SCENARIO)),
-        _ => Err(actix_web::error::ErrorBadRequest("Only medium scenario can be displayed currently"))
+        _ => Err(actix_web::error::ErrorBadRequest(
+            "Only medium scenario can be displayed currently",
+        )),
     }
 }
 
@@ -126,7 +128,11 @@ async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
 }
 
 // TODO Why can't I use ds: impl DataSet ?
-pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<AggregationRequest>) -> std::io::Result<Server> {
+pub fn run_server(
+    listener: TcpListener,
+    ds: Arc<dyn DataSet>,
+    _templates: Vec<AggregationRequest>,
+) -> std::io::Result<Server> {
     // Read .env
     dotenv::dotenv().ok();
     // Allow pretty logs
@@ -140,17 +146,17 @@ pub fn run_server(listener: TcpListener, ds: Arc<dyn DataSet>, _templates: Vec<A
             .wrap(Logger::default())
             .service(
                 web::scope("/api")
-                .service(health_check)
-                .service(
-                    web::scope("/FRTB")
-                        .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
-                        .route("", web::post().to(execute))
-                        .service(column_search)
-                        .service(templates)
-                        .service(overridable_columns)
-                        .service(scenarios),
-                )
-                .route("/aggtypes", web::get().to(measures))
+                    .service(health_check)
+                    .service(
+                        web::scope("/FRTB")
+                            .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                            .route("", web::post().to(execute))
+                            .service(column_search)
+                            .service(templates)
+                            .service(overridable_columns)
+                            .service(scenarios),
+                    )
+                    .route("/aggtypes", web::get().to(measures)),
             )
             .app_data(ds.clone())
             .app_data(_templates.clone())

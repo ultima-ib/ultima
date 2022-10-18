@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 jobs:
-  clippy:
+  clippy_fmt:
     name: Clippy & Rustfmt
     runs-on: ubuntu-latest
     steps:
@@ -73,8 +73,8 @@ jobs:
   build_and_publish:
     name: Build and Publish
     runs-on: ubuntu-latest
-    depends-on:
-      - clippy
+    needs:
+      - clippy_fmt
       - rust_tests
       - frontend_lint_fmt
 

@@ -150,12 +150,34 @@ impl DataSourceConfig {
                 f1_cast_to_str: mut str_cols,
                 f1_numeric_cols: f64_cols,
                 build_params} => {
-                    let frames = awss3::multi_download(bucket.as_str(), &files.iter().map(|p|p.as_str()).collect::<Vec<&str>>());
+                    str_cols.extend(f2a.clone());
+                    let frames = awss3::multi_download(
+                        bucket.as_str(), 
+                        &files.iter().map(|p|p.as_str()).collect::<Vec<&str>>(),
+                        &str_cols,
+                        &f64_cols
+                    );
+
                     let concatinated_frame = diag_concat_df(
                         &frames
                     )
                     .expect("Failed to concatinate provided frames");
-                    unimplemented!()
+                    let mut tmp = str_cols.clone();
+
+                tmp.extend(a2h.clone());
+
+                let df_attr = match ta {
+                    Some(y) => awss3::multi_download(bucket.as_str(), &[y.as_str()], &tmp, &f64_cols).remove(0),
+                    _ => empty_frame(&tmp),
+                };
+
+                //here we expect if hms is provided then a2h is not empty
+                let df_hms = match  hms{
+                        Some(y) => awss3::multi_download(bucket.as_str(),&[y.as_str()], &a2h, &[]).remove(0),
+                        _ => empty_frame(&a2h) 
+                    };
+
+                finish(a2h, f2a, measures, df_attr, df_hms, concatinated_frame, build_params)
                 },
         }
     }

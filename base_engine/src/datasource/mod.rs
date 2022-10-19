@@ -64,7 +64,7 @@ pub enum DataSourceConfig {
         build_params: HashMap<String, String>,
     },
     #[cfg(feature = "aws_s3")]
-    AwsCsv {
+    AwsCSV {
         bucket: String,
         #[serde(rename = "files")]
         file_paths: Vec<String>,
@@ -139,7 +139,7 @@ impl DataSourceConfig {
                 finish(a2h, f2a, measures, df_attr, df_hms, concatinated_frame, build_params)
             },
             #[cfg(feature = "aws_s3")]
-            DataSourceConfig::AwsCsv{
+            DataSourceConfig::AwsCSV{
                 bucket,
                 file_paths: files,
                 attr: ta,

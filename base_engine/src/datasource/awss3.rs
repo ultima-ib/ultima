@@ -61,7 +61,7 @@ async fn get_frame(client: Client, bucket: &str, key: &str, schema: &Schema) -> 
     let cursor = std::io::Cursor::new(bytes);
 
     let df = CsvReader::new(cursor)
-        .with_schema(&schema)
+        .with_dtypes(Some(&schema))
         .finish()
         .expect("Failed to read CSV");
 

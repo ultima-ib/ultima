@@ -1,14 +1,14 @@
-use std::collections::HashMap;
 use log::warn;
 use polars::functions::diag_concat_df;
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::Measure;
 pub mod helpers;
-use helpers::{path_to_df,empty_frame, finish};
+use helpers::{empty_frame, finish, path_to_df};
 
-#[cfg(feature="aws_s3")]
+#[cfg(feature = "aws_s3")]
 pub mod awss3;
 
 /// reads setup.toml
@@ -136,10 +136,18 @@ impl DataSourceConfig {
                                             in the datasource_config.toml") },
                         _ => empty_frame(&a2h) };
 
-                finish(a2h, f2a, measures, df_attr, df_hms, concatinated_frame, build_params)
-            },
+                finish(
+                    a2h,
+                    f2a,
+                    measures,
+                    df_attr,
+                    df_hms,
+                    concatinated_frame,
+                    build_params,
+                )
+            }
             #[cfg(feature = "aws_s3")]
-            DataSourceConfig::AwsCSV{
+            DataSourceConfig::AwsCSV {
                 bucket,
                 file_paths: files,
                 attr: ta,
@@ -149,39 +157,48 @@ impl DataSourceConfig {
                 measures,
                 f1_cast_to_str: mut str_cols,
                 f1_numeric_cols: f64_cols,
-                build_params} => {
-                    str_cols.extend(f2a.clone());
-                    let frames = awss3::multi_download(
-                        bucket.as_str(), 
-                        &files.iter().map(|p|p.as_str()).collect::<Vec<&str>>(),
-                        &str_cols,
-                        &f64_cols
-                    );
+                build_params,
+            } => {
+                str_cols.extend(f2a.clone());
+                let frames = awss3::multi_download(
+                    bucket.as_str(),
+                    &files.iter().map(|p| p.as_str()).collect::<Vec<&str>>(),
+                    &str_cols,
+                    &f64_cols,
+                );
 
-                    let concatinated_frame = diag_concat_df(
-                        &frames
-                    )
-                    .expect("Failed to concatinate provided frames");
-                    let mut tmp = str_cols.clone();
+                let concatinated_frame =
+                    diag_concat_df(&frames).expect("Failed to concatinate provided frames");
+                let mut tmp = str_cols.clone();
 
                 tmp.extend(a2h.clone());
 
                 let df_attr = match ta {
-                    Some(y) => awss3::multi_download(bucket.as_str(), &[y.as_str()], &tmp, &f64_cols).remove(0),
+                    Some(y) => {
+                        awss3::multi_download(bucket.as_str(), &[y.as_str()], &tmp, &f64_cols)
+                            .remove(0)
+                    }
                     _ => empty_frame(&tmp),
                 };
 
                 //here we expect if hms is provided then a2h is not empty
-                let df_hms = match  hms{
-                        Some(y) => awss3::multi_download(bucket.as_str(),&[y.as_str()], &a2h, &[]).remove(0),
-                        _ => empty_frame(&a2h) 
-                    };
+                let df_hms = match hms {
+                    Some(y) => {
+                        awss3::multi_download(bucket.as_str(), &[y.as_str()], &a2h, &[]).remove(0)
+                    }
+                    _ => empty_frame(&a2h),
+                };
 
-                finish(a2h, f2a, measures, df_attr, df_hms, concatinated_frame, build_params)
-                },
+                finish(
+                    a2h,
+                    f2a,
+                    measures,
+                    df_attr,
+                    df_hms,
+                    concatinated_frame,
+                    build_params,
+                )
+            }
         }
     }
 }
-
-
-

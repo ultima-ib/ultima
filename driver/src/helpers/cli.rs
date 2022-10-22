@@ -5,7 +5,6 @@ const CONFIG: &str = r"frtb_engine/tests/data/datasource_config.toml";
 pub const REQUESTS: &str = r"./driver/src/request.json";
 
 /// Cli for one_off run
-/// TODO potentially to be depreciated in favour of CliServer
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct CliOnce {
@@ -33,7 +32,4 @@ pub struct CliServer {
 
     #[arg(short, long, value_name = "SOCKET_ADDRESS")]
     pub address: Option<String>,
-
-    #[arg(long, default_value_t = false)]
-    pub host: bool,
 }

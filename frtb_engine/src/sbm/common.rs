@@ -266,7 +266,7 @@ where
 /// Commodity and CSR Sec Non CTP have potentially unlimited number of locations/tranches.
 ///
 /// Hence we can't go with any of the optimizations. Have to be computed in O(N^2)
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, clippy::if_same_then_else)]
 fn bucket_kb_sb_onsq<F>(
     df: &DataFrame,
     tenor_col: &str,

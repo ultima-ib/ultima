@@ -4,6 +4,7 @@ use frtb_engine::statics::MEDIUM_CORR_SCENARIO;
 
 pub mod pagination;
 
+use actix_files as fs;
 use actix_web::{
     dev::Server,
     get,
@@ -17,7 +18,6 @@ use actix_web::{
     //error::InternalError, http::StatusCode,
     Result,
 };
-use actix_files as fs;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
@@ -140,8 +140,8 @@ pub fn run_server(
     pretty_env_logger::init();
 
     let ds = Data::new(ds);
-    let static_files_dir = std::env::var("STATIC_FILES_DIR")
-        .unwrap_or_else(|_| "frontend/dist".to_string());
+    let static_files_dir =
+        std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
     let server = HttpServer::new(move || {

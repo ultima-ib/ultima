@@ -1,8 +1,13 @@
 use std::collections::HashMap;
 
-use polars::{prelude::{DataFrame, Field, DataType, Schema, LazyCsvReader, NamedFrom, Expr, col, JoinType, IntoLazy}, series::Series};
+use polars::{
+    prelude::{
+        col, DataFrame, DataType, Expr, Field, IntoLazy, JoinType, LazyCsvReader, NamedFrom, Schema,
+    },
+    series::Series,
+};
 
-use crate::{Measure, derive_basic_measures_vec, numeric_columns};
+use crate::{derive_basic_measures_vec, numeric_columns, Measure};
 
 /// creates an empty frame with columns
 pub fn empty_frame(with_columns: &[String]) -> DataFrame {
@@ -40,11 +45,18 @@ pub fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
     df
 }
 
-pub fn finish(a2h: Vec<String>,f2a: Vec<String>, measures: Vec<String>, mut df_attr: DataFrame, 
-    df_hms: DataFrame, mut concatinated_frame: DataFrame, build_params: HashMap<String, String>) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
+pub fn finish(
+    a2h: Vec<String>,
+    f2a: Vec<String>,
+    measures: Vec<String>,
+    mut df_attr: DataFrame,
+    df_hms: DataFrame,
+    mut concatinated_frame: DataFrame,
+    build_params: HashMap<String, String>,
+) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
     // join with hms if a2h was provided
     if !a2h.is_empty() {
-        let a2h_expr = a2h.iter().map(|c|col(c)).collect::<Vec<Expr>>();
+        let a2h_expr = a2h.iter().map(|c| col(c)).collect::<Vec<Expr>>();
         df_attr = df_attr.lazy()
             .join(df_hms.lazy(), a2h_expr.clone(), a2h_expr, JoinType::Left)
             .collect()
@@ -52,7 +64,7 @@ pub fn finish(a2h: Vec<String>,f2a: Vec<String>, measures: Vec<String>, mut df_a
     }
     // if files to attributes was provided
     if !f2a.is_empty() {
-        let f2a_expr = f2a.iter().map(|c|col(c)).collect::<Vec<Expr>>();
+        let f2a_expr = f2a.iter().map(|c| col(c)).collect::<Vec<Expr>>();
         concatinated_frame = concatinated_frame.lazy()
             .join(df_attr.lazy(), f2a_expr.clone(), f2a_expr, JoinType::Outer)
             .collect()
@@ -75,5 +87,5 @@ pub fn finish(a2h: Vec<String>,f2a: Vec<String>, measures: Vec<String>, mut df_a
         derive_basic_measures_vec(num_cols)
     };
 
-    (concatinated_frame, measures, build_params)   
+    (concatinated_frame, measures, build_params)
 }

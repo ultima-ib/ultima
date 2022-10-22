@@ -125,9 +125,8 @@ pub(crate) enum ReturnMetric {
 pub fn first_appearance(ca: &ChunkedArray<Utf8Type>) -> ChunkedArray<BooleanType> {
     let mut unique_values = std::collections::HashSet::new();
 
-    let mask = ca
+    ca
         .into_iter()
         .map(|k| unique_values.insert(k))
-        .collect::<ChunkedArray<BooleanType>>();
-    mask
+        .collect::<ChunkedArray<BooleanType>>()
 }

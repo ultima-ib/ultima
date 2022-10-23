@@ -98,14 +98,14 @@ pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
 
             let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
 
-            return Ok(Series::new(
+            Ok(Series::new(
                 "res",
                 Array1::<f64>::from_elem(res_len, res)
                     .as_slice()
                     .ok_or_else(|| {
                         PolarsError::ComputeError("Couldn't convert result into slice".into())
                     })?,
-            ));
+            ))
         },
         &[
             col("TradeId"),

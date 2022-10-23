@@ -18,13 +18,13 @@ use actix_web::{
     //error::InternalError, http::StatusCode,
     Result,
 };
-use dashmap::DashMap;
+//use dashmap::DashMap;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
-use base_engine::{api::aggregations::BASE_CALCS, DataFrame, execution_with_cache::CACHE};
+use base_engine::{api::aggregations::BASE_CALCS, execution_with_cache::CACHE};
 use base_engine::{prelude::PolarsResult, AggregationRequest, DataSet};
 
 // use uuid::Uuid;
@@ -155,8 +155,9 @@ pub fn run_server(
     // Allow pretty logs
     pretty_env_logger::init();
 
-    //let ds = Data::new(ds);
     let ds = Data::from(ds);
+    let static_files_dir =
+        std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
     let cache = Data::new(CACHE::new());

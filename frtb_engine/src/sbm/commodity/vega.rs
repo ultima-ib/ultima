@@ -63,11 +63,8 @@ fn com_vega_charge_distributor(
         "com_vega_rho_bucket_base",
         &scenario.com_delta_vega_diff_cty_rho_per_bucket_base,
     );
-    let com_vega_rho = get_optional_parameter_array(
-        op,
-        "com_opt_mat_vega_rho_base",
-        &scenario.base_vega_rho,
-    );
+    let com_vega_rho =
+        get_optional_parameter_array(op, "com_opt_mat_vega_rho_base", &scenario.base_vega_rho);
 
     // The approach is identical to Equity
     equity_vega_charge(

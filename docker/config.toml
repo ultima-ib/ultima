@@ -1,14 +1,10 @@
 title = "setup.toml Example"
 type = "CSV"
-bucket = "ultima-bi"
-# first file path
-# if using this file from driver
-# then have to provide full path
-files = ["./tests/data/Delta.csv"]
+files = ["/var/data/Delta.csv"]
 # trade attributes
-attributes_path = "./tests/data/TradeAttributes.csv"
+attributes_path = "/var/data/TradeAttributes.csv"
 # HMS
-hierarchy_path = "./tests/data/hms.csv"
+hierarchy_path = "/var/data/hms.csv"
 # file_1/file_2/file_3 <-> trade attributes
 files_join_attributes = ["TradeId"]
 # attributes <-> hierarchy

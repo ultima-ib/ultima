@@ -212,45 +212,43 @@ where
         // Safety: since partition, we must have at least one member
         let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
         // validating also bucket is not greater than max index of bucket_rho_diff_rf
-        let b_as_idx_plus_1 =
-            match b_as_idx_plus_1 {
-                AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
-                    if (1..=n_buckets).contains(&b_id) {
-                        Some(b_id)
-                    } else {
-                        None
-                    }
-                }),
+        let b_as_idx_plus_1 = match b_as_idx_plus_1 {
+            AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
+                if (1..=n_buckets).contains(&b_id) {
+                    Some(b_id)
+                } else {
+                    None
+                }
+            }),
 
-                _ => None,
-            };
+            _ => None,
+        };
 
         // CALCULATE Kb Sb for a bucket
         if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
             // Above we check len of bucket_rho_diff_rf via n_buckets, so we won't panic here
-            let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1-1];
-                //.get(b_as_idx_plus_1 - 1)
-                //.ok_or_else(||
-                //    PolarsError::ComputeError(format!("Bucket {} is outside of range of bucket rho, which is of len {}",b_as_idx_plus_1,bucket_rho_diff_rf.len() )
-                //    .into()));
-//
+            let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1 - 1];
+            //.get(b_as_idx_plus_1 - 1)
+            //.ok_or_else(||
+            //    PolarsError::ComputeError(format!("Bucket {} is outside of range of bucket rho, which is of len {}",b_as_idx_plus_1,bucket_rho_diff_rf.len() )
+            //    .into()));
+            //
             //};
             // CALCULATE Kb Sb for a bucket
             let is_special_bucket = Some(b_as_idx_plus_1) == special_bucket;
-            let a = 
-                    bucket_kb_sb_onsq(
-                    bucket_df,
-                    tenor_col,
-                    rho_diff_tenor,
-                    name_col,
-                    name_rho,
-                    basis_col,
-                    rho_diff_rft,
-                    risk_col,
-                    scenario_fn,
-                    is_special_bucket,
-                    rho_overwrite,
-                    );
+            let a = bucket_kb_sb_onsq(
+                bucket_df,
+                tenor_col,
+                rho_diff_tenor,
+                name_col,
+                name_rho,
+                basis_col,
+                rho_diff_rft,
+                risk_col,
+                scenario_fn,
+                is_special_bucket,
+                rho_overwrite,
+            );
 
             let mut res = arc_mtx.lock().unwrap();
             res[b_as_idx_plus_1 - 1] = a;
@@ -268,7 +266,7 @@ where
 /// Commodity and CSR Sec Non CTP have potentially unlimited number of locations/tranches.
 ///
 /// Hence we can't go with any of the optimizations. Have to be computed in O(N^2)
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, clippy::if_same_then_else)]
 fn bucket_kb_sb_onsq<F>(
     df: &DataFrame,
     tenor_col: &str,
@@ -301,15 +299,15 @@ where
     let special_col = if let Some(sp_rho) = rho_overwrite {
         Some((
             df.column(&sp_rho.column)?.utf8()?, //0
-            &sp_rho.col_equals, //1
-            sp_rho.oneway, //2
-            sp_rho.value, //3
-            sp_rho.rhotype, //4
+            &sp_rho.col_equals,                 //1
+            sp_rho.oneway,                      //2
+            sp_rho.value,                       //3
+            sp_rho.rhotype,                     //4
         ))
     } else {
         None
     };
-    //let special_rho_unpacked = 
+    //let special_rho_unpacked =
 
     let mut res = 0.;
     let it = tenor_chunked
@@ -336,21 +334,23 @@ where
                         // Extending to name - shouldn't be a problem since special column will act as bucket
                         let _rho_diff_tenor = match special_col {
                             //special case covering special rho
-                            Some((sp_col, col_value, oneway, rho_override, RhoType::Tenor )) => {
+                            Some((sp_col, col_value, oneway, rho_override, RhoType::Tenor)) => {
                                 let a = sp_col.get(i);
                                 let b = sp_col.get(j);
-                                    if oneway & ( (a == Some(col_value.as_str())) | (b == Some(col_value.as_str())) ) 
-                                    {
-                                        rho_override
-                                    } 
-                                    else if !oneway & ( (a == Some(col_value.as_str())) & (b == Some(col_value.as_str())) )
-                                    {
-                                        rho_override
-                                    } 
-                                    else {
-                                        rho_diff_tenor
-                                    }
-                            },
+                                if oneway
+                                    & ((a == Some(col_value.as_str()))
+                                        | (b == Some(col_value.as_str())))
+                                {
+                                    rho_override
+                                } else if !oneway
+                                    & ((a == Some(col_value.as_str()))
+                                        & (b == Some(col_value.as_str())))
+                                {
+                                    rho_override
+                                } else {
+                                    rho_diff_tenor
+                                }
+                            }
                             _ => rho_diff_tenor,
                         };
                         rho *= _rho_diff_tenor;

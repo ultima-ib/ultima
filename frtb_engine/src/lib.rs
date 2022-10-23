@@ -1,9 +1,9 @@
 //! FRTB job entry point
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
-mod sbm;
 mod drc;
 mod rrao;
+mod sbm;
 
 pub mod calc_params;
 pub mod docs;

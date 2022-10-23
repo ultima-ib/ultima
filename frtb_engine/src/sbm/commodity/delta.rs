@@ -104,28 +104,27 @@ fn commodity_delta_charge<F>(
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
+    let mut columns = vec![
+        col("RiskCategory"),
+        col("RiskClass"),
+        col("RiskFactor"),
+        col("CommodityLocation"),
+        col("BucketBCBS"),
+        col("SensitivitySpot"),
+        col("Sensitivity_025Y"),
+        col("Sensitivity_05Y"),
+        col("Sensitivity_1Y"),
+        col("Sensitivity_2Y"),
+        col("Sensitivity_3Y"),
+        col("Sensitivity_5Y"),
+        col("Sensitivity_10Y"),
+        col("Sensitivity_15Y"),
+        col("Sensitivity_20Y"),
+        col("Sensitivity_30Y"),
+        col("SensWeights"),
+    ];
 
-   let mut columns =  vec![
-            col("RiskCategory"),
-            col("RiskClass"),
-            col("RiskFactor"),
-            col("CommodityLocation"),
-            col("BucketBCBS"),
-            col("SensitivitySpot"),
-            col("Sensitivity_025Y"),
-            col("Sensitivity_05Y"),
-            col("Sensitivity_1Y"),
-            col("Sensitivity_2Y"),
-            col("Sensitivity_3Y"),
-            col("Sensitivity_5Y"),
-            col("Sensitivity_10Y"),
-            col("Sensitivity_15Y"),
-            col("Sensitivity_20Y"),
-            col("Sensitivity_30Y"),
-            col("SensWeights"),
-        ];
-    
-    if let Some(rho_ovrd) = &rho_overwrite{
+    if let Some(rho_ovrd) = &rho_overwrite {
         columns.push(col(&rho_ovrd.column))
     }
 
@@ -151,19 +150,23 @@ where
                 "w"   =>  &columns[16],
             ]?;
             //
-            let mut names = vec!["rcat", "rc","rf","loc","b","y0","y025","y05","y1","y2","y3","y5","y10","y15","y20","y30","w"];
-            if let Some(rho_ovrd) = &rho_overwrite{
+            let mut names = vec![
+                "rcat", "rc", "rf", "loc", "b", "y0", "y025", "y05", "y1", "y2", "y3", "y5", "y10",
+                "y15", "y20", "y30", "w",
+            ];
+            if let Some(rho_ovrd) = &rho_overwrite {
                 names.push(&rho_ovrd.column)
             };
             //let cols = col
-            columns.iter_mut().zip(names.iter()).for_each(|(s, name)|{s.rename(name);});
+            columns.iter_mut().zip(names.iter()).for_each(|(s, name)| {
+                s.rename(name);
+            });
             let mut df = DataFrame::new(columns.to_vec())?;
 
             let mut grp_by = vec![col("b"), col("rf"), col("loc")];
-            if let Some(rho_ovrd) = &rho_overwrite{
+            if let Some(rho_ovrd) = &rho_overwrite {
                 grp_by.push(col(&rho_ovrd.column))
             };
-
 
             df = df
                 .lazy()
@@ -190,7 +193,7 @@ where
                 .collect()?;
 
             let mut id_vars = vec!["b".to_string(), "rf".to_string(), "loc".to_string()];
-            if let Some(rho_ovrd) = &rho_overwrite{
+            if let Some(rho_ovrd) = &rho_overwrite {
                 id_vars.push(rho_ovrd.column.clone())
             };
 

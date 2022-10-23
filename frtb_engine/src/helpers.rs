@@ -3,7 +3,7 @@
 use base_engine::OCP;
 use log::warn;
 use ndarray::Array2;
-use polars::prelude::{ChunkedArray, Utf8Type, BooleanType};
+use polars::prelude::{BooleanType, ChunkedArray, Utf8Type};
 use serde::{Deserialize, Serialize};
 
 use crate::prelude::Jurisdiction;
@@ -72,7 +72,7 @@ pub(crate) fn get_optional_parameter_array<'a>(
 /// we need to assert arr shape, so we have a separate func for arrs
 pub(crate) fn get_optional_parameter_opt<'a, T>(op: &'a OCP, param: &str) -> Option<T>
 where
-    T: Deserialize<'a>+std::fmt::Debug,
+    T: Deserialize<'a> + std::fmt::Debug,
 {
     op.get(param)
         .and_then(|x| serde_json::from_str::<T>(x).ok())
@@ -125,9 +125,8 @@ pub(crate) enum ReturnMetric {
 pub fn first_appearance(ca: &ChunkedArray<Utf8Type>) -> ChunkedArray<BooleanType> {
     let mut unique_values = std::collections::HashSet::new();
 
-        let mask = ca.into_iter().map( |k| {
-                unique_values.insert(k)
-            })
-            .collect::<ChunkedArray<BooleanType>>();
-        mask
+    ca
+        .into_iter()
+        .map(|k| unique_values.insert(k))
+        .collect::<ChunkedArray<BooleanType>>()
 }

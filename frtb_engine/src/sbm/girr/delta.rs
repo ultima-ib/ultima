@@ -348,15 +348,13 @@ where
 }
 
 /// 325ag
-/// TODO test
 #[cfg(feature = "CRR2")]
 pub(crate) fn build_girr_crr2_gamma(
     buckets: &[&str],
     erm2ccys: &[&str],
     base_gamma: f64,
-    erma2vseur: f64,
+    erm2vseur: f64,
 ) -> Array2<f64>
-//where I: Iterator<Item = S>,
 {
     let mut gamma = Array2::from_elem((buckets.len(), buckets.len()), base_gamma);
 
@@ -371,10 +369,10 @@ pub(crate) fn build_girr_crr2_gamma(
                     let buck2 = unsafe { buckets.get_unchecked(j) };
                     if (*buck1 == "EUR") & erm2ccys.contains(buck2) {
                         // if row is EUR and col is ERM2
-                        *x = erma2vseur;
+                        *x = erm2vseur;
                     } else if erm2ccys.contains(buck1) & (*buck2 == "EUR") {
                         // if row is ERM2 and col is EUR
-                        *x = erma2vseur;
+                        *x = erm2vseur;
                     }
                 })
             }

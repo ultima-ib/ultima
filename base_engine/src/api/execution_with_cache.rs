@@ -8,7 +8,8 @@ pub type CACHE = DashMap::<AggregationRequest, DataFrame>;
 
 use crate::{DataSet, AggregationRequest};
 
-pub(crate) fn execute_with_cache(data: Arc<dyn DataSet>,
+/// TODO work in progress
+pub(crate) fn _execute_with_cache(data: Arc<dyn DataSet>,
     req: AggregationRequest,
     cache: CACHE) -> PolarsResult<DataFrame>{
         let requested_measures = req.measures().clone();
@@ -21,9 +22,9 @@ pub(crate) fn execute_with_cache(data: Arc<dyn DataSet>,
         let mut new = vec![];
         // for each measure in req check cache
         for m in requested_measures {
-          let _req =   AggregationRequest{measures: vec![m.clone()], ..req.clone()};
+          let sub_req =   AggregationRequest{measures: vec![m.clone()], ..req.clone()};
           // checking cache
-          match cache.get(&req) {
+          match cache.get(&sub_req) {
             // If found - store result
             Some(rf) => {
                 cached_res.push(rf.value().clone());

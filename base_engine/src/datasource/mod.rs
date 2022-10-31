@@ -1,4 +1,4 @@
-use log::warn;
+//use log::error;
 use polars::functions::diag_concat_df;
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -18,24 +18,9 @@ pub fn read_toml2<T>(path: &str) -> std::result::Result<T, Box<dyn std::error::E
 where
     T: serde::de::DeserializeOwned,
 {
-    let result_string: std::result::Result<String, std::io::Error> = std::fs::read_to_string(path);
-
-    match result_string {
-        Ok(f) => {
-            let x = toml::from_str::<T>(&f);
-            match x {
-                Ok(obj) => Ok(obj),
-                Err(er) => {
-                    warn!("File {} found, but can't parse the file: {}", path, er);
-                    Err(er.into()) // convert toml de::error into Box dyn Error
-                }
-            }
-        }
-        Err(er) => {
-            warn!("Can't read file{}: {}", path, er);
-            Err(er.into()) // convert std::io::error into Box dyn Error
-        }
-    }
+    let result_string = std::fs::read_to_string(dbg!(path))?;
+    let res = toml::from_str::<T>(&result_string)?;
+    Ok(res)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

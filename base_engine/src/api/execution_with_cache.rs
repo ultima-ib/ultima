@@ -36,6 +36,7 @@ pub(crate) fn _execute_with_cache(data: Arc<dyn DataSet>,
 
         let mut res: DataFrame;
 
+        // retrieve cached results
         let chached_df = if !cached_res.is_empty() {
             let mut it = cached_res.into_iter();
             let mut res = it.next().unwrap(); //cached_res is not empty
@@ -50,6 +51,12 @@ pub(crate) fn _execute_with_cache(data: Arc<dyn DataSet>,
         let new_res = if !new.is_empty() {
           let new_req = AggregationRequest{measures: new, ..req.clone()};
           let new_res = super::execute_aggregation(new_req, data)?;
+          // Now save each of new measures to cache
+          for new_measure in new {
+            let new_m_req = AggregationRequest{measures: vec![new_measure], ..req.clone()};
+            let new_res_df = new_res[new_name];
+            cache.insert(new_m_req, )
+          }
           Some(new_res)
         }else {None};
         // if found -> push to storage ; if not found -> push to not found

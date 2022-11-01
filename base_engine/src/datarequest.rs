@@ -1,3 +1,6 @@
+// TODO fix properly
+#![allow(clippy::derive_hash_xor_eq)]
+
 use std::collections::BTreeMap;
 
 use super::measure::OCP;
@@ -76,6 +79,9 @@ impl Hash for AggregationRequest {
         self.hide_zeros.hash(state);
         self.totals.hash(state);
         //Hashmap is only hashable via BTreeMap
-        self.calc_params.iter().collect::<BTreeMap<_, _>>().hash(state);
+        self.calc_params
+            .iter()
+            .collect::<BTreeMap<_, _>>()
+            .hash(state);
     }
 }

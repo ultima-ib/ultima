@@ -98,13 +98,12 @@ async fn dataset_info<DS: Serialize + ?Sized>(_: HttpRequest, ds: Data<DS>) -> i
 async fn execute(
     data: Data<dyn DataSet>,
     req: web::Json<AggregationRequest>,
-    cache: Data<CACHE>
+    cache: Data<CACHE>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
     let _cache = cache.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
-
         let _with_cache = true;
 
         // Work in progress
@@ -114,12 +113,10 @@ async fn execute(
         //    base_engine::execute_aggregation(r, Arc::clone(&*data))
         //}
         base_engine::execute_aggregation(r, Arc::clone(&*data))
-
     })
     .await
     .context("Failed to spawn blocking task.")
     .map_err(actix_web::error::ErrorInternalServerError)?;
-
 
     match res {
         Ok(df) => Ok(HttpResponse::Ok().json(df)),

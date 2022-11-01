@@ -18,12 +18,13 @@ use actix_web::{
     //error::InternalError, http::StatusCode,
     Result,
 };
+//use dashmap::DashMap;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
-use base_engine::api::aggregations::BASE_CALCS;
+use base_engine::{api::aggregations::BASE_CALCS, execution_with_cache::CACHE};
 use base_engine::{prelude::PolarsResult, AggregationRequest, DataSet};
 
 // use uuid::Uuid;
@@ -59,7 +60,7 @@ const PER_PAGE: u16 = 100;
 async fn column_search(
     path: web::Path<String>,
     page: web::Query<Pagination>,
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<dyn DataSet>,
 ) -> Result<HttpResponse> {
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
@@ -87,24 +88,36 @@ async fn column_search(
     }
 }
 
-#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
-async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
-    web::Json(ds)
+//#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
+async fn dataset_info<DS: Serialize + ?Sized>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
+    let a = Arc::clone(&*ds);
+    web::Json(a)
 }
 
 #[tracing::instrument(name = "Request Execution", skip(data))]
 async fn execute(
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<dyn DataSet>,
     req: web::Json<AggregationRequest>,
+    cache: Data<CACHE>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
+    let _cache = cache.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
-        base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
+        let _with_cache = true;
+
+        // Work in progress
+        //if with_cache{
+        //    base_engine::execute_with_cache(data, r, )
+        //} else {
+        //    base_engine::execute_aggregation(r, Arc::clone(&*data))
+        //}
+        base_engine::execute_aggregation(r, Arc::clone(&*data))
     })
     .await
     .context("Failed to spawn blocking task.")
     .map_err(actix_web::error::ErrorInternalServerError)?;
+
     match res {
         Ok(df) => Ok(HttpResponse::Ok().json(df)),
         Err(e) => {
@@ -139,10 +152,12 @@ pub fn run_server(
     // Allow pretty logs
     pretty_env_logger::init();
 
-    let ds = Data::new(ds);
+    let ds = Data::from(ds);
     let static_files_dir =
         std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
+
+    let cache = Data::new(CACHE::new());
 
     let server = HttpServer::new(move || {
         App::new()
@@ -165,6 +180,7 @@ pub fn run_server(
             .service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
             .app_data(ds.clone())
             .app_data(_templates.clone())
+            .app_data(cache.clone())
     })
     .listen(listener)?
     .run();

@@ -13,7 +13,7 @@ pub(crate) type AndOrFltrChain = Vec<Vec<FilterE>>;
 /// (Column, Value(s))
 ///
 ///
-#[derive(Serialize, Deserialize, Debug, Hash, Clone)]
+#[derive(Serialize, Deserialize, Debug, Hash, Clone, Eq, PartialEq)]
 #[serde(tag = "op")]
 pub enum FilterE {
     /// On Same as In, but better for 1 field only

@@ -349,13 +349,13 @@ where
 
 /// 325ag
 #[cfg(feature = "CRR2")]
+#[allow(clippy::if_same_then_else)]
 pub(crate) fn build_girr_crr2_gamma(
     buckets: &[&str],
     erm2ccys: &[&str],
     base_gamma: f64,
     erm2vseur: f64,
-) -> Array2<f64>
-{
+) -> Array2<f64> {
     let mut gamma = Array2::from_elem((buckets.len(), buckets.len()), base_gamma);
 
     gamma

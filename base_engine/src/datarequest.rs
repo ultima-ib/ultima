@@ -1,3 +1,8 @@
+// TODO fix properly
+#![allow(clippy::derive_hash_xor_eq)]
+
+use std::collections::BTreeMap;
+
 use super::measure::OCP;
 use crate::filters::AndOrFltrChain;
 use crate::overrides::Override;
@@ -17,22 +22,22 @@ pub enum DataRequestE {
     Breakdown,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "type")]
 pub struct AggregationRequest {
     // general fields
     #[serde(default)]
-    name: Option<String>,
+    pub name: Option<String>,
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
-    measures: Vec<(String, String)>,
-    groupby: Vec<String>,
+    pub measures: Vec<(String, String)>,
+    pub groupby: Vec<String>,
     #[serde(default)]
-    filters: AndOrFltrChain,
+    pub filters: AndOrFltrChain,
     #[serde(default)]
-    overrides: Vec<Override>,
+    pub overrides: Vec<Override>,
     #[serde(default)]
-    calc_params: OCP,
+    pub calc_params: OCP,
     /// drop rows where all results are NULL or 0
     #[serde(default)]
     pub hide_zeros: bool,
@@ -60,5 +65,23 @@ impl AggregationRequest {
 
     pub fn overrides(&self) -> &Vec<Override> {
         &self.overrides
+    }
+}
+
+use std::hash::{Hash, Hasher};
+
+impl Hash for AggregationRequest {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.measures.hash(state);
+        self.groupby.hash(state);
+        self.filters.hash(state);
+        self.overrides.hash(state);
+        self.hide_zeros.hash(state);
+        self.totals.hash(state);
+        //Hashmap is only hashable via BTreeMap
+        self.calc_params
+            .iter()
+            .collect::<BTreeMap<_, _>>()
+            .hash(state);
     }
 }

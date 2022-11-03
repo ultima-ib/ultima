@@ -1,8 +1,8 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
 
-use ndarray::prelude::*;
-use polars::prelude::*;
+use ndarray::Array2;
+use polars::lazy::dsl::apply_multiple;
 
 pub fn total_csrnonsec_vega_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Vega", "CSR_nonSec", total_vega_curv_sens())
@@ -13,8 +13,10 @@ pub fn total_csrnonsec_vega_sens_weighted_bcbs(op: &OCP) -> Expr {
 
     match juri {
         #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => total_csrnonsec_vega_sens(op) * col("SensWeightsCRR2").arr().get(0),
-        Jurisdiction::BCBS => total_csrnonsec_vega_sens(op) * col("SensWeights").arr().get(0),
+        Jurisdiction::CRR2 => {
+            total_csrnonsec_vega_sens(op) * col("SensWeightsCRR2").arr().get(lit(0))
+        }
+        Jurisdiction::BCBS => total_csrnonsec_vega_sens(op) * col("SensWeights").arr().get(lit(0)),
     }
 }
 
@@ -66,7 +68,7 @@ fn csr_nonsec_vega_charge_distributor(
     let (weight, bucket_col, name_rho_vec, rho_opt, gamma, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2").arr().get(0),
+            col("SensWeightsCRR2").arr().get(lit(0)),
             col("BucketCRR2"),
             Vec::from(scenario.csr_nonsec_delta_diff_name_rho_per_bucket_base_crr2),
             &scenario.base_vega_rho,
@@ -75,7 +77,7 @@ fn csr_nonsec_vega_charge_distributor(
         ),
 
         Jurisdiction::BCBS => (
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
             col("BucketBCBS"),
             Vec::from(scenario.csr_nonsec_delta_vega_diff_name_rho_per_bucket_base_bcbs),
             &scenario.base_vega_rho,
@@ -131,16 +133,16 @@ where
     apply_multiple(
         move |columns| {
             let df = df![
-                "rc" =>   columns[0].clone(),
-                "rf" =>   columns[1].clone(),
-                "b" =>    columns[2].clone(),
-                "y05" =>  columns[3].clone(),
-                "y1" =>   columns[4].clone(),
-                "y3" =>   columns[5].clone(),
-                "y5" =>   columns[6].clone(),
-                "y10" =>  columns[7].clone(),
-                "w" =>    columns[8].clone(),
-                "rcat" => columns[9].clone(),
+                "rc" =>   &columns[0],
+                "rf" =>   &columns[1],
+                "b" =>    &columns[2],
+                "y05" =>  &columns[3],
+                "y1" =>   &columns[4],
+                "y3" =>   &columns[5],
+                "y5" =>   &columns[6],
+                "y10" =>  &columns[7],
+                "w" =>    &columns[8],
+                "rcat" => &columns[9],
             ]?;
 
             // concat_lst is actually slower than
@@ -183,19 +185,15 @@ where
             let res_len = columns[0].len();
             match rtrn {
                 ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kbs",
+                        vec![kbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "sbs",
+                        vec![sbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 _ => (),
@@ -217,6 +215,7 @@ where
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 /// Returns max of three scenarios

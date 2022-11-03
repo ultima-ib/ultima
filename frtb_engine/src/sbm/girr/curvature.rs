@@ -2,11 +2,9 @@ use crate::{
     prelude::*,
     sbm::common::{across_bucket_agg, rc_rcat_sens, SBMChargeType},
 };
-//use crate::sbm::common_curv::*;
-
 use base_engine::prelude::OCP;
 use ndarray::{Array1, Array2};
-use polars::prelude::*;
+use polars::lazy::dsl::apply_multiple;
 
 #[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;
@@ -106,22 +104,22 @@ fn girr_curvature_charge(
     apply_multiple(
         move |columns| {
             let df = df![
-                "rc"       => columns[0].clone(),
-                "b"        => columns[1].clone(),
-                "PnL_Up"   => columns[2].clone(),
-                "PnL_Down" => columns[3].clone(),
-                "SensitivitySpot" => columns[4].clone(),
-                "Sensitivity_025Y"=> columns[5].clone(),
-                "Sensitivity_05Y" => columns[6].clone(),
-                "Sensitivity_1Y"  => columns[7].clone(),
-                "Sensitivity_2Y"  => columns[8].clone(),
-                "Sensitivity_3Y"  => columns[9].clone(),
-                "Sensitivity_5Y"  => columns[10].clone(),
-                "Sensitivity_10Y" => columns[11].clone(),
-                "Sensitivity_15Y" => columns[12].clone(),
-                "Sensitivity_20Y" => columns[13].clone(),
-                "Sensitivity_30Y" => columns[14].clone(),
-                "CurvatureRiskWeight"=>columns[15].clone(),
+                "rc"       => &columns[0],
+                "b"        => &columns[1],
+                "PnL_Up"   => &columns[2],
+                "PnL_Down" => &columns[3],
+                "SensitivitySpot" => &columns[4],
+                "Sensitivity_025Y"=> &columns[5],
+                "Sensitivity_05Y" => &columns[6],
+                "Sensitivity_1Y"  => &columns[7],
+                "Sensitivity_2Y"  => &columns[8],
+                "Sensitivity_3Y"  => &columns[9],
+                "Sensitivity_5Y"  => &columns[10],
+                "Sensitivity_10Y" => &columns[11],
+                "Sensitivity_15Y" => &columns[12],
+                "Sensitivity_20Y" => &columns[13],
+                "Sensitivity_30Y" => &columns[14],
+                "CurvatureRiskWeight"=>&columns[15],
             ]?;
 
             let df = df
@@ -241,6 +239,7 @@ fn girr_curvature_charge(
             col("CurvatureRiskWeight"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

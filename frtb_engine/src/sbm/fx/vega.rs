@@ -3,15 +3,14 @@ use crate::prelude::*;
 use crate::sbm::common::{across_bucket_agg, rc_rcat_sens, total_vega_curv_sens, SBMChargeType};
 use base_engine::prelude::*;
 use ndarray::{Array1, Array2, Axis};
-
-use polars::prelude::*;
+use polars::lazy::dsl::apply_multiple;
 
 pub fn total_fx_vega_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Vega", "FX", total_vega_curv_sens())
 }
 
 pub fn total_fx_vega_sens_weighted(op: &OCP) -> Expr {
-    total_fx_vega_sens(op) * col("SensWeights").arr().get(0)
+    total_fx_vega_sens(op) * col("SensWeights").arr().get(lit(0))
 }
 
 /// Sb Low == Sb Medium == Sb High
@@ -75,15 +74,15 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
     apply_multiple(
         move |columns| {
             let df = df![
-                "rcat" => columns[0].clone(),
-                "rc" =>   columns[1].clone(),
-                "b" =>    columns[2].clone(),
-                "y05" =>  columns[3].clone(),
-                "y1" =>   columns[4].clone(),
-                "y3" =>   columns[5].clone(),
-                "y5" =>   columns[6].clone(),
-                "y10" =>  columns[7].clone(),
-                "wght" => columns[8].clone()
+                "rcat" => &columns[0],
+                "rc" =>   &columns[1],
+                "b" =>    &columns[2],
+                "y05" =>  &columns[3],
+                "y1" =>   &columns[4],
+                "y3" =>   &columns[5],
+                "y5" =>   &columns[6],
+                "y10" =>  &columns[7],
+                "wght" => &columns[8]
             ]?;
 
             let df = df
@@ -155,9 +154,10 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

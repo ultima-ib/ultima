@@ -1,15 +1,15 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
 
-use ndarray::prelude::*;
-use polars::prelude::*;
+use ndarray::Array2;
+use polars::lazy::dsl::apply_multiple;
 
 pub fn total_eq_vega_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Vega", "Equity", total_vega_curv_sens())
 }
 
 pub fn total_eq_vega_sens_weighted(op: &OCP) -> Expr {
-    total_eq_vega_sens(op) * col("SensWeights").arr().get(0)
+    total_eq_vega_sens(op) * col("SensWeights").arr().get(lit(0))
 }
 ///Interm Result
 pub(crate) fn equity_vega_sb(op: &OCP) -> Expr {
@@ -94,16 +94,16 @@ where
     apply_multiple(
         move |columns| {
             let df = df![
-                "rcat" => columns[0].clone(),
-                "rc" =>   columns[1].clone(),
-                "b" =>    columns[2].clone(),
-                "rf" =>   columns[3].clone(),
-                "y05" =>  columns[4].clone(),
-                "y1" =>   columns[5].clone(),
-                "y3" =>   columns[6].clone(),
-                "y5" =>   columns[7].clone(),
-                "y10" =>  columns[8].clone(),
-                "wght" => columns[9].clone(),
+                "rcat" => &columns[0],
+                "rc" =>   &columns[1],
+                "b" =>    &columns[2],
+                "rf" =>   &columns[3],
+                "y05" =>  &columns[4],
+                "y1" =>   &columns[5],
+                "y3" =>   &columns[6],
+                "y5" =>   &columns[7],
+                "y10" =>  &columns[8],
+                "wght" => &columns[9],
             ]?;
 
             // 21.4.3 - Netting
@@ -146,19 +146,15 @@ where
             let res_len = columns[0].len();
             match rtrn {
                 ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kbs",
+                        vec![kbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "sbs",
+                        vec![sbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 _ => (),
@@ -176,9 +172,10 @@ where
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 /// Returns max of three scenarios

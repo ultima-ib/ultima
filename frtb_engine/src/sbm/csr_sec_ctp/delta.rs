@@ -5,7 +5,6 @@ use base_engine::prelude::*;
 use sbm::csr_nonsec::delta::csr_nonsec_delta_charge;
 
 use crate::prelude::*;
-use polars::prelude::*;
 
 pub fn total_csr_sec_ctp_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "CSR_Sec_CTP", total_delta_sens())
@@ -154,11 +153,11 @@ fn csr_sec_ctp_delta_charge_distributor(
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
             [
-                col("SensWeightsCRR2").arr().get(0),
-                col("SensWeightsCRR2").arr().get(1),
-                col("SensWeightsCRR2").arr().get(2),
-                col("SensWeightsCRR2").arr().get(3),
-                col("SensWeightsCRR2").arr().get(4),
+                col("SensWeightsCRR2").arr().get(lit(0)),
+                col("SensWeightsCRR2").arr().get(lit(1)),
+                col("SensWeightsCRR2").arr().get(lit(2)),
+                col("SensWeightsCRR2").arr().get(lit(3)),
+                col("SensWeightsCRR2").arr().get(lit(4)),
             ],
             col("BucketCRR2"),
             Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_crr2),
@@ -168,11 +167,11 @@ fn csr_sec_ctp_delta_charge_distributor(
         ),
         Jurisdiction::BCBS => (
             [
-                col("SensWeights").arr().get(0),
-                col("SensWeights").arr().get(1),
-                col("SensWeights").arr().get(2),
-                col("SensWeights").arr().get(3),
-                col("SensWeights").arr().get(4),
+                col("SensWeights").arr().get(lit(0)),
+                col("SensWeights").arr().get(lit(1)),
+                col("SensWeights").arr().get(lit(2)),
+                col("SensWeights").arr().get(lit(3)),
+                col("SensWeights").arr().get(lit(4)),
             ],
             col("BucketBCBS"),
             Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_bcbs),

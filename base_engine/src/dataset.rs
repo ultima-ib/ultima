@@ -7,7 +7,7 @@ use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize)]
 pub struct DataSetBase {
     pub frame: DataFrame,
     pub measures: MeasuresMap,

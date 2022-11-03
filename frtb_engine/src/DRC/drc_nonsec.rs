@@ -1,8 +1,7 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
 
-//use ndarray::prelude::*;
-use polars::prelude::*;
+use polars::lazy::dsl::apply_multiple;
 
 pub(crate) fn drc_nonsec_grossjtd(_: &OCP) -> Expr {
     rc_sens("DRC_NonSec", col("GrossJTD"))
@@ -180,7 +179,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
                     (col("WeightedNetLongJTD") - col("WeightedNetAbsShortJTD") * col("HBR"))
                         .alias("DRCBucket"),
                 );
-            df = lf.collect().unwrap();
+            df = lf.collect()?;
 
             match rtrn {
                 ReturnMetric::Hbr => Ok(Series::from_vec(
@@ -216,10 +215,11 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             col("RiskFactor"),
             col("SeniorityRank"),
             col("GrossJTD"),
-            weights.arr().get(0),
+            weights.arr().get(lit(0)),
             col("ScaleFactor"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

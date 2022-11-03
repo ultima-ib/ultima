@@ -5,11 +5,12 @@ use crate::sbm::common::{
     total_vega_curv_sens, SBMChargeType,
 };
 use base_engine::prelude::*;
+use polars::lazy::dsl::apply_multiple;
 
 #[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;
+
 use ndarray::{s, Array1, Array2};
-use polars::prelude::*;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 pub fn total_ir_vega_sens(_: &OCP) -> Expr {
@@ -125,16 +126,16 @@ fn girr_vega_charge(
     apply_multiple(
         move |columns| {
             let df = df![
-                "rcat" => columns[0].clone(),
-                "rc" =>   columns[1].clone(),
-                "b" =>    columns[2].clone(),
-                "um" =>   columns[3].clone(),
-                "y05" =>  columns[4].clone(),
-                "y1" =>   columns[5].clone(),
-                "y3" =>   columns[6].clone(),
-                "y5" =>   columns[7].clone(),
-                "y10" =>  columns[8].clone(),
-                "weight"=>columns[9].clone(),
+                "rcat" => &columns[0],
+                "rc" =>   &columns[1],
+                "b" =>    &columns[2],
+                "um" =>   &columns[3],
+                "y05" =>  &columns[4],
+                "y1" =>   &columns[5],
+                "y3" =>   &columns[6],
+                "y5" =>   &columns[7],
+                "y10" =>  &columns[8],
+                "weight"=>&columns[9],
             ]?;
 
             let df = df
@@ -217,9 +218,10 @@ fn girr_vega_charge(
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

@@ -1,14 +1,12 @@
 use crate::{prelude::*, sbm::equity::vega::equity_vega_charge};
 use base_engine::prelude::*;
 
-use polars::prelude::*;
-
 pub fn total_com_vega_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Vega", "Commodity", total_vega_curv_sens())
 }
 
 pub fn total_com_vega_sens_weighted(op: &OCP) -> Expr {
-    total_com_vega_sens(op) * col("SensWeights").arr().get(0)
+    total_com_vega_sens(op) * col("SensWeights").arr().get(lit(0))
 }
 ///Interm Result
 pub(crate) fn com_vega_sb(op: &OCP) -> Expr {

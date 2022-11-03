@@ -16,9 +16,6 @@ pub fn multi_download(
 ) -> Vec<DataFrame> {
     let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
 
-    //let bucket = "ultima-bi";
-    //let keys = ["Delta.csv", "testset.csv"];
-
     let mut vc = Vec::with_capacity(cast_to_str.len() + cast_to_f64.len());
     for str_col in cast_to_str {
         vc.push(Field::new(str_col, DataType::Utf8))
@@ -27,7 +24,7 @@ pub fn multi_download(
         vc.push(Field::new(f64_col, DataType::Float64))
     }
 
-    let schema = Schema::from(vc);
+    let schema = Schema::from_iter(vc);
 
     runtime.block_on(get_frames(bucket, keys, &schema))
 }

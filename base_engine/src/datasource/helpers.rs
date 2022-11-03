@@ -29,7 +29,7 @@ pub fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
         vc.push(Field::new(f64_col, DataType::Float64))
     }
 
-    let schema = Schema::from(vc);
+    let schema = Schema::from_iter(vc);
 
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file

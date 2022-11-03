@@ -2,10 +2,10 @@
 use crate::helpers::*;
 use crate::sbm::common::*;
 use base_engine::prelude::*;
+use ndarray::Array2;
 
 use crate::prelude::*;
-use ndarray::prelude::*;
-use polars::prelude::*;
+use polars::lazy::dsl::apply_multiple;
 
 pub fn total_csr_nonsec_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "CSR_nonSec", total_vega_curv_sens())
@@ -151,11 +151,11 @@ fn csr_nonsec_delta_charge_distributor(
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
             [
-                col("SensWeightsCRR2").arr().get(0),
-                col("SensWeightsCRR2").arr().get(1),
-                col("SensWeightsCRR2").arr().get(2),
-                col("SensWeightsCRR2").arr().get(3),
-                col("SensWeightsCRR2").arr().get(4),
+                col("SensWeightsCRR2").arr().get(lit(0)),
+                col("SensWeightsCRR2").arr().get(lit(1)),
+                col("SensWeightsCRR2").arr().get(lit(2)),
+                col("SensWeightsCRR2").arr().get(lit(3)),
+                col("SensWeightsCRR2").arr().get(lit(4)),
             ],
             col("BucketCRR2"),
             Vec::from(scenario.csr_nonsec_delta_diff_name_rho_per_bucket_base_crr2),
@@ -166,11 +166,11 @@ fn csr_nonsec_delta_charge_distributor(
 
         Jurisdiction::BCBS => (
             [
-                col("SensWeights").arr().get(0),
-                col("SensWeights").arr().get(1),
-                col("SensWeights").arr().get(2),
-                col("SensWeights").arr().get(3),
-                col("SensWeights").arr().get(4),
+                col("SensWeights").arr().get(lit(0)),
+                col("SensWeights").arr().get(lit(1)),
+                col("SensWeights").arr().get(lit(2)),
+                col("SensWeights").arr().get(lit(3)),
+                col("SensWeights").arr().get(lit(4)),
             ],
             col("BucketBCBS"),
             Vec::from(scenario.csr_nonsec_delta_vega_diff_name_rho_per_bucket_base_bcbs),
@@ -344,19 +344,15 @@ where
             let res_len = columns[0].len();
             match rtrn {
                 ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kbs",
+                        vec![kbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "sbs",
+                        vec![sbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 _ => (),
@@ -382,6 +378,7 @@ where
             w5,
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

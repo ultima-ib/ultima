@@ -12,8 +12,8 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
 
-use ndarray::prelude::*;
-use polars::prelude::*;
+use ndarray::Array2;
+use polars::lazy::dsl::apply_multiple;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens(_: &OCP) -> Expr {
@@ -105,13 +105,13 @@ where
     apply_multiple(
         move |columns| {
             let mut df = df![
-                "rcat" => columns[0].clone(),
-                "rc"   => columns[1].clone(),
-                "b"    => columns[2].clone(),
-                "rf"   => columns[3].clone(),
-                "rft"  => columns[4].clone(),
-                "d"    => columns[5].clone(),
-                "w"    => columns[6].clone(),
+                "rcat" => &columns[0],
+                "rc"   => &columns[1],
+                "b"    => &columns[2],
+                "rf"   => &columns[3],
+                "rft"  => &columns[4],
+                "d"    => &columns[5],
+                "w"    => &columns[6],
             ]?;
 
             // 21.4.3 - Netting
@@ -160,16 +160,16 @@ where
             //let a = Float64Chunked::from_vec("Res", vec![kbs.iter().sum();res_len]);
             match rtrn {
                 ReturnMetric::Kb => {
-                    return Ok(
-                        Float64Chunked::from_vec("Res", vec![kbs.iter().sum(); res_len])
-                            .into_series(),
-                    )
+                    return Ok(Series::from_vec(
+                        "kbs",
+                        vec![kbs.iter().sum::<f64>(); res_len],
+                    ))
                 }
                 ReturnMetric::Sb => {
-                    return Ok(
-                        Float64Chunked::from_vec("Res", vec![sbs.iter().sum(); res_len])
-                            .into_series(),
-                    )
+                    return Ok(Series::from_vec(
+                        "sbs",
+                        vec![sbs.iter().sum::<f64>(); res_len],
+                    ))
                 }
                 _ => (),
             }
@@ -183,9 +183,10 @@ where
             col("RiskFactor"),
             col("RiskFactorType"),
             col("SensitivitySpot"),
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

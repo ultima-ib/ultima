@@ -8,6 +8,7 @@ use crate::{
     prelude::*,
     sbm::common::{across_bucket_agg, SBMChargeType},
 };
+use polars::lazy::dsl::apply_multiple;
 
 /// This works for cases like GBP reporting with BCBS params
 pub(crate) fn ccy_regex(op: &OCP) -> String {
@@ -55,12 +56,13 @@ pub(crate) fn fx_delta_sens_repccy(op: &OCP) -> Expr {
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 
 /// takes CalcParams because we need to know reporting CCY
 pub(crate) fn fx_delta_sens_weighted(op: &OCP) -> Expr {
-    fx_delta_sens_repccy(op) * col("SensWeights").arr().get(0)
+    fx_delta_sens_repccy(op) * col("SensWeights").arr().get(lit(0))
 }
 ///calculate FX Delta Sb, same for all scenarios
 pub(crate) fn fx_delta_sb(op: &OCP) -> Expr {
@@ -114,11 +116,11 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
     apply_multiple(
         move |columns| {
             let df = df![
-                "rcat" => columns[0].clone(),
-                "rc"   => columns[1].clone(),
-                "b"    => columns[2].clone(),
-                "d"    => columns[3].clone(),
-                "w"    => columns[4].clone(),
+                "rcat" => &columns[0],
+                "rc"   => &columns[1],
+                "b"    => &columns[2],
+                "d"    => &columns[3],
+                "w"    => &columns[4],
             ]?;
 
             let ccy_regex = ccy_regex.clone();
@@ -187,9 +189,10 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
             col("RiskClass"),
             col("BucketBCBS"),
             col("SensitivitySpot"),
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 /// Returns max of three scenarios

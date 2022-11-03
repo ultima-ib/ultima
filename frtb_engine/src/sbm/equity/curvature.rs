@@ -3,8 +3,7 @@
 use crate::prelude::*;
 use base_engine::prelude::OCP;
 use ndarray::{Array1, Array2};
-//use ndarray::{Array1, Array2};
-use polars::prelude::*;
+use polars::lazy::dsl::apply_multiple;
 
 pub fn eq_curv_delta(_: &OCP) -> Expr {
     curv_delta_spot("Equity")
@@ -110,13 +109,13 @@ pub(crate) fn eq_curvature_charge(
     apply_multiple(
         move |columns| {
             let df = df![
-                "rc"       => columns[0].clone(),
-                "b"        => columns[1].clone(),
-                "rf"       => columns[2].clone(),
-                "PnL_Up"   => columns[3].clone(),
-                "PnL_Down" => columns[4].clone(),
-                "SensitivitySpot"           => columns[5].clone(),
-                "CurvatureRiskWeight"       => columns[6].clone(),
+                "rc"       => &columns[0],
+                "b"        => &columns[1],
+                "rf"       => &columns[2],
+                "PnL_Up"   => &columns[3],
+                "PnL_Down" => &columns[4],
+                "SensitivitySpot"           => &columns[5],
+                "CurvatureRiskWeight"       => &columns[6],
             ]?;
 
             let df = df
@@ -177,19 +176,15 @@ pub(crate) fn eq_curvature_charge(
             )?;
             match return_metric {
                 ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kbs",
+                        vec![kbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "sbs",
+                        vec![sbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 _ => (),
@@ -210,6 +205,7 @@ pub(crate) fn eq_curvature_charge(
             col("CurvatureRiskWeight"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

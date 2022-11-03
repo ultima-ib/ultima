@@ -1,8 +1,6 @@
 use crate::{prelude::*, sbm::csr_nonsec::vega::csr_nonsec_vega_charge};
 use base_engine::prelude::*;
 
-use polars::prelude::*;
-
 pub fn total_csrsecctp_vega_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Vega", "CSR_Sec_CTP", total_vega_curv_sens())
 }
@@ -12,8 +10,10 @@ pub fn total_csrsecctp_vega_sens_weighted(op: &OCP) -> Expr {
 
     match juri {
         #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => total_csrsecctp_vega_sens(op) * col("SensWeightsCRR2").arr().get(0),
-        Jurisdiction::BCBS => total_csrsecctp_vega_sens(op) * col("SensWeights").arr().get(0),
+        Jurisdiction::CRR2 => {
+            total_csrsecctp_vega_sens(op) * col("SensWeightsCRR2").arr().get(lit(0))
+        }
+        Jurisdiction::BCBS => total_csrsecctp_vega_sens(op) * col("SensWeights").arr().get(lit(0)),
     }
 }
 
@@ -65,7 +65,7 @@ fn csrsecctp_vega_charge_distributor(
     let (weight, bucket_col, name_rho_vec, rho_opt, gamma, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2").arr().get(0),
+            col("SensWeightsCRR2").arr().get(lit(0)),
             col("BucketCRR2"),
             Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_crr2),
             &scenario.base_vega_rho,
@@ -74,7 +74,7 @@ fn csrsecctp_vega_charge_distributor(
         ),
 
         Jurisdiction::BCBS => (
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
             col("BucketBCBS"),
             Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_bcbs),
             &scenario.base_vega_rho,

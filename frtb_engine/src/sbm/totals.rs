@@ -1,6 +1,7 @@
 //! Totals across different Risk Classes
 use base_engine::{Measure, OCP};
-use polars::prelude::*;
+use polars::lazy::dsl::{apply_multiple, max_exprs, Expr, GetOutput};
+use polars::prelude::{DataType, FillNullStrategy};
 
 use super::commodity::totals::*;
 use super::csr_nonsec::totals::*;
@@ -26,6 +27,7 @@ pub(crate) fn total_sum(expr: &[Expr]) -> Expr {
         },
         expr,
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

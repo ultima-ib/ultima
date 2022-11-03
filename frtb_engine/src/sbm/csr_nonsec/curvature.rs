@@ -2,8 +2,8 @@
 
 use crate::prelude::*;
 use base_engine::prelude::OCP;
-use ndarray::{Array1, Array2};
-use polars::prelude::*;
+use ndarray::Array2;
+use polars::lazy::dsl::apply_multiple;
 
 pub fn csrnonsec_curv_delta(_: &OCP) -> Expr {
     curv_delta_5("CSR_nonSec")
@@ -178,19 +178,15 @@ pub(crate) fn csrnonsec_curvature_charge(
 
             match return_metric {
                 ReturnMetric::KbPlus => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kb_plus.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kb_plus",
+                        vec![kb_plus.iter().sum::<f64>(); res_len],
                     ))
                 }
                 ReturnMetric::KbMinus => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kb_minus.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kb_minus",
+                        vec![kb_minus.iter().sum::<f64>(); res_len],
                     ))
                 }
                 _ => (),
@@ -205,19 +201,15 @@ pub(crate) fn csrnonsec_curvature_charge(
             )?;
             match return_metric {
                 ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kbs",
+                        vec![kbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "sbs",
+                        vec![sbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 _ => (),
@@ -242,6 +234,7 @@ pub(crate) fn csrnonsec_curvature_charge(
             weight,
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 /// Returns max of three scenarios

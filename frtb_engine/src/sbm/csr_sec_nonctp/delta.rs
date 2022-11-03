@@ -1,8 +1,9 @@
 //! CSR Sec non-CTP Delta Calculations
 use crate::prelude::*;
 use base_engine::prelude::*;
-use ndarray::prelude::*;
-use polars::prelude::*;
+
+use ndarray::Array2;
+use polars::lazy::dsl::{apply_multiple, GetOutput};
 
 pub fn total_csr_sec_nonctp_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("CSR_Sec_nonCTP", "Delta", total_delta_sens())
@@ -165,17 +166,17 @@ where
     apply_multiple(
         move |columns| {
             let df = df![
-                "rcat" =>   columns[10].clone(),
-                "rc" =>   columns[0].clone(),
-                "rf" =>   columns[1].clone(),
-                "tran"=>  columns[2].clone(),
-                "b" =>    columns[3].clone(),
-                "y05" =>  columns[4].clone(),
-                "y1" =>   columns[5].clone(),
-                "y3" =>   columns[6].clone(),
-                "y5" =>   columns[7].clone(),
-                "y10" =>  columns[8].clone(),
-                "w"   =>  columns[9].clone()
+                "rcat" =>   &columns[10],
+                "rc" =>   &columns[0],
+                "rf" =>   &columns[1],
+                "tran"=>  &columns[2],
+                "b" =>    &columns[3],
+                "y05" =>  &columns[4],
+                "y1" =>   &columns[5],
+                "y3" =>   &columns[6],
+                "y5" =>   &columns[7],
+                "y10" =>  &columns[8],
+                "w"   =>  &columns[9]
             ]?;
 
             let df = df
@@ -228,19 +229,15 @@ where
             let res_len = columns[0].len();
             match rtrn {
                 ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "kbs",
+                        vec![kbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
+                    return Ok(Series::from_vec(
+                        "sbs",
+                        vec![sbs.iter().sum::<f64>(); res_len],
                     ))
                 }
                 _ => (),
@@ -260,10 +257,11 @@ where
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(0),
+            col("SensWeights").arr().get(lit(0)),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

@@ -7,13 +7,13 @@ use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
 use base_engine::Measure;
 use base_engine::{col, OCP};
-use ndarray::Array1;
+use polars::lazy::dsl::apply_multiple;
+use polars::prelude::NamedFromOwned;
 use polars::{
     df,
-    error::PolarsError,
     prelude::{
-        apply_multiple, lit, when, ChunkFillNullValue, ChunkSet, DataType, Expr, GetOutput,
-        IntoLazy, IntoSeries, Literal, NamedFrom, UniqueKeepStrategy, NULL,
+        lit, when, ChunkFillNullValue, ChunkSet, DataType, Expr, GetOutput, IntoLazy, IntoSeries,
+        Literal, NamedFrom, UniqueKeepStrategy, NULL,
     },
     series::Series,
 };
@@ -60,6 +60,7 @@ pub(crate) fn rrao_weighted_notional(weight: Option<f64>, rrao_type: &'static st
         },
         &[col("TradeId"), col(rrao_type), col("Notional")],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 
@@ -80,8 +81,6 @@ pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
                 "n"    => &columns[3],
             ]?;
 
-            let res_len = columns[0].len();
-
             df = df.unique(Some(&["id".to_string()]), UniqueKeepStrategy::First)?;
 
             df = df
@@ -97,15 +96,7 @@ pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
                 .collect()?;
 
             let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
-
-            Ok(Series::new(
-                "res",
-                Array1::<f64>::from_elem(res_len, res)
-                    .as_slice()
-                    .ok_or_else(|| {
-                        PolarsError::ComputeError("Couldn't convert result into slice".into())
-                    })?,
-            ))
+            Ok(Series::from_vec("rrao", vec![res; columns[0].len()]))
         },
         &[
             col("TradeId"),
@@ -114,6 +105,7 @@ pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
             col("Notional"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

@@ -4,8 +4,8 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
 
-use ndarray::prelude::*;
-use polars::prelude::*;
+use ndarray::Array2;
+use polars::lazy::dsl::apply_multiple;
 
 pub fn total_commodity_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "Commodity", total_delta_sens())
@@ -13,7 +13,7 @@ pub fn total_commodity_delta_sens(_: &OCP) -> Expr {
 
 /// Total Commodity Delta
 pub(crate) fn commodity_delta_sens_weighted(op: &OCP) -> Expr {
-    total_commodity_delta_sens(op) * col("SensWeights").arr().get(0)
+    total_commodity_delta_sens(op) * col("SensWeights").arr().get(lit(0))
 }
 
 /// Interm Result: Commodity Delta Sb <--> Sb Low == Sb Medium == Sb High
@@ -177,17 +177,17 @@ where
                 )
                 .groupby(grp_by)
                 .agg([
-                    (col("y0") * col("w").arr().get(0)).sum(),
-                    (col("y025") * col("w").arr().get(1)).sum(),
-                    (col("y05") * col("w").arr().get(2)).sum(),
-                    (col("y1") * col("w").arr().get(3)).sum(),
-                    (col("y2") * col("w").arr().get(4)).sum(),
-                    (col("y3") * col("w").arr().get(5)).sum(),
-                    (col("y5") * col("w").arr().get(6)).sum(),
-                    (col("y10") * col("w").arr().get(7)).sum(),
-                    (col("y15") * col("w").arr().get(8)).sum(),
-                    (col("y20") * col("w").arr().get(9)).sum(),
-                    (col("y30") * col("w").arr().get(10)).sum(),
+                    (col("y0") * col("w").arr().get(lit(0))).sum(),
+                    (col("y025") * col("w").arr().get(lit(1))).sum(),
+                    (col("y05") * col("w").arr().get(lit(2))).sum(),
+                    (col("y1") * col("w").arr().get(lit(3))).sum(),
+                    (col("y2") * col("w").arr().get(lit(4))).sum(),
+                    (col("y3") * col("w").arr().get(lit(5))).sum(),
+                    (col("y5") * col("w").arr().get(lit(6))).sum(),
+                    (col("y10") * col("w").arr().get(lit(7))).sum(),
+                    (col("y15") * col("w").arr().get(lit(8))).sum(),
+                    (col("y20") * col("w").arr().get(lit(9))).sum(),
+                    (col("y30") * col("w").arr().get(lit(10))).sum(),
                 ])
                 // No need to fill null here
                 .collect()?;
@@ -255,6 +255,7 @@ where
         },
         columns,
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

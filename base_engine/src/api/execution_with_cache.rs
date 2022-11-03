@@ -10,7 +10,7 @@ use crate::{AggregationRequest, DataSet};
 
 /// TODO work in progress
 pub(crate) fn _execute_with_cache(
-    data: Arc<dyn DataSet>,
+    data: Arc<impl DataSet + ?Sized>,
     req: AggregationRequest,
     cache: CACHE,
 ) -> PolarsResult<DataFrame> {

@@ -36,5 +36,6 @@ pub fn drc_scalinng(dc: Option<u8>, format: Option<&String>) -> Expr {
         },
         &[col("COB"), col("MaturityDate")],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }

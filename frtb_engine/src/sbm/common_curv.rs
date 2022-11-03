@@ -3,10 +3,13 @@
 #![allow(clippy::type_complexity, clippy::unnecessary_lazy_evaluations)]
 //#![allow(clippy::unnecessary_lazy_evaluations)]
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
-use ndarray::prelude::*;
-use polars::prelude::*;
+use base_engine::{DataFrame, PolarsResult};
+use ndarray::Array2;
+use polars::lazy::dsl::{apply_multiple, col, lit, Expr, GetOutput};
+use polars::prelude::{AnyValue, ChunkAgg, ChunkSet, DataType, PolarsError};
+use polars::series::{ChunkCompare, IntoSeries, Series};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::prelude::var_covar_sum_single;
@@ -34,6 +37,7 @@ fn curv_delta(rc: &'static str, risk: Expr) -> Expr {
         },
         &[col("RiskClass"), col("PnL_Up"), col("PnL_Down"), risk],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

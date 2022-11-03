@@ -20,12 +20,13 @@ use risk_weights::*;
 use sbm::buckets;
 
 use polars::prelude::*;
+use serde::Serialize;
 use std::collections::HashMap;
 
 pub trait FRTBDataSetT {
     fn prepare(self) -> Self;
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct FRTBDataSet {
     pub frame: DataFrame,
     pub measures: MeasuresMap,

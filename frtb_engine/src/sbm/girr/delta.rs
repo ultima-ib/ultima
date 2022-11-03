@@ -1,11 +1,10 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
 use once_cell::sync::Lazy;
+use polars::lazy::dsl::apply_multiple;
 use rayon::prelude::IntoParallelIterator;
 
-use ndarray::parallel::prelude::ParallelIterator;
-use ndarray::prelude::*;
-use polars::prelude::*;
+use ndarray::{parallel::prelude::ParallelIterator, Array1, Array2};
 
 /// TODO GIRR Delta is the only case where Risk Weight is different, depending on tenor
 /// Hence col("SensWeights") can be f64 instead of list f64
@@ -331,19 +330,20 @@ where
             col("Sensitivity_30Y"),
             col("RiskCategory"),
             //col("SensWeights"),
-            col("SensWeights").arr().get(0),
-            col("SensWeights").arr().get(1),
-            col("SensWeights").arr().get(2),
-            col("SensWeights").arr().get(3),
-            col("SensWeights").arr().get(4),
-            col("SensWeights").arr().get(5),
-            col("SensWeights").arr().get(6),
-            col("SensWeights").arr().get(7),
-            col("SensWeights").arr().get(8),
-            col("SensWeights").arr().get(9),
-            col("SensWeights").arr().get(10),
+            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").arr().get(lit(1)),
+            col("SensWeights").arr().get(lit(2)),
+            col("SensWeights").arr().get(lit(3)),
+            col("SensWeights").arr().get(lit(4)),
+            col("SensWeights").arr().get(lit(5)),
+            col("SensWeights").arr().get(lit(6)),
+            col("SensWeights").arr().get(lit(7)),
+            col("SensWeights").arr().get(lit(8)),
+            col("SensWeights").arr().get(lit(9)),
+            col("SensWeights").arr().get(lit(10)),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 
@@ -356,6 +356,8 @@ pub(crate) fn build_girr_crr2_gamma(
     base_gamma: f64,
     erm2vseur: f64,
 ) -> Array2<f64> {
+    use ndarray::Axis;
+
     let mut gamma = Array2::from_elem((buckets.len(), buckets.len()), base_gamma);
 
     gamma

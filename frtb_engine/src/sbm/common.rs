@@ -3,13 +3,20 @@
 use base_engine::prelude::*;
 
 use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
-use polars::{export::num::Signed, prelude::*};
+use polars::export::num::Signed;
+use polars::lazy::dsl::{apply_multiple, GetOutput};
+use polars::prelude::{
+    AnyValue, ChunkAgg, ChunkSet, DataType, FillNullStrategy, Float64Chunked, Float64Type,
+    NumOpsDispatch, PolarsError, TakeRandom,
+};
+use polars::series::{ChunkCompare, IntoSeries, Series};
+
 use rayon::{
     iter::{ParallelBridge, ParallelIterator},
     prelude::IntoParallelRefIterator,
 };
 use std::mem::MaybeUninit as MU;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use crate::prelude::{RhoOverwrite, RhoType};
 
@@ -57,6 +64,7 @@ pub fn rc_rcat_sens(rcat: &'static str, rc: &'static str, risk: Expr) -> Expr {
         },
         &[col("RiskClass"), col("RiskCategory"), risk],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 
@@ -73,6 +81,7 @@ pub fn rc_sens(rc: &'static str, risk: Expr) -> Expr {
         },
         &[col("RiskClass"), risk],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 
@@ -100,10 +109,11 @@ pub fn rc_tenor_weighted_sens(
         &[
             col("RiskClass"),
             col(delta_tenor),
-            col(weights_col).arr().get(weight_idx),
+            col(weights_col).arr().get(lit(weight_idx)),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

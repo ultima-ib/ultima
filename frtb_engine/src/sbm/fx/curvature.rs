@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use ndarray::{Array1, Array2};
+use polars::lazy::dsl::apply_multiple;
 
 use super::delta::ccy_regex;
 
@@ -123,13 +124,13 @@ fn fx_curvature_charge(
     apply_multiple(
         move |columns| {
             let df = df![
-                "rc"       => columns[0].clone(),
-                "b"        => columns[1].clone(),
-                "PnL_Up"   => columns[2].clone(),
-                "PnL_Down" => columns[3].clone(),
-                "SensitivitySpot" => columns[4].clone(),
-                "CurvatureRiskWeight"=>columns[5].clone(),
-                "FxCurvDivEligibility"=>columns[6].clone(),
+                "rc"       => &columns[0],
+                "b"        => &columns[1],
+                "PnL_Up"   => &columns[2],
+                "PnL_Down" => &columns[3],
+                "SensitivitySpot" =>    &columns[4],
+                "CurvatureRiskWeight"=> &columns[5],
+                "FxCurvDivEligibility"=>&columns[6],
             ]?;
             let ccy_regex = ccy_regex.clone();
             let df = df
@@ -226,6 +227,7 @@ fn fx_curvature_charge(
             col("FxCurvDivEligibility"),
         ],
         GetOutput::from_type(DataType::Float64),
+        false,
     )
 }
 

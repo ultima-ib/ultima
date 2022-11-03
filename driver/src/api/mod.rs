@@ -60,7 +60,7 @@ const PER_PAGE: u16 = 100;
 async fn column_search(
     path: web::Path<String>,
     page: web::Query<Pagination>,
-    data: Data<dyn DataSet>,
+    data: Data<Arc<dyn DataSet>>,
 ) -> Result<HttpResponse> {
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
@@ -89,14 +89,13 @@ async fn column_search(
 }
 
 //#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
-async fn dataset_info<DS: Serialize + ?Sized>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
-    let a = Arc::clone(&*ds);
-    web::Json(a)
+async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
+    web::Json(ds)
 }
 
 #[tracing::instrument(name = "Request Execution", skip(data))]
 async fn execute(
-    data: Data<dyn DataSet>,
+    data: Data<Arc<dyn DataSet>>,
     req: web::Json<AggregationRequest>,
     cache: Data<CACHE>,
 ) -> Result<HttpResponse> {
@@ -112,7 +111,7 @@ async fn execute(
         //} else {
         //    base_engine::execute_aggregation(r, Arc::clone(&*data))
         //}
-        base_engine::execute_aggregation(r, Arc::clone(&*data))
+        base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
     })
     .await
     .context("Failed to spawn blocking task.")
@@ -152,7 +151,9 @@ pub fn run_server(
     // Allow pretty logs
     pretty_env_logger::init();
 
-    let ds = Data::from(ds);
+    //let ds = Data::new(ds);
+
+    let ds = Data::new(ds);
     let static_files_dir =
         std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);

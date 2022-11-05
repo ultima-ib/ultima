@@ -62,7 +62,6 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
 
             // Split Scaled GrossJTD into NetLong and NetShort
             df = lf.collect()?;
-            dbg!(&df);
             lf = df
                 .lazy()
                 .with_columns([

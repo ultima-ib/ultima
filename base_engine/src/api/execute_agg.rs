@@ -88,8 +88,6 @@ pub fn execute_aggregation(
         return Ok(df);
     }
 
-    //dbg!(&df.clone().lazy().select(&[col("Notional"), col("EXOTIC_RRAO"), col("OTHER_RRAO")]).collect());
-
     // Step 2.4 Applying Overwrites
     for ow in req.overrides() {
         df = ow.df_with_overwrite(df)?
@@ -101,7 +99,7 @@ pub fn execute_aggregation(
     let groups_fill_nulls: Vec<Expr> = groups
         .clone()
         .into_iter()
-        .map(|e| e.fill_null(lit("")))
+        .map(|e| e.fill_null(lit("EMPTY")))
         .collect();
 
     // Step 2.5 Apply GroupBy and Agg
@@ -116,14 +114,13 @@ pub fn execute_aggregation(
         .with_columns(&groups_fill_nulls)
         .collect()?;
 
-    let ordered_cols = aggregated_df.get_column_names_owned();
-
-    if req.totals {
+    if req.totals & (groups.len() > 1) {
+        let ordered_cols = aggregated_df.get_column_names_owned();
         let mut total_frames = vec![];
         //let mut with_cols = vec![];
 
         for i in (1..groups.len()).rev() {
-            // Columns which we are goinf to aggregate this time
+            // Columns which we are going to aggregate this time
             // (groups minus it's last element)
             let grp_by = &groups[0..i];
             let grp_by_fill_null = &groups_fill_nulls[0..i];
@@ -143,21 +140,23 @@ pub fn execute_aggregation(
         }
 
         total_frames.push(aggregated_df);
-
         aggregated_df = diag_concat_df(&total_frames)?;
+
+        let groups_totals: Vec<Expr> = groups
+            .clone()
+            .into_iter()
+            .map(|e| e.fill_null(lit("Total")))
+            .collect();
+
+        aggregated_df = aggregated_df
+            .lazy()
+            .sort_by_exprs(&groups, vec![false; groups.len()], false)
+            .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>())
+            .with_columns(groups_totals)
+            .collect()?;
     }
 
-    let groups_totals: Vec<Expr> = groups
-        .clone()
-        .into_iter()
-        .map(|e| e.fill_null(lit("Total")))
-        .collect();
-
-    f1 = aggregated_df
-        .lazy()
-        .sort_by_exprs(&groups, vec![false; groups.len()], false)
-        .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>())
-        .with_columns(groups_totals);
+    let mut res = aggregated_df.lazy();
 
     // POSTPROCESSING
     // Remove zeros, optional
@@ -171,9 +170,9 @@ pub fn execute_aggregation(
             for c in it {
                 predicate = predicate.or(col(c).neq(lit::<f64>(0.)).and(col(c).neq(NULL.lit())))
             }
-            f1 = f1.filter(predicate);
+            res = res.filter(predicate);
         }
     };
 
-    f1.collect()
+    res.collect()
 }

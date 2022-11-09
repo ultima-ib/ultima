@@ -29,34 +29,34 @@ pub(crate) fn equity_delta_sens_weighted_spot() -> Expr {
 }
 /// Interm Result: Equity Delta Sb <--> Sb Low == Sb Medium == Sb High
 pub(crate) fn eq_delta_sb(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    equity_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 /// Interm Result: Equity Kb Low
 pub(crate) fn eq_delta_kb_low(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    equity_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 /// Interm Result: Equity Kb Medium
 pub(crate) fn eq_delta_kb_medium(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    equity_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 /// Interm Result: Equity Kb High
 pub(crate) fn eq_delta_kb_high(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    equity_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Equity Delta High Capital charge
 pub(crate) fn equity_delta_charge_high(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    equity_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate Equity Delta Medium Capital charge
 pub(crate) fn equity_delta_charge_medium(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    equity_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate Equity Delta Low Capital charge
 pub(crate) fn equity_delta_charge_low(op: &OCP) -> Expr {
-    equity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    equity_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 fn equity_delta_charge_distributor(

@@ -66,27 +66,27 @@ pub(crate) fn fx_delta_sens_weighted(op: &OCP) -> Expr {
 }
 ///calculate FX Delta Sb, same for all scenarios
 pub(crate) fn fx_delta_sb(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    fx_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///calculate FX Delta Kb, same for all scenarios
 pub(crate) fn fx_delta_kb(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    fx_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate FX Delta High Capital charge
 pub(crate) fn fx_delta_charge_high(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate FX Delta Medium Capital charge
 pub(crate) fn fx_delta_charge_medium(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate FX Delta Low Capital charge
 pub(crate) fn fx_delta_charge_low(op: &OCP) -> Expr {
-    fx_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 fn fx_delta_charge_distributor(

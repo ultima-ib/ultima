@@ -6,6 +6,9 @@ use crate::drc::drc_weights;
 use polars::prelude::*;
 use std::collections::HashMap;
 
+/// 21.44 specified currencies
+pub static REDUCED_IR_WEIGHT: &str = "EUR|USD|GBP|AUD|JPY|SEK|CAD";
+
 /// Calls .utf8() on `c` and iterates over map matching regex  
 ///
 /// Potential optimisation to use &'static str instead of String (it has to be 'static due to apply)
@@ -201,7 +204,7 @@ pub fn weights_assign(conf: &HashMap<String, String>) -> Expr {
     let ir_base_srs = Series::new("", ir_base);
 
     let ir_map = HashMap::from([(
-        "EUR|USD|GBP|AUD|JPY|SEK|CAD".to_string(),
+        REDUCED_IR_WEIGHT.to_string(),
         (Series::new("", ir_base) * girr_1_over_sqrt2).lit().list(),
     )]);
     let ir_xccy = Series::new("", &[0.016]);

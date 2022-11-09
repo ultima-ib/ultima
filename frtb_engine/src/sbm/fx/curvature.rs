@@ -71,27 +71,27 @@ pub fn fx_cvr_down(op: &OCP) -> Expr {
 
 // Kb, Sb, KbPlus, KbMinus is same across all scenarios for АЧ
 pub(crate) fn fx_curvature_kb_plus(op: &OCP) -> Expr {
-    fx_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
+    fx_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
 }
 pub(crate) fn fx_curvature_kb_minus(op: &OCP) -> Expr {
-    fx_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::KbMinus)
+    fx_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbMinus)
 }
 pub(crate) fn fx_curvature_kb(op: &OCP) -> Expr {
-    fx_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    fx_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 pub(crate) fn fx_curvature_sb(op: &OCP) -> Expr {
-    fx_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
+    fx_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 /// Calculate FX Curvature Capital charge
 pub(crate) fn fx_curvature_charge_low(op: &OCP) -> Expr {
-    fx_curvature_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 pub(crate) fn fx_curvature_charge_medium(op: &OCP) -> Expr {
-    fx_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 pub(crate) fn fx_curvature_charge_high(op: &OCP) -> Expr {
-    fx_curvature_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton

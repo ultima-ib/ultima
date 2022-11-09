@@ -19,37 +19,37 @@ pub fn total_csrsecctp_vega_sens_weighted(op: &OCP) -> Expr {
 
 ///calculate CSR Sec CTP Interm Result
 pub(crate) fn csrsecctp_vega_sb(op: &OCP) -> Expr {
-    csrsecctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
+    csrsecctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///Interm Result
 pub(crate) fn csrsecctp_vega_kb_low(op: &OCP) -> Expr {
-    csrsecctp_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    csrsecctp_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR Sec CTP Vega Low Capital charge
 pub(crate) fn csrsecctp_vega_charge_low(op: &OCP) -> Expr {
-    csrsecctp_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csrsecctp_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn csrsecctp_vega_kb_medium(op: &OCP) -> Expr {
-    csrsecctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    csrsecctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR Sec CTP Vega Low Capital charge
 pub(crate) fn csrsecctp_vega_charge_medium(op: &OCP) -> Expr {
-    csrsecctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csrsecctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn csrsecctp_vega_kb_high(op: &OCP) -> Expr {
-    csrsecctp_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    csrsecctp_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR Sec CTP Vega Low Capital charge
 pub(crate) fn csrsecctp_vega_charge_high(op: &OCP) -> Expr {
-    csrsecctp_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csrsecctp_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
@@ -95,7 +95,7 @@ fn csrsecctp_vega_charge_distributor(
     csr_nonsec_vega_charge(
         weight,
         bucket_col,
-        &scenario.scenario_fn,
+        scenario.scenario_fn,
         csr_vega_rho,
         base_csr_rho_bucket,
         csr_gamma,

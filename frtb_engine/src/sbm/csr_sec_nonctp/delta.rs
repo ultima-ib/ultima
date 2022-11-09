@@ -67,34 +67,34 @@ pub(crate) fn csr_sec_nonctp_delta_sens_weighted(_: &OCP) -> Expr {
 }
 //Interm results
 pub(crate) fn csr_sec_nonctp_delta_sb(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    csr_sec_nonctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 pub(crate) fn csr_sec_nonctp_delta_kb_low(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_sec_nonctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 pub(crate) fn csr_sec_nonctp_delta_kb_medium(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_sec_nonctp_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 pub(crate) fn csr_sec_nonctp_delta_kb_high(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_sec_nonctp_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR non-Sec Delta Low Capital charge
 pub(crate) fn csr_sec_nonctp_delta_charge_low(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_sec_nonctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta Medium Capital charge
 pub(crate) fn csr_sec_nonctp_delta_charge_medium(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_sec_nonctp_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta High Capital charge
 pub(crate) fn csr_sec_nonctp_delta_charge_high(op: &OCP) -> Expr {
-    csr_sec_nonctp_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_sec_nonctp_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
@@ -139,7 +139,7 @@ fn csr_sec_nonctp_delta_charge_distributor(
         rho_tenor,
         rho_name,
         rho_tranche,
-        &scenario.scenario_fn,
+        scenario.scenario_fn,
         gamma,
         Some(25),
         "CSR_Sec_nonCTP",

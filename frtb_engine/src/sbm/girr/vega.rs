@@ -44,37 +44,37 @@ pub(crate) fn girr_vega_sens_weighted(_: &OCP) -> Expr {
 
 /// Interm Result: GIRR Vega Sb <--> Sb Low == Sb Medium == Sb High
 pub(crate) fn girr_vega_sb(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    girr_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///calculate GIRR Vega Low Capital charge
 pub(crate) fn girr_vega_charge_low(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Interm Result: GIRR Vega Low Kb
 pub(crate) fn girr_vega_kb_low(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    girr_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Vega Medium Capital charge
 pub(crate) fn girr_vega_charge_medium(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Interm Result: GIRR Vega Medium Kb
 pub(crate) fn girr_vega_kb_medium(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    girr_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Vega Medium Capital charge
 pub(crate) fn girr_vega_charge_high(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Interm Result: GIRR Vega Medium Kb
 pub(crate) fn girr_vega_kb_high(op: &OCP) -> Expr {
-    girr_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    girr_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 /// Helper funciton

@@ -107,34 +107,34 @@ pub(crate) fn csr_nonsec_delta_sens_weighted(op: &OCP) -> Expr {
 //Interm Results
 ///Sb is same for each scenario
 pub(crate) fn csr_nonsec_delta_sb(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    csr_nonsec_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 pub(crate) fn csr_nonsec_delta_kb_low(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_nonsec_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 pub(crate) fn csr_nonsec_delta_kb_medium(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_nonsec_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 pub(crate) fn csr_nonsec_delta_kb_high(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_nonsec_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR non-Sec Delta Low Capital charge
 pub(crate) fn csr_nonsec_delta_charge_low(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_nonsec_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta Medium Capital charge
 pub(crate) fn csr_nonsec_delta_charge_medium(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_nonsec_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta High Capital charge
 pub(crate) fn csr_nonsec_delta_charge_high(op: &OCP) -> Expr {
-    csr_nonsec_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_nonsec_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton

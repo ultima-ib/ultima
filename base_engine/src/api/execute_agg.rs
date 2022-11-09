@@ -134,7 +134,7 @@ pub fn execute_aggregation(
                 .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)
-                .with_columns(&grp_by_fill_null)
+                .with_columns(grp_by_fill_null)
                 .collect()?;
             total_frames.push(_df)
         }

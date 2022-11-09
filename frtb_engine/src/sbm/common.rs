@@ -238,12 +238,7 @@ where
         if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
             // Above we check len of bucket_rho_diff_rf via n_buckets, so we won't panic here
             let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1 - 1];
-            //.get(b_as_idx_plus_1 - 1)
-            //.ok_or_else(||
-            //    PolarsError::ComputeError(format!("Bucket {} is outside of range of bucket rho, which is of len {}",b_as_idx_plus_1,bucket_rho_diff_rf.len() )
-            //    .into()));
-            //
-            //};
+
             // CALCULATE Kb Sb for a bucket
             let is_special_bucket = Some(b_as_idx_plus_1) == special_bucket;
             let a = bucket_kb_sb_onsq(
@@ -485,7 +480,6 @@ fn bucket_kb_sb_two_types<F>(
 where
     F: Fn(f64) -> f64 + Sync + Send,
 {
-    //let flt = flatten6(cols_by_tenor);
     // 21.56 First, take care of the special bucket
     match special_bucket {
         Some(x) if x == bucket_id => {
@@ -549,7 +543,7 @@ where
                 .indexed_iter_mut()
                 .par_bridge()
                 .for_each(|((i, j), v)| {
-                    let anti_j: usize = if j == 0 { 1 } else { 0 }; // j is either 0 or 1
+                    let anti_j = usize::from(j == 0); // j is either 0 or 1
                     let same_name_same_type = unsafe { next_tenors_sum.uget((i, j)) };
                     let same_name_diff_type = unsafe { next_tenors_sum.uget((i, anti_j)) };
                     let same_type_sum = if j == 0 { type0_sum } else { type1_sum };
@@ -643,6 +637,7 @@ pub(crate) fn var_covar_sum_single(srs: &Series, rho: f64) -> PolarsResult<(f64,
     Ok((sum, f1))
 }
 
+/// Vega has Tenors and single type
 pub(crate) fn all_kbs_sbs_single_type<F>(
     df: DataFrame,
     rho_same_curve: &Array2<f64>,
@@ -656,9 +651,9 @@ where
 {
     let n_buckets = rho_diff_curve.len();
 
-    let mut reskbs_sbs: Vec<PolarsResult<((String, f64), f64)>> = Vec::with_capacity(n_buckets);
+    let mut reskbs_sbs: Vec<PolarsResult<(String, (f64, f64))>> = Vec::with_capacity(n_buckets);
     for _ in 0..n_buckets {
-        reskbs_sbs.push(Ok((("".to_string(), 0.), 0.)))
+        reskbs_sbs.push(Ok(("".to_string(), (0., 0.))))
     }
 
     let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
@@ -700,7 +695,7 @@ where
         }
     });
 
-    let reskbs_sbs: PolarsResult<Vec<((String, f64), f64)>> = Arc::try_unwrap(arc_mtx)
+    let reskbs_sbs: PolarsResult<Vec<(String, (f64, f64))>> = Arc::try_unwrap(arc_mtx)
         .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
         .into_inner()
         .map_err(|_| PolarsError::ComputeError("Couldn't get Mutex inner".into()))?
@@ -708,8 +703,11 @@ where
         .collect();
 
     let buckets_kbs_sbs = reskbs_sbs?;
-    let (buckets_kbs, sbs): (Vec<(String, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
-    let (_buckets, kbs): (Vec<String>, Vec<f64>) = buckets_kbs.into_iter().unzip();
+    let (_buckets, (kbs, sbs)): (Vec<String>, (Vec<f64>, Vec<f64>)) =
+        buckets_kbs_sbs.into_iter().unzip();
+
+    //let (buckets_kbs, sbs): (Vec<(String, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
+    //let (_buckets, kbs): (Vec<String>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
     Ok(kbs.into_iter().zip(sbs.into_iter()).collect())
 }
@@ -724,7 +722,7 @@ pub(crate) fn bucket_kb_sb_single_type<F>(
     columns: &[&'static str],
     girr: Option<(f64, f64)>,
     special_bucket: Option<&'static str>,
-) -> PolarsResult<((String, f64), f64)>
+) -> PolarsResult<(String, (f64, f64))>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy,
 {
@@ -752,7 +750,7 @@ where
     match special_bucket {
         Some(x) if x == bucket.as_str() => {
             let abs_sum = all_yield_arr.iter().map(|x| x.abs()).sum::<f64>();
-            return Ok(((x.to_string(), abs_sum), abs_sum));
+            return Ok((x.to_string(), (abs_sum, abs_sum)));
         }
         _ => (),
     };
@@ -827,5 +825,5 @@ where
         cross_tenor += current_yield_arr.sum();
     }
     let kb = (var_covar_sum + cross_tenor).max(0.).sqrt();
-    Ok(((bucket, kb), sb))
+    Ok((bucket, (kb, sb)))
 }

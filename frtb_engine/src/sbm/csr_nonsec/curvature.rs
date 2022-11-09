@@ -32,51 +32,51 @@ pub fn csrnonsec_pnl_down(_: &OCP) -> Expr {
 }
 
 pub(crate) fn csrnonsec_curvature_kb_plus_low(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::KbPlus)
+    csrnonsec_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::KbPlus)
 }
 pub(crate) fn csrnonsec_curvature_kb_minus_low(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::KbMinus)
+    csrnonsec_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::KbMinus)
 }
 pub(crate) fn csrnonsec_curvature_kb_low(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    csrnonsec_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 pub(crate) fn csrnonsec_curvature_sb_low(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    csrnonsec_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 pub(crate) fn csrnonsec_curvature_charge_low(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csrnonsec_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 pub(crate) fn csrnonsec_curvature_kb_plus_medium(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
+    csrnonsec_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
 }
 pub(crate) fn csrnonsec_curvature_kb_minus_medium(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::KbMinus)
+    csrnonsec_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbMinus)
 }
 pub(crate) fn csrnonsec_curvature_kb_medium(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    csrnonsec_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 pub(crate) fn csrnonsec_curvature_sb_medium(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
+    csrnonsec_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 pub(crate) fn csrnonsec_curvature_charge_medium(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csrnonsec_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 pub(crate) fn csrnonsec_curvature_kb_plus_high(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::KbPlus)
+    csrnonsec_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::KbPlus)
 }
 pub(crate) fn csrnonsec_curvature_kb_minus_high(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::KbMinus)
+    csrnonsec_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::KbMinus)
 }
 pub(crate) fn csrnonsec_curvature_kb_high(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    csrnonsec_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 pub(crate) fn csrnonsec_curvature_sb_high(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Sb)
+    csrnonsec_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Sb)
 }
 pub(crate) fn csrnonsec_curvature_charge_high(op: &OCP) -> Expr {
-    csrnonsec_curvature_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csrnonsec_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 fn csrnonsec_curvature_charge_distributor(

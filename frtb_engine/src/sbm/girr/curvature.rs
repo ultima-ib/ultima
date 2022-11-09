@@ -37,27 +37,27 @@ pub fn girr_pnl_down(_: &OCP) -> Expr {
 
 // Kb, Sb, KbPlus, KbMinus is same across all scenarios for GIRR
 pub(crate) fn girr_curvature_kb_plus(op: &OCP) -> Expr {
-    girr_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
+    girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
 }
 pub(crate) fn girr_curvature_kb_minus(op: &OCP) -> Expr {
-    girr_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::KbMinus)
+    girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbMinus)
 }
 pub(crate) fn girr_curvature_kb(op: &OCP) -> Expr {
-    girr_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 pub(crate) fn girr_curvature_sb(op: &OCP) -> Expr {
-    girr_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
+    girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 /// Calculate GIRR Curvature Capital charge
 pub(crate) fn girr_curvature_charge_low(op: &OCP) -> Expr {
-    girr_curvature_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 pub(crate) fn girr_curvature_charge_medium(op: &OCP) -> Expr {
-    girr_curvature_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 pub(crate) fn girr_curvature_charge_high(op: &OCP) -> Expr {
-    girr_curvature_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton

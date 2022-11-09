@@ -12,7 +12,6 @@ pub type OCP = HashMap<String, String>;
 // TODO try to remove 'a
 type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
 
-/// clone instead 'a
 /// Measure is the essentially a Struct of a funtion and a name
 #[derive(Derivative, Serialize)]
 #[derivative(Debug)]

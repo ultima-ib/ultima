@@ -1,21 +1,10 @@
 use crate::prelude::*;
 use base_engine::prelude::*;
-use once_cell::sync::Lazy;
-use polars::lazy::dsl::apply_multiple;
+use polars::lazy::dsl::{apply_multiple, col, lit, when};
 use rayon::prelude::IntoParallelIterator;
 
+use crate::risk_weights::REDUCED_IR_WEIGHT;
 use ndarray::{parallel::prelude::ParallelIterator, Array1, Array2};
-
-/// TODO GIRR Delta is the only case where Risk Weight is different, depending on tenor
-/// Hence col("SensWeights") can be f64 instead of list f64
-/// GIRR Delta will be the only case when we compute RW on the fly
-/// TODO but need to take care of /sqrt(2)
-#[allow(dead_code)]
-pub static GIRR_RISK_WEIGHTS: Lazy<[f64; 10]> = Lazy::new(|| {
-    [
-        0.017, 0.017, 0.016, 0.013, 0.012, 0.011, 0.011, 0.011, 0.011, 0.011,
-    ]
-});
 
 pub fn total_ir_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "GIRR", total_delta_sens())
@@ -72,34 +61,34 @@ pub(crate) fn girr_delta_sens_weighted(_: &OCP) -> Expr {
 
 /// Interm Result: GIRR Delta Sb <--> Sb Low == Sb Medium == Sb High
 pub(crate) fn girr_delta_sb(op: &OCP) -> Expr {
-    girr_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    girr_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///calculate GIRR Delta Low Capital charge
 pub(crate) fn girr_delta_charge_low(op: &OCP) -> Expr {
-    girr_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 /// Interm Result: GIRR Delta Kb Low
 pub(crate) fn girr_delta_kb_low(op: &OCP) -> Expr {
-    girr_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    girr_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Delta Medium Capital charge
 pub(crate) fn girr_delta_charge_medium(op: &OCP) -> Expr {
-    girr_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 /// Interm Result: GIRR Delta Kb Medium
 pub(crate) fn girr_delta_kb_medium(op: &OCP) -> Expr {
-    girr_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    girr_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Delta High Capital charge
 pub(crate) fn girr_delta_charge_high(op: &OCP) -> Expr {
-    girr_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    girr_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 /// Interm Result: GIRR Delta Kb High
 pub(crate) fn girr_delta_kb_high(op: &OCP) -> Expr {
-    girr_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    girr_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 /// Helper funciton
@@ -111,6 +100,14 @@ fn girr_delta_charge_distributor(
 ) -> Expr {
     let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
+    let rep_ccy = op.get("reporting_ccy").map_or_else(
+        || match juri {
+            #[cfg(feature = "CRR2")]
+            Jurisdiction::CRR2 => "EUR".to_string(),
+            _ => "USD".to_string(),
+        },
+        |ccy| ccy.to_string(),
+    );
 
     // Take MEDIUM scenario here because scenario_fn is to be applied post factum
     let girr_delta_rho_same_curve = get_optional_parameter_array(
@@ -157,6 +154,7 @@ fn girr_delta_charge_distributor(
         girr_delta_gamma_crr2_erm2,
         erm2ccys,
         scenario.scenario_fn,
+        rep_ccy,
     )
 }
 
@@ -172,13 +170,14 @@ fn girr_delta_charge<F>(
     _erm2_gamma: f64,
     _erm2ccys: Vec<String>,
     scenario_fn: F,
+    rep_ccy: String,
 ) -> Expr
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
     apply_multiple(
         move |columns| {
-            let df = df![
+            let mut df = df![
                 "rcat" => columns[15].clone(),
                 "rc" =>   columns[0].clone(),
                 "rf" =>   columns[1].clone(),
@@ -208,7 +207,49 @@ where
                 "w20" =>  columns[25].clone(),
                 "w30" =>  columns[26].clone(),
             ]?;
-            let df = df
+
+            // If the weight of the reporting currency has not yet been reduced - reduce it
+            if !REDUCED_IR_WEIGHT.contains(rep_ccy.as_str()) {
+                df = df
+                    .lazy()
+                    .with_columns([
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w0") / lit(2_f64.sqrt()))
+                            .otherwise(col("w0")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w025") / lit(2_f64.sqrt()))
+                            .otherwise(col("w025")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w05") / lit(2_f64.sqrt()))
+                            .otherwise(col("w05")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w1") / lit(2_f64.sqrt()))
+                            .otherwise(col("w1")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w2") / lit(2_f64.sqrt()))
+                            .otherwise(col("w2")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w3") / lit(2_f64.sqrt()))
+                            .otherwise(col("w3")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w5") / lit(2_f64.sqrt()))
+                            .otherwise(col("w5")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w10") / lit(2_f64.sqrt()))
+                            .otherwise(col("w10")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w15") / lit(2_f64.sqrt()))
+                            .otherwise(col("w15")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w20") / lit(2_f64.sqrt()))
+                            .otherwise(col("w20")),
+                        when(col("b").eq(lit(rep_ccy.as_str())))
+                            .then(col("w30") / lit(2_f64.sqrt()))
+                            .otherwise(col("w30")),
+                    ])
+                    .collect()?
+            }
+            df = df
                 .lazy()
                 .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Delta"))))
                 .groupby([col("b"), col("rf"), col("rft")])
@@ -236,12 +277,12 @@ where
                         .otherwise(NULL.lit())
                         .alias("Inflation"),
                 ])
-                .select([col("*").exclude(&["rft"])])
+                .select([col("*").exclude(["rft"])])
                 .collect()?;
 
             let part = df.partition_by(["b"])?;
 
-            let res_buckets_kbs_sbs: PolarsResult<Vec<((String, f64), f64)>> = part
+            let res_buckets_kbs_sbs: PolarsResult<Vec<(String, (f64, f64))>> = part
                 .into_par_iter()
                 .map(|bdf| {
                     bucket_kb_sb_single_type(
@@ -266,10 +307,8 @@ where
                 ));
             };
 
-            let buckets_kbs_sbs = res_buckets_kbs_sbs?;
-            let (buckets_kbs, sbs): (Vec<(String, f64)>, Vec<f64>) =
-                buckets_kbs_sbs.into_iter().unzip();
-            let (_buckets, kbs): (Vec<String>, Vec<f64>) = buckets_kbs.into_iter().unzip();
+            let (_buckets, (kbs, sbs)): (Vec<String>, (Vec<f64>, Vec<f64>)) =
+                res_buckets_kbs_sbs?.into_iter().unzip();
 
             // Early return Kb or Sb is that is the required metric
             match return_metric {
@@ -365,15 +404,15 @@ pub(crate) fn build_girr_crr2_gamma(
         .enumerate()
         .for_each(|(i, mut row)| {
             let buck1 = unsafe { buckets.get_unchecked(i) };
+            // if bucket 1 is ERM2 or EUR (NOTE: this rule applies to CRR2 only, and therefore to EUR only)
             if erm2ccys.contains(buck1) | (*buck1 == "EUR") {
-                // if a row is ERM2 or EUR
                 row.indexed_iter_mut().for_each(|(j, x)| {
                     let buck2 = unsafe { buckets.get_unchecked(j) };
-                    if (*buck1 == "EUR") & erm2ccys.contains(buck2) {
-                        // if row is EUR and col is ERM2
-                        *x = erm2vseur;
-                    } else if erm2ccys.contains(buck1) & (*buck2 == "EUR") {
-                        // if row is ERM2 and col is EUR
+                    if ((*buck1 == "EUR") & erm2ccys.contains(buck2))
+                        | (erm2ccys.contains(buck1) & (*buck2 == "EUR"))
+                    {
+                        // if  EUR vs ERM2
+                        // or ERM2 vs EUR
                         *x = erm2vseur;
                     }
                 })

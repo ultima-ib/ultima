@@ -1,43 +1,43 @@
 use base_engine::CalcParameter;
 
 pub(crate) fn frtb_calc_params() -> Vec<CalcParameter> {
-    let mut res = vec![];
-
-    res.push(CalcParameter {
-        name: "jurisdiction".into(),
-        default: Some("BCBS".into()),
-        type_hint: Some("String: BCBS/CRR2".into()),
-    });
-    res.push(CalcParameter {
-        name: "reporting_ccy".into(),
-        default: Some("USD".into()),
-        type_hint: Some("3 digit String".into()),
-    });
-    res.push(CalcParameter {
-        name: "drc_offset".into(),
-        default: Some("true".into()),
-        type_hint: Some("bool".into()),
-    });
-    res.push(CalcParameter {
-        name: "apply_fx_curv_div".into(),
-        default: Some("true".into()),
-        type_hint: Some("bool".into()),
-    });
-    res.push(CalcParameter {
-        name: "exotic_rrao_weight".into(),
-        default: None,
-        type_hint: Some("float".into()),
-    });
-    res.push(CalcParameter {
-        name: "other_rrao_weight".into(),
-        default: None,
-        type_hint: Some("float".into()),
-    });
-    res.push(CalcParameter {
-        name: "erm2_ccys".into(),
-        default: None,
-        type_hint: Some("vector of strings".into()),
-    });
+    let mut res = vec![
+        CalcParameter {
+            name: "jurisdiction".into(),
+            default: Some("BCBS".into()),
+            type_hint: Some("String: BCBS/CRR2".into()),
+        },
+        CalcParameter {
+            name: "reporting_ccy".into(),
+            default: Some("USD".into()),
+            type_hint: Some("3 digit String".into()),
+        },
+        CalcParameter {
+            name: "drc_offset".into(),
+            default: Some("true".into()),
+            type_hint: Some("bool".into()),
+        },
+        CalcParameter {
+            name: "apply_fx_curv_div".into(),
+            default: Some("true".into()),
+            type_hint: Some("bool".into()),
+        },
+        CalcParameter {
+            name: "exotic_rrao_weight".into(),
+            default: None,
+            type_hint: Some("float".into()),
+        },
+        CalcParameter {
+            name: "other_rrao_weight".into(),
+            default: None,
+            type_hint: Some("float".into()),
+        },
+        CalcParameter {
+            name: "erm2_ccys".into(),
+            default: None,
+            type_hint: Some("vector of strings".into()),
+        },
+    ];
 
     let params = [
         (

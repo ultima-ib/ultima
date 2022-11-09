@@ -13,35 +13,35 @@ pub fn total_eq_vega_sens_weighted(op: &OCP) -> Expr {
 }
 ///Interm Result
 pub(crate) fn equity_vega_sb(op: &OCP) -> Expr {
-    equity_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
+    equity_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 pub(crate) fn equity_vega_kb_low(op: &OCP) -> Expr {
-    equity_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    equity_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Equity Vega Low Capital charge
 pub(crate) fn equity_vega_charge_low(op: &OCP) -> Expr {
-    equity_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    equity_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn equity_vega_kb_medium(op: &OCP) -> Expr {
-    equity_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    equity_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Equity Vega Low Capital charge
 pub(crate) fn equity_vega_charge_medium(op: &OCP) -> Expr {
-    equity_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    equity_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn equity_vega_kb_high(op: &OCP) -> Expr {
-    equity_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    equity_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Equity Vega Low Capital charge
 pub(crate) fn equity_vega_charge_high(op: &OCP) -> Expr {
-    equity_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    equity_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton

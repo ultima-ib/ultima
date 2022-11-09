@@ -123,7 +123,7 @@ impl DataSet for FRTBDataSet {
                         .otherwise(col("SensWeights"))
                         .alias("SensWeights"),
                 )
-                .select([col("*").exclude(&["RiskWeightDRC", "LeftKey"])]);
+                .select([col("*").exclude(["RiskWeightDRC", "LeftKey"])]);
             let tmp_frame = lf1
                 .collect()
                 .expect("Failed to unwrap tmp_frame while .prepare()");

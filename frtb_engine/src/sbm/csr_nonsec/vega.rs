@@ -22,37 +22,37 @@ pub fn total_csrnonsec_vega_sens_weighted_bcbs(op: &OCP) -> Expr {
 
 ///calculate CSR Non Sec Interm Result
 pub(crate) fn csr_nonsec_vega_sb(op: &OCP) -> Expr {
-    csr_nonsec_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
+    csr_nonsec_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///Interm Result
 pub(crate) fn csr_nonsec_vega_kb_low(op: &OCP) -> Expr {
-    csr_nonsec_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_nonsec_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR Non Sec Vega Low Capital charge
 pub(crate) fn csr_nonsec_vega_charge_low(op: &OCP) -> Expr {
-    csr_nonsec_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_nonsec_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn csr_nonsec_vega_kb_medium(op: &OCP) -> Expr {
-    csr_nonsec_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_nonsec_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR Non Sec Vega Low Capital charge
 pub(crate) fn csr_nonsec_vega_charge_medium(op: &OCP) -> Expr {
-    csr_nonsec_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_nonsec_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn csr_nonsec_vega_kb_high(op: &OCP) -> Expr {
-    csr_nonsec_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_nonsec_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR Non Sec Vega Low Capital charge
 pub(crate) fn csr_nonsec_vega_charge_high(op: &OCP) -> Expr {
-    csr_nonsec_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_nonsec_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
@@ -102,7 +102,7 @@ fn csr_nonsec_vega_charge_distributor(
     csr_nonsec_vega_charge(
         weight,
         bucket_col,
-        &scenario.scenario_fn,
+        scenario.scenario_fn,
         csr_vega_rho,
         base_csr_rho_bucket,
         csr_gamma,

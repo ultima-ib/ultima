@@ -117,10 +117,11 @@ pub(crate) fn overrides_columns(df: &DataFrame) -> Vec<String> {
             DataType::Utf8 | DataType::Boolean | DataType::Float64 => {
                 res.push(c.name().to_string())
             }
-            DataType::List(x) => match x.as_ref() {
-                DataType::Float64 => res.push(c.name().to_string()),
-                _ => (),
-            },
+            DataType::List(x) => {
+                if let DataType::Float64 = x.as_ref() {
+                    res.push(c.name().to_string())
+                }
+            }
             _ => (),
         }
     }

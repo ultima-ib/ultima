@@ -10,35 +10,35 @@ pub fn total_csr_sec_nonctp_vega_sens_weighted(op: &OCP) -> Expr {
 }
 ///Interm Result
 pub(crate) fn csr_sec_nonctp_vega_sb(op: &OCP) -> Expr {
-    csr_sec_nonctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
+    csr_sec_nonctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 pub(crate) fn csr_sec_nonctp_vega_kb_low(op: &OCP) -> Expr {
-    csr_sec_nonctp_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_sec_nonctp_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Sec nonCTP Vega Low Capital charge
 pub(crate) fn csr_sec_nonctp_vega_charge_low(op: &OCP) -> Expr {
-    csr_sec_nonctp_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_sec_nonctp_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn csr_sec_nonctp_vega_kb_medium(op: &OCP) -> Expr {
-    csr_sec_nonctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_sec_nonctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Sec nonCTP Vega Low Capital charge
 pub(crate) fn csr_sec_nonctp_vega_charge_medium(op: &OCP) -> Expr {
-    csr_sec_nonctp_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_sec_nonctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
 pub(crate) fn csr_sec_nonctp_vega_kb_high(op: &OCP) -> Expr {
-    csr_sec_nonctp_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    csr_sec_nonctp_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Sec nonCTP Vega Low Capital charge
 pub(crate) fn csr_sec_nonctp_vega_charge_high(op: &OCP) -> Expr {
-    csr_sec_nonctp_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    csr_sec_nonctp_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton

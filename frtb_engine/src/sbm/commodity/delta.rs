@@ -18,34 +18,34 @@ pub(crate) fn commodity_delta_sens_weighted(op: &OCP) -> Expr {
 
 /// Interm Result: Commodity Delta Sb <--> Sb Low == Sb Medium == Sb High
 pub(crate) fn commodity_delta_sb(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    commodity_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 /// Interm Result: Commodity Kb Low
 pub(crate) fn commodity_delta_kb_low(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    commodity_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 /// Interm Result: Commodity Kb Medium
 pub(crate) fn commodity_delta_kb_medium(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    commodity_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 /// Interm Result: Commodity Kb High
 pub(crate) fn commodity_delta_kb_high(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    commodity_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate commodity Delta Low Capital charge
 pub(crate) fn commodity_delta_charge_low(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    commodity_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate commodity Delta Medium Capital charge
 pub(crate) fn commodity_delta_charge_medium(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    commodity_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate commodity Delta High Capital charge
 pub(crate) fn commodity_delta_charge_high(op: &OCP) -> Expr {
-    commodity_delta_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    commodity_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton

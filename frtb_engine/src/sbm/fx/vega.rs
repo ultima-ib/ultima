@@ -16,35 +16,35 @@ pub fn total_fx_vega_sens_weighted(op: &OCP) -> Expr {
 /// Sb Low == Sb Medium == Sb High
 /// FX Vega Sb is identical to total_fx_vega_sens_weighted
 pub(crate) fn fx_vega_sb(op: &OCP) -> Expr {
-    fx_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Sb)
+    fx_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 /// Interm Result: FX Vega Low Kb
 pub(crate) fn fx_vega_kb_low(op: &OCP) -> Expr {
-    fx_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::Kb)
+    fx_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 /// Interm Result: FX Vega Medium Kb
 pub(crate) fn fx_vega_kb_medium(op: &OCP) -> Expr {
-    fx_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
+    fx_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 /// Interm Result: FX Vega High Kb
 pub(crate) fn fx_vega_kb_high(op: &OCP) -> Expr {
-    fx_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::Kb)
+    fx_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate FX Vega Low Capital charge
 pub(crate) fn fx_vega_charge_low(op: &OCP) -> Expr {
-    fx_vega_charge_distributor(op, &*LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 ///calculate FX Vega Medium Capital charge
 pub(crate) fn fx_vega_charge_medium(op: &OCP) -> Expr {
-    fx_vega_charge_distributor(op, &*MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 ///calculate FX Vega High Capital charge
 pub(crate) fn fx_vega_charge_high(op: &OCP) -> Expr {
-    fx_vega_charge_distributor(op, &*HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
+    fx_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
@@ -96,7 +96,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
                     (col("y5") * col("wght")).sum(),
                     (col("y10") * col("wght")).sum(),
                 ])
-                .select(&[col("*").exclude(&["b"])])
+                .select(&[col("*").exclude(["b"])])
                 .fill_null(lit::<f64>(0.))
                 .collect()?;
 

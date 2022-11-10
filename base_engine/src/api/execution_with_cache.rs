@@ -6,7 +6,6 @@ use polars::prelude::{col, DataFrame, Expr, JoinType, PolarsResult};
 use crate::{AggregationRequest, DataSet};
 pub type CACHE = dashmap::DashMap<AggregationRequest, DataFrame>;
 
-
 /// TODO work in progress
 pub(crate) fn _execute_with_cache(
     data: Arc<impl DataSet + ?Sized>,

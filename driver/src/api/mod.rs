@@ -24,8 +24,15 @@ use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
-use base_engine::{api::aggregations::BASE_CALCS, execution_with_cache::CACHE};
-use base_engine::{prelude::PolarsResult, AggregationRequest, DataSet};
+use base_engine::{prelude::PolarsResult,
+                 AggregationRequest, DataSet,
+                 api::aggregations::BASE_CALCS};
+
+#[cfg(feature = "cache")]
+pub type CACHE = base_engine::execution_with_cache::CACHE;
+#[cfg(not(feature = "cache"))]
+pub type CACHE = std::collections::HashMap<String, String>; // dummy, not used if cache feature is not activated
+
 
 // use uuid::Uuid;
 // use tracing::Instrument; //enters the span we pass as argument
@@ -103,15 +110,14 @@ async fn execute(
     let _cache = cache.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
-        let _with_cache = true;
-
         // Work in progress
-        //if with_cache{
-        //    base_engine::execute_with_cache(data, r, )
-        //} else {
-        //    base_engine::execute_aggregation(r, Arc::clone(&*data))
-        //}
-        base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
+        if cfg!(cache){
+            // TODO change function to
+            // base_engine::_execute_with_cache
+            base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
+        }else {
+            base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
+        }        
     })
     .await
     .context("Failed to spawn blocking task.")
@@ -150,8 +156,6 @@ pub fn run_server(
     dotenv::dotenv().ok();
     // Allow pretty logs
     pretty_env_logger::init();
-
-    //let ds = Data::new(ds);
 
     let ds = Data::new(ds);
     let static_files_dir =

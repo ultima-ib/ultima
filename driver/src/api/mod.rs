@@ -24,15 +24,14 @@ use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
-use base_engine::{prelude::PolarsResult,
-                 AggregationRequest, DataSet,
-                 api::aggregations::BASE_CALCS};
+use base_engine::{
+    api::aggregations::BASE_CALCS, prelude::PolarsResult, AggregationRequest, DataSet,
+};
 
 #[cfg(feature = "cache")]
 pub type CACHE = base_engine::execution_with_cache::CACHE;
 #[cfg(not(feature = "cache"))]
 pub type CACHE = std::collections::HashMap<String, String>; // dummy, not used if cache feature is not activated
-
 
 // use uuid::Uuid;
 // use tracing::Instrument; //enters the span we pass as argument
@@ -101,6 +100,7 @@ async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Respo
 }
 
 #[tracing::instrument(name = "Request Execution", skip(data))]
+#[allow(clippy::if_same_then_else)]
 async fn execute(
     data: Data<Arc<dyn DataSet>>,
     req: web::Json<AggregationRequest>,
@@ -111,13 +111,13 @@ async fn execute(
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
         // Work in progress
-        if cfg!(cache){
+        if cfg!(cache) {
             // TODO change function to
             // base_engine::_execute_with_cache
             base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
-        }else {
+        } else {
             base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
-        }        
+        }
     })
     .await
     .context("Failed to spawn blocking task.")

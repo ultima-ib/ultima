@@ -1,12 +1,11 @@
-use dashmap::DashMap;
 use std::sync::Arc;
 
 use polars::prelude::IntoLazy;
 use polars::prelude::{col, DataFrame, Expr, JoinType, PolarsResult};
 
-pub type CACHE = DashMap<AggregationRequest, DataFrame>;
-
 use crate::{AggregationRequest, DataSet};
+pub type CACHE = dashmap::DashMap<AggregationRequest, DataFrame>;
+
 
 /// TODO work in progress
 pub(crate) fn _execute_with_cache(

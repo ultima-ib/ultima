@@ -80,17 +80,9 @@ pub fn execute_aggregation(
         f1 = f1.filter(fltr)
     }
 
-    let mut df = f1.collect()?;
-
-    // If Frame is empty post filtering, we get an error:
-    //  Note: https://github.com/pola-rs/polars/issues/4978
-    if df.is_empty() {
-        return Ok(df);
-    }
-
     // Step 2.4 Applying Overwrites
     for ow in req.overrides() {
-        df = ow.df_with_overwrite(df)?
+        f1 = ow.lf_with_overwrite(f1)?
     }
 
     // Step 2.4 Build GROUPBY
@@ -105,9 +97,9 @@ pub fn execute_aggregation(
     // Step 2.5 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable
-    let mut aggregated_df = df
+    let mut aggregated_df = f1
         .clone()
-        .lazy()
+        .with_streaming(true)
         .groupby_stable(&groups)
         .agg(&aggregateions)
         .limit(1_000)
@@ -128,9 +120,9 @@ pub fn execute_aggregation(
             //let last_gr_col_name = &req._groupby()[i];
             //with_cols.push(lit("Total").alias(last_gr_col_name));
 
-            let _df = df
+            let _df = f1
                 .clone()
-                .lazy()
+                .with_streaming(true)
                 .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)

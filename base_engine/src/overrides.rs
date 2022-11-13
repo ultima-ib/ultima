@@ -38,11 +38,13 @@ impl Override {
         }
     }
 
-    pub fn df_with_overwrite(&self, df: DataFrame) -> PolarsResult<DataFrame> {
-        let dt = df.column(&self.field)?.dtype();
+    pub fn lf_with_overwrite(&self, lf: LazyFrame) -> PolarsResult<LazyFrame> {
+        let schema = lf.schema()?;
+        let dt = schema.try_get(self.field.as_str())?;
+        //let dt = lf.column(&self.field)?.dtype();
         let lt = string_to_lit(&self.value, dt, &self.field)?;
         let new_col_as_expr = self.override_builder(lt);
-        df.lazy().with_column(new_col_as_expr).collect()
+        Ok(lf.with_column(new_col_as_expr))
     }
 }
 

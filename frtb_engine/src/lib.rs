@@ -67,9 +67,8 @@ impl DataSet for FRTBDataSet {
         res.with_measures(frtb_measure_vec());
         res
     }
-    /// prepares DataSet by pre building columns.
-    /// Useful when we don't want to build columns at each request
-    /// For example, we don't want to map RiskWeights at each request
+    /// Adds: BCBS buckets, CRR2 Buckets
+    /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
     fn prepare(&mut self) {
         let f1 = &mut self.frame;
 

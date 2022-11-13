@@ -74,7 +74,7 @@ pub enum DataSourceConfig {
 }
 
 impl DataSourceConfig {
-    /// build's and validates FRTBDataSet
+    /// build's DataSet
     ///
     /// Returns:
     ///

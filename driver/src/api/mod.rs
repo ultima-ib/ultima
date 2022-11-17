@@ -117,15 +117,9 @@ async fn execute(
         if cfg!(cache) {
             // TODO change function to
             // base_engine::_execute_with_cache
-            base_engine::execute_aggregation(
-                r,
-                Arc::clone(data.get_ref())
-                        )
+            base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
         } else {
-            base_engine::execute_aggregation(
-                r,
-                Arc::clone(data.get_ref()),
-            )
+            base_engine::execute_aggregation(r, Arc::clone(data.get_ref()))
         }
     })
     .await

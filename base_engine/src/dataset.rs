@@ -7,13 +7,12 @@ use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
-#[derive(Debug, Default, Serialize)]
+#[derive(Default)]
 pub struct DataSetBase {
-    pub frame: DataFrame,
+    pub frame: LazyFrame,
     pub measures: MeasuresMap,
     /// build_params are used in .prepare()
     pub build_params: HashMap<String, String>,
-    pub calc_params: Vec<CalcParameter>,
 }
 
 /// This struct is purely for DataSet descriptive purposes.
@@ -30,15 +29,39 @@ pub struct CalcParameter {
 ///
 /// If you have your own DataSet, implement this
 pub trait DataSet: Send + Sync {
-    fn frame(&self) -> &DataFrame;
+    /// Polars DataFrame clone is cheap:
+    /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
+    fn lazy_frame(&self) -> &LazyFrame;
+
     fn measures(&self) -> &MeasuresMap;
-    fn build(conf: DataSourceConfig) -> Self
+
+    // Cannot be defined since returns Self which is a Struct
+    // TODO potentially remove to keep things simple
+    fn from_config(conf: DataSourceConfig) -> Self
     where
         Self: Sized;
+
+    /// See [DataSetBase] and [CalcParameter] for description of the parameters
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self
+    where
+        Self: Sized;
+
+    fn collect(self) -> PolarsResult<Self>
+    where
+        Self: Sized,
+    {
+        Ok(self)
+    }
+
     // These methods could be overwritten.
 
-    /// Prepare runs ONCE before server starts.
-    /// Any computations which are common to most queries could go in here.
+    /// Clones
+    fn frame(&self) -> PolarsResult<DataFrame> {
+        self.lazy_frame().clone().collect()
+    }
+
+    /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
+    /// Any pre-computations which are common to all queries could go in here.
     fn prepare(&mut self) {}
 
     fn calc_params(&self) -> Vec<CalcParameter> {
@@ -46,7 +69,7 @@ pub trait DataSet: Send + Sync {
     }
 
     fn overridable_columns(&self) -> Vec<String> {
-        overrides_columns(self.frame())
+        overrides_columns(self.lazy_frame())
     }
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
@@ -57,26 +80,34 @@ pub trait DataSet: Send + Sync {
 }
 
 impl DataSet for DataSetBase {
-    fn frame(&self) -> &DataFrame {
+    /// Polars DataFrame clone is cheap:
+    /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
+    fn lazy_frame(&self) -> &LazyFrame {
         &self.frame
     }
     fn measures(&self) -> &MeasuresMap {
         &self.measures
     }
-    /// It's ok to clone. Function is only called upon serialisation, so very rarely
-    fn calc_params(&self) -> Vec<CalcParameter> {
-        self.calc_params.clone()
-    }
 
-    fn build(conf: DataSourceConfig) -> Self {
-        let (frames, measure_cols, build_params) = conf.build();
+    fn from_config(conf: DataSourceConfig) -> Self {
+        let (frame, measure_cols, build_params) = conf.build();
         let mm: MeasuresMap = derive_measure_map(measure_cols);
         Self {
-            frame: frames,
+            frame,
             measures: mm,
             build_params,
-            calc_params: vec![],
         }
+    }
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self {
+        Self {
+            frame,
+            measures: mm,
+            build_params,
+        }
+    }
+    fn collect(self) -> PolarsResult<Self> {
+        let lf = self.frame.collect()?.lazy();
+        Ok(Self { frame: lf, ..self })
     }
 
     //    /// Validate Dataset contains columns
@@ -89,43 +120,54 @@ impl DataSet for DataSetBase {
     //    fn validate(&self) {}
 }
 
-pub(crate) fn numeric_columns(df: &DataFrame) -> Vec<String> {
-    let mut res = vec![];
-    for c in df.get_columns() {
-        if c.dtype().is_numeric() {
-            res.push(c.name().to_string())
-        }
-    }
-    res
+// TODO return Result
+pub(crate) fn numeric_columns(lf: &LazyFrame) -> Vec<String> {
+    lf.schema().map_or_else(
+        |_| vec![],
+        |schema| {
+            schema
+                .iter_fields()
+                .filter(|f| f.data_type().is_numeric())
+                .map(|f| f.name)
+                .collect::<Vec<String>>()
+        },
+    )
 }
 
-pub(crate) fn utf8_columns(df: &DataFrame) -> Vec<String> {
-    let mut res = vec![];
-    for c in df.get_columns() {
-        if let DataType::Utf8 = c.dtype() {
-            res.push(c.name().to_string())
-        }
-    }
-    res
+// TODO return Result
+pub(crate) fn utf8_columns(lf: &LazyFrame) -> Vec<String> {
+    lf.schema().map_or_else(
+        |_| vec![],
+        |schema| {
+            schema
+                .iter_fields()
+                .filter(|field| matches!(field.data_type(), DataType::Utf8))
+                .map(|field| field.name)
+                .collect::<Vec<String>>()
+        },
+    )
 }
 
 /// DataTypes supported for overrides are defined in [overrides::string_to_lit]
-pub(crate) fn overrides_columns(df: &DataFrame) -> Vec<String> {
-    let mut res = vec![];
-    for c in df.get_columns() {
-        match c.dtype() {
-            DataType::Utf8 | DataType::Boolean | DataType::Float64 => {
-                res.push(c.name().to_string())
-            }
-            DataType::List(x) => {
-                if let DataType::Float64 = x.as_ref() {
-                    res.push(c.name().to_string())
-                }
-            }
-            _ => (),
-        }
-    }
-    res
+pub(crate) fn overrides_columns(lf: &LazyFrame) -> Vec<String> {
+    //let mut res = vec![];
+    lf.schema().map_or_else(
+        |_| vec![],
+        |schema| {
+            let res = schema
+                .iter_fields()
+                .filter(|c| match c.data_type() {
+                    DataType::Utf8 | DataType::Boolean | DataType::Float64 => true,
+                    DataType::List(x) => {
+                        matches!(x.as_ref(), DataType::Float64)
+                    }
+                    _ => false,
+                })
+                .map(|c| c.name)
+                .collect::<Vec<String>>();
+            res
+        },
+    )
 }
 
 impl Serialize for dyn DataSet {
@@ -140,7 +182,7 @@ impl Serialize for dyn DataSet {
             .collect::<HashMap<&String, Option<&str>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
-        let utf8_cols = utf8_columns(self.frame());
+        let utf8_cols = utf8_columns(self.lazy_frame());
         let calc_params = self.calc_params();
 
         let mut seq = serializer.serialize_map(Some(4))?;

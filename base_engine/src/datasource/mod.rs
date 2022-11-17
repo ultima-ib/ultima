@@ -8,6 +8,8 @@ use crate::Measure;
 pub mod helpers;
 use helpers::{empty_frame, finish, path_to_df};
 
+use self::helpers::diag_concat_lf;
+
 #[cfg(feature = "aws_s3")]
 pub mod awss3;
 
@@ -79,7 +81,7 @@ impl DataSourceConfig {
     /// Returns:
     ///
     /// (joined concatinated DataFrame, vec of base measures, build params)
-    pub fn build(self) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
+    pub fn build(self) -> (LazyFrame, Vec<Measure>, HashMap<String, String>) {
         match self {
             DataSourceConfig::CSV {
                 file_paths: files,
@@ -92,14 +94,19 @@ impl DataSourceConfig {
                 f1_numeric_cols: f64_cols,
                 build_params,
             } => {
-                // what if str_cols already contains f2a?
-                str_cols.extend(f2a.clone());
+                for s in f2a.iter() {
+                    if !str_cols.contains(s) {
+                        str_cols.push(s.to_string())
+                    }
+                }
 
-                let concatinated_frame = diag_concat_df(
+                let concatinated_frame = diag_concat_lf(
                     &files
                         .iter()
                         .map(|f| path_to_df(f, &str_cols, &f64_cols))
-                        .collect::<Vec<DataFrame>>(),
+                        .collect::<Vec<LazyFrame>>(),
+                    true,
+                    true,
                 )
                 .expect("Failed to concatinate provided frames"); // <- Ok to panic upon server startup
 
@@ -108,18 +115,19 @@ impl DataSourceConfig {
 
                 let df_attr = match ta {
                     Some(y) => path_to_df(&y, &tmp, &f64_cols)
-                        .unique(Some(&f2a), UniqueKeepStrategy::First)
-                        .unwrap(),
-                    _ => empty_frame(&tmp),
+                        .unique(Some(f2a.clone()), UniqueKeepStrategy::First),
+                    //.unwrap(),
+                    _ => empty_frame(&tmp).lazy(),
                 };
 
                 //here we expect if hms is provided then a2h is not empty
-                let df_hms = match  hms{
-                        Some(y) =>{ path_to_df(&y, &a2h, &[])
-                                            .unique(Some(&a2h), UniqueKeepStrategy::First)
-                                            .expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
-                                            in the datasource_config.toml") },
-                        _ => empty_frame(&a2h) };
+                let df_hms = match hms {
+                    Some(y) => path_to_df(&y, &a2h, &[])
+                        .unique(Some(a2h.clone()), UniqueKeepStrategy::First),
+                    //.expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
+                    //in the datasource_config.toml") },
+                    _ => empty_frame(&a2h).lazy(),
+                };
 
                 finish(
                     a2h,
@@ -178,9 +186,9 @@ impl DataSourceConfig {
                     a2h,
                     f2a,
                     measures,
-                    df_attr,
-                    df_hms,
-                    concatinated_frame,
+                    df_attr.lazy(),
+                    df_hms.lazy(),
+                    concatinated_frame.lazy(),
                     build_params,
                 )
             }

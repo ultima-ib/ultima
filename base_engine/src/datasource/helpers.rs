@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use polars::{
     prelude::{
-        col, DataFrame, DataType, Expr, Field, IntoLazy, JoinType, LazyCsvReader, NamedFrom, Schema,
+        col, concat, DataFrame, DataType, Expr, Field, JoinType, LazyCsvReader, LazyFrame, Literal,
+        NamedFrom, PolarsResult, Schema, NULL,
     },
     series::Series,
 };
@@ -20,7 +21,7 @@ pub fn empty_frame(with_columns: &[String]) -> DataFrame {
 }
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
-pub fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> DataFrame {
+pub fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> LazyFrame {
     let mut vc = Vec::with_capacity(cast_to_str.len() + cast_to_f64.len());
     for str_col in cast_to_str {
         vc.push(Field::new(str_col, DataType::Utf8))
@@ -33,51 +34,57 @@ pub fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
 
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
-    let df = LazyCsvReader::new(path)
+    let lf = LazyCsvReader::new(path)
         .has_header(true)
         .with_parse_dates(true)
         .with_dtype_overwrite(Some(&schema))
         //.with_ignore_parser_errors(ignore)
         .finish()
-        .and_then(|lf| lf.collect())
         .unwrap_or_else(|_| panic!("Error reading file: {path}"));
 
-    df
+    lf
 }
 
 pub fn finish(
     a2h: Vec<String>,
     f2a: Vec<String>,
     measures: Vec<String>,
-    mut df_attr: DataFrame,
-    df_hms: DataFrame,
-    mut concatinated_frame: DataFrame,
+    mut df_attr: LazyFrame,
+    df_hms: LazyFrame,
+    mut concatinated_frame: LazyFrame,
     build_params: HashMap<String, String>,
-) -> (DataFrame, Vec<Measure>, HashMap<String, String>) {
+) -> (LazyFrame, Vec<Measure>, HashMap<String, String>) {
     // join with hms if a2h was provided
     if !a2h.is_empty() {
         let a2h_expr = a2h.iter().map(|c| col(c)).collect::<Vec<Expr>>();
-        df_attr = df_attr.lazy()
-            .join(df_hms.lazy(), a2h_expr.clone(), a2h_expr, JoinType::Left)
-            .collect()
-            .expect("Could not join attributes to hms. Review attributes_join_hierarchy field in the setup");
+        df_attr = df_attr.join(df_hms, a2h_expr.clone(), a2h_expr, JoinType::Left)
+        //.collect()
+        //.expect("Could not join attributes to hms. Review attributes_join_hierarchy field in the setup");
     }
     // if files to attributes was provided
     if !f2a.is_empty() {
         let f2a_expr = f2a.iter().map(|c| col(c)).collect::<Vec<Expr>>();
-        concatinated_frame = concatinated_frame.lazy()
-            .join(df_attr.lazy(), f2a_expr.clone(), f2a_expr, JoinType::Outer)
-            .collect()
-            .expect("Could not join files with attributes-hms. Review files_join_attributes field in the setup");
+        concatinated_frame =
+            concatinated_frame.join(df_attr, f2a_expr.clone(), f2a_expr, JoinType::Outer)
+        //.collect()
+        //.expect("Could not join files with attributes-hms. Review files_join_attributes field in the setup");
     }
 
     // if measures were provided
     let measures = if !measures.is_empty() {
+        let schema = concatinated_frame
+            .schema()
+            .expect("Could not extract Schema");
+        let fields = schema
+            .iter_fields()
+            .map(|f| f.name)
+            .collect::<Vec<String>>();
+
         // Checking if each measure is present in DF
         measures.iter().for_each(|col| {
-            concatinated_frame
-                .column(col)
-                .unwrap_or_else(|_| panic!("Column {} not found", col));
+            if !fields.contains(col) {
+                panic!("Measure: {}, is not part of the fields: {:?}", col, fields)
+            }
         });
         derive_basic_measures_vec(measures)
     }
@@ -88,4 +95,60 @@ pub fn finish(
     };
 
     (concatinated_frame, measures, build_params)
+}
+
+/// TODO contribute to Polars
+/// Concat [LazyFrame]s diagonally.
+/// Calls [concat] internally.
+pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
+    lfs: L,
+    rechunk: bool,
+    parallel: bool,
+) -> PolarsResult<LazyFrame> {
+    let lfs = lfs.as_ref().to_vec();
+    let upper_bound_width = lfs
+        .iter()
+        .map(|lf| Ok(lf.schema()?.len()))
+        .collect::<PolarsResult<Vec<_>>>()?
+        .iter()
+        .sum();
+    // Use Vec instead of a HashSet to preserve order
+    let mut column_names = Vec::with_capacity(upper_bound_width);
+    let mut total_schema = Vec::with_capacity(upper_bound_width);
+
+    for lf in lfs.iter() {
+        lf.schema()?.iter().for_each(|(name, dtype)| {
+            if !column_names.contains(name) {
+                column_names.push(name.clone());
+                total_schema.push((name.clone(), dtype.clone()))
+            }
+        });
+    }
+
+    let dfs = lfs
+        .into_iter()
+        .map(|mut lf| {
+            // Get current frame's Schema
+            let lf_schema = lf.schema()?;
+
+            for (name, dtype) in total_schema.iter() {
+                // If a name from Total Schema is not present - append
+                if lf_schema.get_field(name).is_none() {
+                    lf = lf.with_column(NULL.lit().cast(dtype.clone()).alias(name))
+                }
+            }
+
+            // Now, reorder to match schema
+            let reordered_lf = lf.select(
+                column_names
+                    .iter()
+                    .map(|col_name| col(col_name))
+                    .collect::<Vec<Expr>>(),
+            );
+
+            Ok(reordered_lf)
+        })
+        .collect::<PolarsResult<Vec<_>>>()?;
+
+    concat(dfs, rechunk, parallel)
 }

@@ -47,3 +47,4 @@ FRTB = ["frtb_engine"] # feature FRTB of my lib activate optional dep frtb_engin
 FRTB_CRR2 = ["FRTB", "frtb_engine/CRR2"] # feature FRTB_CRR2 activates optional dep frtb_engine with it's CRR2 feature
 # BUT also need to activate FRTB because one_off.rs and server.rs have #[cfg(feature = "FRTB")]
 cache = ["base_engine/cache"]
+streaming = []

@@ -25,7 +25,7 @@ use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
 use base_engine::{
-    api::aggregations::BASE_CALCS, prelude::PolarsResult, AggregationRequest, DataSet,
+    api::aggregations::BASE_CALCS, col, prelude::PolarsResult, AggregationRequest, DataSet,
 };
 
 #[cfg(feature = "cache")]
@@ -72,7 +72,9 @@ async fn column_search(
     let (page, pat) = (page.page, page.pattern.clone());
     let res = task::spawn_blocking(move || {
         let d = data.get_ref();
-        let srs = d.frame().column(&column_name)?;
+        let lf = d.lazy_frame();
+        let df = lf.clone().select([col(&column_name)]).collect()?;
+        let srs = df.column(&column_name)?;
         let search = base_engine::searches::filter_contains_unique(srs, &pat)?;
         let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
@@ -82,6 +84,7 @@ async fn column_search(
     .await
     .context("Failed to spawn blocking task.")
     .map_err(actix_web::error::ErrorInternalServerError)?;
+
     match res {
         Ok(srs) => Ok(HttpResponse::Ok().json(Vec::from(
             srs.utf8()

@@ -10,7 +10,7 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf_path = r"./tests/data/datasource_config.toml";
     let conf = read_toml2::<DataSourceConfig>(conf_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
-    let mut data: FRTBDataSet = DataSet::build(conf);
+    let mut data: FRTBDataSet = DataSet::from_config(conf);
     data.prepare();
     Arc::new(data)
 });

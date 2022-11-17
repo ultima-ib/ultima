@@ -15,21 +15,19 @@ pub fn sbm_buckets(_: &HashMap<String, String>) -> Expr {
             .or(col("RiskClass").eq(lit("GIRR"))),
     )
     .then(col("BucketBCBS").fill_null(
-        col("RiskFactor")
-        // Code will panic on a long onshore-offshore when().then()
-        // Hence, such mapping has to be done separately
-        /*.map(
-        move |srs| {
-            let mut res = srs.utf8()?.to_owned();
-            for (k, v) in &offshore_onshore {
-                res = res.replace(k, v)?;
-            }
-            Ok(res.into_series())
-        },
-        GetOutput::from_type(DataType::Utf8),
-        ) */
-    )
-    )
+        col("RiskFactor"), // Code will panic on a long onshore-offshore when().then()
+                           // Hence, such mapping has to be done separately
+                           /*.map(
+                           move |srs| {
+                               let mut res = srs.utf8()?.to_owned();
+                               for (k, v) in &offshore_onshore {
+                                   res = res.replace(k, v)?;
+                               }
+                               Ok(res.into_series())
+                           },
+                           GetOutput::from_type(DataType::Utf8),
+                           ) */
+    ))
     .otherwise(col("BucketBCBS"))
 }
 

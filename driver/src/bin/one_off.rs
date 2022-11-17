@@ -43,19 +43,19 @@ fn main() -> anyhow::Result<()> {
     // Build Data
     let data = acquire::data::<DataSetType>(setup_path.as_str());
 
-    let x = Arc::new(data);
+    let arc_data = Arc::new(data);
 
     let json = fs::read_to_string(requests_path.as_str()).expect("Unable to read request file");
 
     // Later this will be RequestE (to match other requests as well)
-    let requests: Vec<AggregationRequest> = serde_json::from_str(&json).unwrap();
+    let requests: Vec<AggregationRequest> = serde_json::from_str(&json).expect("Bad requests");
 
     // From here we do not panic
     for request in requests {
         let rqst_str = serde_json::to_string(&request);
         info!("{:?}", rqst_str);
         let now = Instant::now();
-        match base_engine::execute_aggregation(request, Arc::clone(&x)) {
+        match base_engine::execute_aggregation(request, Arc::clone(&arc_data)) {
             Err(e) => {
                 error!("On request: {:?}, Application error: {:#?}", rqst_str, e);
                 continue;

@@ -3,11 +3,15 @@
         "filters": [],
         "groupby": [
             "Country",
-          "TradeId"
+          "BookId"
         ],
         "measures": [
           [
             "SBM_Charge",
+            "first"
+          ],
+          [
+            "EQ_TotalCharge_Medium",
             "first"
           ]
         ],

@@ -22,6 +22,6 @@ futures = { version = "0.3", optional=true }
 dashmap = {workspace = true, optional=true}
 
 [features]
-default = ["aws_s3"]
+default = []
 aws_s3 = ["dep:aws-config", "dep:aws-sdk-s3", "dep:tokio", "dep:futures"]
 cache = ["dep:dashmap"]

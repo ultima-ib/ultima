@@ -7,7 +7,7 @@ use polars::export::num::Signed;
 use polars::lazy::dsl::{apply_multiple, GetOutput};
 use polars::prelude::{
     AnyValue, ChunkAgg, ChunkSet, DataType, FillNullStrategy, Float64Chunked, Float64Type,
-    NumOpsDispatch, PolarsError, TakeRandom,
+    NumOpsDispatch, PolarsError,
 };
 use polars::series::{ChunkCompare, IntoSeries, Series};
 

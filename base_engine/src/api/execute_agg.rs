@@ -19,14 +19,7 @@ pub fn execute_aggregation(
     // Assuming Front End knows which columns can be in groupby, agg etc
 
     // Step 0.1
-    let f1 = data.frame();
-    //let tmp = f1.clone().lazy().filter(col("RiskClass").eq(lit("DRC_SecNonCTP"))).collect()?;
-    //dbg!(&tmp["SensWeights"]);
-    //let f1_cols = f1.get_column_names();
-
-    // Polars DataFrame clone is cheap:
-    // https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
-    let mut f1 = f1.clone().lazy();
+    let mut f1 = data.lazy_frame().clone();
 
     // Step 1.0 Applying FILTERS:
     // TODO check if column is present in DF - ( is this "second line of defence" even needed?)
@@ -91,7 +84,7 @@ pub fn execute_aggregation(
     let groups_fill_nulls: Vec<Expr> = groups
         .clone()
         .into_iter()
-        .map(|e| e.fill_null(lit("EMPTY")))
+        .map(|e| e.fill_null(lit(" ")))
         .collect();
 
     // Step 2.5 Apply GroupBy and Agg

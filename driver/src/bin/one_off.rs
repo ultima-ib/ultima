@@ -58,7 +58,6 @@ fn main() -> anyhow::Result<()> {
         match base_engine::execute_aggregation(
             request,
             Arc::clone(&arc_data),
-            cfg!(feature = "streaming"),
         ) {
             Err(e) => {
                 error!("On request: {:?}, Application error: {:#?}", rqst_str, e);

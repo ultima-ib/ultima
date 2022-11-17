@@ -119,14 +119,12 @@ async fn execute(
             // base_engine::_execute_with_cache
             base_engine::execute_aggregation(
                 r,
-                Arc::clone(data.get_ref()),
-                cfg!(feature = "streaming"),
-            )
+                Arc::clone(data.get_ref())
+                        )
         } else {
             base_engine::execute_aggregation(
                 r,
                 Arc::clone(data.get_ref()),
-                cfg!(feature = "streaming"),
             )
         }
     })

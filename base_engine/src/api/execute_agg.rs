@@ -15,7 +15,6 @@ use crate::{filters::fltr_chain, measure_builder, AggregationRequest, DataSet};
 pub fn execute_aggregation(
     req: AggregationRequest,
     data: Arc<impl DataSet + ?Sized>,
-    stream: bool,
 ) -> PolarsResult<DataFrame> {
     // Assuming Front End knows which columns can be in groupby, agg etc
 
@@ -116,7 +115,7 @@ pub fn execute_aggregation(
 
             let _df = f1
                 .clone()
-                .with_streaming(stream)
+                .with_streaming(true)
                 .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)

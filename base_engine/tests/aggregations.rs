@@ -15,7 +15,7 @@ fn simple_fltr_grpby_sum() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET), false)
+    let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET))
         .expect("Calculation failed");
 
     let res_sum = res

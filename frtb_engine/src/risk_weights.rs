@@ -41,89 +41,91 @@ pub fn weight_assign_logic(weights: SensWeightsConfig) -> Expr {
     let not_yet_implemented = Series::new("null", &[x]).lit().list();
     let never_reached = Series::new("null", &[x]).lit().list();
     when(col("RiskCategory").eq(lit("Delta")))
-        .then(
-            // FX
-            when(col("RiskClass").eq(lit("FX")))
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.fx_override,
-                    weights.fx,
-                ))
-                //GIRR
-                .when(
-                    col("RiskClass").eq(lit("GIRR")).and(
-                        col("RiskFactorType")
-                            .eq(lit("XCCY"))
-                            .or(col("RiskFactorType").eq(lit("Inflation"))),
-                    ),
-                )
-                .then(
-                    //temp shortcut, since xccy weight = infl weight
-                    weights.ir_xccy_infl,
-                )
-                .when(
-                    col("RiskClass")
-                        .eq(lit("GIRR"))
-                        .and(col("RiskFactorType").eq(lit("Yield"))),
-                )
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.ir_override,
-                    weights.ir_yield,
-                ))
-                // Commodity
-                .when(col("RiskClass").eq(lit("Commodity")))
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.com_bucket_weight,
-                    never_reached.clone(),
-                ))
-                // Equity
-                .when(
-                    col("RiskClass")
-                        .eq(lit("Equity"))
-                        .and(col("RiskFactorType").eq(lit("EqSpot"))),
-                )
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.eq_bucket_spot_weight,
-                    never_reached.clone(),
-                ))
-                .when(
-                    col("RiskClass")
-                        .eq(lit("Equity"))
-                        .and(col("RiskFactorType").eq(lit("EqRepo"))),
-                )
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.eq_bucket_repo_weight,
-                    never_reached.clone(),
-                ))
-                // CSR non-Sec
-                .when(col("RiskClass").eq(lit("CSR_nonSec")))
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.csr_non_sec_weight,
-                    never_reached.clone(),
-                ))
-                // CSR secCTP
-                .when(col("RiskClass").eq(lit("CSR_Sec_CTP")))
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.csr_sec_ctp_weight,
-                    never_reached.clone(),
-                ))
-                // CSR sec nonCTP
-                .when(col("RiskClass").eq(lit("CSR_Sec_nonCTP")))
-                .then(rf_rw_map(
-                    col("BucketBCBS"),
-                    weights.csr_sec_nonctp_weight,
-                    never_reached.clone(),
-                ))
-                .otherwise(not_yet_implemented.clone()),
+    .then(
+        // FX
+        when(col("RiskClass").eq(lit("FX")))
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.fx_override,
+            weights.fx,
+        ))
+        
+        //GIRR
+        .when(
+            col("RiskClass").eq(lit("GIRR")).and(
+                col("RiskFactorType")
+                    .eq(lit("XCCY"))
+                    .or(col("RiskFactorType").eq(lit("Inflation"))),
+            ),
         )
-        .when(col("RiskCategory").eq(lit("Vega")))
         .then(
+            //temp shortcut, since xccy weight = infl weight
+            weights.ir_xccy_infl,
+        )
+        .when(
+            col("RiskClass")
+                .eq(lit("GIRR"))
+                .and(col("RiskFactorType").eq(lit("Yield"))),
+        )
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.ir_override,
+            weights.ir_yield,
+        ))
+        // Commodity
+        .when(col("RiskClass").eq(lit("Commodity")))
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.com_bucket_weight,
+            never_reached.clone(),
+        ))
+        // Equity
+        .when(
+            col("RiskClass")
+                .eq(lit("Equity"))
+                .and(col("RiskFactorType").eq(lit("EqSpot"))),
+        )
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.eq_bucket_spot_weight,
+            never_reached.clone(),
+        ))
+        .when(
+            col("RiskClass")
+                .eq(lit("Equity"))
+                .and(col("RiskFactorType").eq(lit("EqRepo"))),
+        )
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.eq_bucket_repo_weight,
+            never_reached.clone(),
+        ))
+        // CSR non-Sec
+        .when(col("RiskClass").eq(lit("CSR_nonSec")))
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.csr_non_sec_weight,
+            never_reached.clone(),
+        ))
+        // CSR secCTP
+        .when(col("RiskClass").eq(lit("CSR_Sec_CTP")))
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.csr_sec_ctp_weight,
+            never_reached.clone(),
+        ))
+        // CSR sec nonCTP
+        .when(col("RiskClass").eq(lit("CSR_Sec_nonCTP")))
+        .then(rf_rw_map(
+            col("BucketBCBS"),
+            weights.csr_sec_nonctp_weight,
+            never_reached.clone(),
+        ))
+        
+        .otherwise(not_yet_implemented.clone()),
+    )
+    .when(col("RiskCategory").eq(lit("Vega")))
+    .then(
             when(col("RiskClass").neq(lit("Equity"))) //all vega except Equity
                 .then(rf_rw_map(
                     col("RiskClass"),
@@ -145,20 +147,10 @@ pub fn weight_assign_logic(weights: SensWeightsConfig) -> Expr {
                     weights.drc_nonsec,
                     never_reached,
                 ))
-                // DRC Sec Non-CTP Risk Weight
-                //.when(col("RiskClass").eq(lit("DRC_SecNonCTP")))
-                //.then(rf_rw_map(
-                //    concat_str([
-                //        col("CreditQuality").map(|s|Ok(s.utf8()?.to_uppercase().into_series()), GetOutput::from_type(DataType::Utf8)),
-                //        col("RiskFactorType").map(|s|Ok(s.utf8()?.to_uppercase().into_series()), GetOutput::from_type(DataType::Utf8)),
-                //        ],
-                //        "_"),
-                //    weights.drc_secnonctp,
-                //    never_reached,
-                //))
+                
                 .otherwise(not_yet_implemented.clone()),
         )
-        .otherwise(not_yet_implemented)
+    .otherwise(not_yet_implemented)
 }
 
 /// Default Risk Weights as per regulation are defined here

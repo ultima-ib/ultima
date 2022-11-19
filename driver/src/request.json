@@ -7,17 +7,13 @@
         ],
         "measures": [
           [
-            "SBM_Charge",
-            "first"
-          ],
-          [
-            "EQ_TotalCharge_Medium",
+            "Commodity DeltaCharge High",
             "first"
           ]
         ],
         "overrides": [],
         "hide_zeros": false,
-        "totals": true,
+        "totals": false,
         "calc_params": {
           "jurisdiction": "BCBS",
           "reporting_ccy": "USD",

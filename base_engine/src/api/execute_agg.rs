@@ -15,17 +15,20 @@ use crate::{filters::fltr_chain, measure_builder, AggregationRequest, DataSet};
 pub fn execute_aggregation(
     req: AggregationRequest,
     data: Arc<impl DataSet + ?Sized>,
+    streaming: bool
 ) -> PolarsResult<DataFrame> {
-    // Assuming Front End knows which columns can be in groupby, agg etc
 
     // Step 0.1
-    let mut f1 = data.lazy_frame().clone();
+    let mut f1 = data.get_lazyframe().clone();
 
     // Step 1.0 Applying FILTERS:
     // TODO check if column is present in DF - ( is this "second line of defence" even needed?)
     if let Some(f) = fltr_chain(req.filters()) {
         f1 = f1.filter(f)
     }
+
+    //TODO
+    //if streaming prepare needs to happen here
 
     // Step 2.x OVERRIDE, 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
 
@@ -39,7 +42,7 @@ pub fn execute_aggregation(
     }
     let op = req.calc_params();
 
-    let measure_map = data.measures();
+    let measure_map = data.get_measures();
     let prepared_measures = measure_builder(m, measure_map, op);
 
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
@@ -73,6 +76,11 @@ pub fn execute_aggregation(
         f1 = f1.filter(fltr)
     }
 
+    // If streaming then prepare (assign weights) now
+    if dbg!(streaming) {
+        f1 = data.prepare_frame(Some(f1))
+    }
+
     // Step 2.4 Applying Overwrites
     for ow in req.overrides() {
         f1 = ow.lf_with_overwrite(f1)?
@@ -92,7 +100,7 @@ pub fn execute_aggregation(
     // hence use groupby_stable
     let mut aggregated_df = f1
         .clone()
-        .with_streaming(true)
+        .with_streaming(streaming)
         .groupby_stable(&groups)
         .agg(&aggregateions)
         .limit(1_000)
@@ -115,7 +123,7 @@ pub fn execute_aggregation(
 
             let _df = f1
                 .clone()
-                .with_streaming(true)
+                .with_streaming(streaming)
                 .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)

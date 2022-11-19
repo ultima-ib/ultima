@@ -1,4 +1,5 @@
 //use log::error;
+#[cfg(feature = "aws_s3")]
 use polars::functions::diag_concat_df;
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};

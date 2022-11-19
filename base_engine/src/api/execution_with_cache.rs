@@ -64,7 +64,7 @@ pub(crate) fn _execute_with_cache(
             measures: new.clone(),
             ..req.clone()
         };
-        let new_res = super::execute_aggregation(new_req, data)?;
+        let new_res = super::execute_aggregation(new_req, data, false)?;
         // Now save each of new measures to cache
         for new_measure in new {
             let _new_m_req = AggregationRequest {

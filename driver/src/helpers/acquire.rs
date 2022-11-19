@@ -15,6 +15,7 @@ pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
     info!("Data SetUp: {:?}", conf);
 
     let (lf, measure_vec, build_params) = conf.build();
+
     let mut data = DS::new(lf, derive_measure_map(measure_vec), build_params);
 
     // If cfg is streaming then we can't collect, otherwise collect to check errors
@@ -31,8 +32,9 @@ pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
     // data.validate().expect();
 
     // Pre build some columns, which you wish to store in memory alongside the original data
-    data.prepare();
+    // Note if streaming then .prepare() should happen post filtering
     if !cfg!(feature = "streaming") {
+        data = data.prepare();
         let now = Instant::now();
         data = data.collect().expect("Failed to Prepare Frame");
         let elapsed = now.elapsed();

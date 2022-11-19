@@ -42,11 +42,20 @@ impl FRTBDataSet {
 }
 
 impl DataSet for FRTBDataSet {
-    fn lazy_frame(&self) -> &LazyFrame {
+    fn get_lazyframe(&self) -> &LazyFrame {
         &self.frame
     }
-    fn measures(&self) -> &MeasuresMap {
+    fn get_lazyframe_owned(self) -> LazyFrame {
+        self.frame
+    }
+    fn set_lazyframe(self, lf: LazyFrame) -> Self where Self: Sized {
+        Self { frame: lf, measures: self.measures, build_params: self.build_params }
+    }
+    fn get_measures(&self) -> &MeasuresMap {
         &self.measures
+    }
+    fn get_measures_owned(self) -> MeasuresMap {
+        self.measures
     }
     fn calc_params(&self) -> Vec<CalcParameter> {
         frtb_calc_params()
@@ -80,13 +89,14 @@ impl DataSet for FRTBDataSet {
     }
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
-    fn prepare(&mut self) {
-        let f1 = &mut self.frame;
+    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
+        let mut lf1 = if let Some(lf) = _lf {
+            lf
+        } else {self.get_lazyframe().clone()};
 
         //First, identify buckets
-        let mut lf1 = f1
-            .clone()
-            .with_column(buckets::sbm_buckets(&self.build_params));
+        lf1 = lf1.with_column(buckets::sbm_buckets(&self.build_params));
+
         // If CRR2, then also provide CRR2 buckets
         #[cfg(feature = "CRR2")]
         if cfg!(feature = "CRR2") {
@@ -95,12 +105,13 @@ impl DataSet for FRTBDataSet {
 
         // Then assign risk weights based on buckets
         lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
+       
         //let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
 
         // Some risk weights assignments (DRC Sec Non CTP) would result in too many when().then() statements
         // which panics: https://github.com/pola-rs/polars/issues/4827
         // Hence, for such scenarios we need to use left join
-        let drc_secnonctp_weights: DataFrame = drc_weights::drc_secnonctp_weights_frame();
+        let drc_secnonctp_weights: LazyFrame = drc_weights::drc_secnonctp_weights_frame().lazy();
         let left_on = concat_str(
             [
                 col("CreditQuality").map(
@@ -116,9 +127,13 @@ impl DataSet for FRTBDataSet {
         )
         .alias("LeftKey");
 
+        //dbg!(lf1.clone().with_column(left_on.clone()).collect());
+
         lf1 = lf1
-            .left_join(drc_secnonctp_weights.lazy(), left_on, col("Key"))
+            .left_join(drc_secnonctp_weights, left_on, col("Key"))
             .with_column(concat_lst([col("RiskWeightDRC")]));
+        //lf1 = lf1.collect().unwrap().lazy();
+
         //let tmp_frame = lf1
         //    .collect()
         //    .expect("Failed to unwrap tmp_frame while .prepare()");
@@ -235,7 +250,7 @@ impl DataSet for FRTBDataSet {
         //    .collect()
         //    .expect("Failed to unwrap tmp2_frame while .prepare()");
 
-        *f1 = lf1;
+        lf1
     }
 
     // TODO Validate:

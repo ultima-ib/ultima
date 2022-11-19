@@ -11,7 +11,7 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf = read_toml2::<DataSourceConfig>(conf_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     let mut data: FRTBDataSet = DataSet::from_config(conf);
-    data.prepare();
+    data = data.prepare();
     Arc::new(data)
 });
 
@@ -22,7 +22,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let excl = data_req._groupby().clone();
     let a = &*LAZY_DASET;
     let res =
-        execute_aggregation(data_req, Arc::clone(a)).expect("Error while calculating results");
+        execute_aggregation(data_req, Arc::clone(a), false).expect("Error while calculating results");
     let res_numeric = res
         .lazy()
         .select([col("*").exclude(excl)])

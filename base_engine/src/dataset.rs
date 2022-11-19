@@ -31,12 +31,14 @@ pub struct CalcParameter {
 pub trait DataSet: Send + Sync {
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
-    fn lazy_frame(&self) -> &LazyFrame;
-
-    fn measures(&self) -> &MeasuresMap;
+    fn get_lazyframe(&self) -> &LazyFrame;
+    fn get_lazyframe_owned(self) -> LazyFrame;
+    fn set_lazyframe(self, lf: LazyFrame) -> Self where Self: Sized;
+    fn get_measures(&self) -> &MeasuresMap;
+    fn get_measures_owned(self) -> MeasuresMap;
 
     // Cannot be defined since returns Self which is a Struct
-    // TODO potentially remove to keep things simple
+    // TODO create a From Trait
     fn from_config(conf: DataSourceConfig) -> Self
     where
         Self: Sized;
@@ -46,6 +48,7 @@ pub trait DataSet: Send + Sync {
     where
         Self: Sized;
 
+    
     fn collect(self) -> PolarsResult<Self>
     where
         Self: Sized,
@@ -57,19 +60,29 @@ pub trait DataSet: Send + Sync {
 
     /// Clones
     fn frame(&self) -> PolarsResult<DataFrame> {
-        self.lazy_frame().clone().collect()
+        self.get_lazyframe().clone().collect()
     }
 
     /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
     /// Any pre-computations which are common to all queries could go in here.
-    fn prepare(&mut self) {}
+    fn prepare(self) -> Self where Self: Sized {
+        let new_frame = self.prepare_frame(None);
+        self.set_lazyframe(new_frame)
+    }
 
+    /// By returning a Frame this method can be used on a 
+    /// *lf - biffer. if None, function "prepares" self.lazy_frame()
+    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
+        self.get_lazyframe().clone()
+    }
+
+    /// Calc params are used for the UI and hence are totally optional
     fn calc_params(&self) -> Vec<CalcParameter> {
         vec![]
     }
 
     fn overridable_columns(&self) -> Vec<String> {
-        overrides_columns(self.lazy_frame())
+        overrides_columns(self.get_lazyframe())
     }
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
@@ -82,11 +95,20 @@ pub trait DataSet: Send + Sync {
 impl DataSet for DataSetBase {
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
-    fn lazy_frame(&self) -> &LazyFrame {
+    fn get_lazyframe(&self) -> &LazyFrame {
         &self.frame
     }
-    fn measures(&self) -> &MeasuresMap {
+    fn get_lazyframe_owned(self) -> LazyFrame {
+        self.frame
+    }
+    fn set_lazyframe(self, lf: LazyFrame) -> Self where Self: Sized {
+        Self { frame: lf, measures: self.measures, build_params: self.build_params }
+    }
+    fn get_measures(&self) -> &MeasuresMap {
         &self.measures
+    }
+    fn get_measures_owned(self) -> MeasuresMap {
+        self.measures
     }
 
     fn from_config(conf: DataSourceConfig) -> Self {
@@ -176,13 +198,13 @@ impl Serialize for dyn DataSet {
         S: Serializer,
     {
         let measures = self
-            .measures()
+            .get_measures()
             .iter()
             .map(|(x, m)| (x, m.aggregation))
             .collect::<HashMap<&String, Option<&str>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
-        let utf8_cols = utf8_columns(self.lazy_frame());
+        let utf8_cols = utf8_columns(self.get_lazyframe());
         let calc_params = self.calc_params();
 
         let mut seq = serializer.serialize_map(Some(4))?;

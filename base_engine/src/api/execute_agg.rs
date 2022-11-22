@@ -27,9 +27,6 @@ pub fn execute_aggregation(
         f1 = f1.filter(f)
     }
 
-    //TODO
-    //if streaming prepare needs to happen here
-
     // Step 2.x OVERRIDE, 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
 
     // Step 2.1 Build AGGREGATIONS/Measures
@@ -76,7 +73,7 @@ pub fn execute_aggregation(
         f1 = f1.filter(fltr)
     }
 
-    // If streaming then prepare (assign weights) now
+    // If streaming then prepare (assign weights) now (ie post filtering)
     if dbg!(streaming) {
         f1 = data.prepare_frame(Some(f1))
     }

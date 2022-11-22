@@ -20,6 +20,7 @@ async fn health_check_works() {
     // Act
     let response = client
         .get(&format!("{}/api/health_check", &addr))
+        .basic_auth("ultima", Some("password123!!!"))
         .send()
         .await
         .expect("Failed to execute request.");

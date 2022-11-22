@@ -32,6 +32,8 @@ toml = {workspace = true}
 mimalloc = { version = "0.1.29", default-features = false }
 dotenv = "0.15"
 clap = {version="4", features=["derive"]}
+actix-web-httpauth = "0.8.0"
+
 # Cache
 dashmap={workspace=true}
 

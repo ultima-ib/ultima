@@ -17,8 +17,9 @@ use actix_web::{
     Responder,
     //error::InternalError, http::StatusCode,
     Result,
+    dev::ServiceRequest,
 };
-//use dashmap::DashMap;
+use actix_web_httpauth::{extractors::basic::BasicAuth, middleware::HttpAuthentication};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::{net::TcpListener, sync::Arc};
@@ -149,6 +150,20 @@ async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
     web::Json(data.overridable_columns())
 }
 
+async fn validator(
+    req: ServiceRequest,
+    creds: BasicAuth,
+) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
+    let user_id = creds.user_id();
+    let password = creds.password();
+
+    if user_id == "ultima" && password == Some("password123!!!") {
+        return Ok(req);
+    }
+    let error = actix_web::error::ErrorUnauthorized("invalid credentions!");
+    Err((error, req))
+}
+
 // TODO Why can't I use ds: impl DataSet ?
 pub fn run_server(
     listener: TcpListener,
@@ -168,8 +183,11 @@ pub fn run_server(
     let cache = Data::new(CACHE::new());
 
     let server = HttpServer::new(move || {
+        let auth = HttpAuthentication::basic(validator);
+
         App::new()
             .wrap(Logger::default())
+            .wrap(auth)
             .service(
                 web::scope("/api")
                     .service(health_check)

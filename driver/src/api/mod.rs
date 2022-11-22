@@ -157,10 +157,10 @@ async fn validator(
     let user_id = creds.user_id();
     let password = creds.password();
 
-    if user_id == "ultima" && password == "password123!!!" {
+    if user_id == "ultima" && password == Some("password123!!!") {
         return Ok(req);
     }
-    let error = actix_web::error::ErrorUnauthorized("you suck!");
+    let error = actix_web::error::ErrorUnauthorized("invalid credentions!");
     Err((error, req))
 }
 

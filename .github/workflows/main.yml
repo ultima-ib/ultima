@@ -3,6 +3,8 @@ name: Main App
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
   clippy_fmt:
@@ -52,8 +54,8 @@ jobs:
           args: --all-features 
 
 
-  frontend_lint_fmt:
-    name: Lint frontend
+  frontend_checks:
+    name: Frontend checks
     runs-on: ubuntu-latest
 
     steps:
@@ -68,6 +70,10 @@ jobs:
         run: npm install
         working-directory: frontend
         
+      - name: Typecheck
+        run: npx tsc
+        working-directory: frontend
+        
       - name: Lint
         run: npm run lint
         working-directory: frontend
@@ -75,10 +81,11 @@ jobs:
   build_and_publish:
     name: Build and Publish
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'push'
     needs:
       - clippy_fmt
       - rust_tests
-      - frontend_lint_fmt
+      - frontend_checks
 
     steps:
       - uses: actions/checkout@v2

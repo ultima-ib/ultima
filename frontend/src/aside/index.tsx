@@ -3,6 +3,7 @@ import {
     PropsWithChildren,
     Suspense,
     SyntheticEvent,
+    ElementType,
     useDeferredValue,
     useEffect,
     useState,
@@ -25,7 +26,8 @@ import {
     Tab,
     Tabs,
     TextField,
-    Paper, Divider,
+    Paper,
+    Divider,
 } from "@mui/material"
 import QuoteList, { ListItemExtras } from "./list"
 import Title from "./Title"
@@ -141,7 +143,7 @@ interface ColumnProps {
     extras?: ListItemExtras
     onListItemClick?: (field: string) => void
     multiColumn?: boolean
-    titleComponent?: React.ElementType
+    titleComponent?: ElementType
 }
 
 export function Column({
@@ -156,7 +158,9 @@ export function Column({
 }: ColumnProps & StackProps) {
     return (
         <Stack spacing={2} alignItems="center" {...stack}>
-            {title && <Title content={title} component={titleComponent ?? Paper} />}
+            {title && (
+                <Title content={title} component={titleComponent ?? Paper} />
+            )}
             <QuoteList
                 listId={listId}
                 listType="QUOTE"
@@ -382,7 +386,7 @@ const Aside = () => {
                         }}
                     />
                 </Stack>
-                <Divider orientation='vertical' />
+                <Divider orientation="vertical" />
                 <Stack sx={{ width: "60%", height: "100%" }}>
                     <Suspense fallback="Loading templates....">
                         <Templates />

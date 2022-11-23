@@ -7,7 +7,8 @@ import {
     TableHead,
     TableBody,
     TableRow,
-    TableCell, TableFooter,
+    TableCell,
+    TableFooter,
 } from "@mui/material"
 import { fancyZip } from "../utils"
 import { forwardRef } from "react"

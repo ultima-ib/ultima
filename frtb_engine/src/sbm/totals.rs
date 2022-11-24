@@ -32,37 +32,37 @@ pub(crate) fn total_sum(expr: &[Expr]) -> Expr {
 }
 
 fn sbm_charge_low(op: &OCP) -> Expr {
-    total_sum(&[
-        fx_total_low(op),
-        girr_total_low(op),
-        eq_total_low(op),
-        csrsecnonctp_total_low(op),
-        com_total_low(op),
-        csrnonsec_total_low(op),
-        csrsecctp_total_low(op),
-    ])
+
+    fx_total_low(op)
+    +girr_total_low(op)
+    +eq_total_low(op)
+    +csrsecnonctp_total_low(op)
+    +com_total_low(op)
+    +csrnonsec_total_low(op)
+    +csrsecctp_total_low(op)
+
 }
 fn sbm_charge_medium(op: &OCP) -> Expr {
-    total_sum(&[
-        fx_total_medium(op),
-        girr_total_medium(op),
-        eq_total_medium(op),
-        csrsecnonctp_total_medium(op),
-        com_total_medium(op),
-        csrnonsec_total_medium(op),
-        csrsecctp_total_medium(op),
-    ])
+
+    fx_total_medium(op)
+    +girr_total_medium(op)
+    +eq_total_medium(op)
+    +csrsecnonctp_total_medium(op)
+    +com_total_medium(op)
+    +csrnonsec_total_medium(op)
+    +csrsecctp_total_medium(op)
+
 }
 fn sbm_charge_high(op: &OCP) -> Expr {
-    total_sum(&[
-        fx_total_high(op),
-        girr_total_high(op),
-        eq_total_high(op),
-        csrsecnonctp_total_high(op),
-        com_total_high(op),
-        csrnonsec_total_high(op),
-        csrsecctp_total_high(op),
-    ])
+
+    fx_total_high(op)
+    +girr_total_high(op)
+    +eq_total_high(op)
+    +csrsecnonctp_total_high(op)
+    +com_total_high(op)
+    +csrnonsec_total_high(op)
+    +csrsecctp_total_high(op)
+
 }
 
 fn sbm_charge(op: &OCP) -> Expr {
@@ -76,27 +76,27 @@ fn sbm_charge(op: &OCP) -> Expr {
 pub(crate) fn sbm_total_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "SBM_Charge_Low".to_string(),
+            name: "SBM Charge Low".to_string(),
             calculator: Box::new(sbm_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: None,
         },
         Measure {
-            name: "SBM_Charge_Medium".to_string(),
+            name: "SBM Charge Medium".to_string(),
             calculator: Box::new(sbm_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: None,
         },
         Measure {
-            name: "SBM_Charge_High".to_string(),
+            name: "SBM Charge High".to_string(),
             calculator: Box::new(sbm_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: None,
         },
         Measure {
-            name: "SBM_Charge".to_string(),
+            name: "SBM Charge".to_string(),
             calculator: Box::new(sbm_charge),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: None,
         },
     ]

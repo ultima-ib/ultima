@@ -84,21 +84,19 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
                 );
             // Apply Weights
             df = lf.collect()?;
-            let res_len = columns[0].len();
+
             match rtrn {
                 ReturnMetric::NetLongJTD => {
-                    return Ok(Series::from_vec(
+                    return Ok(Series::new(
                         "Res",
-                        vec![df["NetLongJTD"].sum::<f64>().unwrap_or_default(); res_len],
-                    )
-                    .into_series())
+                        [df["NetLongJTD"].sum::<f64>().unwrap_or_default()],
+                    ))
                 }
                 ReturnMetric::NetShortJTD => {
-                    return Ok(Series::from_vec(
+                    return Ok(Series::new(
                         "Res",
-                        vec![df["NetShortJTD"].sum::<f64>().unwrap_or_default(); res_len],
-                    )
-                    .into_series())
+                        [df["NetShortJTD"].sum::<f64>().unwrap_or_default()],
+                    ))
                 }
                 _ => (),
             };
@@ -130,31 +128,26 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             df = lf.collect()?;
 
             match rtrn {
-                ReturnMetric::Hbr => Ok(Series::from_vec(
+                ReturnMetric::Hbr => Ok(Series::new(
                     "Res",
-                    vec![df["HBR"].sum::<f64>().unwrap_or_default(); res_len],
-                )
-                .into_series()),
-                ReturnMetric::WeightedNetLongJTD => Ok(Series::from_vec(
+                    [df["HBR"].sum::<f64>().unwrap_or_default()],
+                )),
+                ReturnMetric::WeightedNetLongJTD => Ok(Series::new(
                     "Res",
-                    vec![df["WeightedNetLongJTD"].sum::<f64>().unwrap_or_default(); res_len],
-                )
-                .into_series()),
-                ReturnMetric::WeightedNetAbsShortJTD => Ok(Series::from_vec(
+                    [df["WeightedNetLongJTD"].sum::<f64>().unwrap_or_default()],
+                )),
+                ReturnMetric::WeightedNetAbsShortJTD => Ok(Series::new(
                     "Res",
-                    vec![
+                    [
                         df["WeightedNetAbsShortJTD"]
                             .sum::<f64>()
-                            .unwrap_or_default();
-                        res_len
+                            .unwrap_or_default()
                     ],
-                )
-                .into_series()),
-                _ => Ok(Float64Chunked::from_vec(
+                )),
+                _ => Ok(Series::new(
                     "Res",
-                    vec![df["DRCBucket"].sum::<f64>().unwrap_or_default(); res_len],
-                )
-                .into_series()),
+                    [df["DRCBucket"].sum::<f64>().unwrap_or_default()],
+                )),
             }
         },
         &[
@@ -168,7 +161,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             col("ScaleFactor"),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -189,37 +182,37 @@ pub(crate) fn drc_secnonctp_measures() -> Vec<Measure> {
         Measure {
             name: "DRC_SecNonCTP_CapitalCharge".to_string(),
             calculator: Box::new(drc_secnonctp_charge),
-            aggregation: None,
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
         },
         Measure {
             name: "DRC_SecNonCTP_NetLongJTD".to_string(),
             calculator: Box::new(drc_secnonctp_netlongjtd),
-            aggregation: None,
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
         },
         Measure {
             name: "DRC_SecNonCTP_NetShortJTD".to_string(),
             calculator: Box::new(drc_secnonctp_netshortjtd),
-            aggregation: None,
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
         },
         Measure {
             name: "DRC_SecNonCTP_NetLongJTD_Weighted".to_string(),
             calculator: Box::new(drc_secnonctp_weightednetlongjtd),
-            aggregation: None,
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
         },
         Measure {
             name: "DRC_SecNonCTP_NetShortJTD_Weighted".to_string(),
             calculator: Box::new(drc_secnonctp_weightednetabsshortjtd),
-            aggregation: None,
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
         },
         Measure {
             name: "DRC_SecNonCTP_HBR".to_string(),
             calculator: Box::new(drc_secnonctp_hbr),
-            aggregation: None,
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
         },
     ]

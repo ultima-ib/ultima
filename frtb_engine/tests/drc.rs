@@ -35,12 +35,12 @@ fn drc_nonsec() {
     {"measures": [
             ["DRC_NonSec_GrossJTD", "sum"],
             ["DRC_NonSec_GrossJTD_Scaled", "sum"],
-            ["DRC_NonSec_CapitalCharge", "first"],
-            ["DRC_NonSec_NetLongJTD", "first"],
-            ["DRC_NonSec_NetShortJTD", "first"],
-            ["DRC_NonSec_NetLongJTD_Weighted", "first"],
-            ["DRC_NonSec_NetAbsShortJTD_Weighted", "first"],
-            ["DRC_NonSec_HBR", "first"]
+            ["DRC_NonSec_CapitalCharge", "scalar"],
+            ["DRC_NonSec_NetLongJTD", "scalar"],
+            ["DRC_NonSec_NetShortJTD", "scalar"],
+            ["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
+            ["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],
+            ["DRC_NonSec_HBR", "scalar"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
         "type": "AggregationRequest",
@@ -89,12 +89,12 @@ fn drc_nonsec_crr2() {
     {"measures": [
             ["DRC_NonSec_GrossJTD", "sum"],
             ["DRC_NonSec_GrossJTD_Scaled", "sum"],
-            ["DRC_NonSec_CapitalCharge", "first"],
-            ["DRC_NonSec_NetLongJTD", "first"],
-            ["DRC_NonSec_NetShortJTD", "first"],
-            ["DRC_NonSec_NetLongJTD_Weighted", "first"],
-            ["DRC_NonSec_NetAbsShortJTD_Weighted", "first"],
-            ["DRC_NonSec_HBR", "first"]
+            ["DRC_NonSec_CapitalCharge", "scalar"],
+            ["DRC_NonSec_NetLongJTD", "scalar"],
+            ["DRC_NonSec_NetShortJTD", "scalar"],
+            ["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
+            ["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],
+            ["DRC_NonSec_HBR", "scalar"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
         "type": "AggregationRequest",
@@ -128,7 +128,7 @@ fn overrides() {
                     }],
         
         "measures": [
-            ["DRC_NonSec_CapitalCharge", "first"]
+            ["DRC_NonSec_CapitalCharge", "scalar"]
                 ],
         "type": "AggregationRequest",
         
@@ -154,7 +154,7 @@ fn drc_secnonctp() {
         "groupby": ["RiskClass", "Desk"],
         
         "measures": [
-            ["DRC_SecNonCTP_CapitalCharge", "first"]
+            ["DRC_SecNonCTP_CapitalCharge", "scalar"]
                 ],
         
         

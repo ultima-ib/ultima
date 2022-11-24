@@ -8,7 +8,6 @@ use crate::statics::MEDIUM_CORR_SCENARIO;
 use base_engine::Measure;
 use base_engine::{col, OCP};
 use polars::lazy::dsl::apply_multiple;
-use polars::prelude::NamedFromOwned;
 use polars::{
     df,
     prelude::{
@@ -96,7 +95,8 @@ pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
                 .collect()?;
 
             let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
-            Ok(Series::from_vec("rrao", vec![res; columns[0].len()]))
+            //Ok(Series::from_vec("rrao", vec![res; columns[0].len()]))
+            Ok(Series::new("res", [res]))
         },
         &[
             col("TradeId"),
@@ -105,7 +105,7 @@ pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
             col("Notional"),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -139,7 +139,7 @@ pub(crate) fn rrao_measures() -> Vec<Measure> {
         Measure {
             name: "RRAO_Charge".to_string(),
             calculator: Box::new(rrao),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
     ]

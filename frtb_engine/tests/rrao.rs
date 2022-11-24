@@ -11,7 +11,7 @@ fn rrao() {
     {"measures": [
         ["Exotic_RRAO_Charge", "sum"],
         ["Other_RRAO_Charge", "sum"],
-        ["RRAO_Charge", "first"]
+        ["RRAO_Charge", "scalar"]
                 ],
         "groupby": ["COB"],
         "type": "AggregationRequest"

@@ -55,7 +55,11 @@ fn main() -> anyhow::Result<()> {
         let rqst_str = serde_json::to_string(&request);
         info!("{:?}", rqst_str);
         let now = Instant::now();
-        match base_engine::execute_aggregation(request, Arc::clone(&arc_data), cfg!(feature = "streaming")) {
+        match base_engine::execute_aggregation(
+            request,
+            Arc::clone(&arc_data),
+            cfg!(feature = "streaming"),
+        ) {
             Err(e) => {
                 error!("On request: {:?}, Application error: {:#?}", rqst_str, e);
                 continue;

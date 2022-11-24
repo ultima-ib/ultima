@@ -341,20 +341,9 @@ where
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
-            let res_len = columns[0].len();
             match rtrn {
-                ReturnMetric::Kb => {
-                    return Ok(Series::from_vec(
-                        "kbs",
-                        vec![kbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
-                ReturnMetric::Sb => {
-                    return Ok(Series::from_vec(
-                        "sbs",
-                        vec![sbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
+                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
+                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
                 _ => (),
             }
 
@@ -378,7 +367,7 @@ where
             w5,
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -420,7 +409,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaSb".to_string(),
             calculator: Box::new(csr_nonsec_delta_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -430,7 +419,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaKb Low".to_string(),
             calculator: Box::new(csr_nonsec_delta_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -440,7 +429,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaKb Medium".to_string(),
             calculator: Box::new(csr_nonsec_delta_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -450,7 +439,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaKb High".to_string(),
             calculator: Box::new(csr_nonsec_delta_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -460,7 +449,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaCharge Low".to_string(),
             calculator: Box::new(csr_nonsec_delta_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -470,7 +459,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaCharge Medium".to_string(),
             calculator: Box::new(csr_nonsec_delta_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -480,7 +469,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaCharge High".to_string(),
             calculator: Box::new(csr_nonsec_delta_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -490,7 +479,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec DeltaCharge MAX".to_string(),
             calculator: Box::new(csrnonsec_delta_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

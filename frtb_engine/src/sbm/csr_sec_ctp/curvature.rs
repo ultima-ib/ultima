@@ -138,7 +138,7 @@ fn csrsecctp_curv_max(op: &OCP) -> Expr {
 pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR_secCTP_CurvatureDelta".to_string(),
+            name: "CSR secCTP CurvatureDelta".to_string(),
             calculator: Box::new(csrsecctp_curv_delta),
             aggregation: None,
             precomputefilter: Some(
@@ -148,7 +148,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_CurvatureDelta_Weighted".to_string(),
+            name: "CSR secCTP CurvatureDelta_Weighted".to_string(),
             calculator: Box::new(csrsecctp_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -158,7 +158,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_PnLup".to_string(),
+            name: "CSR secCTP PnLup".to_string(),
             calculator: Box::new(csrsecctp_pnl_up),
             aggregation: None,
             precomputefilter: Some(
@@ -168,7 +168,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_PnLdown".to_string(),
+            name: "CSR secCTP PnLdown".to_string(),
             calculator: Box::new(csrsecctp_pnl_down),
             aggregation: None,
             precomputefilter: Some(
@@ -178,7 +178,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_CVRup".to_string(),
+            name: "CSR secCTP CVRup".to_string(),
             calculator: Box::new(csrsecctp_cvr_up),
             aggregation: None,
             precomputefilter: Some(
@@ -188,7 +188,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_CVRdown".to_string(),
+            name: "CSR secCTP CVRdown".to_string(),
             calculator: Box::new(csrsecctp_cvr_down),
             aggregation: None,
             precomputefilter: Some(
@@ -198,9 +198,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_KbPlus_Medium".to_string(),
+            name: "CSR secCTP Curvature KbPlus Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_plus_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -208,9 +208,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_KbMinus_Medium".to_string(),
+            name: "CSR secCTP Curvature KbMinus Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_minus_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -218,9 +218,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_Kb_Medium".to_string(),
+            name: "CSR secCTP Curvature Kb Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -228,9 +228,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_Sb_Medium".to_string(),
+            name: "CSR secCTP Curvature Sb Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_sb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -238,9 +238,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_CurvatureCharge_Medium".to_string(),
+            name: "CSR secCTP CurvatureCharge Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -248,9 +248,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_KbPlus_Low".to_string(),
+            name: "CSR secCTP Curvature KbPlus Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_plus_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -258,9 +258,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_KbMinus_Low".to_string(),
+            name: "CSR secCTP Curvature KbMinus Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_minus_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -268,9 +268,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_Kb_Low".to_string(),
+            name: "CSR secCTP Curvature Kb Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -278,9 +278,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_Sb_Low".to_string(),
+            name: "CSR secCTP Curvature Sb Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_sb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -288,9 +288,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_CurvatureCharge_Low".to_string(),
+            name: "CSR secCTP CurvatureCharge Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -298,9 +298,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_KbPlus_High".to_string(),
+            name: "CSR secCTP Curvature KbPlus High".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_plus_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -308,9 +308,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_KbMinus_High".to_string(),
+            name: "CSR secCTP Curvature KbMinus High".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_minus_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -318,9 +318,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_Kb_High".to_string(),
+            name: "CSR secCTP Curvature Kb High".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -328,9 +328,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_Curvature_Sb_High".to_string(),
+            name: "CSR secCTP Curvature Sb High".to_string(),
             calculator: Box::new(csrsecctp_curvature_sb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -338,9 +338,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_CurvatureCharge_High".to_string(),
+            name: "CSR secCTP CurvatureCharge High".to_string(),
             calculator: Box::new(csrsecctp_curvature_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -348,9 +348,9 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_CurvatureCharge_MAX".to_string(),
+            name: "CSR secCTP CurvatureCharge MAX".to_string(),
             calculator: Box::new(csrsecctp_curv_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

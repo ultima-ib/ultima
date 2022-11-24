@@ -1,7 +1,6 @@
 //! Totals across different Risk Classes
 use base_engine::{Measure, OCP};
-use polars::lazy::dsl::{apply_multiple, max_exprs, Expr, GetOutput};
-use polars::prelude::{DataType, FillNullStrategy};
+use polars::lazy::dsl::{max_exprs, Expr};
 
 use super::commodity::totals::*;
 use super::csr_nonsec::totals::*;
@@ -16,53 +15,47 @@ use super::girr::totals::*;
 /// https://github.com/pola-rs/polars/issues/4659
 ///
 /// *`expr` to contain at least one item
-pub(crate) fn total_sum(expr: &[Expr]) -> Expr {
-    apply_multiple(
-        move |columns| {
-            let mut res = unsafe { columns.get_unchecked(0) }.fill_null(FillNullStrategy::Zero);
-            for srs in columns.iter().skip(1) {
-                res = res?.add_to(&srs.fill_null(FillNullStrategy::Zero)?)
-            }
-            res
-        },
-        expr,
-        GetOutput::from_type(DataType::Float64),
-        false,
-    )
-}
+//pub(crate) fn total_sum(expr: &[Expr]) -> Expr {
+//    apply_multiple(
+//        move |columns| {
+//            let mut res = unsafe { columns.get_unchecked(0) }.fill_null(FillNullStrategy::Zero);
+//            for srs in columns.iter().skip(1) {
+//                res = res?.add_to(&srs.fill_null(FillNullStrategy::Zero)?)
+//            }
+//            res
+//        },
+//        expr,
+//        GetOutput::from_type(DataType::Float64),
+//        false,
+//    )
+//}
 
 fn sbm_charge_low(op: &OCP) -> Expr {
-
     fx_total_low(op)
-    +girr_total_low(op)
-    +eq_total_low(op)
-    +csrsecnonctp_total_low(op)
-    +com_total_low(op)
-    +csrnonsec_total_low(op)
-    +csrsecctp_total_low(op)
-
+        + girr_total_low(op)
+        + eq_total_low(op)
+        + csrsecnonctp_total_low(op)
+        + com_total_low(op)
+        + csrnonsec_total_low(op)
+        + csrsecctp_total_low(op)
 }
 fn sbm_charge_medium(op: &OCP) -> Expr {
-
     fx_total_medium(op)
-    +girr_total_medium(op)
-    +eq_total_medium(op)
-    +csrsecnonctp_total_medium(op)
-    +com_total_medium(op)
-    +csrnonsec_total_medium(op)
-    +csrsecctp_total_medium(op)
-
+        + girr_total_medium(op)
+        + eq_total_medium(op)
+        + csrsecnonctp_total_medium(op)
+        + com_total_medium(op)
+        + csrnonsec_total_medium(op)
+        + csrsecctp_total_medium(op)
 }
 fn sbm_charge_high(op: &OCP) -> Expr {
-
     fx_total_high(op)
-    +girr_total_high(op)
-    +eq_total_high(op)
-    +csrsecnonctp_total_high(op)
-    +com_total_high(op)
-    +csrnonsec_total_high(op)
-    +csrsecctp_total_high(op)
-
+        + girr_total_high(op)
+        + eq_total_high(op)
+        + csrsecnonctp_total_high(op)
+        + com_total_high(op)
+        + csrnonsec_total_high(op)
+        + csrsecctp_total_high(op)
 }
 
 fn sbm_charge(op: &OCP) -> Expr {

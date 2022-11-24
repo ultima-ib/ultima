@@ -102,7 +102,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
 
             let res_len = columns[0].len();
             if df.height() == 0 {
-                return Ok(Series::from_vec("res", vec![0.; res_len] as Vec<f64>));
+                return Ok(Series::new("res", [0.]));
             };
 
             let sens = df.to_ndarray::<Float64Type>()?;
@@ -111,12 +111,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
 
             // Early return Kb or Sb, ie the required metric
             if let ReturnMetric::Sb = rtrn {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, sbs.sum())
-                        .as_slice()
-                        .unwrap(),
-                ));
+                return Ok(Series::new("res", [sbs.sum()]));
             }
 
             // Interm step
@@ -131,12 +126,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
             });
 
             if let ReturnMetric::Kb = rtrn {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, kbs.sum())
-                        .as_slice()
-                        .unwrap(),
-                ));
+                return Ok(Series::new("res", [kbs.sum()]));
             }
 
             let mut gamma = Array2::from_elem((kbs.len(), kbs.len()), fx_vega_gamma);
@@ -157,7 +147,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
             col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -178,7 +168,7 @@ fn fx_vega_max(op: &OCP) -> Expr {
 pub(crate) fn fx_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "FX_VegaSens".to_string(),
+            name: "FX VegaSens".to_string(),
             calculator: Box::new(total_fx_vega_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -188,7 +178,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaSens_Weighted".to_string(),
+            name: "FX VegaSens Weighted".to_string(),
             calculator: Box::new(total_fx_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -198,9 +188,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaSb".to_string(),
+            name: "FX VegaSb".to_string(),
             calculator: Box::new(fx_vega_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -208,9 +198,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaKb_Low".to_string(),
+            name: "FX VegaKb Low".to_string(),
             calculator: Box::new(fx_vega_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -218,9 +208,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaKb_Medium".to_string(),
+            name: "FX VegaKb Medium".to_string(),
             calculator: Box::new(fx_vega_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -228,9 +218,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaKb_High".to_string(),
+            name: "FX VegaKb High".to_string(),
             calculator: Box::new(fx_vega_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -238,9 +228,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaCharge_Low".to_string(),
+            name: "FX VegaCharge Low".to_string(),
             calculator: Box::new(fx_vega_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -248,9 +238,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaCharge_Medium".to_string(),
+            name: "FX VegaCharge Medium".to_string(),
             calculator: Box::new(fx_vega_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -258,9 +248,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaCharge_High".to_string(),
+            name: "FX VegaCharge High".to_string(),
             calculator: Box::new(fx_vega_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -268,9 +258,9 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_VegaCharge_MAX".to_string(),
+            name: "FX VegaCharge MAX".to_string(),
             calculator: Box::new(fx_vega_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))

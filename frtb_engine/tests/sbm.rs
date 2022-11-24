@@ -10,14 +10,14 @@ fn fx_delta() {
     ]);
     let request = r#"
     {"measures": [
-        ["FX_DeltaSens", "sum"],
-        ["FX_DeltaSens_Weighted", "sum"],
-        ["FX_DeltaSb", "first"],
-        ["FX_DeltaKb", "first"],
-        ["FX_DeltaCharge_Low", "first"],
-        ["FX_DeltaCharge_Medium", "first"],
-        ["FX_DeltaCharge_High", "first"],
-        ["FX_DeltaCharge_MAX", "first"]
+        ["FX DeltaSens", "sum"],
+        ["FX DeltaSens Weighted", "sum"],
+        ["FX DeltaSb", "scalar"],
+        ["FX DeltaKb", "scalar"],
+        ["FX DeltaCharge Low", "scalar"],
+        ["FX DeltaCharge Medium", "scalar"],
+        ["FX DeltaCharge High", "scalar"],
+        ["FX DeltaCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -45,16 +45,16 @@ fn fx_vega() {
     ]);
     let request = r#"
     {"measures": [
-        ["FX_VegaSens", "sum"],
-        ["FX_VegaSens_Weighted", "sum"],
-        ["FX_VegaSb", "first"],
-        ["FX_VegaKb_Low", "first"],
-        ["FX_VegaKb_Medium", "first"],
-        ["FX_VegaKb_High", "first"],
-        ["FX_VegaCharge_Low", "first"],
-        ["FX_VegaCharge_Medium", "first"],
-        ["FX_VegaCharge_High", "first"],
-        ["FX_VegaCharge_MAX", "first"]
+        ["FX VegaSens", "sum"],
+        ["FX VegaSens Weighted", "sum"],
+        ["FX VegaSb", "scalar"],
+        ["FX VegaKb Low", "scalar"],
+        ["FX VegaKb Medium", "scalar"],
+        ["FX VegaKb High", "scalar"],
+        ["FX VegaCharge Low", "scalar"],
+        ["FX VegaCharge Medium", "scalar"],
+        ["FX VegaCharge High", "scalar"],
+        ["FX VegaCharge MAX", "scalar"]
 
             ],
     "groupby": ["Desk"],
@@ -86,20 +86,20 @@ fn fx_curvature() {
     ]);
     let request = r#"
     {"measures": [
-        ["FX_CurvatureDelta", "sum"],
-["FX_CurvatureDelta_Weighted", "sum"],
-["FX_PnLup", "sum"],
-["FX_PnLdown", "sum"],
-["FX_CVRup", "sum"],
-["FX_CVRdown", "sum"],
-["FX_Curvature_KbPlus", "first"],
-["FX_Curvature_KbMinus", "first"],
-["FX_Curvature_Kb", "first"],
-["FX_Curvature_Sb", "first"],
-["FX_CurvatureCharge_Low", "first"],
-["FX_CurvatureCharge_Medium", "first"],
-["FX_CurvatureCharge_High", "first"],
-["FX_CurvatureCharge_MAX", "first"]
+        ["FX CurvatureDelta", "sum"],
+["FX CurvatureDelta Weighted", "sum"],
+["FX PnLup", "sum"],
+["FX PnLdown", "sum"],
+["FX CVRup", "sum"],
+["FX CVRdown", "sum"],
+["FX Curvature KbPlus", "scalar"],
+["FX Curvature KbMinus", "scalar"],
+["FX Curvature Kb", "scalar"],
+["FX Curvature Sb", "scalar"],
+["FX CurvatureCharge Low", "scalar"],
+["FX CurvatureCharge Medium", "scalar"],
+["FX CurvatureCharge High", "scalar"],
+["FX CurvatureCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "RatesEM"}]],
@@ -119,9 +119,9 @@ fn fx_total() {
     ]);
     let request = r#"
     {"measures": [
-        ["FX_TotalCharge_Low", "first"],
-["FX_TotalCharge_Medium", "first"],
-["FX_TotalCharge_High", "first"]
+        ["FX TotalCharge Low", "scalar"],
+["FX TotalCharge Medium", "scalar"],
+["FX TotalCharge High", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -139,16 +139,16 @@ fn girr_delta() {
     ]);
     let request = r#"
     {"measures": [
-        ["GIRR_DeltaSens", "sum"],
-["GIRR_DeltaSens_Weighted", "sum"],
-["GIRR_DeltaSb", "first"],
-["GIRR_DeltaKb_Low", "first"],
-["GIRR_DeltaKb_Medium", "first"],
-["GIRR_DeltaKb_High", "first"],
-["GIRR_DeltaCharge_Low", "first"],
-["GIRR_DeltaCharge_Medium", "first"],
-["GIRR_DeltaCharge_High", "first"],
-["GIRR_DeltaCharge_MAX", "first"]
+        ["GIRR DeltaSens", "sum"],
+["GIRR DeltaSens Weighted", "sum"],
+["GIRR DeltaSb", "scalar"],
+["GIRR DeltaKb Low", "scalar"],
+["GIRR DeltaKb Medium", "scalar"],
+["GIRR DeltaKb High", "scalar"],
+["GIRR DeltaCharge Low", "scalar"],
+["GIRR DeltaCharge Medium", "scalar"],
+["GIRR DeltaCharge High", "scalar"],
+["GIRR DeltaCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -175,16 +175,16 @@ fn girr_vega() {
     ]);
     let request = r#"
     {"measures": [
-        ["GIRR_VegaSens", "sum"],
-        ["GIRR_VegaSens_Weighted", "sum"],
-        ["GIRR_VegaSb", "first"],
-        ["GIRR_VegaKb_Low", "first"],
-        ["GIRR_VegaKb_Medium", "first"],
-        ["GIRR_VegaKb_High", "first"],
-        ["GIRR_VegaCharge_Low", "first"],
-        ["GIRR_VegaCharge_Medium", "first"],
-        ["GIRR_VegaCharge_High", "first"],
-        ["GIRR_VegaCharge_MAX", "first"]
+        ["GIRR VegaSens", "sum"],
+        ["GIRR VegaSens Weighted", "sum"],
+        ["GIRR VegaSb", "scalar"],
+        ["GIRR VegaKb Low", "scalar"],
+        ["GIRR VegaKb Medium", "scalar"],
+        ["GIRR VegaKb High", "scalar"],
+        ["GIRR VegaCharge Low", "scalar"],
+        ["GIRR VegaCharge Medium", "scalar"],
+        ["GIRR VegaCharge High", "scalar"],
+        ["GIRR VegaCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -233,20 +233,20 @@ fn girr_curvature() {
     ]);
     let request = r#"
     {"measures": [
-        ["GIRR_CurvatureDelta", "sum"],
-["GIRR_PnLup", "sum"],
-["GIRR_PnLdown", "sum"],
-["GIRR_CurvatureDelta_Weighted", "sum"],
-["GIRR_CVRup", "sum"],
-["GIRR_CVRdown", "sum"],
-["GIRR_Curvature_KbPlus", "first"],
-["GIRR_Curvature_KbMinus", "first"],
-["GIRR_Curvature_Kb", "first"],
-["GIRR_Curvature_Sb", "first"],
-["GIRR_CurvatureCharge_Low", "first"],
-["GIRR_CurvatureCharge_Medium", "first"],
-["GIRR_CurvatureCharge_High", "first"],
-["GIRR_CurvatureCharge_MAX", "first"]
+        ["GIRR CurvatureDelta", "sum"],
+["GIRR PnLup", "sum"],
+["GIRR PnLdown", "sum"],
+["GIRR CurvatureDelta Weighted", "sum"],
+["GIRR CVRup", "sum"],
+["GIRR CVRdown", "sum"],
+["GIRR Curvature KbPlus", "scalar"],
+["GIRR Curvature KbMinus", "scalar"],
+["GIRR Curvature Kb", "scalar"],
+["GIRR Curvature Sb", "scalar"],
+["GIRR CurvatureCharge Low", "scalar"],
+["GIRR CurvatureCharge Medium", "scalar"],
+["GIRR CurvatureCharge High", "scalar"],
+["GIRR CurvatureCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [],
@@ -271,9 +271,9 @@ fn girr_totals() {
     ]);
     let request = r#"
     {"measures": [
-        ["GIRR_TotalCharge_Low", "first"],
-["GIRR_TotalCharge_Medium", "first"],
-["GIRR_TotalCharge_High", "first"]
+        ["GIRR TotalCharge Low", "scalar"],
+["GIRR TotalCharge Medium", "scalar"],
+["GIRR TotalCharge High", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -300,16 +300,16 @@ fn eq_delta() {
     ]);
     let request = r#"
     {"measures": [
-        ["EQ_DeltaSens", "sum"],
-["EQ_DeltaSens_Weighted", "sum"],
-["EQ_DeltaSb", "first"],
-["EQ_DeltaKb_Low", "first"],
-["EQ_DeltaKb_Medium", "first"],
-["EQ_DeltaKb_High", "first"],
-["EQ_DeltaCharge_Low", "first"],
-["EQ_DeltaCharge_Medium", "first"],
-["EQ_DeltaCharge_High", "first"],
-["EQ_DeltaCharge_MAX", "first"]
+        ["EQ DeltaSens", "sum"],
+["EQ DeltaSens Weighted", "sum"],
+["EQ DeltaSb", "scalar"],
+["EQ DeltaKb Low", "scalar"],
+["EQ DeltaKb Medium", "scalar"],
+["EQ DeltaKb High", "scalar"],
+["EQ DeltaCharge Low", "scalar"],
+["EQ DeltaCharge Medium", "scalar"],
+["EQ DeltaCharge High", "scalar"],
+["EQ DeltaCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -336,16 +336,16 @@ fn eq_vega() {
     ]);
     let request = r#"
     {"measures": [
-        ["EQ_VegaSens", "sum"],
-        ["EQ_VegaSens_Weighted", "sum"],
-        ["EQ_VegaSb", "first"],
-        ["EQ_VegaKb_Low", "first"],
-        ["EQ_VegaKb_Medium", "first"],
-        ["EQ_VegaKb_High", "first"],
-        ["EQ_VegaCharge_Low", "first"],
-        ["EQ_VegaCharge_Medium", "first"],
-        ["EQ_VegaCharge_High", "first"],
-        ["EQ_VegaCharge_MAX", "first"]
+        ["EQ VegaSens", "sum"],
+        ["EQ VegaSens Weighted", "sum"],
+        ["EQ VegaSb", "scalar"],
+        ["EQ VegaKb Low", "scalar"],
+        ["EQ VegaKb Medium", "scalar"],
+        ["EQ VegaKb High", "scalar"],
+        ["EQ VegaCharge Low", "scalar"],
+        ["EQ VegaCharge Medium", "scalar"],
+        ["EQ VegaCharge High", "scalar"],
+        ["EQ VegaCharge MAX", "scalar"]
     ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -363,10 +363,10 @@ fn eq_curv() {
     let expected_res = arr1(&[19559.580453, 19778.428906, 19994.882158, 19994.882158]);
     let request = r#"
     {"measures": [
-        ["EQ_CurvatureCharge_Low", "first"],
-        ["EQ_CurvatureCharge_Medium", "first"],
-        ["EQ_CurvatureCharge_High", "first"],
-        ["EQ_CurvatureCharge_MAX", "first"]
+        ["EQ CurvatureCharge Low", "scalar"],
+        ["EQ CurvatureCharge Medium", "scalar"],
+        ["EQ CurvatureCharge High", "scalar"],
+        ["EQ CurvatureCharge MAX", "scalar"]
     ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "RatesEM"}]],
@@ -387,9 +387,9 @@ fn eq_totals() {
     ]);
     let request = r#"
     {"measures": [
-        ["EQ_TotalCharge_Low", "first"],
-["EQ_TotalCharge_Medium", "first"],
-["EQ_TotalCharge_High", "first"]
+        ["EQ TotalCharge Low", "scalar"],
+["EQ TotalCharge Medium", "scalar"],
+["EQ TotalCharge High", "scalar"]
     ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -410,14 +410,14 @@ fn csr_nonsec_bcbs_delta() {
     {"measures": [
         ["CSR nonSec DeltaSens", "sum"],
 ["CSR nonSec DeltaSens Weighted", "sum"],
-["CSR nonSec DeltaSb", "first"],
-["CSR nonSec DeltaKb Low", "first"],
-["CSR nonSec DeltaKb Medium", "first"],
-["CSR nonSec DeltaKb High", "first"],
-            ["CSR nonSec DeltaCharge Low", "first"],
-["CSR nonSec DeltaCharge Medium", "first"],
-["CSR nonSec DeltaCharge High", "first"],
-["CSR nonSec DeltaCharge MAX", "first"]
+["CSR nonSec DeltaSb", "scalar"],
+["CSR nonSec DeltaKb Low", "scalar"],
+["CSR nonSec DeltaKb Medium", "scalar"],
+["CSR nonSec DeltaKb High", "scalar"],
+            ["CSR nonSec DeltaCharge Low", "scalar"],
+["CSR nonSec DeltaCharge Medium", "scalar"],
+["CSR nonSec DeltaCharge High", "scalar"],
+["CSR nonSec DeltaCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -448,14 +448,14 @@ fn csr_nonsec_crr2_delta() {
     {"measures": [
         ["CSR nonSec DeltaSens", "sum"],
 ["CSR nonSec DeltaSens Weighted", "sum"],
-["CSR nonSec DeltaSb", "first"],
-["CSR nonSec DeltaKb Low", "first"],
-["CSR nonSec DeltaKb Medium", "first"],
-["CSR nonSec DeltaKb High", "first"],
-            ["CSR nonSec DeltaCharge Low", "first"],
-["CSR nonSec DeltaCharge Medium", "first"],
-["CSR nonSec DeltaCharge High", "first"],
-["CSR nonSec DeltaCharge MAX", "first"]
+["CSR nonSec DeltaSb", "scalar"],
+["CSR nonSec DeltaKb Low", "scalar"],
+["CSR nonSec DeltaKb Medium", "scalar"],
+["CSR nonSec DeltaKb High", "scalar"],
+            ["CSR nonSec DeltaCharge Low", "scalar"],
+["CSR nonSec DeltaCharge Medium", "scalar"],
+["CSR nonSec DeltaCharge High", "scalar"],
+["CSR nonSec DeltaCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
@@ -483,13 +483,13 @@ fn csr_nonsec_bcbs_vega() {
     {"measures": [ 
         ["CSR nonSec VegaSens", "sum"],
         ["CSR nonSec VegaSens Weighted", "sum"],
-        ["CSR nonSec VegaSb", "first"],
-        ["CSR nonSec VegaKb Low", "first"],
-        ["CSR nonSec VegaKb Medium", "first"],
-        ["CSR nonSec VegaKb High", "first"],
-        ["CSR nonSec VegaCharge Low", "first"],
-        ["CSR nonSec VegaCharge Medium", "first"],
-        ["CSR nonSec VegaCharge High", "first"]
+        ["CSR nonSec VegaSb", "scalar"],
+        ["CSR nonSec VegaKb Low", "scalar"],
+        ["CSR nonSec VegaKb Medium", "scalar"],
+        ["CSR nonSec VegaKb High", "scalar"],
+        ["CSR nonSec VegaCharge Low", "scalar"],
+        ["CSR nonSec VegaCharge Medium", "scalar"],
+        ["CSR nonSec VegaCharge High", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "Rates"}]],
@@ -519,13 +519,13 @@ fn csr_nonsec_crr2_vega() {
     {"measures": [ 
         ["CSR nonSec VegaSens", "sum"],
         ["CSR nonSec VegaSens Weighted", "sum"],
-        ["CSR nonSec VegaSb", "first"],
-        ["CSR nonSec VegaKb Low", "first"],
-        ["CSR nonSec VegaKb Medium", "first"],
-        ["CSR nonSec VegaKb High", "first"],
-        ["CSR nonSec VegaCharge Low", "first"],
-        ["CSR nonSec VegaCharge Medium", "first"],
-        ["CSR nonSec VegaCharge High", "first"]
+        ["CSR nonSec VegaSb", "scalar"],
+        ["CSR nonSec VegaKb Low", "scalar"],
+        ["CSR nonSec VegaKb Medium", "scalar"],
+        ["CSR nonSec VegaKb High", "scalar"],
+        ["CSR nonSec VegaCharge Low", "scalar"],
+        ["CSR nonSec VegaCharge Medium", "scalar"],
+        ["CSR nonSec VegaCharge High", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "Rates"}]],
@@ -547,14 +547,14 @@ fn commodity_delta() {
     {"measures": [
         ["Commodity DeltaSens", "sum"],
         ["Commodity DeltaSens Weighted", "sum"],
-        ["Commodity DeltaSb", "first"],
-        ["Commodity DeltaKb Low", "first"],
-        ["Commodity DeltaKb Medium", "first"],
-        ["Commodity DeltaKb High", "first"],
-        ["Commodity DeltaCharge Low", "first"],
-        ["Commodity DeltaCharge Medium", "first"],
-        ["Commodity DeltaCharge High", "first"],
-        ["Commodity DeltaCharge MAX", "first"]
+        ["Commodity DeltaSb", "scalar"],
+        ["Commodity DeltaKb Low", "scalar"],
+        ["Commodity DeltaKb Medium", "scalar"],
+        ["Commodity DeltaKb High", "scalar"],
+        ["Commodity DeltaCharge Low", "scalar"],
+        ["Commodity DeltaCharge Medium", "scalar"],
+        ["Commodity DeltaCharge High", "scalar"],
+        ["Commodity DeltaCharge MAX", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],

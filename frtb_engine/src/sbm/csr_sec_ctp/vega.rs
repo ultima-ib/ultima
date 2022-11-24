@@ -122,7 +122,7 @@ fn csrsecctp_vega_max(op: &OCP) -> Expr {
 pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR_secCTP_VegaSens".to_string(),
+            name: "CSR secCTP VegaSens".to_string(),
             calculator: Box::new(total_csrsecctp_vega_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -132,7 +132,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaSens_Weighted".to_string(),
+            name: "CSR secCTP VegaSens Weighted".to_string(),
             calculator: Box::new(total_csrsecctp_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -142,9 +142,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaSb".to_string(),
+            name: "CSR secCTP VegaSb".to_string(),
             calculator: Box::new(csrsecctp_vega_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -152,9 +152,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaCharge_Low".to_string(),
+            name: "CSR secCTP VegaCharge Low".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -162,9 +162,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaKb_Low".to_string(),
+            name: "CSR secCTP VegaKb Low".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -172,9 +172,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaCharge_Medium".to_string(),
+            name: "CSR secCTP VegaCharge Medium".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -182,9 +182,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaKb_Medium".to_string(),
+            name: "CSR secCTP VegaKb Medium".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -192,9 +192,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaCharge_High".to_string(),
+            name: "CSR secCTP VegaCharge High".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -202,9 +202,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaKb_High".to_string(),
+            name: "CSR secCTP VegaKb High".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -212,9 +212,9 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR_secCTP_VegaCharge_MAX".to_string(),
+            name: "CSR secCTP VegaCharge MAX".to_string(),
             calculator: Box::new(csrsecctp_vega_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))

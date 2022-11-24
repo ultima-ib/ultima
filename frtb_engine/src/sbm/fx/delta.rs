@@ -142,10 +142,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::from_vec(
-                    "res",
-                    vec![0.; columns[0].len()] as Vec<f64>,
-                ));
+                return Ok(Series::new("res", [0.]));
             };
 
             //21.4.4 |dw_sum| == kb for FX
@@ -154,22 +151,12 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
                                                             // Early return Kb or Sb, ie the required metric
             let res_len = columns[0].len();
             if let ReturnMetric::Sb = rtrn {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, dw_sum.sum())
-                        .as_slice()
-                        .unwrap(),
-                ));
+                return Ok(Series::new("res", [dw_sum.sum()]));
             }
 
             let kbs: Array1<f64> = dw_sum.iter().map(|x| x.abs()).collect();
             if let ReturnMetric::Kb = rtrn {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, kbs.sum())
-                        .as_slice()
-                        .unwrap(),
-                ));
+                return Ok(Series::new("res", [kbs.sum()]));
             }
 
             let mut gamma = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma);
@@ -192,7 +179,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
             col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 /// Returns max of three scenarios
@@ -211,7 +198,7 @@ fn fx_delta_max(op: &OCP) -> Expr {
 pub(crate) fn fx_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "FX_DeltaSens".to_string(),
+            name: "FX DeltaSens".to_string(),
             calculator: Box::new(fx_delta_sens_repccy),
             aggregation: None,
             precomputefilter: Some(
@@ -221,7 +208,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_DeltaSens_Weighted".to_string(),
+            name: "FX DeltaSens Weighted".to_string(),
             calculator: Box::new(fx_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -231,9 +218,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_DeltaSb".to_string(),
+            name: "FX DeltaSb".to_string(),
             calculator: Box::new(fx_delta_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -241,9 +228,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_DeltaKb".to_string(),
+            name: "FX DeltaKb".to_string(),
             calculator: Box::new(fx_delta_kb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -251,9 +238,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_DeltaCharge_Low".to_string(),
+            name: "FX DeltaCharge Low".to_string(),
             calculator: Box::new(fx_delta_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -261,9 +248,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_DeltaCharge_Medium".to_string(),
+            name: "FX DeltaCharge Medium".to_string(),
             calculator: Box::new(fx_delta_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -271,9 +258,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_DeltaCharge_High".to_string(),
+            name: "FX DeltaCharge High".to_string(),
             calculator: Box::new(fx_delta_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -281,9 +268,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_DeltaCharge_MAX".to_string(),
+            name: "FX DeltaCharge MAX".to_string(),
             calculator: Box::new(fx_delta_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

@@ -249,6 +249,7 @@ where
                     ])
                     .collect()?
             }
+
             df = df
                 .lazy()
                 .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Delta"))))
@@ -280,6 +281,10 @@ where
                 .select([col("*").exclude(["rft"])])
                 .collect()?;
 
+            if df.height() == 0 {
+                return Ok(Series::new("res", [0.]));
+            };
+
             let part = df.partition_by(["b"])?;
 
             let res_buckets_kbs_sbs: PolarsResult<Vec<(String, (f64, f64))>> = part
@@ -299,12 +304,8 @@ where
                 })
                 .collect();
 
-            let res_len = columns[0].len();
             if df.height() == 0 {
-                return Ok(Series::from_vec(
-                    "res",
-                    vec![0.; columns[0].len()] as Vec<f64>,
-                ));
+                return Ok(Series::new("res", [0.]));
             };
 
             let (_buckets, (kbs, sbs)): (Vec<String>, (Vec<f64>, Vec<f64>)) =
@@ -312,22 +313,8 @@ where
 
             // Early return Kb or Sb is that is the required metric
             match return_metric {
-                ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
-                    ))
-                }
-                ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
-                    ))
-                }
+                ReturnMetric::Kb => return Ok(Series::new("res", [kbs.iter().sum::<f64>()])),
+                ReturnMetric::Sb => return Ok(Series::new("res", [sbs.iter().sum::<f64>()])),
                 _ => (),
             }
             // Need to differentiate between CRR2 and BCBS
@@ -382,7 +369,7 @@ where
             col("SensWeights").arr().get(lit(10)),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -453,7 +440,7 @@ fn girr_delta_max(op: &OCP) -> Expr {
 pub(crate) fn girr_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "GIRR_DeltaSens".to_string(),
+            name: "GIRR DeltaSens".to_string(),
             calculator: Box::new(total_ir_delta_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -463,7 +450,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaSens_Weighted".to_string(),
+            name: "GIRR DeltaSens Weighted".to_string(),
             calculator: Box::new(girr_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -473,9 +460,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaSb".to_string(),
+            name: "GIRR DeltaSb".to_string(),
             calculator: Box::new(girr_delta_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -483,9 +470,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaCharge_Low".to_string(),
+            name: "GIRR DeltaCharge Low".to_string(),
             calculator: Box::new(girr_delta_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -493,9 +480,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaKb_Low".to_string(),
+            name: "GIRR DeltaKb Low".to_string(),
             calculator: Box::new(girr_delta_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -503,9 +490,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaCharge_Medium".to_string(),
+            name: "GIRR DeltaCharge Medium".to_string(),
             calculator: Box::new(girr_delta_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -513,9 +500,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaKb_Medium".to_string(),
+            name: "GIRR DeltaKb Medium".to_string(),
             calculator: Box::new(girr_delta_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -523,9 +510,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaCharge_High".to_string(),
+            name: "GIRR DeltaCharge High".to_string(),
             calculator: Box::new(girr_delta_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -533,9 +520,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaKb_High".to_string(),
+            name: "GIRR DeltaKb High".to_string(),
             calculator: Box::new(girr_delta_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -543,9 +530,9 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "GIRR_DeltaCharge_MAX".to_string(),
+            name: "GIRR DeltaCharge MAX".to_string(),
             calculator: Box::new(girr_delta_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

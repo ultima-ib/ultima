@@ -2,8 +2,7 @@
     {
         "filters": [],
         "groupby": [
-            "Country",
-          "BookId"
+            "RiskCategory"
         ],
         "measures": [
           [
@@ -12,7 +11,7 @@
           ]
         ],
         "overrides": [],
-        "hide_zeros": false,
+        "hide_zeros": true,
         "totals": false,
         "calc_params": {
           "jurisdiction": "BCBS",

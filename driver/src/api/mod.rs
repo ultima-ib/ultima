@@ -118,9 +118,17 @@ async fn execute(
         if cfg!(cache) {
             // TODO change function to
             // base_engine::_execute_with_cache
-            base_engine::execute_aggregation(r, Arc::clone(data.get_ref()), cfg!(feature = "streaming"))
+            base_engine::execute_aggregation(
+                r,
+                Arc::clone(data.get_ref()),
+                cfg!(feature = "streaming"),
+            )
         } else {
-            base_engine::execute_aggregation(r, Arc::clone(data.get_ref()), cfg!(feature = "streaming"))
+            base_engine::execute_aggregation(
+                r,
+                Arc::clone(data.get_ref()),
+                cfg!(feature = "streaming"),
+            )
         }
     })
     .await

@@ -16,10 +16,10 @@ pub static BASE_CALCS: Lazy<HashMap<&'static str, fn(Expr, &str) -> (Expr, Strin
             ("mean", mean),
             ("var", var),
             ("quantile95low", quantile_95_lower),
-            //All
             ("first", first),
             ("count", count),
             ("count_unique", count_unique),
+            ("scalar", scalar),
         ])
     });
 
@@ -51,7 +51,7 @@ fn quantile_95_lower(c: Expr, newname: &str) -> (Expr, String) {
         alias,
     )
 }
-/// Not including "_first" alias to avoid confusion
+/// Not including "_first" alias to avoid confusion TODO once replaced with scalar - add "_first"
 /// First is usually used by measures such as Capital or RiskWeight
 /// Which are calculated at a level of a certain column such as RiskFactor
 fn first(c: Expr, newname: &str) -> (Expr, String) {
@@ -64,4 +64,10 @@ fn count(c: Expr, newname: &str) -> (Expr, String) {
 fn count_unique(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_list");
     (c.n_unique().alias(alias.as_ref()), alias)
+}
+/// scalar to be used how first
+/// to be used with measures which have already been aggregated
+/// ie calculated via apply_multiple return_scalar=true
+fn scalar(c: Expr, newname: &str) -> (Expr, String) {
+    (c.alias(newname), newname.to_string())
 }

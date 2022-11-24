@@ -74,7 +74,7 @@ pub fn execute_aggregation(
     }
 
     // If streaming then prepare (assign weights) now (ie post filtering)
-    if dbg!(streaming) {
+    if streaming {
         f1 = data.prepare_frame(Some(f1))
     }
 

@@ -7,8 +7,8 @@
         ],
         "measures": [
           [
-            "Commodity DeltaCharge High",
-            "first"
+            "SBM Charge",
+            "scalar"
           ]
         ],
         "overrides": [],

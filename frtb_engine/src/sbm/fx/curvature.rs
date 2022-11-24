@@ -154,7 +154,7 @@ fn fx_curvature_charge(
             let res_len = columns[0].len();
 
             if df.height() == 0 {
-                return Ok(Series::from_vec("res", vec![0.; res_len] as Vec<f64>));
+                return Ok(Series::new("res", [0.]));
             };
 
             let df = df
@@ -168,22 +168,12 @@ fn fx_curvature_charge(
 
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, kb_plus.iter().sum())
-                        .as_slice()
-                        .unwrap(),
-                ));
+                return Ok(Series::new("res", [kb_plus.iter().sum::<f64>()]));
             }
 
             let kb_minus: Vec<f64> = kb_plus_minus_simple(&df["cvr_down"])?;
             if let ReturnMetric::KbMinus = return_metric {
-                return Ok(Series::new(
-                    "res",
-                    Array1::<f64>::from_elem(res_len, kb_minus.iter().sum())
-                        .as_slice()
-                        .unwrap(),
-                ));
+                return Ok(Series::new("res", [kb_minus.iter().sum::<f64>()]));
             }
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(
@@ -193,22 +183,8 @@ fn fx_curvature_charge(
                 df["cvr_down"].f64()?.into_iter(),
             )?;
             match return_metric {
-                ReturnMetric::Kb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, kbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
-                    ))
-                }
-                ReturnMetric::Sb => {
-                    return Ok(Series::new(
-                        "res",
-                        Array1::<f64>::from_elem(res_len, sbs.iter().sum())
-                            .as_slice()
-                            .unwrap(),
-                    ))
-                }
+                ReturnMetric::Kb => return Ok(Series::new("res", [kbs.iter().sum::<f64>()])),
+                ReturnMetric::Sb => return Ok(Series::new("res", [sbs.iter().sum::<f64>()])),
                 _ => (),
             }
 
@@ -232,7 +208,7 @@ fn fx_curvature_charge(
             col("FxCurvDivEligibility"),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -253,7 +229,7 @@ fn fx_curv_max(op: &OCP) -> Expr {
 pub(crate) fn fx_curv_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "FX_CurvatureDelta".to_string(),
+            name: "FX CurvatureDelta".to_string(),
             calculator: Box::new(fx_curv_delta),
             aggregation: None,
             precomputefilter: Some(
@@ -263,7 +239,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_CurvatureDelta_Weighted".to_string(),
+            name: "FX CurvatureDelta Weighted".to_string(),
             calculator: Box::new(fx_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -273,7 +249,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_PnLup".to_string(),
+            name: "FX PnLup".to_string(),
             calculator: Box::new(fx_pnl_up),
             aggregation: None,
             precomputefilter: Some(
@@ -283,7 +259,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_PnLdown".to_string(),
+            name: "FX PnLdown".to_string(),
             calculator: Box::new(fx_pnl_down),
             aggregation: None,
             precomputefilter: Some(
@@ -293,7 +269,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_CVRup".to_string(),
+            name: "FX CVRup".to_string(),
             calculator: Box::new(fx_cvr_up),
             aggregation: None,
             precomputefilter: Some(
@@ -303,7 +279,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_CVRdown".to_string(),
+            name: "FX CVRdown".to_string(),
             calculator: Box::new(fx_cvr_down),
             aggregation: None,
             precomputefilter: Some(
@@ -313,9 +289,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_Curvature_KbPlus".to_string(),
+            name: "FX Curvature KbPlus".to_string(),
             calculator: Box::new(fx_curvature_kb_plus),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -323,9 +299,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_Curvature_KbMinus".to_string(),
+            name: "FX Curvature KbMinus".to_string(),
             calculator: Box::new(fx_curvature_kb_minus),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -333,9 +309,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_Curvature_Kb".to_string(),
+            name: "FX Curvature Kb".to_string(),
             calculator: Box::new(fx_curvature_kb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -343,9 +319,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_Curvature_Sb".to_string(),
+            name: "FX Curvature Sb".to_string(),
             calculator: Box::new(fx_curvature_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -353,9 +329,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_CurvatureCharge_Low".to_string(),
+            name: "FX CurvatureCharge Low".to_string(),
             calculator: Box::new(fx_curvature_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -363,9 +339,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_CurvatureCharge_Medium".to_string(),
+            name: "FX CurvatureCharge Medium".to_string(),
             calculator: Box::new(fx_curvature_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -373,9 +349,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_CurvatureCharge_High".to_string(),
+            name: "FX CurvatureCharge High".to_string(),
             calculator: Box::new(fx_curvature_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -383,9 +359,9 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "FX_CurvatureCharge_MAX".to_string(),
+            name: "FX CurvatureCharge MAX".to_string(),
             calculator: Box::new(fx_curv_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

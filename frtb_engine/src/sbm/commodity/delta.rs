@@ -237,25 +237,15 @@ where
             let res_len = columns[0].len();
 
             match rtrn {
-                ReturnMetric::Kb => {
-                    return Ok(
-                        Float64Chunked::from_vec("Res", vec![kbs.iter().sum(); res_len])
-                            .into_series(),
-                    )
-                }
-                ReturnMetric::Sb => {
-                    return Ok(
-                        Float64Chunked::from_vec("Res", vec![sbs.iter().sum(); res_len])
-                            .into_series(),
-                    )
-                }
+                ReturnMetric::Kb => return Ok(Series::new("Res", [kbs.iter().sum::<f64>()])),
+                ReturnMetric::Sb => return Ok(Series::new("Res", [sbs.iter().sum::<f64>()])),
                 _ => (),
             }
             across_bucket_agg(kbs, sbs, &com_gamma, res_len, SBMChargeType::DeltaVega)
         },
         columns,
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -298,7 +288,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaSb".to_string(),
             calculator: Box::new(commodity_delta_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -308,7 +298,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaKb Low".to_string(),
             calculator: Box::new(commodity_delta_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -318,7 +308,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaKb Medium".to_string(),
             calculator: Box::new(commodity_delta_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -328,7 +318,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaKb High".to_string(),
             calculator: Box::new(commodity_delta_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -338,7 +328,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaCharge Low".to_string(),
             calculator: Box::new(commodity_delta_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -348,7 +338,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaCharge Medium".to_string(),
             calculator: Box::new(commodity_delta_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -358,7 +348,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaCharge High".to_string(),
             calculator: Box::new(commodity_delta_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -368,7 +358,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity DeltaCharge MAX".to_string(),
             calculator: Box::new(com_delta_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

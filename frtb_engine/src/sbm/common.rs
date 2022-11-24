@@ -6,8 +6,8 @@ use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
 use polars::export::num::Signed;
 use polars::lazy::dsl::{apply_multiple, GetOutput};
 use polars::prelude::{
-    AnyValue, ChunkAgg, ChunkSet, DataType, FillNullStrategy, Float64Chunked, Float64Type,
-    NumOpsDispatch, PolarsError,
+    AnyValue, ChunkAgg, ChunkSet, DataType, FillNullStrategy, Float64Type, NumOpsDispatch,
+    PolarsError,
 };
 use polars::series::{ChunkCompare, IntoSeries, Series};
 
@@ -126,7 +126,7 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(
     kbs: I,
     sbs: I,
     gamma: &Array2<f64>,
-    res_len: usize,
+    _: usize,
     sbm_type: SBMChargeType,
 ) -> PolarsResult<Series> {
     let kbs_arr = Array1::from_iter(kbs);
@@ -165,7 +165,7 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(
     // The function is supposed to return a series of same len as the input, hence we broadcast the result
     //let res_arr = Array::from_elem(res_len, res);
     // if option panics on .unwrap() implement match and use .iter() and then Series from iter
-    Ok(Float64Chunked::from_vec("Res", vec![res; res_len]).into_series())
+    Ok(Series::new("Res", [res]))
     // Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
 }
 

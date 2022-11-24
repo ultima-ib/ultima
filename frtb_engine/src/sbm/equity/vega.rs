@@ -122,10 +122,7 @@ where
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::from_vec(
-                    "res",
-                    vec![0.; columns[0].len()] as Vec<f64>,
-                ));
+                return Ok(Series::new("res", [0.]));
             };
             // Compute present buckets
 
@@ -143,20 +140,9 @@ where
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
             // Early return Kb or Sb is that is the required metric
-            let res_len = columns[0].len();
             match rtrn {
-                ReturnMetric::Kb => {
-                    return Ok(Series::from_vec(
-                        "kbs",
-                        vec![kbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
-                ReturnMetric::Sb => {
-                    return Ok(Series::from_vec(
-                        "sbs",
-                        vec![sbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
+                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
+                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
                 _ => (),
             }
 
@@ -175,7 +161,7 @@ where
             col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 /// Returns max of three scenarios
@@ -195,7 +181,7 @@ fn eq_vega_max(op: &OCP) -> Expr {
 pub(crate) fn eq_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "EQ_VegaSens".to_string(),
+            name: "EQ VegaSens".to_string(),
             calculator: Box::new(total_eq_vega_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -205,7 +191,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaSens_Weighted".to_string(),
+            name: "EQ VegaSens Weighted".to_string(),
             calculator: Box::new(total_eq_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -215,9 +201,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaSb".to_string(),
+            name: "EQ VegaSb".to_string(),
             calculator: Box::new(equity_vega_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -225,9 +211,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaKb_Low".to_string(),
+            name: "EQ VegaKb Low".to_string(),
             calculator: Box::new(equity_vega_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -235,9 +221,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaCharge_Low".to_string(),
+            name: "EQ VegaCharge Low".to_string(),
             calculator: Box::new(equity_vega_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -245,9 +231,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaKb_Medium".to_string(),
+            name: "EQ VegaKb Medium".to_string(),
             calculator: Box::new(equity_vega_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -255,9 +241,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaCharge_Medium".to_string(),
+            name: "EQ VegaCharge Medium".to_string(),
             calculator: Box::new(equity_vega_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -265,9 +251,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaKb_High".to_string(),
+            name: "EQ VegaKb High".to_string(),
             calculator: Box::new(equity_vega_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -275,9 +261,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaCharge_High".to_string(),
+            name: "EQ VegaCharge High".to_string(),
             calculator: Box::new(equity_vega_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -285,9 +271,9 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_VegaCharge_MAX".to_string(),
+            name: "EQ VegaCharge MAX".to_string(),
             calculator: Box::new(eq_vega_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))

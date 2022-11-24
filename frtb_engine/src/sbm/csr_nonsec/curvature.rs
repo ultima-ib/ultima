@@ -140,17 +140,17 @@ pub(crate) fn csrnonsec_curvature_charge(
     apply_multiple(
         move |columns| {
             let df = df![
-                "rc"       => columns[0].clone(),
-                "b"        => columns[1].clone(),
-                "rf"       => columns[2].clone(),
-                "PnL_Up"   => columns[3].clone(),
-                "PnL_Down" => columns[4].clone(),
-                "Sensitivity_05Y"           => columns[5].clone(),
-                "Sensitivity_1Y"            => columns[6].clone(),
-                "Sensitivity_3Y"            => columns[7].clone(),
-                "Sensitivity_5Y"            => columns[8].clone(),
-                "Sensitivity_10Y"           => columns[9].clone(),
-                "CurvatureRiskWeight"       => columns[10].clone(),
+                "rc"       => &columns[0],
+                "b"        => &columns[1],
+                "rf"       => &columns[2],
+                "PnL_Up"   => &columns[3],
+                "PnL_Down" => &columns[4],
+                "Sensitivity_05Y"           => &columns[5],
+                "Sensitivity_1Y"            => &columns[6],
+                "Sensitivity_3Y"            => &columns[7],
+                "Sensitivity_5Y"            => &columns[8],
+                "Sensitivity_10Y"           => &columns[9],
+                "CurvatureRiskWeight"       => &columns[10],
             ]?;
 
             let df = df
@@ -170,6 +170,10 @@ pub(crate) fn csrnonsec_curvature_charge(
                 //.fill_null(lit::<f64>(0.))
                 .collect()?;
 
+            if df.height() == 0 {
+                return Ok(Series::new("res", [0.]));
+            };
+
             let res_len = columns[0].len();
             let (kb_plus_cvr_up, kb_minus_cvr_down): (Vec<(f64, f64)>, Vec<(f64, f64)>) =
                 curvature_kb_plus_minus(df, &csr_curv_rho, special_bucket)?;
@@ -178,16 +182,10 @@ pub(crate) fn csrnonsec_curvature_charge(
 
             match return_metric {
                 ReturnMetric::KbPlus => {
-                    return Ok(Series::from_vec(
-                        "kb_plus",
-                        vec![kb_plus.iter().sum::<f64>(); res_len],
-                    ))
+                    return Ok(Series::new("kb_plus", [kb_plus.iter().sum::<f64>()]))
                 }
                 ReturnMetric::KbMinus => {
-                    return Ok(Series::from_vec(
-                        "kb_minus",
-                        vec![kb_minus.iter().sum::<f64>(); res_len],
-                    ))
+                    return Ok(Series::new("kb_minus", [kb_minus.iter().sum::<f64>()]))
                 }
                 _ => (),
             }
@@ -200,18 +198,8 @@ pub(crate) fn csrnonsec_curvature_charge(
                 cvr_down.into_iter().map(a),
             )?;
             match return_metric {
-                ReturnMetric::Kb => {
-                    return Ok(Series::from_vec(
-                        "kbs",
-                        vec![kbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
-                ReturnMetric::Sb => {
-                    return Ok(Series::from_vec(
-                        "sbs",
-                        vec![sbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
+                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
+                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
                 _ => (),
             }
 
@@ -234,7 +222,7 @@ pub(crate) fn csrnonsec_curvature_charge(
             weight,
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 /// Returns max of three scenarios
@@ -315,7 +303,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature KbPlus Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_plus_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -325,7 +313,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature KbMinus Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_minus_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -335,7 +323,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature Kb Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -345,7 +333,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature Sb Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_sb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -355,7 +343,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec CurvatureCharge Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -365,7 +353,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature KbPlus Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_plus_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -375,7 +363,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature KbMinus Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_minus_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -385,7 +373,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature Kb Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -395,7 +383,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature Sb Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_sb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -405,7 +393,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec CurvatureCharge Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -415,7 +403,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature KbPlus High".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_plus_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -425,7 +413,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature KbMinus High".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_minus_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -435,7 +423,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature Kb High".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -445,7 +433,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec Curvature Sb High".to_string(),
             calculator: Box::new(csrnonsec_curvature_sb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -455,7 +443,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec CurvatureCharge High".to_string(),
             calculator: Box::new(csrnonsec_curvature_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -465,7 +453,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
         Measure {
             name: "CSR nonSec CurvatureCharge MAX".to_string(),
             calculator: Box::new(csrnonsec_curv_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

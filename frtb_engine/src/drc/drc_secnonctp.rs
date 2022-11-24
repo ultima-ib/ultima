@@ -138,11 +138,9 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
                 )),
                 ReturnMetric::WeightedNetAbsShortJTD => Ok(Series::new(
                     "Res",
-                    [
-                        df["WeightedNetAbsShortJTD"]
-                            .sum::<f64>()
-                            .unwrap_or_default()
-                    ],
+                    [df["WeightedNetAbsShortJTD"]
+                        .sum::<f64>()
+                        .unwrap_or_default()],
                 )),
                 _ => Ok(Series::new(
                     "Res",

@@ -135,10 +135,7 @@ where
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::from_vec(
-                    "res",
-                    vec![0.; columns[0].len()] as Vec<f64>,
-                ));
+                return Ok(Series::new("res", [0.]));
             };
 
             // 21.78
@@ -156,21 +153,10 @@ where
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
             // Early return Kb or Sb is that is the required metric
-            let res_len = columns[0].len();
-            //let a = Float64Chunked::from_vec("Res", vec![kbs.iter().sum();res_len]);
+
             match rtrn {
-                ReturnMetric::Kb => {
-                    return Ok(Series::from_vec(
-                        "kbs",
-                        vec![kbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
-                ReturnMetric::Sb => {
-                    return Ok(Series::from_vec(
-                        "sbs",
-                        vec![sbs.iter().sum::<f64>(); res_len],
-                    ))
-                }
+                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
+                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
                 _ => (),
             }
 
@@ -186,7 +172,7 @@ where
             col("SensWeights").arr().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -207,7 +193,7 @@ fn eq_delta_max(op: &OCP) -> Expr {
 pub(crate) fn eq_delta_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "EQ_DeltaSens".to_string(),
+            name: "EQ DeltaSens".to_string(),
             calculator: Box::new(equity_delta_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -217,7 +203,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaSens_Weighted".to_string(),
+            name: "EQ DeltaSens Weighted".to_string(),
             calculator: Box::new(equity_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -227,9 +213,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaSb".to_string(),
+            name: "EQ DeltaSb".to_string(),
             calculator: Box::new(eq_delta_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -237,9 +223,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaKb_Low".to_string(),
+            name: "EQ DeltaKb Low".to_string(),
             calculator: Box::new(eq_delta_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -247,9 +233,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaKb_Medium".to_string(),
+            name: "EQ DeltaKb Medium".to_string(),
             calculator: Box::new(eq_delta_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -257,9 +243,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaKb_High".to_string(),
+            name: "EQ DeltaKb High".to_string(),
             calculator: Box::new(eq_delta_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -267,9 +253,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaCharge_Low".to_string(),
+            name: "EQ DeltaCharge Low".to_string(),
             calculator: Box::new(equity_delta_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -277,9 +263,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaCharge_Medium".to_string(),
+            name: "EQ DeltaCharge Medium".to_string(),
             calculator: Box::new(equity_delta_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -287,9 +273,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaCharge_High".to_string(),
+            name: "EQ DeltaCharge High".to_string(),
             calculator: Box::new(equity_delta_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -297,9 +283,9 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "EQ_DeltaCharge_MAX".to_string(),
+            name: "EQ DeltaCharge MAX".to_string(),
             calculator: Box::new(eq_delta_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

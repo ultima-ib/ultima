@@ -15,9 +15,8 @@ use crate::{filters::fltr_chain, measure_builder, AggregationRequest, DataSet};
 pub fn execute_aggregation(
     req: AggregationRequest,
     data: Arc<impl DataSet + ?Sized>,
-    streaming: bool
+    streaming: bool,
 ) -> PolarsResult<DataFrame> {
-
     // Step 0.1
     let mut f1 = data.get_lazyframe().clone();
 

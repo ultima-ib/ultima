@@ -48,8 +48,15 @@ impl DataSet for FRTBDataSet {
     fn get_lazyframe_owned(self) -> LazyFrame {
         self.frame
     }
-    fn set_lazyframe(self, lf: LazyFrame) -> Self where Self: Sized {
-        Self { frame: lf, measures: self.measures, build_params: self.build_params }
+    fn set_lazyframe(self, lf: LazyFrame) -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            frame: lf,
+            measures: self.measures,
+            build_params: self.build_params,
+        }
     }
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
@@ -92,7 +99,9 @@ impl DataSet for FRTBDataSet {
     fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
         let mut lf1 = if let Some(lf) = _lf {
             lf
-        } else {self.get_lazyframe().clone()};
+        } else {
+            self.get_lazyframe().clone()
+        };
 
         //First, identify buckets
         lf1 = lf1.with_column(buckets::sbm_buckets(&self.build_params));
@@ -105,7 +114,7 @@ impl DataSet for FRTBDataSet {
 
         // Then assign risk weights based on buckets
         lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
-       
+
         //let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
 
         // Some risk weights assignments (DRC Sec Non CTP) would result in too many when().then() statements

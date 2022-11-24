@@ -33,7 +33,9 @@ pub trait DataSet: Send + Sync {
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
     fn get_lazyframe(&self) -> &LazyFrame;
     fn get_lazyframe_owned(self) -> LazyFrame;
-    fn set_lazyframe(self, lf: LazyFrame) -> Self where Self: Sized;
+    fn set_lazyframe(self, lf: LazyFrame) -> Self
+    where
+        Self: Sized;
     fn get_measures(&self) -> &MeasuresMap;
     fn get_measures_owned(self) -> MeasuresMap;
 
@@ -48,7 +50,6 @@ pub trait DataSet: Send + Sync {
     where
         Self: Sized;
 
-    
     fn collect(self) -> PolarsResult<Self>
     where
         Self: Sized,
@@ -65,12 +66,15 @@ pub trait DataSet: Send + Sync {
 
     /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
     /// Any pre-computations which are common to all queries could go in here.
-    fn prepare(self) -> Self where Self: Sized {
+    fn prepare(self) -> Self
+    where
+        Self: Sized,
+    {
         let new_frame = self.prepare_frame(None);
         self.set_lazyframe(new_frame)
     }
 
-    /// By returning a Frame this method can be used on a 
+    /// By returning a Frame this method can be used on a
     /// *lf - biffer. if None, function "prepares" self.lazy_frame()
     fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
         self.get_lazyframe().clone()
@@ -101,8 +105,15 @@ impl DataSet for DataSetBase {
     fn get_lazyframe_owned(self) -> LazyFrame {
         self.frame
     }
-    fn set_lazyframe(self, lf: LazyFrame) -> Self where Self: Sized {
-        Self { frame: lf, measures: self.measures, build_params: self.build_params }
+    fn set_lazyframe(self, lf: LazyFrame) -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            frame: lf,
+            measures: self.measures,
+            build_params: self.build_params,
+        }
     }
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures

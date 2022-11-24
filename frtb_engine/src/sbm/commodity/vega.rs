@@ -114,7 +114,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaSb".to_string(),
             calculator: Box::new(com_vega_sb),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -124,7 +124,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaKb Low".to_string(),
             calculator: Box::new(com_vega_kb_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -134,7 +134,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaCharge Low".to_string(),
             calculator: Box::new(com_vega_charge_low),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -144,7 +144,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaKb Medium".to_string(),
             calculator: Box::new(com_vega_kb_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -154,7 +154,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaCharge Medium".to_string(),
             calculator: Box::new(com_vega_charge_medium),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -164,7 +164,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaKb High".to_string(),
             calculator: Box::new(com_vega_kb_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -174,7 +174,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaCharge High".to_string(),
             calculator: Box::new(com_vega_charge_high),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -184,7 +184,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         Measure {
             name: "Commodity VegaCharge MAX".to_string(),
             calculator: Box::new(com_vega_max),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))

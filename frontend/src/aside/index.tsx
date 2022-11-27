@@ -3,6 +3,7 @@ import {
     PropsWithChildren,
     Suspense,
     SyntheticEvent,
+    ElementType,
     useDeferredValue,
     useEffect,
     useState,
@@ -25,6 +26,8 @@ import {
     Tab,
     Tabs,
     TextField,
+    Paper,
+    Divider,
 } from "@mui/material"
 import QuoteList, { ListItemExtras } from "./list"
 import Title from "./Title"
@@ -95,7 +98,7 @@ const Resizable = (props: PropsWithChildren<ResizableProps>) => {
             }}
             style={{
                 display: "flex",
-                gap: "1em",
+                gap: "0.5em",
                 minWidth: "300px",
                 backgroundColor: theme.palette.background.paper,
             }}
@@ -140,6 +143,7 @@ interface ColumnProps {
     extras?: ListItemExtras
     onListItemClick?: (field: string) => void
     multiColumn?: boolean
+    titleComponent?: ElementType
 }
 
 export function Column({
@@ -149,11 +153,14 @@ export function Column({
     extras,
     onListItemClick,
     multiColumn,
+    titleComponent,
     ...stack
 }: ColumnProps & StackProps) {
     return (
         <Stack spacing={2} alignItems="center" {...stack}>
-            {title && <Title content={title} component={Box} />}
+            {title && (
+                <Title content={title} component={titleComponent ?? Paper} />
+            )}
             <QuoteList
                 listId={listId}
                 listType="QUOTE"
@@ -379,6 +386,7 @@ const Aside = () => {
                         }}
                     />
                 </Stack>
+                <Divider orientation="vertical" />
                 <Stack sx={{ width: "60%", height: "100%" }}>
                     <Suspense fallback="Loading templates....">
                         <Templates />
@@ -423,6 +431,7 @@ const Aside = () => {
                                 title="Measures"
                                 fields={columns.measuresSelected}
                                 listId="measuresSelected"
+                                titleComponent={Box}
                                 sx={{
                                     width: "100%",
                                     overflowX: "scroll",

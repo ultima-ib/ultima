@@ -8,6 +8,7 @@ import {
     TableBody,
     TableRow,
     TableCell,
+    TableFooter,
 } from "@mui/material"
 import { fancyZip } from "../utils"
 import { forwardRef } from "react"
@@ -36,7 +37,6 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         const headers = data.columns.map((it) => it.name)
         const zipped = fancyZip(data.columns.map((col) => col.values))
 
-        console.log(zipped)
         return (
             <Paper sx={{ overflow: "hidden", width: "100%" }}>
                 <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
@@ -54,6 +54,7 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                             {zipped.map((values, index) => (
                                 <TableRow
                                     key={`${props.unique}${index.toString()}`}
+                                    hover
                                 >
                                     {values.map((it, innerIndex) => (
                                         <TableCell
@@ -67,6 +68,13 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                                 </TableRow>
                             ))}
                         </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell>
+                                    Total Rows: {zipped.length}
+                                </TableCell>
+                            </TableRow>
+                        </TableFooter>
                     </Table>
                 </TableContainer>
             </Paper>

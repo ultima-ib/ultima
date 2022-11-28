@@ -57,19 +57,16 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
                 "s"    => &columns[6],
             ]?;
             // First, sum over bucket, obligor and seniority
-            df = df
+            let mut lf = df
                 .lazy()
                 .filter(col("rc").eq(lit("DRC_NonSec")))
                 .groupby([col("b"), col("rf"), col("rft")])
                 .agg([
                     (col("jtd") * col("s")).sum().alias("scaled_jtd"),
                     col("w").first(),
-                ])
-                .collect()?;
+                ]);
 
-            let schema = df.schema();
-
-            let mut lf = df.lazy();
+            let schema = lf.schema()?;
 
             // Do you want to aggregate as per  22.19?
             // Note, the algorithm is O(N), but we loose Negative GrossJTD position changes,
@@ -109,7 +106,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
                             df.with_column(Series::from_vec("scaled_jtd", res))?;
                             Ok(df)
                         },
-                        Arc::new(schema),
+                        schema,
                     );
             };
             // Split Scaled GrossJTD into NetLong and NetShort
@@ -136,21 +133,19 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
                 );
             // Apply Weights
             df = lf.collect()?;
-            let res_len = columns[0].len();
+
             match rtrn {
                 ReturnMetric::NetLongJTD => {
-                    return Ok(Series::from_vec(
+                    return Ok(Series::new(
                         "Res",
-                        vec![df["NetLongJTD"].sum::<f64>().unwrap_or_default(); res_len],
-                    )
-                    .into_series())
+                        [df["NetLongJTD"].sum::<f64>().unwrap_or_default()],
+                    ))
                 }
                 ReturnMetric::NetShortJTD => {
-                    return Ok(Series::from_vec(
+                    return Ok(Series::new(
                         "Res",
-                        vec![df["NetShortJTD"].sum::<f64>().unwrap_or_default(); res_len],
-                    )
-                    .into_series())
+                        [df["NetShortJTD"].sum::<f64>().unwrap_or_default()],
+                    ))
                 }
                 _ => (),
             };
@@ -182,31 +177,24 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             df = lf.collect()?;
 
             match rtrn {
-                ReturnMetric::Hbr => Ok(Series::from_vec(
+                ReturnMetric::Hbr => Ok(Series::new(
                     "Res",
-                    vec![df["HBR"].sum::<f64>().unwrap_or_default(); res_len],
-                )
-                .into_series()),
-                ReturnMetric::WeightedNetLongJTD => Ok(Series::from_vec(
+                    [df["HBR"].sum::<f64>().unwrap_or_default()],
+                )),
+                ReturnMetric::WeightedNetLongJTD => Ok(Series::new(
                     "Res",
-                    vec![df["WeightedNetLongJTD"].sum::<f64>().unwrap_or_default(); res_len],
-                )
-                .into_series()),
-                ReturnMetric::WeightedNetAbsShortJTD => Ok(Series::from_vec(
+                    [df["WeightedNetLongJTD"].sum::<f64>().unwrap_or_default()],
+                )),
+                ReturnMetric::WeightedNetAbsShortJTD => Ok(Series::new(
                     "Res",
-                    vec![
-                        df["WeightedNetAbsShortJTD"]
-                            .sum::<f64>()
-                            .unwrap_or_default();
-                        res_len
-                    ],
-                )
-                .into_series()),
-                _ => Ok(Float64Chunked::from_vec(
+                    [df["WeightedNetAbsShortJTD"]
+                        .sum::<f64>()
+                        .unwrap_or_default()],
+                )),
+                _ => Ok(Series::new(
                     "Res",
-                    vec![df["DRCBucket"].sum::<f64>().unwrap_or_default(); res_len],
-                )
-                .into_series()),
+                    [df["DRCBucket"].sum::<f64>().unwrap_or_default()],
+                )),
             }
         },
         &[
@@ -219,7 +207,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             col("ScaleFactor"),
         ],
         GetOutput::from_type(DataType::Float64),
-        false,
+        true,
     )
 }
 
@@ -240,38 +228,38 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
         Measure {
             name: "DRC_NonSec_CapitalCharge".to_string(),
             calculator: Box::new(drc_nonsec_charge),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetLongJTD".to_string(),
             calculator: Box::new(drc_nonsec_netlongjtd),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetShortJTD".to_string(),
             calculator: Box::new(drc_nonsec_netshortjtd),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetLongJTD_Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetlongjtd),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetAbsShortJTD_Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetabsshortjtd),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
         },
         // HBR Only makes sence at Bucket level
         Measure {
             name: "DRC_NonSec_HBR".to_string(),
             calculator: Box::new(drc_nonsec_hbr),
-            aggregation: Some("first"),
+            aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
         },
     ]

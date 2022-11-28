@@ -106,30 +106,36 @@ pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
     parallel: bool,
 ) -> PolarsResult<LazyFrame> {
     let lfs = lfs.as_ref().to_vec();
-    let upper_bound_width = lfs
+    let schemas = lfs
         .iter()
-        .map(|lf| Ok(lf.schema()?.len()))
-        .collect::<PolarsResult<Vec<_>>>()?
+        .map(|lf| Ok(lf.schema()?))
+        .collect::<PolarsResult<Vec<_>>>()?;
+
+    let upper_bound_width = schemas
         .iter()
+        .map(|sch| sch.len())
         .sum();
-    // Use Vec instead of a HashSet to preserve order
+
+    // Use Vec to preserve order
     let mut column_names = Vec::with_capacity(upper_bound_width);
     let mut total_schema = Vec::with_capacity(upper_bound_width);
 
-    for lf in lfs.iter() {
-        lf.schema()?.iter().for_each(|(name, dtype)| {
-            if !column_names.contains(name) {
-                column_names.push(name.clone());
-                total_schema.push((name.clone(), dtype.clone()))
-            }
-        });
+    for sch in schemas.iter() {
+        sch.iter()
+            .for_each(|(name, dtype)|{
+                if !column_names.contains(name) {
+                    column_names.push(name.clone());
+                    total_schema.push((name.clone(), dtype.clone()));
+                }
+            });
     }
 
-    let dfs = lfs
+    //Append column if missing
+    let lfs_with_all_columns = lfs
         .into_iter()
-        .map(|mut lf| {
-            // Get current frame's Schema
-            let lf_schema = lf.schema()?;
+        // Zip Frames with their Schemas
+        .zip(schemas.into_iter())
+        .map(|(mut lf, lf_schema)| {
 
             for (name, dtype) in total_schema.iter() {
                 // If a name from Total Schema is not present - append
@@ -150,5 +156,5 @@ pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
         })
         .collect::<PolarsResult<Vec<_>>>()?;
 
-    concat(dfs, rechunk, parallel)
+    concat(lfs_with_all_columns, rechunk, parallel)
 }

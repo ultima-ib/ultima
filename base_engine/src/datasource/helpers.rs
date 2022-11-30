@@ -21,7 +21,7 @@ pub fn empty_frame(with_columns: &[String]) -> DataFrame {
 }
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
-pub fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> LazyFrame {
+pub fn path_to_lf(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> LazyFrame {
     let mut vc = Vec::with_capacity(cast_to_str.len() + cast_to_f64.len());
     for str_col in cast_to_str {
         vc.push(Field::new(str_col, DataType::Utf8))

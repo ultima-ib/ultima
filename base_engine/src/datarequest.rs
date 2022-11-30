@@ -1,7 +1,7 @@
 // TODO fix properly
 #![allow(clippy::derive_hash_xor_eq)]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 use super::measure::OCP;
 use crate::filters::AndOrFltrChain;
@@ -36,6 +36,8 @@ pub struct AggregationRequest {
     pub filters: AndOrFltrChain,
     #[serde(default)]
     pub overrides: Vec<Override>,
+    #[serde(default)]
+    pub add_row: Vec<HashMap<String, String>>,
     #[serde(default)]
     pub calc_params: OCP,
     /// drop rows where all results are NULL or 0
@@ -82,6 +84,11 @@ impl Hash for AggregationRequest {
         self.calc_params
             .iter()
             .collect::<BTreeMap<_, _>>()
+            .hash(state);
+        self.add_row
+            .iter()
+            .map(|map| map.iter().collect::<BTreeMap<_, _>>())
+            .collect::<Vec<BTreeMap<_, _>>>()
             .hash(state);
     }
 }

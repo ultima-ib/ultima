@@ -76,7 +76,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 /*
-cargo run --all-features --release -- -r "./driver/src/carbon_derivatives.json"
+cargo run --bin server --features=FRTB_CRR2 --release -- -r "./driver/src/carbon_derivatives.json"
 /// Sample request
 const JSON: &str = r#"
 {"type": "Request",

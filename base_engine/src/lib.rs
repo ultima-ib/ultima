@@ -8,6 +8,7 @@ mod filters;
 mod measure;
 pub mod overrides;
 pub mod prelude;
+pub mod add_row;
 
 use log::warn;
 

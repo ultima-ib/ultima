@@ -3,14 +3,10 @@ import {
     PropsWithChildren,
     Suspense,
     SyntheticEvent,
-    ElementType,
     useDeferredValue,
     useEffect,
-    useState,
+    useState, ReactElement,
 } from "react"
-import type { DraggableLocation, DropResult } from "@hello-pangea/dnd"
-import { DragDropContext } from "@hello-pangea/dnd"
-import { reorderQuoteMap } from "./reorder"
 import {
     Accordion as MuiAccordion,
     AccordionDetails,
@@ -22,15 +18,11 @@ import {
     FormControlLabel,
     IconButton,
     Stack,
-    StackProps,
     Tab,
     Tabs,
     TextField,
-    Paper,
-    Divider,
+    ListItem, ListItemText, ListItemButton,
 } from "@mui/material"
-import QuoteList, { ListItemExtras } from "./list"
-import Title from "./Title"
 import { Filters } from "./filters"
 import type { DataSet } from "./types"
 import Agg from "./AggTypes"
@@ -42,6 +34,7 @@ import { Overrides } from "./Overrides"
 import { Templates } from "./Templates"
 import { useTheme } from "@mui/material/styles"
 import CalcParams from "./CalcParams"
+import { Virtuoso } from "react-virtuoso"
 
 interface ResizableProps {
     top?: boolean
@@ -136,49 +129,12 @@ function a11yProps(index: number) {
     }
 }
 
-interface ColumnProps {
-    title?: string
-    fields: string[]
-    listId: string
-    extras?: ListItemExtras
-    onListItemClick?: (field: string) => void
-    multiColumn?: boolean
-    titleComponent?: ElementType
-}
-
-export function Column({
-    title,
-    fields,
-    listId,
-    extras,
-    onListItemClick,
-    multiColumn,
-    titleComponent,
-    ...stack
-}: ColumnProps & StackProps) {
-    return (
-        <Stack spacing={2} alignItems="center" {...stack}>
-            {title && (
-                <Title content={title} component={titleComponent ?? Paper} />
-            )}
-            <QuoteList
-                listId={listId}
-                listType="QUOTE"
-                fields={fields}
-                extras={extras}
-                onListItemClick={onListItemClick}
-                multiColumn={multiColumn ?? false}
-            />
-        </Stack>
-    )
-}
-
 const Accordion = ({
-    title,
-    children,
-    hideExpandButton,
-    ...rest
-}: AccordionProps & { title: string; hideExpandButton?: boolean }) => (
+                       title,
+                       children,
+                       hideExpandButton,
+                       ...rest
+                   }: AccordionProps & { title: string; hideExpandButton?: boolean }) => (
     <MuiAccordion {...rest}>
         <AccordionSummary
             expandIcon={!hideExpandButton && <ExpandMoreIcon />}
@@ -202,27 +158,6 @@ const Accordion = ({
     </MuiAccordion>
 )
 
-const AccordionColumn = ({
-    title,
-    expanded,
-    onAccordionStateChange: onChange,
-    ...rest
-}: ColumnProps & {
-    expanded?: boolean
-    onAccordionStateChange?: (event: SyntheticEvent, expanded: boolean) => void
-}) => {
-    return (
-        <Accordion
-            expanded={expanded}
-            title={title ?? ""}
-            onChange={onChange}
-            sx={{ width: "100%" }}
-        >
-            <Column {...rest} />
-        </Accordion>
-    )
-}
-
 const SearchBox = (props: { onChange: (text: string) => void }) => {
     const [searchText, setSearchText] = useState("")
     const onSearchTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -240,7 +175,7 @@ const SearchBox = (props: { onChange: (text: string) => void }) => {
             label="Search"
             sx={{ my: 1, mx: 1 }}
             variant="filled"
-        ></TextField>
+        />
     )
 }
 
@@ -282,50 +217,150 @@ const DeleteButton = (props: {
 
 const Aside = () => {
     const inputs = useInputs()
-    const columns = inputs.dataSet
-    const onDragEnd = (result: DropResult): void => {
-        const source: DraggableLocation = result.source
-        // dragged nowhere, bail
-        if (result.destination === null) {
-            return
-        }
-        const destination: DraggableLocation = result.destination
+    const [activeTab, setActiveTab] = useState(0)
 
-        // did not move anywhere - can bail early
-        if (
-            source.droppableId === destination.droppableId &&
-            source.index === destination.index
-        ) {
-            return
-        }
+    const [filtersAccordionExpanded, setFiltersAccordionExpanded] = useState(false)
 
-        if (
-            destination.droppableId === "fields" ||
-            destination.droppableId === "measures"
-        ) {
-            return
-        }
-        const data = reorderQuoteMap(columns, source, destination)
+    const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
+        setActiveTab(newValue)
+    }
 
+    return (
+        <Resizable right defaultWidth="40%">
+            <Stack sx={{ width: "100%", height: "100%" }}>
+                <Suspense fallback="Loading templates....">
+                    <Templates />
+                </Suspense>
+                <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                    <Tabs
+                        value={activeTab}
+                        onChange={handleActiveTabChange}
+                    >
+                        <Tab label="Aggregate" {...a11yProps(0)} />
+                        <Tab label="Params" {...a11yProps(1)} />
+                    </Tabs>
+                </Box>
+                <TabPanel
+                    value={activeTab}
+                    index={0}
+                    sx={{ height: "100%", overflow: "auto" }}
+                >
+                    <Stack spacing={4}>
+                        <AsideList readFrom={"fields"} list={"groupby"} title={"Group By"} />
+                        <AsideList
+                            readFrom={"measures"}
+                            list={"measuresSelected"}
+                            title={"Measures"}
+                            extras={({ field }) => (
+                                <>
+                                    {inputs.canMeasureBeAggregated(
+                                        field,
+                                    ) && (
+                                        <Suspense>
+                                            <Agg field={field} />
+                                        </Suspense>
+                                    )}
+                                    <DeleteButton
+                                        field={field}
+                                        from="measuresSelected"
+                                    />
+                                </>
+                            )}
+                        />
+                        <Accordion expanded={filtersAccordionExpanded} title="Filters" onChange={(
+                            event: SyntheticEvent,
+                            isExpanded: boolean,
+                        ) => {
+                            setFiltersAccordionExpanded(isExpanded)
+                        }}>
+                            <Filters
+                                component={Box}
+                                fields={inputs.dataSet.fields}
+                                onFiltersChange={(filters) => {
+                                    inputs.dispatcher({
+                                        type: InputStateUpdate.Filters,
+                                        data: { filters },
+                                    })
+                                }}
+                            />
+                        </Accordion>
+                        <Overrides />
+                    </Stack>
+                </TabPanel>
+                <TabPanel
+                    value={activeTab}
+                    index={1}
+                    sx={{ height: "100%", overflow: "hidden" }}
+                >
+                    <Box>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={inputs.hideZeros}
+                                    onChange={(e) =>
+                                        inputs.dispatcher({
+                                            type: InputStateUpdate.HideZeros,
+                                            data: {
+                                                hideZeros: e.target.checked,
+                                            },
+                                        })
+                                    }
+                                />
+                            }
+                            label="Hide Zeros"
+                        />
+
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={inputs.totals}
+                                    onChange={(e) =>
+                                        inputs.dispatcher({
+                                            type: InputStateUpdate.Total,
+                                            data: {
+                                                totals: e.target.checked,
+                                            },
+                                        })
+                                    }
+                                />
+                            }
+                            label="Totals"
+                        />
+                    </Box>
+                    <Box sx={{ overflowY: "auto", maxHeight: "80vh" }}>
+                        <CalcParams />
+                    </Box>
+                </TabPanel>
+            </Stack>
+        </Resizable>
+    )
+}
+
+function AsideList({ readFrom, list, title, extras: Extras }: {
+    readFrom: "fields" | "measures",
+    list: "measuresSelected" | "groupby",
+    title: string,
+    extras?: (v: { field: string }) => ReactElement
+}) {
+    const inputs = useInputs()
+
+    const toggleFromList = (item: string) => {
+        const oldList = inputs.dataSet[list]
+        const newList = (oldList.includes(item)) ? oldList.filter(it => it !== item) : [...oldList, item]
+
+        // @ts-ignore
         inputs.dispatcher({
             type: InputStateUpdate.DataSet,
             data: {
+                // @ts-expect-error signature mismatch
                 dataSet: {
-                    ...inputs.dataSet,
-                    ...data,
+                    [list]: newList,
                 },
             },
         })
     }
 
-    const [activeTab, setActiveTab] = useState(0)
-
-    const [searchValue, setSearchValue] = useState<string | undefined>(
-        undefined,
-    )
-
-    const [groupByAccordionExpanded, setGroupByAccordionExpanded] =
-        useState(false)
+    const [searchValue, setSearchValue] = useState<string | undefined>()
 
     const doSearch = (orElse: string[]) => {
         if (searchValue) {
@@ -341,180 +376,48 @@ const Aside = () => {
             return orElse
         }
     }
-    const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
-        setActiveTab(newValue)
-    }
 
-    const addToList = (list: "measuresSelected" | "groupby", what: string) => {
-        if (columns[list].includes(what)) {
-            return
-        }
-        inputs.dispatcher({
-            type: InputStateUpdate.DataSet,
-            data: {
-                // @ts-expect-error mismatched signature
-                dataSet: {
-                    [list]: [...columns[list], what],
-                },
-            },
-        })
-        if (list === "groupby") {
-            setGroupByAccordionExpanded(true)
-        }
+    const items = doSearch([
+        ...inputs.dataSet[list],
+        ...inputs.dataSet[readFrom].filter(it => !inputs.dataSet[list].includes(it)),
+    ])
+
+    const renderRow = (index: number) => {
+        const item = items[index]
+        return (
+            <ListItem key={item} disablePadding component="div">
+                <ListItemButton dense onClick={() => toggleFromList(item)}>
+                    <Checkbox
+                        edge="start"
+                        checked={inputs.dataSet[list].includes(item)}
+                        tabIndex={-1}
+                        disableRipple
+                    />
+                    <ListItemText primary={item} />
+                </ListItemButton>
+                {Extras && <Extras field={item} />}
+            </ListItem>
+        )
     }
+    const [accordionExpanded, setAccordionExpanded] = useState(false)
+
     return (
-        <DragDropContext onDragEnd={onDragEnd}>
-            <Resizable right defaultWidth="40%">
-                <Stack sx={{ width: "40%" }}>
-                    <SearchBox onChange={(v) => setSearchValue(v)} />
-                    <Column
-                        title="Measures"
-                        fields={doSearch(columns.measures)}
-                        listId="measures"
-                        sx={{ height: "45%" }}
-                        onListItemClick={(field) => {
-                            addToList("measuresSelected", field)
-                        }}
-                    />
-                    <Column
-                        title="Fields"
-                        fields={doSearch(columns.fields)}
-                        listId="fields"
-                        sx={{ height: "45%" }}
-                        onListItemClick={(field) => {
-                            addToList("groupby", field)
-                        }}
-                    />
-                </Stack>
-                <Divider orientation="vertical" />
-                <Stack sx={{ width: "60%", height: "100%" }}>
-                    <Suspense fallback="Loading templates....">
-                        <Templates />
-                    </Suspense>
-                    <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-                        <Tabs
-                            value={activeTab}
-                            onChange={handleActiveTabChange}
-                        >
-                            <Tab label="Aggregate" {...a11yProps(0)} />
-                            <Tab label="Params" {...a11yProps(1)} />
-                        </Tabs>
-                    </Box>
-                    <TabPanel
-                        value={activeTab}
-                        index={0}
-                        sx={{ height: "100%", overflow: "auto" }}
-                    >
-                        <AccordionColumn
-                            expanded={groupByAccordionExpanded}
-                            title="Group By"
-                            fields={columns.groupby}
-                            listId="groupby"
-                            multiColumn
-                            extras={({ field }) => (
-                                <DeleteButton field={field} from="groupby" />
-                            )}
-                            onAccordionStateChange={(
-                                event: SyntheticEvent,
-                                isExpanded: boolean,
-                            ) => {
-                                setGroupByAccordionExpanded(isExpanded)
-                            }}
-                        />
-                        <Overrides />
-                        <Resizable
-                            bottom
-                            defaultHeight="20%"
-                            defaultWidth="100%"
-                        >
-                            <Column
-                                title="Measures"
-                                fields={columns.measuresSelected}
-                                listId="measuresSelected"
-                                titleComponent={Box}
-                                sx={{
-                                    width: "100%",
-                                    overflowX: "scroll",
-                                }}
-                                extras={({ field }) => (
-                                    <>
-                                        {inputs.canMeasureBeAggregated(
-                                            field,
-                                        ) && (
-                                            <Suspense>
-                                                <Agg field={field} />
-                                            </Suspense>
-                                        )}
-                                        <DeleteButton
-                                            field={field}
-                                            from="measuresSelected"
-                                        />
-                                    </>
-                                )}
-                            />
-                        </Resizable>
-                        <Box sx={{ width: "100%" }}>
-                            <Filters
-                                component={Box}
-                                fields={columns.fields}
-                                onFiltersChange={(filters) => {
-                                    inputs.dispatcher({
-                                        type: InputStateUpdate.Filters,
-                                        data: {
-                                            filters,
-                                        },
-                                    })
-                                }}
-                            />
-                        </Box>
-                    </TabPanel>
-                    <TabPanel
-                        value={activeTab}
-                        index={1}
-                        sx={{ height: "100%", overflow: "hidden" }}
-                    >
-                        <Box>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={inputs.hideZeros}
-                                        onChange={(e) =>
-                                            inputs.dispatcher({
-                                                type: InputStateUpdate.HideZeros,
-                                                data: {
-                                                    hideZeros: e.target.checked,
-                                                },
-                                            })
-                                        }
-                                    />
-                                }
-                                label="Hide Zeros"
-                            />
-
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={inputs.totals}
-                                        onChange={(e) =>
-                                            inputs.dispatcher({
-                                                type: InputStateUpdate.Total,
-                                                data: {
-                                                    totals: e.target.checked,
-                                                },
-                                            })
-                                        }
-                                    />
-                                }
-                                label="Totals"
-                            />
-                        </Box>
-                        <Box sx={{ overflowY: "auto", maxHeight: "80vh" }}>
-                            <CalcParams />
-                        </Box>
-                    </TabPanel>
-                </Stack>
-            </Resizable>
-        </DragDropContext>
+        <Accordion title={title} expanded={accordionExpanded} onChange={(
+            event: SyntheticEvent,
+            isExpanded: boolean,
+        ) => {
+            setAccordionExpanded(isExpanded)
+        }}>
+            <SearchBox onChange={(v) => setSearchValue(v)} />
+            <Box sx={{ width: "100%", maxWidth: 360 }}>
+                <Virtuoso
+                    style={{ height: "400px", width: "20rem" }}
+                    totalCount={items.length}
+                    itemContent={renderRow}
+                />
+            </Box>
+        </Accordion>
     )
 }
+
 export default Aside

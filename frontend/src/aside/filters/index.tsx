@@ -1,4 +1,3 @@
-import Title from "../Title"
 import {
     Autocomplete,
     Button,
@@ -266,7 +265,6 @@ export const Filters = (props: {
     const Component = props.component ?? Paper
     return (
         <>
-            <Title content="Filters" component={Component} />
             <Stack component={Component} spacing={1}>
                 {Object.entries(filters)
                     .map(

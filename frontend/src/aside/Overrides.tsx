@@ -150,7 +150,6 @@ export function Overrides() {
 
     return (
         <>
-            <Divider sx={{ borderBottomWidth: "medium" }} />
             <Title content="Overrides" onClick={() => setDialogOpen(true)}>
                 <>
                     <LaunchIcon />

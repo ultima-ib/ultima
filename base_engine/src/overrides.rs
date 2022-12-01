@@ -108,9 +108,9 @@ pub(crate) fn string_to_any(value: &str, dt: &DataType, column_name: &str) -> Po
         DataType::List(x) => {
             match **x {
                 DataType::Float64 => {
-                    let vc = serde_json::from_str::<Vec<f64>>(value)
-                        .map_err(|_|PolarsError::SchemaMisMatch(emsg.into()))?;
-                    Ok(AnyValue::List(Series::from_vec("NewVal", vc)))
+                    serde_json::from_str::<Vec<f64>>(value)
+                        .map_err(|_|PolarsError::SchemaMisMatch(emsg.into()))
+                        .map(|vc| AnyValue::List(Series::from_vec("NewVal", vc)))
                 }
                 _ => Err(PolarsError::SchemaMisMatch(
                     "Only List f64 columns can be overwritten".into(),

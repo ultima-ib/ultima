@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::Measure;
 pub mod helpers;
-use helpers::{empty_frame, finish, path_to_df};
+use helpers::{empty_frame, finish, path_to_lf};
 
 use self::helpers::diag_concat_lf;
 
@@ -104,7 +104,7 @@ impl DataSourceConfig {
                 let concatinated_frame = diag_concat_lf(
                     &files
                         .iter()
-                        .map(|f| path_to_df(f, &str_cols, &f64_cols))
+                        .map(|f| path_to_lf(f, &str_cols, &f64_cols))
                         .collect::<Vec<LazyFrame>>(),
                     true,
                     true,
@@ -115,7 +115,7 @@ impl DataSourceConfig {
                 tmp.extend(a2h.clone());
 
                 let df_attr = match ta {
-                    Some(y) => path_to_df(&y, &tmp, &f64_cols)
+                    Some(y) => path_to_lf(&y, &tmp, &f64_cols)
                         .unique(Some(f2a.clone()), UniqueKeepStrategy::First),
                     //.unwrap(),
                     _ => empty_frame(&tmp).lazy(),
@@ -123,7 +123,7 @@ impl DataSourceConfig {
 
                 //here we expect if hms is provided then a2h is not empty
                 let df_hms = match hms {
-                    Some(y) => path_to_df(&y, &a2h, &[])
+                    Some(y) => path_to_lf(&y, &a2h, &[])
                         .unique(Some(a2h.clone()), UniqueKeepStrategy::First),
                     //.expect("hms file path was provided, hence attributes_join_hierarchy list must also be provided
                     //in the datasource_config.toml") },

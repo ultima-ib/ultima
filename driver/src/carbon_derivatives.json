@@ -28,27 +28,5 @@
         "drc_offset": "false",
         "com_delta_rho_overwrite_base": "{\"rhotype\": \"Tenor\", \"column\": \"Sector\", \"col_equals\": \"CarbonCertificates\", \"value\": 0.996, \"oneway\": false}"
     }
-    },
-    {
-        "type": "AggregationRequest", 
-        "name": "CarbonDerivatives",
-    
-        "filters": [[{"op": "Eq", "field": "Group", "value": "Ultima"}]],
-        "groupby": ["COB", "Desk"],
-    
-        "measures": [
-            ["Commodity DeltaCharge Low", "first"],
-            ["Commodity DeltaCharge Medium", "first"],
-            ["Commodity DeltaCharge High", "first"]
-                ],
-        
-        "hide_zeros": false,
-        "totals": true,
-     
-        "calc_params": {
-            "jurisdiction": "BCBS",
-            "apply_fx_curv_div": "true",
-            "drc_offset": "false"
-        }
-        }
+    }
 ]

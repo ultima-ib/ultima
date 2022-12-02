@@ -21,7 +21,7 @@ pub fn empty_frame(with_columns: &[String]) -> DataFrame {
 }
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
-pub fn path_to_df(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> LazyFrame {
+pub fn path_to_lf(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) -> LazyFrame {
     let mut vc = Vec::with_capacity(cast_to_str.len() + cast_to_f64.len());
     for str_col in cast_to_str {
         vc.push(Field::new(str_col, DataType::Utf8))
@@ -108,26 +108,22 @@ pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
     let lfs = lfs.as_ref().to_vec();
     let schemas = lfs
         .iter()
-        .map(|lf| Ok(lf.schema()?))
+        .map(|lf| lf.schema())
         .collect::<PolarsResult<Vec<_>>>()?;
 
-    let upper_bound_width = schemas
-        .iter()
-        .map(|sch| sch.len())
-        .sum();
+    let upper_bound_width = schemas.iter().map(|sch| sch.len()).sum();
 
     // Use Vec to preserve order
     let mut column_names = Vec::with_capacity(upper_bound_width);
     let mut total_schema = Vec::with_capacity(upper_bound_width);
 
     for sch in schemas.iter() {
-        sch.iter()
-            .for_each(|(name, dtype)|{
-                if !column_names.contains(name) {
-                    column_names.push(name.clone());
-                    total_schema.push((name.clone(), dtype.clone()));
-                }
-            });
+        sch.iter().for_each(|(name, dtype)| {
+            if !column_names.contains(name) {
+                column_names.push(name.clone());
+                total_schema.push((name.clone(), dtype.clone()));
+            }
+        });
     }
 
     //Append column if missing
@@ -136,7 +132,6 @@ pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
         // Zip Frames with their Schemas
         .zip(schemas.into_iter())
         .map(|(mut lf, lf_schema)| {
-
             for (name, dtype) in total_schema.iter() {
                 // If a name from Total Schema is not present - append
                 if lf_schema.get_field(name).is_none() {

@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 
+pub mod add_row;
 pub mod api;
 mod datarequest;
 pub mod dataset;

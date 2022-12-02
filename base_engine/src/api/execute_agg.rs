@@ -8,7 +8,10 @@ pub use polars::{
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
 };
 
-use crate::{filters::fltr_chain, measure_builder, AggregationRequest, DataSet};
+use crate::{
+    add_row::df_from_maps_and_schema, filters::fltr_chain, helpers::diag_concat_lf,
+    measure_builder, AggregationRequest, DataSet,
+};
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
@@ -26,7 +29,7 @@ pub fn execute_aggregation(
         f1 = f1.filter(f)
     }
 
-    // Step 2.x OVERRIDE, 2.1 GROUPBY, 2.2 Aggregate and Calculate Measures
+    // Steps 2.1 OVERRIDE, 2.2 Add Row
 
     // Step 2.1 Build AGGREGATIONS/Measures
     // First, parse requested measures
@@ -72,7 +75,7 @@ pub fn execute_aggregation(
         f1 = f1.filter(fltr)
     }
 
-    // If streaming then prepare (assign weights) now (ie post filtering)
+    // If streaming then prepare (assign weights) NOW (ie post filtering)
     if streaming {
         f1 = data.prepare_frame(Some(f1))
     }
@@ -82,8 +85,17 @@ pub fn execute_aggregation(
         f1 = ow.lf_with_overwrite(f1)?
     }
 
-    // Step 2.4 Build GROUPBY
-    let groups: Vec<Expr> = req._groupby().iter().map(|x| col(x)).collect();
+    // Step 2.5 Add Row
+    if !req.add_row.is_empty() {
+        let current_schema = f1.schema()?;
+        let extra_frame = dbg!(df_from_maps_and_schema(req.add_row, current_schema)?).lazy();
+        let extra_prepared_frame = data.prepare_frame(Some(extra_frame));
+        f1 = diag_concat_lf([f1, extra_prepared_frame], true, true)?;
+        //dbg!(f1.clone().collect());
+    }
+
+    // Step 3.1 Build GROUPBY
+    let groups: Vec<Expr> = req.groupby.iter().map(|x| col(x)).collect();
     // fill nulls with a "null" - needed for better totals views
     let groups_fill_nulls: Vec<Expr> = groups
         .clone()
@@ -91,7 +103,7 @@ pub fn execute_aggregation(
         .map(|e| e.fill_null(lit(" ")))
         .collect();
 
-    // Step 2.5 Apply GroupBy and Agg
+    // Step 3.2 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
     // hence use groupby_stable
     let mut aggregated_df = f1

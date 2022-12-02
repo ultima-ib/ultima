@@ -88,6 +88,7 @@ pub fn execute_aggregation(
         let extra_frame = dbg!(df_from_maps_and_schema(req.add_row, current_schema)?).lazy();
         let extra_prepared_frame = data.prepare_frame(Some(extra_frame));
         f1 = diag_concat_lf([f1, extra_prepared_frame], true, true)?;
+        //dbg!(f1.clone().collect());
     }
 
     // Step 3.1 Build GROUPBY

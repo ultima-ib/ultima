@@ -99,7 +99,7 @@ impl Override {
 //}
 
 /// This function also defines Column DataTypes which we can override  
-pub(crate) fn string_to_any(value: &str, dt: &DataType, column_name: &str) -> PolarsResult<AnyValue<'static>> {
+pub(crate) fn string_to_any<'a>(value: &'a str, dt: &DataType, column_name: &str) -> PolarsResult<AnyValue<'a>> {
 
     let emsg =  format!("Argument {} could not be parsed into column {} format. Argument should be a {}", value, column_name, dt.to_string());
 
@@ -129,7 +129,7 @@ pub(crate) fn string_to_any(value: &str, dt: &DataType, column_name: &str) -> Po
                         .map_err(|_|PolarsError::SchemaMisMatch(emsg.into()))?
         )),
         // All Other columns are
-        DataType::Utf8 => Ok(AnyValue::Utf8Owned(value.into())),
+        DataType::Utf8 => Ok(AnyValue::Utf8(value.into())),
 
         _ => Err(PolarsError::ComputeError(
             format!("Column {} of this format cannot be overwritten", column_name).into(),

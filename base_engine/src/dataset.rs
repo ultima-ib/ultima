@@ -77,7 +77,11 @@ pub trait DataSet: Send + Sync {
     /// By returning a Frame this method can be used on a
     /// *lf - biffer. if None, function "prepares" self.lazy_frame()
     fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
-        self.get_lazyframe().clone()
+        if let Some(lf) = _lf {
+            lf
+        } else {
+            self.get_lazyframe().clone()
+        }
     }
 
     /// Calc params are used for the UI and hence are totally optional

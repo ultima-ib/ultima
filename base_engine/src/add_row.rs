@@ -1,13 +1,14 @@
 use std::{collections::HashMap, sync::Arc};
 
 use polars::prelude::{Schema, DataFrame, AnyValue, PolarsResult, row::Row, Field};
+use polars::functions::diag_concat_df;
 
 use crate::overrides::string_to_any;
 
 
 /// Convers HashMap into a Frame of particular Schema
 /// Filters out any columns not in current schema
-pub(crate) fn map_to_row_schema(map: HashMap<String, String>, sch: Arc<Schema>) -> PolarsResult<(Row<'static>, Schema)> {
+pub(crate) fn map_to_row_schema(map: &HashMap<String, String>, sch: Arc<Schema>) -> PolarsResult<(Row, Schema)> {
     let mut vc = Vec::with_capacity(map.len());
 
     let row = 
@@ -22,17 +23,16 @@ pub(crate) fn map_to_row_schema(map: HashMap<String, String>, sch: Arc<Schema>) 
 
     let schema = Schema::from_iter(vc);
     Ok((Row(row), schema))
-
-    //DataFrame::from_rows_and_schema(&[row], sch.as_ref())
 }
 
+/// Creates a frame from each Schema.
+/// This allows to combine different schemas within add_row part of request.
+/// Diagonally concatenates these.
 pub(crate) fn df_from_maps_and_schema(maps: Vec<HashMap<String, String>>, sch: Arc<Schema>) -> PolarsResult<DataFrame> {
-    let rows_schemas = maps.into_iter()
-        .map(|map|map_to_row_schema(map, sch.clone()))
-        .collect::<PolarsResult<Vec<(Row, Schema)>>>()?;
+    let new_rows = maps.iter()
+        .map(|map|map_to_row_schema(map, sch.clone())
+            .and_then(|(r, s)|DataFrame::from_rows_and_schema(&[r], &s)))
+        .collect::<PolarsResult<Vec<DataFrame>>>()?;
 
-    let (rows, _schemas): (Vec<Row>, Vec<Schema>) = rows_schemas.into_iter()
-        .unzip();
-    
-    DataFrame::from_rows_and_schema(&rows, sch.as_ref())
+    diag_concat_df(&new_rows)
 }

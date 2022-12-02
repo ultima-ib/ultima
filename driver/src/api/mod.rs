@@ -7,6 +7,7 @@ pub mod pagination;
 use actix_files as fs;
 use actix_web::{
     dev::Server,
+    dev::ServiceRequest,
     get,
     middleware::Logger,
     web::{self, Data},
@@ -17,7 +18,6 @@ use actix_web::{
     Responder,
     //error::InternalError, http::StatusCode,
     Result,
-    dev::ServiceRequest,
 };
 use actix_web_httpauth::{extractors::basic::BasicAuth, middleware::HttpAuthentication};
 use anyhow::Context;

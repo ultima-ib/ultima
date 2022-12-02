@@ -8,7 +8,10 @@ pub use polars::{
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
 };
 
-use crate::{filters::fltr_chain, measure_builder, AggregationRequest, DataSet, add_row::df_from_maps_and_schema, helpers::diag_concat_lf};
+use crate::{
+    add_row::df_from_maps_and_schema, filters::fltr_chain, helpers::diag_concat_lf,
+    measure_builder, AggregationRequest, DataSet,
+};
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
@@ -83,7 +86,7 @@ pub fn execute_aggregation(
     }
 
     // Step 2.5 Add Row
-    if !req.add_row.is_empty(){
+    if !req.add_row.is_empty() {
         let current_schema = f1.schema()?;
         let extra_frame = dbg!(df_from_maps_and_schema(req.add_row, current_schema)?).lazy();
         let extra_prepared_frame = data.prepare_frame(Some(extra_frame));

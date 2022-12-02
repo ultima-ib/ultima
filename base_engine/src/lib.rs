@@ -1,5 +1,6 @@
 #![allow(clippy::type_complexity)]
 
+pub mod add_row;
 pub mod api;
 mod datarequest;
 pub mod dataset;
@@ -8,7 +9,6 @@ mod filters;
 mod measure;
 pub mod overrides;
 pub mod prelude;
-pub mod add_row;
 
 use log::warn;
 

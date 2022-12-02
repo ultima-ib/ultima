@@ -42,8 +42,12 @@ impl Override {
         let schema = lf.schema()?;
         let dt = schema.try_get(self.field.as_str())?;
 
-        let mut lt = Expr::Literal(LiteralValue::try_from(string_to_any(&self.value, dt, &self.field)?)?);
-        // Special case, 
+        let mut lt = Expr::Literal(LiteralValue::try_from(string_to_any(
+            &self.value,
+            dt,
+            &self.field,
+        )?)?);
+        // Special case,
         //if dt == &DataType::List(Box::new(DataType::Float64)) {
         //    lt = lt.list()
         //};
@@ -56,7 +60,7 @@ impl Override {
 }
 
 // removed in favour of string_to_any
-// This function also defines Column DataTypes which we can override  
+// This function also defines Column DataTypes which we can override
 //fn string_to_lit(value: &str, dt: &DataType, column: &str) -> PolarsResult<Expr> {
 //    match dt {
 //        // RW column is a list for example
@@ -99,40 +103,48 @@ impl Override {
 //}
 
 /// This function also defines Column DataTypes which we can override  
-pub(crate) fn string_to_any<'a>(value: &'a str, dt: &DataType, column_name: &str) -> PolarsResult<AnyValue<'a>> {
-
-    let emsg =  format!("Argument {} could not be parsed into column {} format. Argument should be a {}", value, column_name, dt.to_string());
+pub(crate) fn string_to_any<'a>(
+    value: &'a str,
+    dt: &DataType,
+    column_name: &str,
+) -> PolarsResult<AnyValue<'a>> {
+    let emsg = format!(
+        "Argument {} could not be parsed into column {} format. Argument should be a {}",
+        value,
+        column_name,
+        dt
+    );
 
     match dt {
         // RW column is a list for example
-        DataType::List(x) => {
-            match **x {
-                DataType::Float64 => {
-                    serde_json::from_str::<Vec<f64>>(value)
-                        .map_err(|_|PolarsError::SchemaMisMatch(emsg.into()))
-                        .map(|vc| AnyValue::List(Series::from_vec("NewVal", vc)))
-                }
-                _ => Err(PolarsError::SchemaMisMatch(
-                    "Only List f64 columns can be overwritten".into(),
-                )),
-            }
-        }
+        DataType::List(x) => match **x {
+            DataType::Float64 => serde_json::from_str::<Vec<f64>>(value)
+                .map_err(|_| PolarsError::SchemaMisMatch(emsg.into()))
+                .map(|vc| AnyValue::List(Series::from_vec("NewVal", vc))),
+            _ => Err(PolarsError::SchemaMisMatch(
+                "Only List f64 columns can be overwritten".into(),
+            )),
+        },
         // All Numeric columns are f64
         DataType::Float64 => {
             let f = serde_json::from_str::<f64>(value)
-                .map_err(|_|PolarsError::SchemaMisMatch(emsg.into()))?;
+                .map_err(|_| PolarsError::SchemaMisMatch(emsg.into()))?;
             Ok(AnyValue::Float64(f))
         }
         // Boolean column
         DataType::Boolean => Ok(AnyValue::Boolean(
             serde_json::from_str::<bool>(value)
-                        .map_err(|_|PolarsError::SchemaMisMatch(emsg.into()))?
+                .map_err(|_| PolarsError::SchemaMisMatch(emsg.into()))?,
         )),
         // All Other columns are
-        DataType::Utf8 => Ok(AnyValue::Utf8(value.into())),
+        DataType::Utf8 => Ok(AnyValue::Utf8(value)),
 
         _ => Err(PolarsError::ComputeError(
-            format!("Column {} of this format cannot be overwritten", column_name).into(),
+            format!(
+                "Column {} of this format cannot be overwritten",
+                column_name
+            )
+            .into(),
         )),
     }
 }

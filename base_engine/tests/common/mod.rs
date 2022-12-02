@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use polars::prelude::*;
 
-use base_engine::prelude::{DataSetBase, DataSet, read_toml2, DataSourceConfig};
+use base_engine::prelude::{read_toml2, DataSet, DataSetBase, DataSourceConfig};
 
 pub static TEST_DASET: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
     let conf_path = r"./tests/data/test_config.toml";

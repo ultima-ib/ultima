@@ -1,4 +1,4 @@
-use base_engine::{AggregationRequest, Arc, execute_aggregation};
+use base_engine::{execute_aggregation, AggregationRequest, Arc};
 
 mod common;
 

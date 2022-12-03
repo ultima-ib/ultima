@@ -7,11 +7,11 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 
 const Accordion = ({
-                       title,
-                       children,
-                       hideExpandButton,
-                       ...rest
-                   }: AccordionProps & { title: string; hideExpandButton?: boolean }) => (
+    title,
+    children,
+    hideExpandButton,
+    ...rest
+}: AccordionProps & { title: string; hideExpandButton?: boolean }) => (
     <MuiAccordion {...rest}>
         <AccordionSummary
             expandIcon={!hideExpandButton && <ExpandMoreIcon />}

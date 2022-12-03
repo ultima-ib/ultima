@@ -1,22 +1,39 @@
-import React, {
+import {
     ChangeEvent,
     PropsWithChildren,
     ReactElement,
     SyntheticEvent,
-    useCallback, useDeferredValue,
+    useCallback,
+    useDeferredValue,
     useEffect,
     useState,
 } from "react"
 import { Virtuoso } from "react-virtuoso"
-import { DragDropContext, Droppable, Draggable, DraggableProvided, DropResult } from "@hello-pangea/dnd"
-import { Checkbox, ListItem, ListItemButton, ListItemText, TextField } from "@mui/material"
+import {
+    DragDropContext,
+    Droppable,
+    Draggable,
+    DraggableProvided,
+    DropResult,
+} from "@hello-pangea/dnd"
+import {
+    Checkbox,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+    TextField,
+} from "@mui/material"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 import Accordion from "./Accordion"
 
 // Virtuoso's resize observer can this error,
 // which is caught by DnD and aborts dragging.
 window.addEventListener("error", (e) => {
-    if (e.message === "ResizeObserver loop completed with undelivered notifications." || e.message === "ResizeObserver loop limit exceeded") {
+    if (
+        e.message ===
+            "ResizeObserver loop completed with undelivered notifications." ||
+        e.message === "ResizeObserver loop limit exceeded"
+    ) {
         e.stopImmediatePropagation()
     }
 })
@@ -53,17 +70,25 @@ function reorder<T>(list: T[], startIndex: number, endIndex: number): T[] {
 }
 
 function Item({
-                  provided,
-                  item,
-                  isDragging,
-                  list,
-                  extras: Extras,
-              }: { provided: DraggableProvided, item: string, isDragging: boolean, list: "measuresSelected" | "groupby", extras?: ItemExtras }) {
+    provided,
+    item,
+    isDragging,
+    list,
+    extras: Extras,
+}: {
+    provided: DraggableProvided
+    item: string
+    isDragging: boolean
+    list: "measuresSelected" | "groupby"
+    extras?: ItemExtras
+}) {
     const inputs = useInputs()
 
-    const toggleFromList = (item: string) => {
+    const toggleFromList = (listItem: string) => {
         const oldList = inputs.dataSet[list]
-        const newList = (oldList.includes(item)) ? oldList.filter(it => it !== item) : [...oldList, item]
+        const newList = oldList.includes(listItem)
+            ? oldList.filter((it) => it !== listItem)
+            : [...oldList, listItem]
 
         inputs.dispatcher({
             type: InputStateUpdate.DataSet,
@@ -76,7 +101,6 @@ function Item({
         })
     }
 
-
     return (
         <div style={{ paddingBottom: "8px" }}>
             <ListItem
@@ -86,7 +110,10 @@ function Item({
                 style={provided.draggableProps.style}
                 className={`item ${isDragging ? "is-dragging" : ""}`}
             >
-                <ListItemButton sx={{ cursor: "inherit" }} onClick={() => toggleFromList(item)}>
+                <ListItemButton
+                    sx={{ cursor: "inherit" }}
+                    onClick={() => toggleFromList(item)}
+                >
                     <Checkbox
                         edge="start"
                         checked={inputs.dataSet[list].includes(item)}
@@ -101,12 +128,15 @@ function Item({
     )
 }
 
-const HeightPreservingItem = ({ children, ...props }: PropsWithChildren<any>) => {
+const HeightPreservingItem = ({
+    children,
+    ...props
+}: PropsWithChildren<{ "data-known-size": number }>) => {
     const [size, setSize] = useState(0)
     const knownSize = props["data-known-size"]
     useEffect(() => {
         setSize((prevSize) => {
-            return knownSize == 0 ? prevSize : knownSize
+            return knownSize === 0 ? prevSize : knownSize
         })
     }, [knownSize])
     return (
@@ -121,56 +151,73 @@ const HeightPreservingItem = ({ children, ...props }: PropsWithChildren<any>) =>
     )
 }
 
-export default function TheList({ readFrom, list, searchValue, extras }: {
-    readFrom: "fields" | "measures",
-    list: "measuresSelected" | "groupby",
-    extras?: ItemExtras,
+export default function TheList({
+    readFrom,
+    list,
+    searchValue,
+    extras,
+}: {
+    readFrom: "fields" | "measures"
+    list: "measuresSelected" | "groupby"
+    extras?: ItemExtras
     searchValue: string
 }) {
     const inputs = useInputs()
 
-    const doSearch = useCallback((orElse: string[]) => {
-        if (searchValue) {
-            const results = orElse.filter((it) =>
-                it.toLowerCase().includes(searchValue.toLowerCase()),
-            )
-            if (results.length >= 0) {
-                return results
+    const doSearch = useCallback(
+        (orElse: string[]) => {
+            if (searchValue) {
+                const results = orElse.filter((it) =>
+                    it.toLowerCase().includes(searchValue.toLowerCase()),
+                )
+                if (results.length >= 0) {
+                    return results
+                } else {
+                    return []
+                }
             } else {
-                return []
+                return orElse
             }
-        } else {
-            return orElse
-        }
-    }, [searchValue])
+        },
+        [searchValue],
+    )
 
     const items = doSearch([
         ...inputs.dataSet[list],
-        ...inputs.dataSet[readFrom].filter(it => !inputs.dataSet[list].includes(it)),
+        ...inputs.dataSet[readFrom].filter(
+            (it) => !inputs.dataSet[list].includes(it),
+        ),
     ])
 
-    const onDragEnd = useCallback((result: DropResult) => {
-        if (!result.destination) {
-            return
-        }
-        if (result.source.index === result.destination.index) {
-            return
-        }
+    const onDragEnd = useCallback(
+        (result: DropResult) => {
+            if (!result.destination) {
+                return
+            }
+            if (result.source.index === result.destination.index) {
+                return
+            }
 
-        if (!inputs.dataSet[list].includes(result.draggableId)) {
-            return
-        }
+            if (!inputs.dataSet[list].includes(result.draggableId)) {
+                return
+            }
 
-        inputs.dispatcher({
-            type: InputStateUpdate.DataSet,
-            data: {
-                // @ts-expect-error signature mismatch
-                dataSet: {
-                    [list]: reorder(inputs.dataSet[list], result.source.index, result.destination!.index),
+            inputs.dispatcher({
+                type: InputStateUpdate.DataSet,
+                data: {
+                    // @ts-expect-error signature mismatch
+                    dataSet: {
+                        [list]: reorder(
+                            inputs.dataSet[list],
+                            result.source.index,
+                            result.destination.index,
+                        ),
+                    },
                 },
-            },
-        })
-    }, [inputs.dataSet[list], inputs.dispatcher])
+            })
+        },
+        [inputs.dataSet[list], inputs.dispatcher],
+    )
 
     return (
         <>
@@ -200,20 +247,26 @@ export default function TheList({ readFrom, list, searchValue, extras }: {
                                 components={{
                                     Item: HeightPreservingItem,
                                 }}
-                                // @ts-ignore
+                                // @ts-expect-error library types cause type error
                                 scrollerRef={provided.innerRef}
                                 data={items}
                                 style={{ height: 500 }}
                                 itemContent={(index, item) => {
                                     return (
-                                        <Draggable draggableId={item} index={index} key={item}>
-                                            {(provided) => <Item
-                                                provided={provided}
-                                                item={item}
-                                                isDragging={false}
-                                                list={list}
-                                                extras={extras}
-                                            />}
+                                        <Draggable
+                                            draggableId={item}
+                                            index={index}
+                                            key={item}
+                                        >
+                                            {(draggableProvided) => (
+                                                <Item
+                                                    provided={draggableProvided}
+                                                    item={item}
+                                                    isDragging={false}
+                                                    list={list}
+                                                    extras={extras}
+                                                />
+                                            )}
                                         </Draggable>
                                     )
                                 }}
@@ -226,10 +279,15 @@ export default function TheList({ readFrom, list, searchValue, extras }: {
     )
 }
 
-export function AsideList({ readFrom, list, title, extras }: {
-    readFrom: "fields" | "measures",
-    list: "measuresSelected" | "groupby",
-    title: string,
+export function AsideList({
+    readFrom,
+    list,
+    title,
+    extras,
+}: {
+    readFrom: "fields" | "measures"
+    list: "measuresSelected" | "groupby"
+    title: string
     extras?: ItemExtras
 }) {
     const [searchValue, setSearchValue] = useState<string | undefined>()
@@ -237,14 +295,20 @@ export function AsideList({ readFrom, list, title, extras }: {
     const [accordionExpanded, setAccordionExpanded] = useState(false)
 
     return (
-        <Accordion title={title} expanded={accordionExpanded} onChange={(
-            event: SyntheticEvent,
-            isExpanded: boolean,
-        ) => {
-            setAccordionExpanded(isExpanded)
-        }}>
+        <Accordion
+            title={title}
+            expanded={accordionExpanded}
+            onChange={(event: SyntheticEvent, isExpanded: boolean) => {
+                setAccordionExpanded(isExpanded)
+            }}
+        >
             <SearchBox onChange={(v) => setSearchValue(v)} />
-            <TheList readFrom={readFrom} list={list} extras={extras} searchValue={searchValue ?? ""} />
+            <TheList
+                readFrom={readFrom}
+                list={list}
+                extras={extras}
+                searchValue={searchValue ?? ""}
+            />
         </Accordion>
     )
 }

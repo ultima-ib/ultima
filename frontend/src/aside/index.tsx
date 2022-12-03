@@ -75,7 +75,6 @@ const Resizable = (props: PropsWithChildren<ResizableProps>) => {
 const Aside = () => {
     const [activeTab, setActiveTab] = useState(0)
 
-
     const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
         setActiveTab(newValue)
     }
@@ -87,10 +86,7 @@ const Aside = () => {
                     <Templates />
                 </Suspense>
                 <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-                    <Tabs
-                        value={activeTab}
-                        onChange={handleActiveTabChange}
-                    >
+                    <Tabs value={activeTab} onChange={handleActiveTabChange}>
                         <Tab label="Aggregate" {...a11yProps(0)} />
                         <Tab label="Params" {...a11yProps(1)} />
                     </Tabs>

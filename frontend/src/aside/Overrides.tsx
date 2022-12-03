@@ -9,7 +9,6 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Divider,
     TextField,
 } from "@mui/material"
 import LaunchIcon from "@mui/icons-material/Launch"
@@ -150,7 +149,6 @@ export function Overrides() {
 
     return (
         <>
-            <Divider sx={{ borderBottomWidth: "medium" }} />
             <Title content="Overrides" onClick={() => setDialogOpen(true)}>
                 <>
                     <LaunchIcon />

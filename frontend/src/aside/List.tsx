@@ -26,8 +26,7 @@ import {
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 import Accordion from "./Accordion"
 
-// Virtuoso's resize observer can this error,
-// which is caught by DnD and aborts dragging.
+// Virtuoso's resize observer can this error, which is caught by DnD and aborts dragging.
 window.addEventListener("error", (e) => {
     if (
         e.message ===
@@ -109,10 +108,13 @@ function Item({
                 ref={provided.innerRef}
                 style={provided.draggableProps.style}
                 className={`item ${isDragging ? "is-dragging" : ""}`}
+                dense
+                disablePadding
             >
                 <ListItemButton
                     sx={{ cursor: "inherit" }}
                     onClick={() => toggleFromList(item)}
+                    dense
                 >
                     <Checkbox
                         edge="start"
@@ -151,7 +153,7 @@ const HeightPreservingItem = ({
     )
 }
 
-export default function TheList({
+export function TheList({
     readFrom,
     list,
     searchValue,

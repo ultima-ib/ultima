@@ -146,6 +146,7 @@ const HeightPreservingItem = ({
             {...props}
             className="height-preserving-container"
             // check styling in the style tag below
+            // @ts-expect-error react doesn't like custom properties
             style={{ "--child-height": `${size}px` }}
         >
             {children}

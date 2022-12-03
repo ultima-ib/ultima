@@ -21,14 +21,11 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-virtuoso": "^2.19.0",
-        "seedrandom": "^3.0.5"
     },
     "devDependencies": {
-        "@types/lunr": "^2.3.4",
         "@types/react": "^18.0.17",
         "@types/react-dom": "^18.0.6",
         "@types/react-window": "^1.8.5",
-        "@types/seedrandom": "^3.0.2",
         "@typescript-eslint/eslint-plugin": "^5.39.0",
         "@typescript-eslint/parser": "^5.39.0",
         "@vitejs/plugin-react": "^2.1.0",

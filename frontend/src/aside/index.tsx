@@ -16,25 +16,21 @@ import {
     BoxProps,
     Checkbox,
     FormControlLabel,
-    IconButton,
     Stack,
     Tab,
     Tabs,
     TextField,
-    ListItem, ListItemText, ListItemButton,
 } from "@mui/material"
 import { Filters } from "./filters"
-import type { DataSet } from "./types"
 import Agg from "./AggTypes"
+import TheList from "./List"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { Resizable as ReResizable } from "re-resizable"
-import DeleteIcon from "@mui/icons-material/Close"
 import { Overrides } from "./Overrides"
 import { Templates } from "./Templates"
 import { useTheme } from "@mui/material/styles"
 import CalcParams from "./CalcParams"
-import { Virtuoso } from "react-virtuoso"
 
 interface ResizableProps {
     top?: boolean
@@ -173,45 +169,9 @@ const SearchBox = (props: { onChange: (text: string) => void }) => {
             value={searchText}
             onChange={onSearchTextChange}
             label="Search"
-            sx={{ my: 1, mx: 1 }}
+            sx={{ my: 1, mx: 1, width: "100%" }}
             variant="filled"
         />
-    )
-}
-
-const DeleteButton = (props: {
-    field: string
-    from: keyof Omit<DataSet, "calcParams">
-}) => {
-    const inputs = useInputs()
-
-    const onDelete = () => {
-        const returnTo =
-            props.from === "measuresSelected" ? "measures" : "fields"
-        const fromList = inputs.dataSet[props.from].filter(
-            (it) => it !== props.field,
-        )
-        const orgList = inputs.dataSet[returnTo]
-        const toList = orgList.includes(props.field)
-            ? orgList
-            : [...orgList, props.field]
-
-        inputs.dispatcher({
-            type: InputStateUpdate.DataSet,
-            data: {
-                // @ts-expect-error signature mismatch
-                dataSet: {
-                    [props.from]: fromList,
-                    [returnTo]: toList,
-                },
-            },
-        })
-    }
-
-    return (
-        <IconButton onClick={onDelete}>
-            <DeleteIcon />
-        </IconButton>
     )
 }
 
@@ -251,21 +211,11 @@ const Aside = () => {
                             readFrom={"measures"}
                             list={"measuresSelected"}
                             title={"Measures"}
-                            extras={({ field }) => (
-                                <>
-                                    {inputs.canMeasureBeAggregated(
-                                        field,
-                                    ) && (
-                                        <Suspense>
-                                            <Agg field={field} />
-                                        </Suspense>
-                                    )}
-                                    <DeleteButton
-                                        field={field}
-                                        from="measuresSelected"
-                                    />
-                                </>
-                            )}
+                            extras={({ field }) => inputs.canMeasureBeAggregated(field) ? (
+                                <Suspense>
+                                    <Agg field={field} />
+                                </Suspense>
+                            ) : <></>}
                         />
                         <Accordion expanded={filtersAccordionExpanded} title="Filters" onChange={(
                             event: SyntheticEvent,
@@ -336,69 +286,15 @@ const Aside = () => {
     )
 }
 
-function AsideList({ readFrom, list, title, extras: Extras }: {
+function AsideList({ readFrom, list, title, extras }: {
     readFrom: "fields" | "measures",
     list: "measuresSelected" | "groupby",
     title: string,
     extras?: (v: { field: string }) => ReactElement
 }) {
-    const inputs = useInputs()
-
-    const toggleFromList = (item: string) => {
-        const oldList = inputs.dataSet[list]
-        const newList = (oldList.includes(item)) ? oldList.filter(it => it !== item) : [...oldList, item]
-
-        // @ts-ignore
-        inputs.dispatcher({
-            type: InputStateUpdate.DataSet,
-            data: {
-                // @ts-expect-error signature mismatch
-                dataSet: {
-                    [list]: newList,
-                },
-            },
-        })
-    }
 
     const [searchValue, setSearchValue] = useState<string | undefined>()
 
-    const doSearch = (orElse: string[]) => {
-        if (searchValue) {
-            const results = orElse.filter((it) =>
-                it.toLowerCase().includes(searchValue.toLowerCase()),
-            )
-            if (results.length >= 0) {
-                return results
-            } else {
-                return []
-            }
-        } else {
-            return orElse
-        }
-    }
-
-    const items = doSearch([
-        ...inputs.dataSet[list],
-        ...inputs.dataSet[readFrom].filter(it => !inputs.dataSet[list].includes(it)),
-    ])
-
-    const renderRow = (index: number) => {
-        const item = items[index]
-        return (
-            <ListItem key={item} disablePadding component="div">
-                <ListItemButton dense onClick={() => toggleFromList(item)}>
-                    <Checkbox
-                        edge="start"
-                        checked={inputs.dataSet[list].includes(item)}
-                        tabIndex={-1}
-                        disableRipple
-                    />
-                    <ListItemText primary={item} />
-                </ListItemButton>
-                {Extras && <Extras field={item} />}
-            </ListItem>
-        )
-    }
     const [accordionExpanded, setAccordionExpanded] = useState(false)
 
     return (
@@ -409,13 +305,7 @@ function AsideList({ readFrom, list, title, extras: Extras }: {
             setAccordionExpanded(isExpanded)
         }}>
             <SearchBox onChange={(v) => setSearchValue(v)} />
-            <Box sx={{ width: "100%", maxWidth: 360 }}>
-                <Virtuoso
-                    style={{ height: "400px", width: "20rem" }}
-                    totalCount={items.length}
-                    itemContent={renderRow}
-                />
-            </Box>
+            <TheList readFrom={readFrom} list={list} extras={extras} searchValue={searchValue ?? ""} />
         </Accordion>
     )
 }

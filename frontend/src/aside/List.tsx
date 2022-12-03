@@ -1,8 +1,17 @@
-import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useState } from "react"
+import React, {
+    ChangeEvent,
+    PropsWithChildren,
+    ReactElement,
+    SyntheticEvent,
+    useCallback, useDeferredValue,
+    useEffect,
+    useState,
+} from "react"
 import { Virtuoso } from "react-virtuoso"
 import { DragDropContext, Droppable, Draggable, DraggableProvided, DropResult } from "@hello-pangea/dnd"
-import { Checkbox, ListItem, ListItemButton, ListItemText } from "@mui/material"
+import { Checkbox, ListItem, ListItemButton, ListItemText, TextField } from "@mui/material"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
+import Accordion from "./Accordion"
 
 // Virtuoso's resize observer can this error,
 // which is caught by DnD and aborts dragging.
@@ -11,6 +20,27 @@ window.addEventListener("error", (e) => {
         e.stopImmediatePropagation()
     }
 })
+
+const SearchBox = (props: { onChange: (text: string) => void }) => {
+    const [searchText, setSearchText] = useState("")
+    const onSearchTextChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setSearchText(event.target.value)
+    }
+    const deferredSearchText = useDeferredValue(searchText)
+    useEffect(() => {
+        props.onChange(deferredSearchText)
+    }, [deferredSearchText])
+
+    return (
+        <TextField
+            value={searchText}
+            onChange={onSearchTextChange}
+            label="Search"
+            sx={{ my: 1, mx: 1, width: "100%" }}
+            variant="filled"
+        />
+    )
+}
 
 type ItemExtras = (v: { field: string }) => ReactElement
 
@@ -193,5 +223,28 @@ export default function TheList({ readFrom, list, searchValue, extras }: {
                 </Droppable>
             </DragDropContext>
         </>
+    )
+}
+
+export function AsideList({ readFrom, list, title, extras }: {
+    readFrom: "fields" | "measures",
+    list: "measuresSelected" | "groupby",
+    title: string,
+    extras?: ItemExtras
+}) {
+    const [searchValue, setSearchValue] = useState<string | undefined>()
+
+    const [accordionExpanded, setAccordionExpanded] = useState(false)
+
+    return (
+        <Accordion title={title} expanded={accordionExpanded} onChange={(
+            event: SyntheticEvent,
+            isExpanded: boolean,
+        ) => {
+            setAccordionExpanded(isExpanded)
+        }}>
+            <SearchBox onChange={(v) => setSearchValue(v)} />
+            <TheList readFrom={readFrom} list={list} extras={extras} searchValue={searchValue ?? ""} />
+        </Accordion>
     )
 }

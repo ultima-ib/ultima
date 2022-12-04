@@ -28,6 +28,8 @@ import CloseIcon from "@mui/icons-material/Close"
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import CheckBoxIcon from "@mui/icons-material/CheckBox"
 import { ActionType, reducer, Filters as FiltersType } from "./reducer"
+import { useInputs } from "../InputStateContext"
+import * as _ from "lodash"
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />
 const checkedIcon = <CheckBoxIcon fontSize="small" />
@@ -35,11 +37,11 @@ const checkedIcon = <CheckBoxIcon fontSize="small" />
 interface FilterSelectProps {
     label: string
     state: [
-        string | string[] | null,
+            string | string[] | null,
         (
             | Dispatch<SetStateAction<string | null>>
             | Dispatch<SetStateAction<string | string[] | null>>
-        ),
+            ),
     ]
     options: string[]
     inputValue?: string
@@ -97,10 +99,11 @@ const FilterSelect = (props: FilterSelectProps) => {
 const Filter = (props: {
     onChange: (field: string, op: string, val: string | string[]) => void
     fields: string[]
+    field: string | undefined, op: string | undefined, val: string | string[] | undefined
 }) => {
-    const [field, setField] = useState<string | null>(null)
-    const [op, setOp] = useState<string | null>(null)
-    const [val, setVal] = useState<string | string[] | null>(null)
+    const [field, setField] = useState<string | null>(props.field ?? null)
+    const [op, setOp] = useState<string | null>(props.op ?? null)
+    const [val, setVal] = useState<string | string[] | null>(props.val ?? null)
 
     const [pending, startTransition] = useTransition()
 
@@ -163,7 +166,7 @@ interface FilterListProps {
 }
 
 function FilterList(props: FilterListProps) {
-    return (
+    const list = (
         <>
             {Object.keys(props.filters)
                 .map((it) => it as unknown as number)
@@ -189,11 +192,20 @@ function FilterList(props: FilterListProps) {
                                 props.onChange(f, o, v, index)
                             }
                             fields={props.fields}
+                            field={props.filters[index].field}
+                            op={props.filters[index].op}
+                            val={props.filters[index].value}
                         />
                     </ListItem>
                 ))}
             <Button onClick={props.addFilter}>add filter</Button>
         </>
+    )
+
+    return (
+        <Suspense fallback="Loading...">
+            {list}
+        </Suspense>
     )
 }
 
@@ -202,17 +214,16 @@ let lastUsed = 1
 export const Filters = (props: {
     fields?: string[]
     onFiltersChange: (f: FiltersType) => void
-    component?: ElementType
+    component?: ElementType,
+    reducer: [FiltersType, (a: any) => void]
 }) => {
-    const [filters, dispatch] = useReducer(reducer, {
-        0: {
-            1: {},
-        },
-    })
+
+    const [filters, dispatch] = props.reducer
 
     useEffect(() => {
         props.onFiltersChange(filters)
     }, [filters])
+
     const addNewFilter = () => {
         lastUsed += 1
         dispatch({

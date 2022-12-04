@@ -1,5 +1,5 @@
 import { Filters } from "./filters"
-import { Filters as FiltersType } from "./filters/reducer"
+import { Filters as FiltersType, reducer } from "./filters/reducer"
 import Title from "./Title"
 import {
     Autocomplete,
@@ -12,7 +12,7 @@ import {
     TextField,
 } from "@mui/material"
 import LaunchIcon from "@mui/icons-material/Launch"
-import { Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, SetStateAction, useReducer, useState } from "react"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 import { Override } from "./types"
 import { mapFilters } from "../utils"
@@ -35,6 +35,8 @@ const OverridesDialog = (props: {
     }
 
     const fields = useOverrides()
+
+    const filtersReducer = useReducer(reducer, inputs.filters)
 
     const updateOverride = (
         index: number,
@@ -122,6 +124,7 @@ const OverridesDialog = (props: {
                                 />
                                 <Filters
                                     component={Box}
+                                    reducer={filtersReducer}
                                     onFiltersChange={(filters) => {
                                         updateOverride(
                                             index,

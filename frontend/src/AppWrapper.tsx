@@ -2,6 +2,7 @@ import Aside from "./aside"
 import { useReducer, useRef, useState, Suspense, useEffect } from "react"
 import { useFRTB } from "./api/hooks"
 import {
+    buildRequest,
     InputStateContext,
     InputStateContextProvider,
     inputStateReducer,
@@ -10,7 +11,6 @@ import { Box } from "@mui/material"
 import TopBar from "./AppBar"
 import DataTable from "./table"
 import { GenerateTableDataRequest } from "./api/types"
-import { mapFilters } from "./utils"
 
 export const AppWrapper = () => {
     const frtb = useFRTB()
@@ -50,26 +50,7 @@ export const AppWrapper = () => {
     const compareDataTableRef = useRef<HTMLTableSectionElement | null>(null)
 
     const run = (setter: typeof setBuildTableReq) => () => {
-        const data = context.dataSet
-        const measures = data.measuresSelected.map(
-            (measure: string): [string, string] => {
-                const m = frtb.measures.find((it) => it.measure === measure)!
-                const agg: string = context.aggData[m.measure]
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                return [m.measure, agg ?? m.agg]
-            },
-        )
-        const obj: GenerateTableDataRequest = {
-            filters: mapFilters(context.filters),
-            groupby: data.groupby,
-            measures,
-            overrides: Object.values(context.overrides),
-            hide_zeros: context.hideZeros,
-            totals: context.totals,
-            calc_params: context.calcParams,
-        }
-        setter(obj)
-        console.log(JSON.stringify(obj, null, 2))
+        setter(buildRequest(context, frtb))
     }
 
     useEffect(() => {
@@ -85,24 +66,6 @@ export const AppWrapper = () => {
             }
         })
     })
-
-    const copyTable = (tableData: GenerateTableDataRequest | undefined) => {
-        if (tableData === undefined) {
-            return
-        }
-        const data = {
-            ...tableData,
-            name: "Shared Content",
-        }
-        navigator.clipboard
-            .writeText(JSON.stringify(data, null, 2))
-            .then(() => {
-                // todo: show snackbar
-            })
-            .catch(() => {
-                // todo: show snackbar
-            })
-    }
 
     return (
         <Box sx={{ display: "flex", height: "100%" }}>
@@ -122,10 +85,6 @@ export const AppWrapper = () => {
                     }
                     compareButtonLabel={
                         buildComparisonTableReq ? "Stop Comparing" : "Compare"
-                    }
-                    copyMainTable={() => copyTable(buildTableReq)}
-                    copyComparisonTable={() =>
-                        copyTable(buildComparisonTableReq)
                     }
                 >
                     <Suspense fallback="Loading...">

@@ -14,19 +14,23 @@ import {
     Button,
     Dialog,
 } from "@mui/material"
-import { useTemplates } from "../api/hooks"
+import { useFRTB, useTemplates } from "../api/hooks"
 import { Dispatch, SetStateAction, useId, useRef, useState } from "react"
 import { Template } from "../api/types"
-import { InputStateUpdate, useInputs } from "./InputStateContext"
+import { buildRequest, InputStateUpdate, useInputs } from "./InputStateContext"
 import LaunchIcon from "@mui/icons-material/Launch"
+import { Filters } from "./filters/reducer"
 
 const JSONTemplateDialog = (props: {
     open: [boolean, Dispatch<SetStateAction<boolean>>]
+    setFilters: (f: Filters) => void
 }) => {
     const [open, setOpen] = props.open
     const [helperText, setHelperText] = useState("")
     const error = helperText !== ""
     const inputs = useInputs()
+
+    const frtb = useFRTB()
 
     const textFieldRef = useRef<HTMLTextAreaElement | null>(null)
 
@@ -44,6 +48,7 @@ const JSONTemplateDialog = (props: {
                 setHelperText(`Failed to parse JSON: ${e as string}`)
                 return
             }
+            props.setFilters(data.filters)
             inputs.dispatcher({
                 type: InputStateUpdate.TemplateSelect,
                 data,
@@ -58,6 +63,7 @@ const JSONTemplateDialog = (props: {
                 <TextField
                     error={error}
                     multiline
+                    defaultValue={JSON.stringify(buildRequest(inputs, frtb), null, 2)}
                     helperText={helperText}
                     label="JSON"
                     inputRef={textFieldRef}
@@ -72,7 +78,7 @@ const JSONTemplateDialog = (props: {
     )
 }
 
-export const Templates = () => {
+export const Templates = (props: { setFilters: (filters: Filters) => void}) => {
     const templates = useTemplates()
     const inputs = useInputs()
     const [selectedTemplate, setSelectedTemplate] = useState<
@@ -85,6 +91,7 @@ export const Templates = () => {
         if (foundTemplate === undefined) {
             return
         }
+        props.setFilters(foundTemplate.filters)
         setSelectedTemplate(foundTemplate)
         inputs.dispatcher({
             type: InputStateUpdate.TemplateSelect,
@@ -126,7 +133,7 @@ export const Templates = () => {
                     </IconButton>
                 </Tooltip>
             </Box>
-            <JSONTemplateDialog open={[dialogOpen, setDialogOpen]} />
+            <JSONTemplateDialog open={[dialogOpen, setDialogOpen]} setFilters={props.setFilters} />
         </>
     )
 }

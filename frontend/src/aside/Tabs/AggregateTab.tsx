@@ -7,7 +7,7 @@ import { Box, Stack } from "@mui/material"
 import { InputStateUpdate, useInputs } from "../InputStateContext"
 import { Overrides } from "../Overrides"
 
-const AggregateTab = () => {
+const AggregateTab = ({ filtersReducer }: { filtersReducer: any }) => {
     const inputs = useInputs()
 
     const [filtersAccordionExpanded, setFiltersAccordionExpanded] =
@@ -43,6 +43,7 @@ const AggregateTab = () => {
             >
                 <Filters
                     component={Box}
+                    reducer={filtersReducer}
                     fields={inputs.dataSet.fields}
                     onFiltersChange={(filters) => {
                         inputs.dispatcher({

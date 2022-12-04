@@ -17,6 +17,7 @@
         "@mui/icons-material": "^5.10.6",
         "@mui/material": "^5.10.7",
         "fetch-suspense": "^1.2.2",
+        "lodash": "^4.17.21",
         "re-resizable": "^6.9.9",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

@@ -8,6 +8,7 @@ export enum ActionType {
     RemoveAnd,
     RemoveOr,
     Update,
+    Set,
 }
 
 export interface Action {
@@ -25,11 +26,15 @@ export interface OrFilter extends Action {
 
 export interface UpdateFilter extends OrFilter, Filter {}
 
+export interface SetFilters extends Action {
+    filters: Filters
+}
+
 const EMPTY_FILTER: Filters = {}
 
 export function reducer(
     prevState: Filters,
-    action: AndFilter | OrFilter | UpdateFilter,
+    action: AndFilter | OrFilter | UpdateFilter | SetFilters,
 ): Filters {
     switch (action.type) {
         case ActionType.NewAnd: {
@@ -78,6 +83,10 @@ export function reducer(
                     [index]: { op, value, field },
                 },
             }
+        }
+        case ActionType.Set: {
+            const data = action as SetFilters
+            return data.filters
         }
     }
     throw Error("unreachable")

@@ -81,7 +81,7 @@ jobs:
   build_and_publish:
     name: Build and Publish
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.event == 'push'
+    if: github.event_name == 'push'
     needs:
       - clippy_fmt
       - rust_tests

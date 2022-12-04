@@ -103,6 +103,7 @@ export function inputStateReducer(
                 hideZeros: data.hide_zeros,
                 totals: data.totals,
                 calcParams: data.calc_params,
+                overrides: data.overrides,
                 aggData,
             }
             break

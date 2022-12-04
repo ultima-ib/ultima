@@ -211,12 +211,14 @@ function FilterList(props: FilterListProps) {
 
 let lastUsed = 1
 
-export const Filters = (props: {
+export interface FiltersProps {
     fields?: string[]
     onFiltersChange: (f: FiltersType) => void
     component?: ElementType,
     reducer: [FiltersType, (a: any) => void]
-}) => {
+}
+
+export const Filters = (props: FiltersProps) => {
 
     const [filters, dispatch] = props.reducer
 
@@ -301,3 +303,4 @@ export const Filters = (props: {
         </>
     )
 }
+

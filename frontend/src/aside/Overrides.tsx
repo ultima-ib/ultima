@@ -1,4 +1,4 @@
-import { Filters } from "./filters"
+import { Filters, FiltersProps } from "./filters"
 import { Filters as FiltersType, reducer } from "./filters/reducer"
 import Title from "./Title"
 import {
@@ -18,6 +18,12 @@ import { Override } from "./types"
 import { mapFilters } from "../utils"
 import { useOverrides } from "../api/hooks"
 
+const FiltersWithReducer = (props: Omit<FiltersProps, 'reducer'> & { initialState: any }) => {
+    const filtersReducer = useReducer(reducer, props.initialState)
+
+    return <Filters reducer={filtersReducer} {...props} />
+}
+
 let overrideUsed = 0
 
 const OverridesDialog = (props: {
@@ -35,8 +41,6 @@ const OverridesDialog = (props: {
     }
 
     const fields = useOverrides()
-
-    const filtersReducer = useReducer(reducer, inputs.filters)
 
     const updateOverride = (
         index: number,
@@ -122,9 +126,9 @@ const OverridesDialog = (props: {
                                         )
                                     }}
                                 />
-                                <Filters
+                                <FiltersWithReducer
                                     component={Box}
-                                    reducer={filtersReducer}
+                                    initialState={override.filters}
                                     onFiltersChange={(filters) => {
                                         updateOverride(
                                             index,
@@ -153,9 +157,7 @@ export function Overrides() {
     return (
         <>
             <Title content="Overrides" onClick={() => setDialogOpen(true)}>
-                <>
                     <LaunchIcon />
-                </>
             </Title>
             <OverridesDialog open={[dialogOpen, setDialogOpen]} />
         </>

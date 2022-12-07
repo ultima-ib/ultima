@@ -9,7 +9,9 @@ import {
     TableRow,
     TableCell,
     TableFooter,
+    Button,
 } from "@mui/material"
+import DownloadIcon from "@mui/icons-material/Download"
 import { fancyZip } from "../utils"
 import { forwardRef } from "react"
 
@@ -36,6 +38,22 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         }
         const headers = data.columns.map((it) => it.name)
         const zipped = fancyZip(data.columns.map((col) => col.values))
+
+        const saveCsv = () => {
+            const headers = Object.keys(data.columns[0])
+            const rows = data.columns.map(it => Object.values(it).map(row => {
+                if (typeof row === "string") {
+                    return row
+                } else if (Array.isArray(row)) {
+                    return `"[${row.map(it => it?.toString() ?? "").join(", ")}]"`
+                } else {
+                    return row
+                }
+            })).map((row: string[]) => `${row.join(",")}\r\n`)
+            const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + rows.join("")
+            const encodedUri = encodeURI(csvContent);
+            window.open(encodedUri)
+        }
 
         return (
             <Paper sx={{ overflow: "hidden", width: "100%" }}>
@@ -70,8 +88,15 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                         </TableBody>
                         <TableFooter>
                             <TableRow>
-                                <TableCell>
+                                <TableCell colSpan={headers.length}>
                                     Total Rows: {zipped.length}
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell colSpan={headers.length}>
+                                    <Button variant="contained" endIcon={<DownloadIcon />} onClick={saveCsv}>
+                                        Save as CSV
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         </TableFooter>

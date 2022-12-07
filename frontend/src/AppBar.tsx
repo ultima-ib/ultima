@@ -1,11 +1,4 @@
-import {
-    AppBar,
-    Box,
-    Toolbar,
-    Slide,
-    Button,
-    IconButton,
-} from "@mui/material"
+import { AppBar, Box, Toolbar, Slide, Button, IconButton } from "@mui/material"
 import useScrollTrigger from "@mui/material/useScrollTrigger"
 import { PropsWithChildren, useRef } from "react"
 import { useTheme } from "@mui/material/styles"
@@ -21,9 +14,7 @@ interface TopBarProps {
     compareButtonLabel: string
 }
 
-export default function TopBar(
-    props: PropsWithChildren<TopBarProps>,
-) {
+export default function TopBar(props: PropsWithChildren<TopBarProps>) {
     const scrollTarget = useRef()
     const trigger = useScrollTrigger({
         target: scrollTarget.current,

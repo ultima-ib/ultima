@@ -40,18 +40,25 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         const zipped = fancyZip(data.columns.map((col) => col.values))
 
         const saveCsv = () => {
-            const headers = Object.keys(data.columns[0])
-            const rows = data.columns.map(it => Object.values(it).map(row => {
-                if (typeof row === "string") {
-                    return row
-                } else if (Array.isArray(row)) {
-                    return `"[${row.map(it => it?.toString() ?? "").join(", ")}]"`
-                } else {
-                    return row
-                }
-            })).map((row: string[]) => `${row.join(",")}\r\n`)
-            const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + rows.join("")
-            const encodedUri = encodeURI(csvContent);
+            const csvHeaders = Object.keys(data.columns[0]).join(",")
+            const rows = data.columns
+                .map((it) =>
+                    Object.values(it).map((row) => {
+                        if (typeof row === "string") {
+                            return row
+                        } else if (Array.isArray(row)) {
+                            return `"[${row
+                                .map((r) => r?.toString() ?? "")
+                                .join(", ")}]"`
+                        } else {
+                            return row
+                        }
+                    }),
+                )
+                .map((row: string[]) => `${row.join(",")}\r\n`)
+                .join("")
+            const csvContent = `data:text/csv;charset=utf-8,${csvHeaders}${rows}`
+            const encodedUri = encodeURI(csvContent)
             window.open(encodedUri)
         }
 
@@ -94,7 +101,11 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                             </TableRow>
                             <TableRow>
                                 <TableCell colSpan={headers.length}>
-                                    <Button variant="contained" endIcon={<DownloadIcon />} onClick={saveCsv}>
+                                    <Button
+                                        variant="contained"
+                                        endIcon={<DownloadIcon />}
+                                        onClick={saveCsv}
+                                    >
                                         Save as CSV
                                     </Button>
                                 </TableCell>

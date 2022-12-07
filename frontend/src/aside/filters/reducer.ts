@@ -91,3 +91,7 @@ export function reducer(
     }
     throw Error("unreachable")
 }
+
+export type FiltersReducerDispatch = (
+    a: AndFilter | OrFilter | UpdateFilter | SetFilters,
+) => void

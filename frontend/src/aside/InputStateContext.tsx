@@ -161,8 +161,10 @@ export const useInputs = (): InputStateContext => {
     return ctx
 }
 
-
-export const buildRequest = (context: InputStateContext, frtb: { measures: {measure: string, agg: string | null}[] }): GenerateTableDataRequest => {
+export const buildRequest = (
+    context: InputStateContext,
+    frtb: { measures: { measure: string; agg: string | null }[] },
+): GenerateTableDataRequest => {
     const data = context.dataSet
     const measures = data.measuresSelected.map(
         (measure: string): [string, string] => {

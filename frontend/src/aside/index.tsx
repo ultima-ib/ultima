@@ -1,4 +1,10 @@
-import { PropsWithChildren, Suspense, SyntheticEvent, useReducer, useState } from "react"
+import {
+    PropsWithChildren,
+    Suspense,
+    SyntheticEvent,
+    useReducer,
+    useState,
+} from "react"
 import { Box, Stack, Tab, Tabs } from "@mui/material"
 import AggregateTab from "./Tabs/AggregateTab"
 import { Resizable as ReResizable } from "re-resizable"
@@ -76,7 +82,7 @@ const Resizable = (props: PropsWithChildren<ResizableProps>) => {
 const Aside = () => {
     const [activeTab, setActiveTab] = useState(0)
 
-    const [filters, dispatch] = useReducer(reducer, { });
+    const [filters, dispatch] = useReducer(reducer, {})
 
     const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
         setActiveTab(newValue)
@@ -86,10 +92,14 @@ const Aside = () => {
         <Resizable right defaultWidth="40%">
             <Stack sx={{ width: "100%", height: "100%" }}>
                 <Suspense fallback="Loading templates....">
-                    <Templates setFilters={(f) => dispatch({
-                        type: ActionType.Set,
-                        filters: f
-                    })} />
+                    <Templates
+                        setFilters={(f) =>
+                            dispatch({
+                                type: ActionType.Set,
+                                filters: f,
+                            })
+                        }
+                    />
                 </Suspense>
                 <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                     <Tabs value={activeTab} onChange={handleActiveTabChange}>

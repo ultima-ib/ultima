@@ -63,7 +63,11 @@ const JSONTemplateDialog = (props: {
                 <TextField
                     error={error}
                     multiline
-                    defaultValue={JSON.stringify(buildRequest(inputs, frtb), null, 2)}
+                    defaultValue={JSON.stringify(
+                        buildRequest(inputs, frtb),
+                        null,
+                        2,
+                    )}
                     helperText={helperText}
                     label="JSON"
                     inputRef={textFieldRef}
@@ -78,7 +82,9 @@ const JSONTemplateDialog = (props: {
     )
 }
 
-export const Templates = (props: { setFilters: (filters: Filters) => void}) => {
+export const Templates = (props: {
+    setFilters: (filters: Filters) => void
+}) => {
     const templates = useTemplates()
     const inputs = useInputs()
     const [selectedTemplate, setSelectedTemplate] = useState<
@@ -133,7 +139,10 @@ export const Templates = (props: { setFilters: (filters: Filters) => void}) => {
                     </IconButton>
                 </Tooltip>
             </Box>
-            <JSONTemplateDialog open={[dialogOpen, setDialogOpen]} setFilters={props.setFilters} />
+            <JSONTemplateDialog
+                open={[dialogOpen, setDialogOpen]}
+                setFilters={props.setFilters}
+            />
         </>
     )
 }

@@ -18,7 +18,9 @@ import { Override } from "./types"
 import { mapFilters } from "../utils"
 import { useOverrides } from "../api/hooks"
 
-const FiltersWithReducer = (props: Omit<FiltersProps, 'reducer'> & { initialState: any }) => {
+const FiltersWithReducer = (
+    props: Omit<FiltersProps, "reducer"> & { initialState: FiltersType },
+) => {
     const filtersReducer = useReducer(reducer, props.initialState)
 
     return <Filters reducer={filtersReducer} {...props} />
@@ -157,7 +159,7 @@ export function Overrides() {
     return (
         <>
             <Title content="Overrides" onClick={() => setDialogOpen(true)}>
-                    <LaunchIcon />
+                <LaunchIcon />
             </Title>
             <OverridesDialog open={[dialogOpen, setDialogOpen]} />
         </>

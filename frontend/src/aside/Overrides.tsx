@@ -1,5 +1,5 @@
-import { Filters } from "./filters"
-import { Filters as FiltersType } from "./filters/reducer"
+import { Filters, FiltersProps } from "./filters"
+import { Filters as FiltersType, reducer } from "./filters/reducer"
 import Title from "./Title"
 import {
     Autocomplete,
@@ -12,11 +12,19 @@ import {
     TextField,
 } from "@mui/material"
 import LaunchIcon from "@mui/icons-material/Launch"
-import { Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, SetStateAction, useReducer, useState } from "react"
 import { InputStateUpdate, useInputs } from "./InputStateContext"
 import { Override } from "./types"
 import { mapFilters } from "../utils"
 import { useOverrides } from "../api/hooks"
+
+const FiltersWithReducer = (
+    props: Omit<FiltersProps, "reducer"> & { initialState: FiltersType },
+) => {
+    const filtersReducer = useReducer(reducer, props.initialState)
+
+    return <Filters reducer={filtersReducer} {...props} />
+}
 
 let overrideUsed = 0
 
@@ -120,8 +128,9 @@ const OverridesDialog = (props: {
                                         )
                                     }}
                                 />
-                                <Filters
+                                <FiltersWithReducer
                                     component={Box}
+                                    initialState={override.filters}
                                     onFiltersChange={(filters) => {
                                         updateOverride(
                                             index,
@@ -150,9 +159,7 @@ export function Overrides() {
     return (
         <>
             <Title content="Overrides" onClick={() => setDialogOpen(true)}>
-                <>
-                    <LaunchIcon />
-                </>
+                <LaunchIcon />
             </Title>
             <OverridesDialog open={[dialogOpen, setDialogOpen]} />
         </>

@@ -2,6 +2,8 @@ import { createContext, useContext } from "react"
 import { DataSet, Filter, Filter as FilterType, Override } from "./types"
 import type { Template } from "../api/types"
 import { Filters } from "./filters/reducer"
+import { GenerateTableDataRequest } from "../api/types"
+import { mapFilters } from "../utils"
 
 export enum InputStateUpdate {
     // eslint-disable-next-line
@@ -68,7 +70,6 @@ export function inputStateReducer(
         }
         case InputStateUpdate.TemplateSelect: {
             const data = action.data as Template
-            console.log(data)
             const dataSet = {
                 ...state.dataSet,
                 groupby: data.groupby,
@@ -102,6 +103,7 @@ export function inputStateReducer(
                 hideZeros: data.hide_zeros,
                 totals: data.totals,
                 calcParams: data.calc_params,
+                overrides: data.overrides,
                 aggData,
             }
             break
@@ -157,4 +159,28 @@ export const useInputs = (): InputStateContext => {
         throw Error("InputStateContext is undefined")
     }
     return ctx
+}
+
+export const buildRequest = (
+    context: InputStateContext,
+    frtb: { measures: { measure: string; agg: string | null }[] },
+): GenerateTableDataRequest => {
+    const data = context.dataSet
+    const measures = data.measuresSelected.map(
+        (measure: string): [string, string] => {
+            const m = frtb.measures.find((it) => it.measure === measure)!
+            const agg: string = context.aggData[m.measure]
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            return [m.measure, agg ?? m.agg]
+        },
+    )
+    return {
+        filters: mapFilters(context.filters),
+        groupby: data.groupby,
+        measures,
+        overrides: Object.values(context.overrides),
+        hide_zeros: context.hideZeros,
+        totals: context.totals,
+        calc_params: context.calcParams,
+    }
 }

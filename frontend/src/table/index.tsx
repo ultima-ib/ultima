@@ -9,7 +9,9 @@ import {
     TableRow,
     TableCell,
     TableFooter,
+    Button,
 } from "@mui/material"
+import DownloadIcon from "@mui/icons-material/Download"
 import { fancyZip } from "../utils"
 import { forwardRef } from "react"
 
@@ -36,6 +38,18 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         }
         const headers = data.columns.map((it) => it.name)
         const zipped = fancyZip(data.columns.map((col) => col.values))
+
+        const saveCsv = () => {
+            const csvHeaders = headers.join(",")
+            const rows = zipped
+                .map((cells) =>
+                    cells.map((it) => it?.toString() ?? "").join(","),
+                )
+                .join("\r\n")
+            const csvContent = `data:text/csv;charset=utf-8,${csvHeaders}\r\n${rows}`
+            const encodedUri = encodeURI(csvContent)
+            window.open(encodedUri)
+        }
 
         return (
             <Paper sx={{ overflow: "hidden", width: "100%" }}>
@@ -70,8 +84,19 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                         </TableBody>
                         <TableFooter>
                             <TableRow>
-                                <TableCell>
+                                <TableCell colSpan={headers.length}>
                                     Total Rows: {zipped.length}
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell colSpan={headers.length}>
+                                    <Button
+                                        variant="contained"
+                                        endIcon={<DownloadIcon />}
+                                        onClick={saveCsv}
+                                    >
+                                        Save as CSV
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         </TableFooter>

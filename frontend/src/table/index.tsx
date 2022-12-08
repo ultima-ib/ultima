@@ -40,24 +40,13 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         const zipped = fancyZip(data.columns.map((col) => col.values))
 
         const saveCsv = () => {
-            const csvHeaders = Object.keys(data.columns[0]).join(",")
-            const rows = data.columns
-                .map((it) =>
-                    Object.values(it).map((row) => {
-                        if (typeof row === "string") {
-                            return row
-                        } else if (Array.isArray(row)) {
-                            return `"[${row
-                                .map((r) => r?.toString() ?? "")
-                                .join(", ")}]"`
-                        } else {
-                            return row
-                        }
-                    }),
+            const csvHeaders = headers.join(",")
+            const rows = zipped
+                .map((cells) =>
+                    cells.map((it) => it?.toString() ?? "").join(","),
                 )
-                .map((row: string[]) => `${row.join(",")}\r\n`)
-                .join("")
-            const csvContent = `data:text/csv;charset=utf-8,${csvHeaders}${rows}`
+                .join("\r\n")
+            const csvContent = `data:text/csv;charset=utf-8,${csvHeaders}\r\n${rows}`
             const encodedUri = encodeURI(csvContent)
             window.open(encodedUri)
         }

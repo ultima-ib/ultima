@@ -113,7 +113,9 @@ impl DataSet for FRTBDataSet {
         };
 
         // Then assign risk weights based on buckets
-        lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
+        lf1 = weights_assign(lf1, &self.build_params);
+
+        //lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
 
         //let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
 

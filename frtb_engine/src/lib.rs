@@ -96,7 +96,7 @@ impl DataSet for FRTBDataSet {
     }
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
-    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
+    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
         let mut lf1 = if let Some(lf) = _lf {
             lf
         } else {
@@ -113,7 +113,7 @@ impl DataSet for FRTBDataSet {
         };
 
         // Then assign risk weights based on buckets
-        lf1 = weights_assign(lf1, &self.build_params);
+        lf1 = weights_assign(lf1, &self.build_params)?;
 
         //lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
 
@@ -261,7 +261,7 @@ impl DataSet for FRTBDataSet {
         //    .collect()
         //    .expect("Failed to unwrap tmp2_frame while .prepare()");
 
-        lf1
+        Ok(lf1)
     }
 
     // TODO Validate:

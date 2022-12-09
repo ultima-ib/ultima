@@ -56,6 +56,32 @@ pub(crate) fn drc_nonsec_weights() -> HashMap<String, Expr> {
     ])
 }
 
+pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {
+    let s0 = Series::new("AAA", &[0.005]);
+    let s1 = Series::new("AA", &[0.02]);
+    let s2 = Series::new("A", &[0.03]);
+    let s3 = Series::new("BBB", &[0.06]);
+    let s4 = Series::new("BAA", &[0.06]);
+    let s5 = Series::new("BB", &[0.15]);
+    let s6 = Series::new("BA", &[0.15]);
+    let s7 = Series::new("B", &[0.30]);
+    let s8 = Series::new("CCC", &[0.50]);
+    let s9 = Series::new("CAA", &[0.50]);
+    let s10 = Series::new("CA", &[0.50]);
+    let s11 = Series::new("UNRATED", &[0.15]);
+    let s12 = Series::new("NORATING", &[0.15]);
+    let s13 = Series::new("DEFAULTED", &[1.]);
+
+    let weights_list = Series::new("Weights", &[s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13]);
+    let cq = Series::new("CreditQuality", &["AAA", "AA", "A", "BBB", "Baa", "BB", "Ba", "B", "CCC", "CAA", "CA", "UNRATED", "NORATING", "DEFAULTED"]);
+
+    let s6 = Series::new("RiskClass", &["DRC_nonSec"; 14]);
+    let s7 = Series::new("RiskCategory", &["DRC"; 14]);
+
+    DataFrame::new(vec![weights_list, cq, s6, s7])
+    .expect("Couldn't get DRC Non Sec Weights Frame")    
+}
+
 #[cfg(feature = "CRR2")]
 pub(crate) fn drc_nonsec_weights_crr2() -> HashMap<String, Expr> {
     HashMap::from([(

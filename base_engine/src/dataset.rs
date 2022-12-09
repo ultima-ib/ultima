@@ -66,21 +66,21 @@ pub trait DataSet: Send + Sync {
 
     /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
     /// Any pre-computations which are common to all queries could go in here.
-    fn prepare(self) -> Self
+    fn prepare(self) -> PolarsResult<Self>
     where
         Self: Sized,
     {
-        let new_frame = self.prepare_frame(None);
-        self.set_lazyframe(new_frame)
+        let new_frame = self.prepare_frame(None)?;
+        Ok(self.set_lazyframe(new_frame))
     }
 
     /// By returning a Frame this method can be used on a
     /// *lf - biffer. if None, function "prepares" self.lazy_frame()
-    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
+    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
         if let Some(lf) = _lf {
-            lf
+            Ok(lf)
         } else {
-            self.get_lazyframe().clone()
+            Ok(self.get_lazyframe().clone())
         }
     }
 

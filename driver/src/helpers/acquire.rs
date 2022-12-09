@@ -34,7 +34,7 @@ pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
     // Pre build some columns, which you wish to store in memory alongside the original data
     // Note if streaming then .prepare() should happen post filtering
     if !cfg!(feature = "streaming") {
-        data = data.prepare();
+        data = data.prepare().expect("Failed to Prepare Frame");
         let now = Instant::now();
         data = data.collect().expect("Failed to Prepare Frame");
         let elapsed = now.elapsed();

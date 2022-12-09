@@ -46,12 +46,37 @@ fn rf_rw_map(col: Expr, map: HashMap<String, Expr>, other: Expr, use_regex: bool
     buf.otherwise(other)
 }
 
-pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> LazyFrame {
+pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsResult<LazyFrame> {
     let x: Option<f64> = None;
     let not_yet_implemented = Series::new("null", &[x]).lit().list();
     let never_reached = Series::new("null", &[x]).lit().list();
+
+    // First, left join one by one
+    let join_on = [col("RiskClass"), col("RiskCategory"), col("BucketBCBS")];
+    let mut lf1 = lf.join(weights.rc_rcat_b_weights, join_on.clone(), join_on, JoinType::Left);
+    lf1 = lf1.rename(["Weights"], ["SensWeights"]);
+
+    let join_on = [col("RiskClass"), col("RiskCategory"), col("RiskFactorType"), col("BucketBCBS")];
+    let mut lf1 = lf1.join(weights.rc_rcat_rtype_b_weights, join_on.clone(), join_on, JoinType::Left);
+    lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
+        .select([col("*").exclude(["Weights"])]);
+
+    let join_on = [col("RiskClass"), col("RiskCategory")];
+    let mut lf1 = lf1.join(weights.rc_rcat_weights, join_on.clone(), join_on, JoinType::Left);
+    lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
+        .select([col("*").exclude(["Weights"])]);
+    
+    let join_on = [col("RiskClass"), col("RiskCategory"), col("CreditQuality").map(
+        |s| Ok(s.utf8()?.to_uppercase().into_series()),
+        GetOutput::from_type(DataType::Utf8),
+    )];
+
+    let mut lf1 = lf1.join(weights.drc_nonsec_weights_frame, join_on.clone(), join_on, JoinType::Left);
+    lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
+        .select([col("*").exclude(["Weights"])]);
+
     // Delta
-    let lf1 = lf.with_column(
+    lf1 = lf1.with_column(
     when(col("RiskCategory").eq(lit("Delta")))
         .then(
             // FX
@@ -86,6 +111,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> LazyFra
                     true
                 ))
                 // Commodity
+                /*
                 .when(col("RiskClass").eq(lit("Commodity")))
                 .then(rf_rw_map(
                     col("BucketBCBS"),
@@ -140,8 +166,10 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> LazyFra
                     never_reached.clone(),
                     false
                 ))
+                */
                 .otherwise(not_yet_implemented.clone()),
         )
+        /*
         .when(col("RiskCategory").eq(lit("Vega")))
         .then(
             when(col("RiskClass").neq(lit("Equity"))) //all vega except Equity
@@ -161,7 +189,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> LazyFra
         )
         .when(col("RiskCategory").eq(lit("DRC")))
         .then(
-            when(col("RiskClass").eq(lit("DRC_NonSec")))
+            when(col("RiskClass").eq(lit("DRC_nonSec")))
                 .then(rf_rw_map(
                     col("CreditQuality"),
                     weights.drc_nonsec,
@@ -170,10 +198,13 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> LazyFra
                 ))
                 .otherwise(not_yet_implemented.clone()),
         )
+        */
         .otherwise(not_yet_implemented)
-        .alias("SensWeights")
+        .alias("Weights")  
     );
-    lf1
+    lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
+        .select([col("*").exclude(["Weights"])]);
+    Ok(lf1)
 }
 
 static EQ_SPOT_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -187,10 +218,13 @@ static CSR_SECNONCTP_RW: OnceCell<LazyFrame> = OnceCell::new();
 static VEGA_RW: OnceCell<LazyFrame> = OnceCell::new();
 static VEGA_EQ_RW: OnceCell<LazyFrame> = OnceCell::new();
 
+static DRC_NONSEC_RW: OnceCell<LazyFrame> = OnceCell::new();
+
+
 
 /// This function !Defines! Risk Weights as per regulation or where provided with build_params
 /// Then calls [weight_assign_logic] where weights assignment actually happens
-pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> LazyFrame {
+pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> PolarsResult<LazyFrame> {
     // FX  - can't be put into a frame due to regex requirement
     //21.88 - Conservative, false by default
     let fx_sqrt2_div = build_params
@@ -243,11 +277,19 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     // Commodity risk is defined for 11 tenors
     let commodity_weights = [0.3, 0.35, 0.6, 0.8, 0.4, 0.45, 0.2, 0.35, 0.25, 0.35, 0.5];
     let commodity_bucket_weight: HashMap<String, Expr> = bucket_weight_map(&commodity_weights, 11);
-    //TODO use OnceCell to read only once: Cell to keep result(either df from path or from str). If error -> return result. 
+    
+    // check columns. Some of the cust weights files must contain these:
+    let check_columns = [col("RiskClass").cast(DataType::Utf8), col("RiskCategory").cast(DataType::Utf8), col("BucketBCBS").cast(DataType::Utf8), col("Weights").cast(DataType::Float64)];
+    let check_columns2 = [col("RiskClass").cast(DataType::Utf8), col("RiskCategory").cast(DataType::Utf8), col("BucketBCBS").cast(DataType::Utf8), col("Weights").cast(DataType::Float64), col("RiskFactorType").cast(DataType::Utf8),];
+    let check_columns3 = [col("RiskClass").cast(DataType::Utf8), col("RiskCategory").cast(DataType::Utf8), col("Weights").cast(DataType::Float64)];
+    let check_columns4 = [col("RiskClass").cast(DataType::Utf8), col("RiskCategory").cast(DataType::Utf8), col("CreditQuality").cast(DataType::Utf8), col("Weights").cast(DataType::Float64)];
+
+
+
     
     let _commodity_weights_frame = COM_DELTA_RW.get_or_init(|| {
             build_params.get("commodity_delta_weights")
-            .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).ok())
+            .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
             .unwrap_or_else(||rcat_rc_b_weights_frame::<11>(&commodity_weights, "Delta", "Commodity"))
             .lazy() }) ;
 
@@ -259,9 +301,9 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let equity_bucket_spot_weights: HashMap<String, Expr> =
         bucket_weight_map(&equity_spot_weights, 1);
 
-    let _equity_weights_frame = EQ_SPOT_DELTA_RW.get_or_init(|| {
+    let _equity_bucket_spot_weights = EQ_SPOT_DELTA_RW.get_or_init(|| {
             build_params.get("equity_spot_delta_weights")
-            .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).ok())
+            .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns2).ok())
             .unwrap_or_else(||rcat_rc_rft_b_weights_frame::<1>(&equity_spot_weights, "Delta", "Equity", "EqSpot"))
             .lazy() }) ;
 
@@ -274,7 +316,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     
     let _equity_bucket_repo_weights = EQ_REPO_DELTA_RW.get_or_init(|| {
             build_params.get("equity_repo_delta_weights")
-            .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).ok())
+            .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns2).ok())
             .unwrap_or_else(||rcat_rc_rft_b_weights_frame::<1>(&equity_repo_weights, "Delta", "Equity", "EqRepo"))
             .lazy() }) ;
 
@@ -290,7 +332,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 
     let _csr_non_sec_weights = CSR_NONSEC_RW.get_or_init(|| {
         build_params.get("csr_non_sec_weights")
-        .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).ok())
+        .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
         .unwrap_or_else(||rcat_rc_b_weights_frame::<5>(&csr_nonsec_weights_arr, "Delta", "CSR_nonSec"))
         .lazy() }) ;
 
@@ -303,7 +345,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 
     let _csr_sec_ctp_weights = CSR_SECCTP_RW.get_or_init(|| {
         build_params.get("csr_sec_ctp_weights")
-        .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).ok())
+        .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
         .unwrap_or_else(||rcat_rc_b_weights_frame::<5>(&csr_sec_ctp_weights_arr, "Delta", "CSR_Sec_CTP"))
         .lazy() }) ;
 
@@ -317,7 +359,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 
     let _csr_sec_nonctp_weigh = CSR_SECNONCTP_RW.get_or_init(|| {
             build_params.get("csr_sec_nonctp_weights")
-            .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).ok())
+            .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
             .unwrap_or_else(||rcat_rc_b_weights_frame::<5>(&csr_sec_nonctp_weight_arr, "Delta", "CSR_Sec_nonCTP"))
             .lazy() }) ;
     
@@ -351,12 +393,10 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 
     let _vega_risk_class_weight = VEGA_RW.get_or_init(|| {
         build_params.get("vega_risk_weights")
-        .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("Weights")]).ok())
+        .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns3).ok())
         .unwrap_or_else(||vega_default_weights())
         .lazy() }) ;
     
-    
-
     let eq_large_cap = vega_rw(20);
     let eq_small_cap = vega_rw(60);
     let equity_vega_weights = [
@@ -377,21 +417,38 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let vega_equity_weight: HashMap<String, Expr> = bucket_weight_map(&equity_vega_weights, 5);
     let _vega_equity_weight = VEGA_EQ_RW.get_or_init(|| {
         build_params.get("equity_vega_weights")
-        .and_then(|some_string|frame_from_path_or_str(some_string, &[col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).ok())
+        .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
         .unwrap_or_else(||rcat_rc_b_weights_frame::<5>(&equity_vega_weights, "Vega", "Equity"))
         .lazy() }) ;
-    
+
+    // Eq Vega, Com, CSR Delta
     let rc_rcat_b_weights = concat(&[
         _vega_equity_weight.clone(),
         _csr_sec_nonctp_weigh.clone(),
         _csr_sec_ctp_weights.clone(),
         _csr_non_sec_weights.clone(),
         _commodity_weights_frame.clone(),
-    ], true, true);
+    ], true, true)?; // we must never fail
+
+    // Eq Delta
+    let rc_rcat_rtype_b_weights = concat(&[
+        _equity_bucket_spot_weights.clone(),
+        _equity_bucket_repo_weights.clone(),
+    ], true, true)?;
 
     let drc_nonsec = drc_weights::drc_nonsec_weights();
+    let drc_nonsec_weights_frame = DRC_NONSEC_RW.get_or_init(|| {
+        build_params.get("drc_nonsec_weights")
+        .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns4).ok())
+        .unwrap_or_else(||drc_weights::dcr_nonsec_default_weights())
+        .lazy() })
+        .clone() ;
 
     let dlt_weights = SensWeightsConfig {
+        rc_rcat_b_weights,
+        rc_rcat_rtype_b_weights,
+        rc_rcat_weights: _vega_risk_class_weight.clone(),
+        drc_nonsec_weights_frame,
         // FX
         fx: fx_base_srs.lit().list(),
         fx_override: fx_map,
@@ -426,6 +483,10 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 }
 
 pub struct SensWeightsConfig {
+    rc_rcat_b_weights: LazyFrame,
+    rc_rcat_rtype_b_weights: LazyFrame,
+    rc_rcat_weights: LazyFrame,
+    drc_nonsec_weights_frame: LazyFrame,
     // FX
     fx: Expr,
     fx_override: HashMap<String, Expr>,
@@ -500,7 +561,7 @@ pub fn weights_assign_crr2() -> Expr {
                 ))
                 .otherwise(col("SensWeights")),
         )
-        .when(col("RiskClass").eq(lit("DRC_NonSec")))
+        .when(col("RiskClass").eq(lit("DRC_nonSec")))
         .then(rf_rw_map(
             col("CreditQuality"),
             drc_nonsec_crr2,
@@ -527,7 +588,7 @@ fn bucket_weight_map(arr: &[f64], ntenors: u8) -> HashMap<String, Expr> {
 // DRC Seniority
 // as per 22.24
 pub fn drc_seniority() -> Expr {
-    when(col("RiskClass").eq(lit("DRC_NonSec")))
+    when(col("RiskClass").eq(lit("DRC_nonSec")))
         .then(
             when(col("RiskFactorType").eq(lit("Covered")))
                 .then(lit::<u8>(4))
@@ -616,7 +677,7 @@ fn vega_default_weights() -> DataFrame {
 pub fn frame_from_path_or_str(some_str: &str, check_columns: &[Expr]) -> PolarsResult<DataFrame> {
     CsvReader::from_path(some_str)
     .and_then(|csv|csv.has_header(true).finish())
-    .and_then(|df|df.lazy().select([col("RiskClass"), col("RiskCategory"), col("BucketBCBS"), col("Weights")]).collect())
+    .and_then(|df|df.lazy().select(check_columns).collect())
     .or_else(|_|{
         serde_json::from_str::<DataFrame>(some_str)
         .map_err(|_|PolarsError::InvalidOperation("couldn't convert string to frame".into()))

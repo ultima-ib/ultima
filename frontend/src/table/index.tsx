@@ -1,4 +1,4 @@
-import { GenerateTableDataRequest } from "../api/types"
+import { GenerateTableDataRequest, GenerateTableDataResponse } from "../api/types"
 import { useTableData } from "../api/hooks"
 import {
     Paper,
@@ -25,19 +25,17 @@ const formatValue = (value: string | null | number) => {
     }
 }
 
-interface DataTableProps {
-    input: GenerateTableDataRequest
+interface DataTableBodyProps {
+    data: GenerateTableDataResponse["columns"]
     unique: string
+    showFooter: boolean
+    hover: boolean
 }
 
-const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
-    (props, ref) => {
-        const { data, error } = useTableData(props.input)
-        if (error || !data) {
-            return <>{error}</>
-        }
-        const headers = data.columns.map((it) => it.name)
-        const zipped = fancyZip(data.columns.map((col) => col.values))
+export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyProps>(
+    ({ data, unique, showFooter, hover }, ref) => {
+        const headers = data.map((it) => it.name)
+        const zipped = fancyZip(data.map((col) => col.values))
 
         const saveCsv = () => {
             const csvHeaders = headers.join(",")
@@ -52,54 +50,81 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         }
 
         return (
+            <>
+                <TableHead ref={ref}>
+                    <TableRow>
+                        {headers.map((it) => (
+                            <TableCell key={unique + it}>
+                                {it}
+                            </TableCell>
+                        ))}
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {zipped.map((values, index) => (
+                        <TableRow
+                            key={`${unique}${index.toString()}`}
+                            hover={hover}
+                        >
+                            {values.map((it, innerIndex) => (
+                                <TableCell
+                                    key={`${unique}${
+                                        headers[innerIndex]
+                                    }${index}${it?.toString() ?? ""}`}
+                                >
+                                    {formatValue(it)}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    ))}
+                </TableBody>
+                {showFooter && (<TableFooter>
+                    <TableRow>
+                        <TableCell colSpan={headers.length}>
+                            Total Rows: {zipped.length}
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={headers.length}>
+                            <Button
+                                variant="contained"
+                                endIcon={<DownloadIcon />}
+                                onClick={saveCsv}
+                            >
+                                Save as CSV
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                </TableFooter>)}
+            </>
+        )
+    },
+)
+
+DataTableBody.displayName = "DataTableBody"
+
+
+interface DataTableProps {
+    input: GenerateTableDataRequest
+    unique: string
+}
+
+const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
+    (props, ref) => {
+        const { data, error } = useTableData(props.input)
+        if (error || !data) {
+            return <>{error}</>
+        }
+        return (
             <Paper sx={{ overflow: "hidden", width: "100%" }}>
                 <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
                     <Table stickyHeader>
-                        <TableHead ref={ref}>
-                            <TableRow>
-                                {headers.map((it) => (
-                                    <TableCell key={props.unique + it}>
-                                        {it}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {zipped.map((values, index) => (
-                                <TableRow
-                                    key={`${props.unique}${index.toString()}`}
-                                    hover
-                                >
-                                    {values.map((it, innerIndex) => (
-                                        <TableCell
-                                            key={`${props.unique}${
-                                                headers[innerIndex]
-                                            }${index}${it?.toString() ?? ""}`}
-                                        >
-                                            {formatValue(it)}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                        <TableFooter>
-                            <TableRow>
-                                <TableCell colSpan={headers.length}>
-                                    Total Rows: {zipped.length}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell colSpan={headers.length}>
-                                    <Button
-                                        variant="contained"
-                                        endIcon={<DownloadIcon />}
-                                        onClick={saveCsv}
-                                    >
-                                        Save as CSV
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        </TableFooter>
+                        <DataTableBody
+                            data={data.columns}
+                            unique={props.unique}
+                            ref={ref}
+                            hover={true}
+                            showFooter={true} />
                     </Table>
                 </TableContainer>
             </Paper>

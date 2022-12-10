@@ -7,7 +7,7 @@ import {
     Fade,
     CircularProgress,
     Stack,
-    IconButton, Paper,
+    IconButton, Paper, Table,
 } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import { Suspense } from "react"
@@ -18,6 +18,7 @@ import ArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { useState } from "react"
 import { GenerateTableDataRequest } from "../api/types"
 import { useDescribeTableData } from "../api/hooks"
+import { DataTableBody } from "./index"
 
 export const SummarizeFab = (props: { summarize: (table: "primary" | "compare") => void }) => {
     return (
@@ -57,7 +58,16 @@ const SummaryTable = (props: { table: GenerateTableDataRequest, hide: () => void
                 <ArrowDownIcon />
             </IconButton>
         </Box>
-        <Box>{JSON.stringify(props.table)}</Box>
+        <Box>
+            <Table>
+                <DataTableBody
+                    data={data.columns}
+                    unique={'summary'}
+                    showFooter={false}
+                    hover={false}
+                />
+            </Table>
+        </Box>
     </Stack>
 }
 

@@ -13,7 +13,7 @@ pub mod prelude;
 mod risk_weights;
 pub mod statics;
 
-use crate::drc::drc_weights;
+//use crate::drc::drc_weights;
 use base_engine::prelude::*;
 use prelude::{calc_params::frtb_calc_params, drc::common::drc_scalinng, frtb_measure_vec};
 use risk_weights::*;
@@ -112,56 +112,8 @@ impl DataSet for FRTBDataSet {
             lf1 = lf1.with_column(buckets::sbm_buckets_crr2())
         };
 
-        // Then assign risk weights based on buckets
+        // Then assign SensWeights(BCBS) based on buckets
         lf1 = weights_assign(lf1, &self.build_params)?;
-
-        //lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
-
-        //let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
-
-        // Some risk weights assignments (DRC Sec Non CTP) would result in too many when().then() statements
-        // which panics: https://github.com/pola-rs/polars/issues/4827
-        // Hence, for such scenarios we need to use left join
-        let drc_secnonctp_weights: LazyFrame = drc_weights::drc_secnonctp_weights_frame().lazy();
-        let left_on = concat_str(
-            [
-                col("CreditQuality").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
-                    GetOutput::from_type(DataType::Utf8),
-                ),
-                col("RiskFactorType").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
-                    GetOutput::from_type(DataType::Utf8),
-                ),
-            ],
-            "_",
-        )
-        .alias("LeftKey");
-
-        //dbg!(lf1.clone().with_column(left_on.clone()).collect());
-
-        lf1 = lf1
-            .left_join(drc_secnonctp_weights, left_on, col("Key"))
-            .with_column(concat_lst([col("RiskWeightDRC")]));
-        //lf1 = lf1.collect().unwrap().lazy();
-
-        //let tmp_frame = lf1
-        //    .collect()
-        //    .expect("Failed to unwrap tmp_frame while .prepare()");
-
-        // lf1 = tmp_frame
-        //     .lazy()
-        lf1 = lf1
-            .with_column(
-                when(col("RiskClass").eq(lit("DRC_SecNonCTP")))
-                    .then(col("RiskWeightDRC"))
-                    .otherwise(col("SensWeights"))
-                    .alias("SensWeights"),
-            )
-            .select([col("*").exclude(["RiskWeightDRC", "LeftKey"])]);
-        //let tmp_frame = lf1
-        //    .collect()
-        //    .expect("Failed to unwrap tmp_frame while .prepare()");
 
         // Curvature risk weight
         //lf1 = tmp_frame.lazy()
@@ -248,15 +200,20 @@ impl DataSet for FRTBDataSet {
             )
             .then(col("GirrVegaUnderlyingMaturity").fill_null(col("RiskFactorType")))
             .otherwise(NULL.lit()),
+
             drc_scalinng(
                 self.build_params
                     .get("DayCountConvention")
                     .and_then(|x| x.parse::<u8>().ok()),
+
                 self.build_params.get("DateFormat"),
-            )
-            .alias("ScaleFactor"),
-            drc_seniority().alias("SeniorityRank"),
+            ).alias("ScaleFactor"),
+
+            //drc_seniority().alias("SeniorityRank"),
         ]);
+
+        // DRC Seniority
+        lf1 = drc::drc_weights::with_drc_seniority(lf1);
         //let tmp2_frame = lf1
         //    .collect()
         //    .expect("Failed to unwrap tmp2_frame while .prepare()");

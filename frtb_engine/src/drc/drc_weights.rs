@@ -1,61 +1,6 @@
 use polars::prelude::*;
 use std::collections::HashMap;
 
-pub(crate) fn drc_nonsec_weights() -> HashMap<String, Expr> {
-    HashMap::from([
-        (
-            "^(?i)AAA$".to_string(),
-            Series::new("", &[0.005]).lit().list(),
-        ),
-        (
-            "^(?i)AA$".to_string(),
-            Series::new("", &[0.02]).lit().list(),
-        ),
-        ("^(?i)A$".to_string(), Series::new("", &[0.03]).lit().list()),
-        (
-            "^(?i)BBB$".to_string(),
-            Series::new("", &[0.06]).lit().list(),
-        ),
-        (
-            "^(?i)Baa$".to_string(),
-            Series::new("", &[0.06]).lit().list(),
-        ),
-        (
-            "^(?i)BB$".to_string(),
-            Series::new("", &[0.15]).lit().list(),
-        ),
-        (
-            "^(?i)Ba$".to_string(),
-            Series::new("", &[0.15]).lit().list(),
-        ),
-        ("^(?i)B$".to_string(), Series::new("", &[0.30]).lit().list()),
-        (
-            "^(?i)CCC$".to_string(),
-            Series::new("", &[0.50]).lit().list(),
-        ),
-        (
-            "^(?i)Caa$".to_string(),
-            Series::new("", &[0.50]).lit().list(),
-        ),
-        (
-            "^(?i)Ca$".to_string(),
-            Series::new("", &[0.50]).lit().list(),
-        ),
-        (
-            "^(?i)UNRATED$".to_string(),
-            Series::new("", &[0.15]).lit().list(),
-        ),
-        (
-            "^(?i)NORATING$".to_string(),
-            Series::new("", &[0.15]).lit().list(),
-        ),
-        (
-            "^(?i)DEFAULTED$".to_string(),
-            Series::new("", &[1.]).lit().list(),
-        ),
-    ])
-}
-
 pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {
     let s0 = Series::new("AAA", &[0.005]);
     let s1 = Series::new("AA", &[0.02]);
@@ -90,10 +35,28 @@ pub(crate) fn drc_nonsec_weights_crr2() -> HashMap<String, Expr> {
     )])
 }
 
-//pub(crate) fn drc_secnonctp_weights() -> HashMap<String, Expr> {
-//    drc_secnonctp_weights_raw().into_iter().map(|(k, v)|(k.to_string(), Series::new("", &[v/100.]).lit().list())).collect()
-//}
+///CreditQuality_Seniority - Weight
+pub(crate) fn _drc_secnonctp_weights_frame() -> LazyFrame {
+    let (key, weight): (Vec<String>, Vec<f64>) = drc_secnonctp_weights_raw()
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v / 100.))
+        .unzip();
+    //let seniority_arr = Utf8Chunked::from_iter(key);
+    let len = key.len();
 
+    df![
+        "Key" => key,
+        "RiskWeightDRC" => weight,
+        "RiskClass" => vec!["DRC_SecNonCTP"; len],
+        "RiskCategory" => vec!["DRC"; len],
+    ]
+    .unwrap() // We must not fail on default frame
+    .lazy()
+    .with_column(concat_lst([col("RiskWeightDRC")]))
+}
+
+
+///CreditQuality_Seniority - Weight
 pub(crate) fn drc_secnonctp_weights_frame() -> DataFrame {
     let (key, weight): (Vec<String>, Vec<f64>) = drc_secnonctp_weights_raw()
         .into_iter()
@@ -229,4 +192,23 @@ pub fn drc_secnonctp_weights_raw() -> HashMap<&'static str, f64> {
         ("UNDERATD_SUBORDINATE", 100.0),
         ("D_SUBORDINATE", 100.0),
     ])
+}
+
+/// DRC Seniority
+/// as per 22.19
+/// Neened to determine
+pub fn with_drc_seniority(lf: LazyFrame) -> LazyFrame {
+
+    let drc_sen = df![
+        "SeniorityRank" => [5, 4, 3, 2, 1, 0],
+        "RiskFactorType" => ["Covered", "SeniorSecured", "SeniorUnsecured", "Unrated", "NonSenior", "Equity"],
+        "RiskClass" => vec!["DRC_nonSec"; 6],
+        "RiskCategory" => vec!["DRC"; 6],
+    ]
+    .unwrap() // We must not fail on default frame
+    .lazy();
+
+    let join_on = [col("RiskClass"), col("RiskCategory"), col("RiskFactorType")];
+    let lf1 = lf.join(drc_sen, join_on.clone(), join_on, JoinType::Left);
+    lf1 
 }

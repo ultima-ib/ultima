@@ -4,6 +4,7 @@ import {
     COLUMNS,
     TEMPLATES,
     OVERRIDES,
+    DESCRIBE,
 } from "./routes"
 import useFetch from "fetch-suspense"
 import {
@@ -42,7 +43,7 @@ export const useAggTypes = () => {
 }
 
 export const useOverrides = () => {
-    return useFetch(OVERRIDES) as string[]
+    return useFetch(DESCRIBE) as string[]
 }
 
 export const useTemplates = () => {
@@ -85,4 +86,17 @@ export const useTableData = (
             }
         }
     }
+}
+
+export const useDescribeTableData = (
+    input: GenerateTableDataRequest,
+): GenerateTableDataResponse => {
+    const { data } = useTableData(input)
+    return useFetch(DESCRIBE, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    }) as GenerateTableDataResponse
 }

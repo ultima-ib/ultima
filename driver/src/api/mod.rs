@@ -223,7 +223,7 @@ pub fn run_server(
                             .service(scenarios),
                     )
                     .route("/aggtypes", web::get().to(measures))
-                    .route("/describe", web::get().to(describe)),
+                    .route("/describe", web::post().to(describe)),
             )
             // must be the last one
             .service(fs::Files::new("/", &static_files_dir).index_file("index.html"))

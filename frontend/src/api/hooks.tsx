@@ -89,14 +89,14 @@ export const useTableData = (
 }
 
 export const useDescribeTableData = (
-    input: GenerateTableDataRequest,
+    input: GenerateTableDataResponse,
 ): GenerateTableDataResponse => {
-    const { data } = useTableData(input)
+    // const { data } = useTableData(input)
     return useFetch(DESCRIBE, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(input),
     }) as GenerateTableDataResponse
 }

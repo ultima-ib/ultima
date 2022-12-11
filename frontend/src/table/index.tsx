@@ -13,7 +13,9 @@ import {
 } from "@mui/material"
 import DownloadIcon from "@mui/icons-material/Download"
 import { fancyZip } from "../utils"
-import { forwardRef } from "react"
+import { forwardRef, useState } from "react"
+import SummarizeIcon from "@mui/icons-material/Summarize"
+import { SummaryStats } from "./SummaryStats"
 
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
@@ -34,6 +36,8 @@ interface DataTableBodyProps {
 
 export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyProps>(
     ({ data, unique, showFooter, hover }, ref) => {
+        const [dialogOpen, setDialogOpen] = useState(false)
+
         const headers = data.map((it) => it.name)
         const zipped = fancyZip(data.map((col) => col.values))
 
@@ -49,6 +53,9 @@ export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyPr
             window.open(encodedUri)
         }
 
+        const summarizeTable = () => {
+            setDialogOpen(true)
+        }
         return (
             <>
                 <TableHead ref={ref}>
@@ -95,7 +102,19 @@ export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyPr
                             </Button>
                         </TableCell>
                     </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={headers.length}>
+                            <Button
+                                variant="contained"
+                                endIcon={<SummarizeIcon />}
+                                onClick={summarizeTable}
+                            >
+                                Summarize
+                            </Button>
+                        </TableCell>
+                    </TableRow>
                 </TableFooter>)}
+                <SummaryStats table={{ columns: data }} openState={[dialogOpen, setDialogOpen]} />
             </>
         )
     },

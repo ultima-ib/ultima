@@ -11,7 +11,6 @@ import { Box } from "@mui/material"
 import TopBar from "./AppBar"
 import DataTable from "./table"
 import { GenerateTableDataRequest } from "./api/types"
-import SummaryStats from "./table/SummaryStats"
 
 export const AppWrapper = () => {
     const frtb = useFRTB()
@@ -108,9 +107,6 @@ export const AppWrapper = () => {
                                     ref={compareDataTableRef}
                                     input={buildComparisonTableReq}
                                 />
-                            )}
-                            {(buildTableReq || buildComparisonTableReq) && (
-                                <SummaryStats primaryTable={buildTableReq} compareTable={buildComparisonTableReq} />
                             )}
                         </Box>
                     </Suspense>

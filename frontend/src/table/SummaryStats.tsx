@@ -9,12 +9,27 @@ import { GenerateTableDataResponse } from "../api/types"
 import { useDescribeTableData } from "../api/hooks"
 import { DataTableBody } from "./index"
 
+const SummaryTable = (props: {
+    table: GenerateTableDataResponse
+}) => {
+    const data = useDescribeTableData(props.table)
+    return (
+        <Table>
+            <DataTableBody
+                data={data.columns}
+                unique={"summary"}
+                stickyColIndex={data.columns.findIndex(it => it.name === "describe")}
+                showFooter={false}
+            />
+        </Table>
+    )
+}
+
 export function SummaryStats(props: {
     table: GenerateTableDataResponse
     openState: [boolean, Dispatch<SetStateAction<boolean>>]
 }) {
     const [open, setOpen] = props.openState
-    const data = useDescribeTableData(props.table)
 
     const handleClose = () => {
         setOpen(false)
@@ -25,7 +40,7 @@ export function SummaryStats(props: {
             <Dialog
                 open={open}
                 fullWidth
-                maxWidth='sm'
+                maxWidth="xl"
                 onClose={handleClose}
                 scroll="paper"
                 aria-labelledby="scroll-dialog-title"
@@ -33,14 +48,7 @@ export function SummaryStats(props: {
                 <DialogTitle id="scroll-dialog-title">Summary</DialogTitle>
                 <DialogContent dividers>
                     <Suspense fallback={<CircularProgress />}>
-                        <Table>
-                            <DataTableBody
-                                data={data.columns}
-                                unique={"summary"}
-                                showFooter={false}
-                                hover={true}
-                            />
-                        </Table>
+                        <SummaryTable table={props.table} />
                     </Suspense>
                 </DialogContent>
             </Dialog>

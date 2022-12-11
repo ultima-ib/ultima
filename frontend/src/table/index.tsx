@@ -9,13 +9,21 @@ import {
     TableRow,
     TableCell,
     TableFooter,
-    Button,
+    Button, TableCellProps,
 } from "@mui/material"
+import { styled } from "@mui/material/styles"
 import DownloadIcon from "@mui/icons-material/Download"
 import { fancyZip } from "../utils"
 import { forwardRef, useState } from "react"
 import SummarizeIcon from "@mui/icons-material/Summarize"
 import { SummaryStats } from "./SummaryStats"
+
+const StickyTableCell = styled(TableCell)<TableCellProps>(({ theme }) => ({
+    left: 0,
+    position: "sticky",
+    zIndex: theme.zIndex.appBar + 1,
+    background: theme.palette.background.default,
+}))
 
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
@@ -31,11 +39,11 @@ interface DataTableBodyProps {
     data: GenerateTableDataResponse["columns"]
     unique: string
     showFooter: boolean
-    hover: boolean
+    stickyColIndex?: number
 }
 
 export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyProps>(
-    ({ data, unique, showFooter, hover }, ref) => {
+    ({ data, unique, showFooter, stickyColIndex}, ref) => {
         const [dialogOpen, setDialogOpen] = useState(false)
 
         const headers = data.map((it) => it.name)
@@ -56,32 +64,36 @@ export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyPr
         const summarizeTable = () => {
             setDialogOpen(true)
         }
+
         return (
             <>
                 <TableHead ref={ref}>
                     <TableRow>
-                        {headers.map((it) => (
-                            <TableCell key={unique + it}>
-                                {it}
-                            </TableCell>
-                        ))}
+                        {headers.map((it, index) => {
+                            const Cell = index === stickyColIndex ? StickyTableCell : TableCell
+                            return (
+                                <Cell key={unique + it} sx={(theme) => ({ zIndex: theme.zIndex.appBar + 2})}>
+                                    {it}
+                                </Cell>
+                            )
+                        })}
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {zipped.map((values, index) => (
                         <TableRow
                             key={`${unique}${index.toString()}`}
-                            hover={hover}
+                            hover
                         >
-                            {values.map((it, innerIndex) => (
-                                <TableCell
-                                    key={`${unique}${
-                                        headers[innerIndex]
-                                    }${index}${it?.toString() ?? ""}`}
-                                >
-                                    {formatValue(it)}
-                                </TableCell>
-                            ))}
+                            {values.map((it, innerIndex) => {
+                                const Cell = innerIndex === stickyColIndex ? StickyTableCell : TableCell
+                                const key = `${unique}${headers[innerIndex]}${index}${it?.toString() ?? ""}`
+                                return (
+                                    <Cell key={key}>
+                                        {formatValue(it)}
+                                    </Cell>
+                                )
+                            })}
                         </TableRow>
                     ))}
                 </TableBody>
@@ -142,7 +154,6 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                             data={data.columns}
                             unique={props.unique}
                             ref={ref}
-                            hover={true}
                             showFooter={true} />
                     </Table>
                 </TableContainer>

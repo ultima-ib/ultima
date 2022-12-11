@@ -103,7 +103,7 @@ async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Respo
     web::Json(ds)
 }
 
-#[tracing::instrument(name = "Describe")]
+#[tracing::instrument(name = "Describe", skip(jdf))]
 async fn describe(
     jdf: web::Json<DataFrame>,
 ) -> Result<HttpResponse> {

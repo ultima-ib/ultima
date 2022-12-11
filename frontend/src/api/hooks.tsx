@@ -43,7 +43,7 @@ export const useAggTypes = () => {
 }
 
 export const useOverrides = () => {
-    return useFetch(DESCRIBE) as string[]
+    return useFetch(OVERRIDES) as string[]
 }
 
 export const useTemplates = () => {

@@ -1,4 +1,7 @@
-import { GenerateTableDataRequest, GenerateTableDataResponse } from "../api/types"
+import {
+    GenerateTableDataRequest,
+    GenerateTableDataResponse,
+} from "../api/types"
 import { useTableData } from "../api/hooks"
 import {
     Paper,
@@ -9,7 +12,8 @@ import {
     TableRow,
     TableCell,
     TableFooter,
-    Button, TableCellProps,
+    Button,
+    TableCellProps,
 } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import DownloadIcon from "@mui/icons-material/Download"
@@ -42,62 +46,69 @@ interface DataTableBodyProps {
     stickyColIndex?: number
 }
 
-export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyProps>(
-    ({ data, unique, showFooter, stickyColIndex}, ref) => {
-        const [dialogOpen, setDialogOpen] = useState(false)
+export const DataTableBody = forwardRef<
+    HTMLTableSectionElement,
+    DataTableBodyProps
+>(({ data, unique, showFooter, stickyColIndex }, ref) => {
+    const [dialogOpen, setDialogOpen] = useState(false)
 
-        const headers = data.map((it) => it.name)
-        const zipped = fancyZip(data.map((col) => col.values))
+    const headers = data.map((it) => it.name)
+    const zipped = fancyZip(data.map((col) => col.values))
 
-        const saveCsv = () => {
-            const csvHeaders = headers.join(",")
-            const rows = zipped
-                .map((cells) =>
-                    cells.map((it) => it?.toString() ?? "").join(","),
-                )
-                .join("\r\n")
-            const csvContent = `data:text/csv;charset=utf-8,${csvHeaders}\r\n${rows}`
-            const encodedUri = encodeURI(csvContent)
-            window.open(encodedUri)
-        }
+    const saveCsv = () => {
+        const csvHeaders = headers.join(",")
+        const rows = zipped
+            .map((cells) => cells.map((it) => it?.toString() ?? "").join(","))
+            .join("\r\n")
+        const csvContent = `data:text/csv;charset=utf-8,${csvHeaders}\r\n${rows}`
+        const encodedUri = encodeURI(csvContent)
+        window.open(encodedUri)
+    }
 
-        const summarizeTable = () => {
-            setDialogOpen(true)
-        }
+    const summarizeTable = () => {
+        setDialogOpen(true)
+    }
 
-        return (
-            <>
-                <TableHead ref={ref}>
-                    <TableRow>
-                        {headers.map((it, index) => {
-                            const Cell = index === stickyColIndex ? StickyTableCell : TableCell
-                            return (
-                                <Cell key={unique + it} sx={(theme) => ({ zIndex: theme.zIndex.appBar + 2})}>
-                                    {it}
-                                </Cell>
-                            )
+    return (
+        <>
+            <TableHead ref={ref}>
+                <TableRow>
+                    {headers.map((it, index) => {
+                        const Cell =
+                            index === stickyColIndex
+                                ? StickyTableCell
+                                : TableCell
+                        return (
+                            <Cell
+                                key={unique + it}
+                                sx={(theme) => ({
+                                    zIndex: theme.zIndex.appBar + 2,
+                                })}
+                            >
+                                {it}
+                            </Cell>
+                        )
+                    })}
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {zipped.map((values, index) => (
+                    <TableRow key={`${unique}${index.toString()}`} hover>
+                        {values.map((it, innerIndex) => {
+                            const Cell =
+                                innerIndex === stickyColIndex
+                                    ? StickyTableCell
+                                    : TableCell
+                            const key = `${unique}${
+                                headers[innerIndex]
+                            }${index}${it?.toString() ?? ""}`
+                            return <Cell key={key}>{formatValue(it)}</Cell>
                         })}
                     </TableRow>
-                </TableHead>
-                <TableBody>
-                    {zipped.map((values, index) => (
-                        <TableRow
-                            key={`${unique}${index.toString()}`}
-                            hover
-                        >
-                            {values.map((it, innerIndex) => {
-                                const Cell = innerIndex === stickyColIndex ? StickyTableCell : TableCell
-                                const key = `${unique}${headers[innerIndex]}${index}${it?.toString() ?? ""}`
-                                return (
-                                    <Cell key={key}>
-                                        {formatValue(it)}
-                                    </Cell>
-                                )
-                            })}
-                        </TableRow>
-                    ))}
-                </TableBody>
-                {showFooter && (<TableFooter>
+                ))}
+            </TableBody>
+            {showFooter && (
+                <TableFooter>
                     <TableRow>
                         <TableCell colSpan={headers.length}>
                             Total Rows: {zipped.length}
@@ -125,15 +136,17 @@ export const DataTableBody = forwardRef<HTMLTableSectionElement, DataTableBodyPr
                             </Button>
                         </TableCell>
                     </TableRow>
-                </TableFooter>)}
-                <SummaryStats table={{ columns: data }} openState={[dialogOpen, setDialogOpen]} />
-            </>
-        )
-    },
-)
+                </TableFooter>
+            )}
+            <SummaryStats
+                table={{ columns: data }}
+                openState={[dialogOpen, setDialogOpen]}
+            />
+        </>
+    )
+})
 
 DataTableBody.displayName = "DataTableBody"
-
 
 interface DataTableProps {
     input: GenerateTableDataRequest
@@ -154,7 +167,8 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                             data={data.columns}
                             unique={props.unique}
                             ref={ref}
-                            showFooter={true} />
+                            showFooter={true}
+                        />
                     </Table>
                 </TableContainer>
             </Paper>

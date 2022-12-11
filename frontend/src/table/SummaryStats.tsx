@@ -2,23 +2,24 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
-    CircularProgress, Table,
+    CircularProgress,
+    Table,
 } from "@mui/material"
 import { Suspense, SetStateAction, Dispatch } from "react"
 import { GenerateTableDataResponse } from "../api/types"
 import { useDescribeTableData } from "../api/hooks"
 import { DataTableBody } from "./index"
 
-const SummaryTable = (props: {
-    table: GenerateTableDataResponse
-}) => {
+const SummaryTable = (props: { table: GenerateTableDataResponse }) => {
     const data = useDescribeTableData(props.table)
     return (
         <Table>
             <DataTableBody
                 data={data.columns}
                 unique={"summary"}
-                stickyColIndex={data.columns.findIndex(it => it.name === "describe")}
+                stickyColIndex={data.columns.findIndex(
+                    (it) => it.name === "describe",
+                )}
                 showFooter={false}
             />
         </Table>

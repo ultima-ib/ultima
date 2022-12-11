@@ -14,9 +14,9 @@
                     }],
 
     "measures": [
-        ["Commodity DeltaCharge Low", "first"],
-        ["Commodity DeltaCharge Medium", "first"],
-        ["Commodity DeltaCharge High", "first"]
+        ["Commodity DeltaCharge Low", "scalar"],
+        ["Commodity DeltaCharge Medium", "scalar"],
+        ["Commodity DeltaCharge High", "scalar"]
             ],
     
     "hide_zeros": false,

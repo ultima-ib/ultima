@@ -107,5 +107,6 @@ jobs:
         with:
           content: .
           push: true
-          tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:${{ steps.vars.outputs.tag }}
+          tag_with_sha: true
+          tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima
 

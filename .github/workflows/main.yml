@@ -105,8 +105,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          content: .
+          context: .
           push: true
-          tag_with_sha: true
           tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima
 

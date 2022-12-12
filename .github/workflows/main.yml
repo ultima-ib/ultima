@@ -107,5 +107,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima
+          tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:latest, 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:${{ github.run_number }}
 

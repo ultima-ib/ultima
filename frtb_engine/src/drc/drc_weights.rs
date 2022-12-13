@@ -24,7 +24,7 @@ pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {
     let s7 = Series::new("RiskCategory", &["DRC"; 14]);
 
     DataFrame::new(vec![weights_list, cq, s6, s7])
-    .expect("Couldn't get DRC Non Sec Weights Frame")    
+    .expect("Couldn't get DRC Non Sec Weights Frame")   // We should not fail on default frame 
 }
 
 #[cfg(feature = "CRR2")]
@@ -33,6 +33,18 @@ pub(crate) fn drc_nonsec_weights_crr2() -> HashMap<String, Expr> {
         "^(?i)AA$".to_string(),
         Series::new("", &[0.005]).lit().list(),
     )])
+}
+#[cfg(feature = "CRR2")]
+pub(crate) fn drc_nonsec_weights_frame_crr2() -> DataFrame {
+    let s1 = Series::new("AA", &[0.02]);
+    let weights_list = Series::new("Weights", &[s1]);
+    let cq = Series::new("CreditQuality", &["AA"]);
+
+    let s6 = Series::new("RiskClass", &["DRC_nonSec"; 1]);
+    let s7 = Series::new("RiskCategory", &["DRC"; 1]);
+
+    DataFrame::new(vec![weights_list, cq, s6, s7])
+    .expect("Couldn't get DRC Non Sec Weights Frame")   // We should not fail on default frame
 }
 
 ///CreditQuality_Seniority - Weight

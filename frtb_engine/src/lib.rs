@@ -169,6 +169,7 @@ impl DataSet for FRTBDataSet {
                 .arr()
                 .max()
                 .alias("CurvatureRiskWeightCRR2")];
+                
             if csrnonsec_covered_bond_15 {
                 with_cols.push(
                     when(

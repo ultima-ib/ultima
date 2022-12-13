@@ -30,13 +30,14 @@ const StickyTableCell = styled(TableCell)<TableCellProps>(({ theme }) => ({
     background: theme.palette.background.default,
 }))
 
+const fmt = new Intl.NumberFormat()
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
         return value
     } else if (value === null) {
         return ""
     } else {
-        return value.toFixed(2)
+        return fmt.format(value)
     }
 }
 
@@ -103,7 +104,11 @@ export const DataTableBody = forwardRef<
                             const key = `${unique}${
                                 headers[innerIndex]
                             }${index}${it?.toString() ?? ""}`
-                            return <Cell key={key}>{formatValue(it)}</Cell>
+                            return <Cell key={key} sx={{
+                                ":hover": {
+                                    fontWeight: "bold",
+                                },
+                            }}>{formatValue(it)}</Cell>
                         })}
                     </TableRow>
                 ))}

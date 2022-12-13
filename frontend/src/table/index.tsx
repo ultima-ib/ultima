@@ -14,6 +14,7 @@ import {
     TableFooter,
     Button,
     TableCellProps,
+    Box,
 } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import DownloadIcon from "@mui/icons-material/Download"
@@ -116,24 +117,23 @@ export const DataTableBody = forwardRef<
                     </TableRow>
                     <TableRow>
                         <TableCell colSpan={headers.length}>
-                            <Button
-                                variant="contained"
-                                endIcon={<DownloadIcon />}
-                                onClick={saveCsv}
-                            >
-                                Save as CSV
-                            </Button>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={headers.length}>
-                            <Button
-                                variant="contained"
-                                endIcon={<SummarizeIcon />}
-                                onClick={summarizeTable}
-                            >
-                                Summarize
-                            </Button>
+                            <Box sx={{ display: "flex", gap: 2 }}>
+                                <Button
+                                    variant="contained"
+                                    endIcon={<DownloadIcon />}
+                                    onClick={saveCsv}
+                                >
+                                    Save as CSV
+                                </Button>
+
+                                <Button
+                                    variant="contained"
+                                    endIcon={<SummarizeIcon />}
+                                    onClick={summarizeTable}
+                                >
+                                    Summarize
+                                </Button>
+                            </Box>
                         </TableCell>
                     </TableRow>
                 </TableFooter>

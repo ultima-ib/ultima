@@ -122,7 +122,7 @@ fn overrides() {
         "overrides": [{   "field": "SensWeights",
                           "value": "[0.005]",
                           "filters": [
-                                    [{"op":"Eq", "field":"RiskClass", "value":"DRC_NonSec"}],
+                                    [{"op":"Eq", "field":"RiskClass", "value":"DRC_nonSec"}],
                                     [{"op":"Eq", "field":"CreditQuality", "value":"AA"}]
                                     ]
                     }],

@@ -110,9 +110,7 @@ pub(crate) fn string_to_any<'a>(
 ) -> PolarsResult<AnyValue<'a>> {
     let emsg = format!(
         "Argument {} could not be parsed into column {} format. Argument should be a {}",
-        value,
-        column_name,
-        dt
+        value, column_name, dt
     );
 
     match dt {

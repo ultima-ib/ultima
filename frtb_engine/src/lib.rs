@@ -11,9 +11,11 @@ mod helpers;
 pub mod measures;
 pub mod prelude;
 mod risk_weights;
+#[cfg(feature = "CRR2")]
+mod risk_weights_crr2;
 pub mod statics;
 
-use crate::drc::drc_weights;
+//use crate::drc::drc_weights;
 use base_engine::prelude::*;
 use prelude::{calc_params::frtb_calc_params, drc::common::drc_scalinng, frtb_measure_vec};
 use risk_weights::*;
@@ -96,7 +98,7 @@ impl DataSet for FRTBDataSet {
     }
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
-    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> LazyFrame {
+    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
         let mut lf1 = if let Some(lf) = _lf {
             lf
         } else {
@@ -106,60 +108,19 @@ impl DataSet for FRTBDataSet {
         //First, identify buckets
         lf1 = lf1.with_column(buckets::sbm_buckets(&self.build_params));
 
-        // If CRR2, then also provide CRR2 buckets
-        #[cfg(feature = "CRR2")]
-        if cfg!(feature = "CRR2") {
-            lf1 = lf1.with_column(buckets::sbm_buckets_crr2())
-        };
-
-        // Then assign risk weights based on buckets
-        lf1 = lf1.with_column(weights_assign(&self.build_params).alias("SensWeights"));
-
-        //let tmp_frame = lf1.collect().expect("Failed to unwrap tmp_frame while .prepare()");
-
-        // Some risk weights assignments (DRC Sec Non CTP) would result in too many when().then() statements
-        // which panics: https://github.com/pola-rs/polars/issues/4827
-        // Hence, for such scenarios we need to use left join
-        let drc_secnonctp_weights: LazyFrame = drc_weights::drc_secnonctp_weights_frame().lazy();
-        let left_on = concat_str(
-            [
-                col("CreditQuality").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
-                    GetOutput::from_type(DataType::Utf8),
-                ),
-                col("RiskFactorType").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
-                    GetOutput::from_type(DataType::Utf8),
-                ),
-            ],
-            "_",
-        )
-        .alias("LeftKey");
-
-        //dbg!(lf1.clone().with_column(left_on.clone()).collect());
-
-        lf1 = lf1
-            .left_join(drc_secnonctp_weights, left_on, col("Key"))
-            .with_column(concat_lst([col("RiskWeightDRC")]));
-        //lf1 = lf1.collect().unwrap().lazy();
-
-        //let tmp_frame = lf1
-        //    .collect()
-        //    .expect("Failed to unwrap tmp_frame while .prepare()");
-
-        // lf1 = tmp_frame
-        //     .lazy()
-        lf1 = lf1
-            .with_column(
-                when(col("RiskClass").eq(lit("DRC_SecNonCTP")))
-                    .then(col("RiskWeightDRC"))
-                    .otherwise(col("SensWeights"))
-                    .alias("SensWeights"),
-            )
-            .select([col("*").exclude(["RiskWeightDRC", "LeftKey"])]);
-        //let tmp_frame = lf1
-        //    .collect()
-        //    .expect("Failed to unwrap tmp_frame while .prepare()");
+        // Then assign SensWeights(BCBS) based on buckets
+        lf1 = weights_assign(lf1, &self.build_params)?;
+        // TODO Remove after this issue
+        // workaround for https://github.com/pola-rs/polars/issues/5812
+        let a = Expr::Literal(
+            LiteralValue::try_from(AnyValue::List(Series::new("NewVal", [0.]))).unwrap(),
+        );
+        lf1 = lf1.with_column(
+            when(col("SensWeights").is_null())
+                .then(a.list())
+                .otherwise(col("SensWeights"))
+                .alias("SensWeights"),
+        );
 
         // Curvature risk weight
         //lf1 = tmp_frame.lazy()
@@ -172,6 +133,7 @@ impl DataSet for FRTBDataSet {
             .then(col("SensWeights").arr().max().alias("CurvatureRiskWeight"))
             .otherwise(NULL.lit()),
         );
+        //dbg!(lf1.clone().select([col("*")]).collect());
 
         // Now,  ammend weights if required. ie has to be done after main assignment of risk weights
         let mut other_cols: Vec<Expr> = vec![];
@@ -196,25 +158,26 @@ impl DataSet for FRTBDataSet {
                 .alias("SensWeights"),
             )
         };
-        // If CRR2 config, we need to derive SensWeightsCRR2
-        #[cfg(feature = "CRR2")]
-        if cfg!(feature = "CRR2") {
-            other_cols.push(weights_assign_crr2().alias("SensWeightsCRR2"))
-        };
 
         if !other_cols.is_empty() {
             lf1 = lf1.with_columns(&other_cols)
         };
 
-        // Now, we need to also ammend CRR2 weights
-        // Bucket 10 as per
-        // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776
+        // If CRR2 config, we need to derive SensWeightsCRR2
         #[cfg(feature = "CRR2")]
         if cfg!(feature = "CRR2") {
+            lf1 = lf1.with_column(buckets::sbm_buckets_crr2());
+            //other_cols.push(weights_assign_crr2().alias("SensWeightsCRR2"))
+            lf1 = crate::risk_weights_crr2::weights_assign_crr2(lf1, &self.build_params)?;
+
+            // Now, we need to also ammend CRR2 weights
+            // Bucket 10 as per
+            // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776
             let mut with_cols = vec![col("SensWeightsCRR2")
                 .arr()
                 .max()
                 .alias("CurvatureRiskWeightCRR2")];
+
             if csrnonsec_covered_bond_15 {
                 with_cols.push(
                     when(
@@ -253,13 +216,16 @@ impl DataSet for FRTBDataSet {
                 self.build_params.get("DateFormat"),
             )
             .alias("ScaleFactor"),
-            drc_seniority().alias("SeniorityRank"),
+            //drc_seniority().alias("SeniorityRank"),
         ]);
+
+        // DRC Seniority
+        lf1 = drc::drc_weights::with_drc_seniority(lf1);
         //let tmp2_frame = lf1
         //    .collect()
         //    .expect("Failed to unwrap tmp2_frame while .prepare()");
 
-        lf1
+        Ok(lf1)
     }
 
     // TODO Validate:

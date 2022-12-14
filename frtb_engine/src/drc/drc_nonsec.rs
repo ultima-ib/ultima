@@ -4,11 +4,11 @@ use base_engine::prelude::*;
 use polars::lazy::dsl::apply_multiple;
 
 pub(crate) fn drc_nonsec_grossjtd(_: &OCP) -> Expr {
-    rc_sens("DRC_NonSec", col("GrossJTD"))
+    rc_sens("DRC_nonSec", col("GrossJTD"))
 }
 pub(crate) fn drc_nonsec_grossjtd_scaled(_: &OCP) -> Expr {
     //drc_nonsec_distributor(op, ReturnMetric::ScaledGrossJTD)
-    rc_sens("DRC_NonSec", col("GrossJTD") * col("ScaleFactor"))
+    rc_sens("DRC_nonSec", col("GrossJTD") * col("ScaleFactor"))
 }
 
 pub(crate) fn drc_nonsec_charge(op: &OCP) -> Expr {
@@ -59,7 +59,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             // First, sum over bucket, obligor and seniority
             let mut lf = df
                 .lazy()
-                .filter(col("rc").eq(lit("DRC_NonSec")))
+                .filter(col("rc").eq(lit("DRC_nonSec")))
                 .groupby([col("b"), col("rf"), col("rft")])
                 .agg([
                     (col("jtd") * col("s")).sum().alias("scaled_jtd"),
@@ -217,50 +217,50 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
             name: "DRC_NonSec_GrossJTD".to_string(),
             calculator: Box::new(drc_nonsec_grossjtd),
             aggregation: None,
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
             name: "DRC_NonSec_GrossJTD_Scaled".to_string(),
             calculator: Box::new(drc_nonsec_grossjtd_scaled),
             aggregation: None,
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
             name: "DRC_NonSec_CapitalCharge".to_string(),
             calculator: Box::new(drc_nonsec_charge),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetLongJTD".to_string(),
             calculator: Box::new(drc_nonsec_netlongjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetShortJTD".to_string(),
             calculator: Box::new(drc_nonsec_netshortjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetLongJTD_Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetlongjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
             name: "DRC_NonSec_NetAbsShortJTD_Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetabsshortjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         // HBR Only makes sence at Bucket level
         Measure {
             name: "DRC_NonSec_HBR".to_string(),
             calculator: Box::new(drc_nonsec_hbr),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_NonSec"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
     ]
 }

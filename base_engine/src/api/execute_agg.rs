@@ -77,7 +77,7 @@ pub fn execute_aggregation(
 
     // If streaming then prepare (assign weights) NOW (ie post filtering)
     if streaming {
-        f1 = data.prepare_frame(Some(f1))
+        f1 = data.prepare_frame(Some(f1))?
     }
 
     // Step 2.4 Applying Overwrites
@@ -89,10 +89,13 @@ pub fn execute_aggregation(
     if !req.add_row.is_empty() {
         let current_schema = f1.schema()?;
         let extra_frame = dbg!(df_from_maps_and_schema(req.add_row, current_schema)?).lazy();
-        let extra_prepared_frame = data.prepare_frame(Some(extra_frame));
+        let extra_prepared_frame = data.prepare_frame(Some(extra_frame))?;
         f1 = diag_concat_lf([f1, extra_prepared_frame], true, true)?;
         //dbg!(f1.clone().collect());
     }
+
+    //dbg!(f1.clone().select([col("TradeId"), col("RiskClass"), col("RiskFactor"),col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
+    //dbg!(f1.clone().select([col("*")]).collect());
 
     // Step 3.1 Build GROUPBY
     let groups: Vec<Expr> = req.groupby.iter().map(|x| col(x)).collect();

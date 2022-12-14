@@ -30,6 +30,33 @@ fn fx_delta() {
 }
 
 #[test]
+#[cfg(feature = "CRR2")]
+fn fx_delta_crr2() {
+    let expected_res = arr1(&[
+        115.0, 1.59099, 1.59099, 1.59099, 1.59099, 1.59099, 1.59099, 1.59099,
+    ]);
+    let request = r#"
+    {"measures": [
+        ["FX DeltaSens", "sum"],
+        ["FX DeltaSens Weighted", "sum"],
+        ["FX DeltaSb", "scalar"],
+        ["FX DeltaKb", "scalar"],
+        ["FX DeltaCharge Low", "scalar"],
+        ["FX DeltaCharge Medium", "scalar"],
+        ["FX DeltaCharge High", "scalar"],
+        ["FX DeltaCharge MAX", "scalar"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+    "type": "AggregationRequest",
+    
+    "calc_params": {"jurisdiction": "CRR2"}
+            
+    }"#;
+    assert_results(request, dbg!(expected_res).sum(), None)
+}
+
+#[test]
 fn fx_vega() {
     let expected_res = arr1(&[
         53000.0,

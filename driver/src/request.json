@@ -20,23 +20,5 @@
           "apply_fx_curv_div": "true"
         },
         "name": "Shared Content"
-      },
-      {
-        "measures": [
-          ["FX DeltaSens", "sum"],
-          ["FX DeltaSens Weighted", "sum"],
-          ["FX DeltaSb", "scalar"],
-          ["FX DeltaKb", "scalar"],
-          ["FX DeltaCharge Low", "scalar"],
-          ["FX DeltaCharge Medium", "scalar"],
-          ["FX DeltaCharge High", "scalar"],
-          ["FX DeltaCharge MAX", "scalar"]
-              ],
-      "groupby": ["Desk"],
-      "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
-      "type": "AggregationRequest",
-      
-      "calc_params": {"jurisdiction": "CRR2"},
-        "name": "Shared Content"
       }
 ]

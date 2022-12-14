@@ -17,14 +17,35 @@ pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {
     let s12 = Series::new("NORATING", &[0.15]);
     let s13 = Series::new("DEFAULTED", &[1.]);
 
-    let weights_list = Series::new("Weights", &[s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13]);
-    let cq = Series::new("CreditQuality", &["AAA", "AA", "A", "BBB", "Baa", "BB", "Ba", "B", "CCC", "CAA", "CA", "UNRATED", "NORATING", "DEFAULTED"]);
+    let weights_list = Series::new(
+        "Weights",
+        &[s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13],
+    );
+    let cq = Series::new(
+        "CreditQuality",
+        &[
+            "AAA",
+            "AA",
+            "A",
+            "BBB",
+            "Baa",
+            "BB",
+            "Ba",
+            "B",
+            "CCC",
+            "CAA",
+            "CA",
+            "UNRATED",
+            "NORATING",
+            "DEFAULTED",
+        ],
+    );
 
     let s6 = Series::new("RiskClass", &["DRC_nonSec"; 14]);
     let s7 = Series::new("RiskCategory", &["DRC"; 14]);
 
-    DataFrame::new(vec![weights_list, cq, s6, s7])
-    .expect("Couldn't get DRC Non Sec Weights Frame")   // We should not fail on default frame 
+    DataFrame::new(vec![weights_list, cq, s6, s7]).expect("Couldn't get DRC Non Sec Weights Frame")
+    // We should not fail on default frame
 }
 
 #[cfg(feature = "CRR2")]
@@ -36,8 +57,8 @@ pub(crate) fn drc_nonsec_weights_frame_crr2() -> DataFrame {
     let s6 = Series::new("RiskClass", &["DRC_nonSec"; 1]);
     let s7 = Series::new("RiskCategory", &["DRC"; 1]);
 
-    DataFrame::new(vec![weights_list, cq, s6, s7])
-    .expect("Couldn't get DRC Non Sec Weights Frame")   // We should not fail on default frame
+    DataFrame::new(vec![weights_list, cq, s6, s7]).expect("Couldn't get DRC Non Sec Weights Frame")
+    // We should not fail on default frame
 }
 
 ///CreditQuality_Seniority - Weight
@@ -59,7 +80,6 @@ pub(crate) fn _drc_secnonctp_weights_frame() -> LazyFrame {
     .lazy()
     .with_column(concat_lst([col("RiskWeightDRC")]))
 }
-
 
 ///CreditQuality_Seniority - Weight
 pub(crate) fn drc_secnonctp_weights_frame() -> DataFrame {
@@ -203,7 +223,6 @@ pub fn drc_secnonctp_weights_raw() -> HashMap<&'static str, f64> {
 /// as per 22.19
 /// Neened to determine
 pub fn with_drc_seniority(lf: LazyFrame) -> LazyFrame {
-
     let drc_sen = df![
         "SeniorityRank" => [5, 4, 3, 2, 1, 0],
         "RiskFactorType" => ["Covered", "SeniorSecured", "SeniorUnsecured", "Unrated", "NonSenior", "Equity"],
@@ -214,6 +233,5 @@ pub fn with_drc_seniority(lf: LazyFrame) -> LazyFrame {
     .lazy();
 
     let join_on = [col("RiskClass"), col("RiskCategory"), col("RiskFactorType")];
-    let lf1 = lf.join(drc_sen, join_on.clone(), join_on, JoinType::Left);
-    lf1 
+    lf.join(drc_sen, join_on.clone(), join_on, JoinType::Left)
 }

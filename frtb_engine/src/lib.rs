@@ -112,12 +112,15 @@ impl DataSet for FRTBDataSet {
         lf1 = weights_assign(lf1, &self.build_params)?;
         // TODO Remove after this issue
         // workaround for https://github.com/pola-rs/polars/issues/5812
-        let a = Expr::Literal(LiteralValue::try_from(AnyValue::List(Series::new("NewVal", [0.]))).unwrap());
+        let a = Expr::Literal(
+            LiteralValue::try_from(AnyValue::List(Series::new("NewVal", [0.]))).unwrap(),
+        );
         lf1 = lf1.with_column(
             when(col("SensWeights").is_null())
-            .then(a.list())
-            .otherwise(col("SensWeights"))
-            .alias("SensWeights"));
+                .then(a.list())
+                .otherwise(col("SensWeights"))
+                .alias("SensWeights"),
+        );
 
         // Curvature risk weight
         //lf1 = tmp_frame.lazy()
@@ -160,24 +163,21 @@ impl DataSet for FRTBDataSet {
             lf1 = lf1.with_columns(&other_cols)
         };
 
-        
-
         // If CRR2 config, we need to derive SensWeightsCRR2
         #[cfg(feature = "CRR2")]
         if cfg!(feature = "CRR2") {
             lf1 = lf1.with_column(buckets::sbm_buckets_crr2());
             //other_cols.push(weights_assign_crr2().alias("SensWeightsCRR2"))
             lf1 = crate::risk_weights_crr2::weights_assign_crr2(lf1, &self.build_params)?;
-        
 
-        // Now, we need to also ammend CRR2 weights
-        // Bucket 10 as per
-        // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776
+            // Now, we need to also ammend CRR2 weights
+            // Bucket 10 as per
+            // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776
             let mut with_cols = vec![col("SensWeightsCRR2")
                 .arr()
                 .max()
                 .alias("CurvatureRiskWeightCRR2")];
-                
+
             if csrnonsec_covered_bond_15 {
                 with_cols.push(
                     when(
@@ -209,15 +209,13 @@ impl DataSet for FRTBDataSet {
             )
             .then(col("GirrVegaUnderlyingMaturity").fill_null(col("RiskFactorType")))
             .otherwise(NULL.lit()),
-
             drc_scalinng(
                 self.build_params
                     .get("DayCountConvention")
                     .and_then(|x| x.parse::<u8>().ok()),
-
                 self.build_params.get("DateFormat"),
-            ).alias("ScaleFactor"),
-
+            )
+            .alias("ScaleFactor"),
             //drc_seniority().alias("SeniorityRank"),
         ]);
 
@@ -226,7 +224,6 @@ impl DataSet for FRTBDataSet {
         //let tmp2_frame = lf1
         //    .collect()
         //    .expect("Failed to unwrap tmp2_frame while .prepare()");
-        
 
         Ok(lf1)
     }

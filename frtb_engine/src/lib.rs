@@ -110,6 +110,14 @@ impl DataSet for FRTBDataSet {
 
         // Then assign SensWeights(BCBS) based on buckets
         lf1 = weights_assign(lf1, &self.build_params)?;
+        // TODO Remove after this issue
+        // workaround for https://github.com/pola-rs/polars/issues/5812
+        let a = Expr::Literal(LiteralValue::try_from(AnyValue::List(Series::new("NewVal", [0.]))).unwrap());
+        lf1 = lf1.with_column(
+            when(col("SensWeights").is_null())
+            .then(a.list())
+            .otherwise(col("SensWeights"))
+            .alias("SensWeights"));
 
         // Curvature risk weight
         //lf1 = tmp_frame.lazy()
@@ -122,6 +130,7 @@ impl DataSet for FRTBDataSet {
             .then(col("SensWeights").arr().max().alias("CurvatureRiskWeight"))
             .otherwise(NULL.lit()),
         );
+        //dbg!(lf1.clone().select([col("*")]).collect());
 
         // Now,  ammend weights if required. ie has to be done after main assignment of risk weights
         let mut other_cols: Vec<Expr> = vec![];
@@ -150,6 +159,8 @@ impl DataSet for FRTBDataSet {
         if !other_cols.is_empty() {
             lf1 = lf1.with_columns(&other_cols)
         };
+
+        
 
         // If CRR2 config, we need to derive SensWeightsCRR2
         #[cfg(feature = "CRR2")]
@@ -215,6 +226,7 @@ impl DataSet for FRTBDataSet {
         //let tmp2_frame = lf1
         //    .collect()
         //    .expect("Failed to unwrap tmp2_frame while .prepare()");
+        
 
         Ok(lf1)
     }

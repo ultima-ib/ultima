@@ -2,8 +2,8 @@
 //! It follows the logic prescribed by the text https://www.bis.org/bcbs/publ/d457.pdf
 
 use crate::drc::drc_weights;
-use base_engine::{LazyFrame, Expr, Series, NamedFrom, Literal, PolarsResult, DataType, 
-    col, concat, IntoLazy, concat_str, JoinType, Utf8NameSpaceImpl, lit, when, IntoSeries, DataFrame, df, CsvReader, PolarsError, SerReader,
+use base_engine::{LazyFrame, Expr, Series, NamedFrom, PolarsResult, DataType, 
+    col, concat, IntoLazy, concat_str, JoinType, Utf8NameSpaceImpl, IntoSeries, DataFrame, df, CsvReader, PolarsError, SerReader,
     GetOutput, concat_lst};
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
@@ -26,8 +26,10 @@ static DRC_NONSEC_RW: OnceCell<LazyFrame> = OnceCell::new();
 
 /// This is just a helper to store parameters
 pub struct SensWeightsConfig {
-    /// Eq Vega, Com, CSR Delta
+    /// Eq Vega, Com, CSR Delta, FX Special cases
     rc_rcat_b_weights: LazyFrame,
+    /// FX Special cases where only first three chars used
+    rc_rcat_b_weights_second: LazyFrame,
     /// Eq Delta, GIRR Yield-Special
     rc_rcat_rtype_b_weights: LazyFrame,
     /// Girr XCCY, Infl, Yield-Base
@@ -37,9 +39,6 @@ pub struct SensWeightsConfig {
     /// DRC Non Sec - Risk Cat, Risk Class, CreditQuality
     drc_nonsec_weights_frame: LazyFrame,
     drc_secnonctp_weights: LazyFrame,
-    // FX
-    fx: Expr,
-    fx_override: HashMap<String, Expr>,
 }
 
 /// This function !Defines! Risk Weights as per regulation or where provided with build_params
@@ -60,15 +59,55 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let fx_base = &[0.15];
     let fx_base_srs = Series::new("", fx_base);
 
-    // Order is important, later will override previous
-    let fx_map = HashMap::from([
-        ("HRKEUR|BGNEUR".to_string(),   Series::new("",&[0.05]).lit().list() ),
-        ("DKKEUR".to_string(),          Series::new("",&[0.0225]).lit().list() ),
-        ("^(USD|EUR|JPY|GBP|AUD|CAD|CHF|MXN|CNY|CNO|NZD|RUB|HKD|SGD|TRY|KRW|SEK|ZAR|INR|NOK|BRL|DKK)...$".to_string(), 
-                                        (Series::new("", fx_base) * fx_1_over_sqrt2).lit().list() ),
-        ("USDUSD|EUREUR".to_string(),   Series::new("",&[0.]).lit().list() ),
-    ]);
+    let fx_buckets_first = vec!["HRKEUR".to_string(),"BGNEUR".to_string(), "DKKEUR".to_string(), "USDUSD".to_string(), "EUREUR".to_string()];
+    let fx_weights_first = vec![
+        Series::new("",&[0.05]),
+        Series::new("",&[0.05]),
+        Series::new("",&[0.0225]),
+        Series::new("",&[0.]),
+        Series::new("",&[0.]),
+    ];
+    let fx_rc_rcat_b_first = rcat_rc_b_weights_frame(&fx_weights_first, "Delta", "FX", None, None, Some(fx_buckets_first))
+        .lazy();
 
+    // These FX Buckets to also be joined on Bucket, but using only first three chars
+    let fx_buckets_second = vec!["USD".to_string(),
+        "EUR".to_string(), 
+        "JPY".to_string(), 
+        "GBP".to_string(), 
+        "AUD".to_string(),
+        "CAD".to_string(), 
+        "CHF".to_string(), 
+        "MXN".to_string(), 
+        "CNY".to_string(),
+        "CNO".to_string(), 
+        "NZD".to_string(), 
+        "RUB".to_string(), 
+        "HKD".to_string(),
+        "SGD".to_string(), 
+        "TRY".to_string(), 
+        "KRW".to_string(), 
+        "SEK".to_string(),
+        "ZAR".to_string(),
+        "NOK".to_string(), 
+        "BRL".to_string(), 
+        "KRW".to_string(), 
+        "DKK".to_string()];
+    let fx_weights_second = fx_buckets_second
+        .iter()
+        .map(|_|Series::new("", fx_base) * fx_1_over_sqrt2)
+        .collect::<Vec<Series>>();
+
+    let fx_rc_rcat_b_second = rcat_rc_b_weights_frame(&fx_weights_second, "Delta", "FX", None, Some("Bucket"), Some(fx_buckets_second))
+        .lazy();
+
+    let fx_base_weights = df!(
+        "Weights" => vec![fx_base_srs.clone()],
+        "RiskClass" => ["FX"],
+        "RiskCategory" => ["Delta"]
+    )
+    .expect("Couldn't build base FX weights") // we must never fail on default frame
+    .lazy();
     // GIRR  - can't be put into a frame due to regex requirement
     //21.44 - Conservative, false by default
     let girr_sqrt2_div = build_params
@@ -115,7 +154,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let _commodity_weights_frame = COM_DELTA_RW.get_or_init(|| {
             build_params.get("commodity_delta_weights")
             .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
-            .unwrap_or_else(||rcat_rc_b_weights_frame(&commodity_weights, "Delta", "Commodity", None, None))
+            .unwrap_or_else(||rcat_rc_b_weights_frame(&commodity_weights, "Delta", "Commodity", None, None, None))
             .lazy() }) ;
 
     // Equity
@@ -153,7 +192,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let _csr_non_sec_weights = CSR_NONSEC_RW.get_or_init(|| {
         build_params.get("csr_non_sec_weights")
         .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
-        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_nonsec_weights_arr, "Delta", "CSR_nonSec", None, None))
+        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_nonsec_weights_arr, "Delta", "CSR_nonSec", None, None, None))
         .lazy() }) ;
 
     // CSR Sec CTP 21.59
@@ -165,7 +204,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let _csr_sec_ctp_weights = CSR_SECCTP_RW.get_or_init(|| {
         build_params.get("csr_sec_ctp_weights")
         .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
-        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_sec_ctp_weights_arr, "Delta", "CSR_Sec_CTP", None, None))
+        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_sec_ctp_weights_arr, "Delta", "CSR_Sec_CTP", None, None, None))
         .lazy() }) ;
 
     // CSR Sec nonCTP 21.62 and 325am
@@ -177,7 +216,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let _csr_sec_nonctp_weigh = CSR_SECNONCTP_RW.get_or_init(|| {
             build_params.get("csr_sec_nonctp_weights")
             .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
-            .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_sec_nonctp_weight_arr, "Delta", "CSR_Sec_nonCTP", None, None))
+            .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_sec_nonctp_weight_arr, "Delta", "CSR_Sec_nonCTP", None, None, None))
             .lazy() }) ;
 
     let _vega_risk_class_weight = VEGA_RW.get_or_init(|| {
@@ -207,7 +246,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
     let _vega_equity_weight = VEGA_EQ_RW.get_or_init(|| {
         build_params.get("equity_vega_weights")
         .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
-        .unwrap_or_else(||rcat_rc_b_weights_frame(&equity_vega_weights, "Vega", "Equity", None, None))
+        .unwrap_or_else(||rcat_rc_b_weights_frame(&equity_vega_weights, "Vega", "Equity", None, None, None))
         .lazy() }) ;
 
     // Eq Vega, Com, CSR Delta
@@ -217,6 +256,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
         _csr_sec_ctp_weights.clone(),
         _csr_non_sec_weights.clone(),
         _commodity_weights_frame.clone(),
+        fx_rc_rcat_b_first
     ], true, true)?; // we must never fail
 
     // Eq Delta
@@ -228,6 +268,7 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 
     let rc_rcat_weights = concat(&[
         _vega_risk_class_weight.clone(),
+        fx_base_weights
     ], true, true)?;
 
     let drc_nonsec_weights_frame = DRC_NONSEC_RW.get_or_init(|| {
@@ -242,14 +283,12 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 
     let dlt_weights = SensWeightsConfig {
         rc_rcat_b_weights,
+        rc_rcat_b_weights_second: fx_rc_rcat_b_second,
         rc_rcat_rtype_b_weights,
         rc_rcat_weights,
         rc_rcat_rtype_weights: girr_rc_rcat_rtype_weights,
         drc_nonsec_weights_frame,
         drc_secnonctp_weights,
-        // FX
-        fx: fx_base_srs.lit().list(),
-        fx_override: fx_map,
     };
 
     //Assign Delta Weights
@@ -258,8 +297,6 @@ pub fn weights_assign(lf: LazyFrame, build_params: &HashMap<String, String>) -> 
 
 /// This is where wheights assignments actually happens
 pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsResult<LazyFrame> {
-    let x: Option<f64> = None;
-    let not_yet_implemented = Series::new("null", &[x]).lit().list();
 
     // First, left join one by one
     let join_on = [col("RiskClass"), col("RiskCategory"), col("RiskFactorType"), col("BucketBCBS")];
@@ -271,6 +308,24 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.join(weights.rc_rcat_b_weights, join_on.clone(), join_on, JoinType::Left);
     lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
         .select([col("*").exclude(["Weights"])]);
+
+    // TO ENTER FX SECOND HERE
+    lf1 = lf1.with_column(col("BucketBCBS").map(
+        |s| Ok(s.utf8()?.str_slice(0, Some(3))?.into_series()),
+        GetOutput::from_type(DataType::Utf8),
+    ).alias("Bucket"));
+
+    //let left_on = [col("RiskClass"), col("RiskCategory"), col("BucketBCBS").map(
+    //    |s| Ok(s.utf8()?.str_slice(0, Some(3))?.into_series()),
+    //    GetOutput::from_type(DataType::Utf8),
+    //).alias("Key")];
+    //dbg!(weights.rc_rcat_b_weights_second.clone().collect());
+    //dbg!(lf1.clone().collect());
+    let right_on = [col("RiskClass"), col("RiskCategory"), col("Bucket")];
+    lf1 = lf1.join(weights.rc_rcat_b_weights_second, right_on.clone(), right_on, JoinType::Left);
+    lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
+        .select([col("*").exclude(["Weights", "Bucket"])]);
+    
     
 
     let join_on = [col("RiskClass"), col("RiskCategory"), col("RiskFactorType")];
@@ -283,6 +338,8 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     let mut lf1 = lf1.join(weights.rc_rcat_weights, join_on.clone(), join_on, JoinType::Left);
     lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
         .select([col("*").exclude(["Weights"])]);
+    
+    
     
     let join_on = [col("RiskClass"), col("RiskCategory"), col("CreditQuality").map(
         |s| Ok(s.utf8()?.to_uppercase().into_series()),
@@ -312,75 +369,22 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.with_column(col("SensWeights").fill_null(col("RiskWeightDRC")))
         .select([col("*").exclude(["RiskWeightDRC", "Key"])]);
 
-    // Delta
-    lf1 = lf1.with_column(
-    when(col("RiskCategory").eq(lit("Delta")))
-        .then(
-            // FX
-            when(col("RiskClass").eq(lit("FX")))
-            .then(rf_rw_map(
-                col("BucketBCBS"),
-                weights.fx_override,
-                weights.fx,
-                true
-            ))
-            .otherwise(not_yet_implemented.clone()),
-    )
-    .otherwise(not_yet_implemented)
-    .alias("Weights")  
-    );
-    lf1 = lf1.with_column(col("SensWeights").fill_null(col("Weights")))
-        .select([col("*").exclude(["Weights"])]);
     Ok(lf1)
 }
 
-
-
-/// returns Boolean series
-/// uses .contains for regex
-/// and .eq for strict equality
-fn contains_or_equals(col: Expr, key: String, use_regeex: bool) -> Expr {
-    if use_regeex {
-        col.apply(
-            move |s| Ok(s.utf8()?.contains(key.as_str())?.into_series()),
-            GetOutput::from_type(DataType::Boolean),
-        )
-    } else {
-        col.eq(lit(key))
-    }
-}
-
-/// Calls .utf8() on `c` and iterates over map matching regex  
-///
-/// Potential optimisation to use &'static str instead of String (it has to be 'static due to apply)
-/// *c - column to be compared
-fn rf_rw_map(col: Expr, map: HashMap<String, Expr>, other: Expr, use_regex: bool) -> Expr {
-    // buf is a placeholder
-    let mut it = map.into_iter();
-    let (k, v) = it.next().unwrap(); //The map will have at least one value
-
-    let mut buf = when(lit::<bool>(false))
-        .then(lit::<f64>(0.).list())
-        .when(contains_or_equals(col.clone(), k, use_regex))
-        .then(v);
-
-    for (k, v) in it {
-        buf = buf
-            .when(contains_or_equals(col.clone(), k, use_regex))
-            .then(v);
-    }
-    buf.otherwise(other)
-}
-
 /// Frame: Risk Category, Risk Class, Bucket, Risk Weight
-pub fn rcat_rc_b_weights_frame(weights: &[Series], rcat: &str, rc: &str, weights_col_name: Option<&str>, bucket_col_name: Option<&str>) -> DataFrame {
+pub fn rcat_rc_b_weights_frame(weights: &[Series], rcat: &str, rc: &str, weights_col_name: Option<&str>, bucket_col_name: Option<&str>, buckets: Option<Vec<String>>) -> DataFrame {
     let weights_col_name = weights_col_name.unwrap_or_else(||"Weights");
     let bucket_col_name = bucket_col_name.unwrap_or_else(||"BucketBCBS");
+    let _buckets = buckets
+        .unwrap_or_else(||{
+            weights.iter().enumerate().map(|(i, _)| (i+1).to_string()).collect::<Vec<String>>()
+        });
 
     df!(
         "RiskClass" => vec![rc; weights.len()],
         "RiskCategory" => vec![rcat; weights.len()],
-        bucket_col_name => weights.iter().enumerate().map(|(i, _)| (i+1).to_string()).collect::<Vec<String>>(),
+        bucket_col_name => _buckets,
         weights_col_name => weights,
     )
     .expect("Couldn't build default frame") // we should never fail on default frames!

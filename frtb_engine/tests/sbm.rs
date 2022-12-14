@@ -30,6 +30,7 @@ fn fx_delta() {
 }
 
 #[test]
+#[cfg(feature = "CRR2")]
 fn fx_delta_crr2() {
     let expected_res = arr1(&[
         115.0, 1.59099, 1.59099, 1.59099, 1.59099, 1.59099, 1.59099, 1.59099,

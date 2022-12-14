@@ -34,7 +34,7 @@ pub fn weights_assign_crr2(lf: LazyFrame, build_params: &HashMap<String, String>
     let csr_non_sec_weights_frane_crr2 = CSR_NONSEC_RW_CRR2.get_or_init(|| {
         build_params.get("csr_non_sec_weights_crr2")
         .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
-        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_nonsec_weights_crr2, "Delta", "CSR_nonSec", Some("WeightsCRR2"), Some("BucketCRR2")))
+        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_nonsec_weights_crr2, "Delta", "CSR_nonSec", Some("WeightsCRR2"), Some("BucketCRR2"), None))
         .lazy() }) ;
 
     let csr_sec_ctp_weights_crr2 = [
@@ -45,7 +45,7 @@ pub fn weights_assign_crr2(lf: LazyFrame, build_params: &HashMap<String, String>
     let csr_sec_ctp_weights_frame_crr2 = CSR_SECCTP_RW_CRR2.get_or_init(|| {
         build_params.get("csr_non_sec_weights_crr2")
         .and_then(|some_string|frame_from_path_or_str(some_string, &check_columns).ok())
-        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_sec_ctp_weights_crr2, "Delta", "CSR_Sec_CTP", Some("WeightsCRR2"), Some("BucketCRR2")))
+        .unwrap_or_else(||rcat_rc_b_weights_frame(&csr_sec_ctp_weights_crr2, "Delta", "CSR_Sec_CTP", Some("WeightsCRR2"), Some("BucketCRR2"), None))
         .lazy() }) ;
     let rc_rcat_b_weights_crr2 = concat(&[
         csr_non_sec_weights_frane_crr2.clone(),

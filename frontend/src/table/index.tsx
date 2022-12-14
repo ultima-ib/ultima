@@ -44,14 +44,14 @@ const formatValue = (value: string | null | number) => {
 interface DataTableBodyProps {
     data: GenerateTableDataResponse["columns"]
     unique: string
-    showFooter: boolean
+    stickyHeader: boolean
     stickyColIndex?: number
 }
 
 export const DataTableBody = forwardRef<
     HTMLTableSectionElement,
     DataTableBodyProps
->(({ data, unique, showFooter, stickyColIndex }, ref) => {
+>(({ data, unique, stickyHeader, stickyColIndex }, ref) => {
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const headers = data.map((it) => it.name)
@@ -73,76 +73,65 @@ export const DataTableBody = forwardRef<
 
     return (
         <>
-            <TableHead ref={ref}>
-                <TableRow>
-                    {headers.map((it, index) => {
-                        const Cell =
-                            index === stickyColIndex
-                                ? StickyTableCell
-                                : TableCell
-                        return (
-                            <Cell
-                                key={unique + it}
-                                sx={(theme) => ({
-                                    zIndex: theme.zIndex.appBar + 2,
-                                })}
-                            >
-                                {it}
-                            </Cell>
-                        )
-                    })}
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {zipped.map((values, index) => (
-                    <TableRow key={`${unique}${index.toString()}`} hover>
-                        {values.map((it, innerIndex) => {
+            <Table stickyHeader={stickyHeader}>
+                <TableHead ref={ref}>
+                    <TableRow>
+                        {headers.map((it, index) => {
                             const Cell =
-                                innerIndex === stickyColIndex
+                                index === stickyColIndex
                                     ? StickyTableCell
                                     : TableCell
-                            const key = `${unique}${
-                                headers[innerIndex]
-                            }${index}${it?.toString() ?? ""}`
-                            return <Cell key={key} sx={{
-                                ":hover": {
-                                    fontWeight: "bold",
-                                },
-                            }}>{formatValue(it)}</Cell>
+                            return (
+                                <Cell
+                                    key={unique + it}
+                                    sx={(theme) => ({
+                                        zIndex: theme.zIndex.appBar + 2,
+                                    })}
+                                >
+                                    {it}
+                                </Cell>
+                            )
                         })}
                     </TableRow>
-                ))}
-            </TableBody>
-            {showFooter && (
-                <TableFooter>
-                    <TableRow>
-                        <TableCell colSpan={headers.length}>
-                            Total Rows: {zipped.length}
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={headers.length}>
-                            <Box sx={{ display: "flex", gap: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    endIcon={<DownloadIcon />}
-                                    onClick={saveCsv}
-                                >
-                                    Save as CSV
-                                </Button>
+                </TableHead>
+                <TableBody>
+                    {zipped.map((values, index) => (
+                        <TableRow key={`${unique}${index.toString()}`} hover>
+                            {values.map((it, innerIndex) => {
+                                const Cell =
+                                    innerIndex === stickyColIndex
+                                        ? StickyTableCell
+                                        : TableCell
+                                const key = `${unique}${
+                                    headers[innerIndex]
+                                }${index}${it?.toString() ?? ""}`
+                                return <Cell key={key} sx={{
+                                    ":hover": {
+                                        fontWeight: "bold",
+                                    },
+                                }}>{formatValue(it)}</Cell>
+                            })}
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+            <Box sx={(theme) => ({ display: "flex", gap: 2, pt: 4, background: theme.palette.background.default })}>
+                <Button
+                    variant="contained"
+                    endIcon={<DownloadIcon />}
+                    onClick={saveCsv}
+                >
+                    Save as CSV
+                </Button>
 
-                                <Button
-                                    variant="contained"
-                                    endIcon={<SummarizeIcon />}
-                                    onClick={summarizeTable}
-                                >
-                                    Summarize
-                                </Button>
-                            </Box>
-                        </TableCell>
-                    </TableRow>
-                </TableFooter>
-            )}
+                <Button
+                    variant="contained"
+                    endIcon={<SummarizeIcon />}
+                    onClick={summarizeTable}
+                >
+                    Summarize
+                </Button>
+            </Box>
             <SummaryStats
                 table={{ columns: data }}
                 openState={[dialogOpen, setDialogOpen]}
@@ -167,14 +156,13 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         return (
             <Paper sx={{ overflow: "hidden", width: "100%" }}>
                 <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
-                    <Table stickyHeader>
-                        <DataTableBody
-                            data={data.columns}
-                            unique={props.unique}
-                            ref={ref}
-                            showFooter={true}
-                        />
-                    </Table>
+                    <DataTableBody
+                        data={data.columns}
+                        unique={props.unique}
+                        ref={ref}
+                        stickyHeader={true}
+                    />
+
                 </TableContainer>
             </Paper>
         )

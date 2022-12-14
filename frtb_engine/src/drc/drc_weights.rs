@@ -28,16 +28,9 @@ pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {
 }
 
 #[cfg(feature = "CRR2")]
-pub(crate) fn drc_nonsec_weights_crr2() -> HashMap<String, Expr> {
-    HashMap::from([(
-        "^(?i)AA$".to_string(),
-        Series::new("", &[0.005]).lit().list(),
-    )])
-}
-#[cfg(feature = "CRR2")]
 pub(crate) fn drc_nonsec_weights_frame_crr2() -> DataFrame {
-    let s1 = Series::new("AA", &[0.02]);
-    let weights_list = Series::new("Weights", &[s1]);
+    let s1 = Series::new("AA", &[0.005]);
+    let weights_list = Series::new("WeightsCRR2", &[s1]);
     let cq = Series::new("CreditQuality", &["AA"]);
 
     let s6 = Series::new("RiskClass", &["DRC_nonSec"; 1]);

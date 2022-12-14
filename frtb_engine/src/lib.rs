@@ -11,6 +11,8 @@ mod helpers;
 pub mod measures;
 pub mod prelude;
 mod risk_weights;
+#[cfg(feature = "CRR2")]
+mod risk_weights_crr2;
 pub mod statics;
 
 //use crate::drc::drc_weights;
@@ -106,12 +108,6 @@ impl DataSet for FRTBDataSet {
         //First, identify buckets
         lf1 = lf1.with_column(buckets::sbm_buckets(&self.build_params));
 
-        // If CRR2, then also provide CRR2 buckets
-        #[cfg(feature = "CRR2")]
-        if cfg!(feature = "CRR2") {
-            lf1 = lf1.with_column(buckets::sbm_buckets_crr2())
-        };
-
         // Then assign SensWeights(BCBS) based on buckets
         lf1 = weights_assign(lf1, &self.build_params)?;
 
@@ -150,21 +146,22 @@ impl DataSet for FRTBDataSet {
                 .alias("SensWeights"),
             )
         };
-        // If CRR2 config, we need to derive SensWeightsCRR2
-        #[cfg(feature = "CRR2")]
-        if cfg!(feature = "CRR2") {
-            other_cols.push(weights_assign_crr2().alias("SensWeightsCRR2"))
-        };
 
         if !other_cols.is_empty() {
             lf1 = lf1.with_columns(&other_cols)
         };
 
+        // If CRR2 config, we need to derive SensWeightsCRR2
+        #[cfg(feature = "CRR2")]
+        if cfg!(feature = "CRR2") {
+            lf1 = lf1.with_column(buckets::sbm_buckets_crr2());
+            //other_cols.push(weights_assign_crr2().alias("SensWeightsCRR2"))
+            lf1 = crate::risk_weights_crr2::weights_assign_crr2(lf1, &self.build_params)?;
+        
+
         // Now, we need to also ammend CRR2 weights
         // Bucket 10 as per
         // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776
-        #[cfg(feature = "CRR2")]
-        if cfg!(feature = "CRR2") {
             let mut with_cols = vec![col("SensWeightsCRR2")
                 .arr()
                 .max()

@@ -11,7 +11,6 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    TableFooter,
     Button,
     TableCellProps,
     Box,
@@ -37,7 +36,11 @@ const formatValue = (value: string | null | number) => {
     } else if (value === null) {
         return ""
     } else {
-        return fmt.format(value)
+        // while it's possible to use fmt.formatToParts and manipulate the resulting string,
+        // the fractional part still needs to be parsed as a number to be rounded properly.
+        // it's best to just "fix" the number and then format it
+        const num = parseFloat(value.toFixed(2))
+        return fmt.format(num)
     }
 }
 
@@ -105,17 +108,31 @@ export const DataTableBody = forwardRef<
                                 const key = `${unique}${
                                     headers[innerIndex]
                                 }${index}${it?.toString() ?? ""}`
-                                return <Cell key={key} sx={{
-                                    ":hover": {
-                                        fontWeight: "bold",
-                                    },
-                                }}>{formatValue(it)}</Cell>
+                                return (
+                                    <Cell
+                                        key={key}
+                                        sx={{
+                                            ":hover": {
+                                                fontWeight: "bold",
+                                            },
+                                        }}
+                                    >
+                                        {formatValue(it)}
+                                    </Cell>
+                                )
                             })}
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
-            <Box sx={(theme) => ({ display: "flex", gap: 2, pt: 4, background: theme.palette.background.default })}>
+            <Box
+                sx={(theme) => ({
+                    display: "flex",
+                    gap: 2,
+                    pt: 4,
+                    background: theme.palette.background.default,
+                })}
+            >
                 <Button
                     variant="contained"
                     endIcon={<DownloadIcon />}
@@ -162,7 +179,6 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
                         ref={ref}
                         stickyHeader={true}
                     />
-
                 </TableContainer>
             </Paper>
         )

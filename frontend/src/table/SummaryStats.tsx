@@ -3,7 +3,6 @@ import {
     DialogContent,
     DialogTitle,
     CircularProgress,
-    Table,
 } from "@mui/material"
 import { Suspense, SetStateAction, Dispatch } from "react"
 import { GenerateTableDataResponse } from "../api/types"

@@ -95,6 +95,7 @@ COB,TradeId,RiskCategory,RiskClass,RiskFactor,RiskFactorType,CreditQuality,Matur
 22/07/2022,21,Delta,GIRR,GBP,Yield,,,,,,GBP,,,6000,-3000,,20000,40000,,,,,,,,,USD,,,
 22/07/2022,21,Delta,GIRR,AED,Yield,,,,,,AED,,,5000,-4500,,25000,50000,,,,,,,,,USD,,,
 22/07/2022,21,Delta,GIRR,AED,Yield,,,,,,AED,,,5000,-4500,,25000,50000,,,,,,,,,USD,,,
+22/07/2022,1,Delta,FX,EUREUR,,,,,,,,,,,,100,,,,,,,,,,,USD,,,
 22/07/2022,1,Delta,FX,EURUSD,,,,,,,,,,,,5,,,,,,,,,,,USD,,,
 22/07/2022,1,Delta,FX,GBPEUR,,,,,,,,,,,,15,,,,,,,,,,,EUR,,,
 22/07/2022,1,Delta,FX,GBPUSD,,,,,,,,,,,,10,,,,,,,,,,,USD,,,

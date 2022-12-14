@@ -1,6 +1,5 @@
 //! This module includes complete weights allocation logic (pre build mode). SBM and DRC weights and Scale Factors
-//!
-//! TODO move all risk weights to a .csv/.json file and join/lookup. This would give flexibility with adjusting RiskWeights upon startup.
+//! It follows the logic prescribed by the text https://www.bis.org/bcbs/publ/d457.pdf
 
 use crate::drc::drc_weights;
 use base_engine::{LazyFrame, Expr, Series, NamedFrom, Literal, PolarsResult, DataType, 
@@ -372,73 +371,6 @@ fn rf_rw_map(col: Expr, map: HashMap<String, Expr>, other: Expr, use_regex: bool
     }
     buf.otherwise(other)
 }
-
-
-/// Ammends BCBS risk weights into CRR2 compliance where required
-//#[cfg(feature = "CRR2")]
-//pub fn weights_assign_crr2() -> Expr {
-//    let x: Option<f64> = None;
-//    //let not_yet_implemented = Series::new("null", &[x]).lit().list();
-//    let never_reached = Series::new("null", &[x]).lit().list();
-//
-//    let csr_nonsec_weights = [
-//        0.005, 0.005, 0.01, 0.05, 0.03, 0.03, 0.02, 0.015, 0.1, 0.025, 0.02, 0.04, 0.12, 0.07,
-//        0.085, 0.055, 0.05, 0.12, 0.015, 0.05,
-//    ];
-//    let csr_non_sec_weight_crr2: HashMap<String, Expr> = bucket_weight_map(&csr_nonsec_weights, 5);
-//
-//    // CSR Sec CTP 21.59
-//    let csr_sec_ctp_weights_crr2 = [
-//        0.04, 0.04, 0.04, 0.08, 0.05, 0.04, 0.03, 0.02, 0.03, 0.06, 0.13, 0.13, 0.16, 0.10, 0.12,
-//        0.12, 0.12, 0.13,
-//    ];
-//    let csr_sec_ctp_weight_crr2: HashMap<String, Expr> =
-//        bucket_weight_map(&csr_sec_ctp_weights_crr2, 5);
-//
-//    let drc_nonsec_crr2 = drc_weights::drc_nonsec_weights_crr2();
-//
-//    when(col("RiskCategory").eq(lit("Delta")))
-//        .then(
-//            when(col("RiskClass").eq(lit("CSR_nonSec")))
-//                .then(rf_rw_map(
-//                    col("BucketCRR2"),
-//                    csr_non_sec_weight_crr2,
-//                    never_reached.clone(),
-//                    false,
-//                ))
-//                .when(col("RiskClass").eq(lit("CSR_secCTP")))
-//                .then(rf_rw_map(
-//                    col("BucketCRR2"),
-//                    csr_sec_ctp_weight_crr2,
-//                    never_reached,
-//                    false
-//                ))
-//                .otherwise(col("SensWeights")),
-//        )
-//        .when(col("RiskClass").eq(lit("DRC_nonSec")))
-//        .then(rf_rw_map(
-//            col("CreditQuality"),
-//            drc_nonsec_crr2,
-//            col("SensWeights"),
-//            true
-//        ))
-//        .otherwise(col("SensWeights"))
-//}
-
-// Was used for building long when.then statements - not used anymore
-//fn bucket_weight_map(arr: &[f64], ntenors: u8) -> HashMap<String, Expr> {
-//    let mut bucket_weights: HashMap<String, Expr> = HashMap::default();
-//    for (i, n) in arr.iter().enumerate() {
-//        let j = i + 1;
-//        bucket_weights.insert(
-//            format!["{j}"],
-//            Series::from_vec("weight", vec![*n; ntenors as usize])
-//                .lit()
-//                .list(),
-//        );
-//    }
-//    bucket_weights
-//}
 
 /// Frame: Risk Category, Risk Class, Bucket, Risk Weight
 pub fn rcat_rc_b_weights_frame(weights: &[Series], rcat: &str, rc: &str, weights_col_name: Option<&str>, bucket_col_name: Option<&str>) -> DataFrame {

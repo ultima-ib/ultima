@@ -94,7 +94,7 @@ pub fn execute_aggregation(
         //dbg!(f1.clone().collect());
     }
 
-    dbg!(f1.clone().select([col("TradeId"), col("RiskClass"), col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
+    //dbg!(f1.clone().select([col("TradeId"), col("RiskClass"), col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
 
     // Step 3.1 Build GROUPBY
     let groups: Vec<Expr> = req.groupby.iter().map(|x| col(x)).collect();

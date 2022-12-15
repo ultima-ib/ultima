@@ -1,3 +1,5 @@
+//! This module is for CRR2 specific Risk weights
+//! https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108255 325ae onward
 use std::collections::HashMap;
 
 use base_engine::{

@@ -1,5 +1,6 @@
 //! This module includes complete weights allocation logic (pre build mode). SBM and DRC weights and Scale Factors
 //! It follows the logic prescribed by the text https://www.bis.org/bcbs/publ/d457.pdf
+//! TODO Weights column is a list. We can't read it as list from a csv. frame_from_path_or_str must concat_lst columns which have Sens in the name 
 
 use crate::drc::drc_weights;
 use base_engine::{
@@ -64,6 +65,7 @@ pub fn weights_assign(
     let fx_base = &[0.15];
     let fx_base_srs = Series::new("", fx_base);
 
+    // Note ...EUR are CRR2 specific risk weights
     let fx_buckets_first = vec![
         "HRKEUR".to_string(),
         "BGNEUR".to_string(),
@@ -78,6 +80,8 @@ pub fn weights_assign(
         Series::new("", &[0.]),
         Series::new("", &[0.]),
     ];
+
+    // TODO can be read form file like fx_delta_weights_CCY1CCY2
     let fx_rc_rcat_b_first = rcat_rc_b_weights_frame(
         &fx_weights_first,
         "Delta",
@@ -89,6 +93,7 @@ pub fn weights_assign(
     .lazy();
 
     // These FX Buckets to also be joined on Bucket, but using only first three chars
+    // as per 21.88
     let fx_buckets_second = vec![
         "USD".to_string(),
         "EUR".to_string(),
@@ -118,6 +123,7 @@ pub fn weights_assign(
         .map(|_| Series::new("", fx_base) * fx_1_over_sqrt2)
         .collect::<Vec<Series>>();
 
+    // TODO can be read form file like fx_delta_weights_CCY1
     let fx_rc_rcat_b_second = rcat_rc_b_weights_frame(
         &fx_weights_second,
         "Delta",
@@ -136,7 +142,7 @@ pub fn weights_assign(
     .expect("Couldn't build base FX weights") // we must never fail on default frame
     .lazy();
     // GIRR  - can't be put into a frame due to regex requirement
-    //21.44 - Conservative, false by default
+    // 21.44 - Conservative, false by default
     let girr_sqrt2_div = build_params
         .get("girr_sqrt2_div")
         .and_then(|s| s.parse::<bool>().ok())
@@ -147,9 +153,11 @@ pub fn weights_assign(
     } else {
         1_f64
     };
+    // 21.42
     let ir_base = &[
         0., 0.017, 0.017, 0.016, 0.013, 0.012, 0.011, 0.011, 0.011, 0.011, 0.011,
     ];
+    // 21.43
     let xccy_infl_weights = Series::new("Infl_XCCY", &[0.016]);
 
     let ir_base_srs = Series::new("", ir_base);

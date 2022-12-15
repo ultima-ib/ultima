@@ -29,18 +29,15 @@ const StickyTableCell = styled(TableCell)<TableCellProps>(({ theme }) => ({
     background: theme.palette.background.default,
 }))
 
-const fmt = new Intl.NumberFormat()
+const fmt = new Intl.NumberFormat('en', { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
         return value
     } else if (value === null) {
         return ""
     } else {
-        // while it's possible to use fmt.formatToParts and manipulate the resulting string,
-        // the fractional part still needs to be parsed as a number to be rounded properly.
-        // it's best to just "fix" the number and then format it
-        const num = parseFloat(value.toFixed(2))
-        return fmt.format(num)
+        return fmt.format(value)
     }
 }
 

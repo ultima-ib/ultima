@@ -26,7 +26,6 @@ const SummaryTable = (props: { table: GenerateTableDataResponse }) => {
                     (it) => it.name === "describe",
                 )}
                 stickyHeader={false}
-                hideSummarize
             />
             <SaveCSV headers={headers} rows={zipped} />
         </>

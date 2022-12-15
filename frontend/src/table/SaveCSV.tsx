@@ -7,7 +7,7 @@ function buildCSV(headers: string[], rows: (string | number | null)[][]) {
     const csvRows = rows
         .map((cells) => cells.map((it) => it?.toString() ?? "").join(","))
         .join("\r\n")
-        return `data:text/csv;charset=utf-8,${csvHeaders}\r\n${csvRows}`
+    return `data:text/csv;charset=utf-8,${csvHeaders}\r\n${csvRows}`
 }
 
 const SaveCSV = ({ headers, rows }: TableData) => {

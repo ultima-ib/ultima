@@ -1,7 +1,4 @@
-import {
-    GenerateTableDataRequest,
-    GenerateTableDataResponse,
-} from "../api/types"
+import { GenerateTableDataRequest } from "../api/types"
 import { useTableData } from "../api/hooks"
 import {
     Paper,
@@ -13,7 +10,8 @@ import {
     TableCell,
     Button,
     TableCellProps,
-    Box, TableProps,
+    Box,
+    TableProps,
 } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import { fancyZip } from "../utils"
@@ -29,7 +27,10 @@ const StickyTableCell = styled(TableCell)<TableCellProps>(({ theme }) => ({
     background: theme.palette.background.default,
 }))
 
-const fmt = new Intl.NumberFormat('en', { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+const fmt = new Intl.NumberFormat("en", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+})
 
 const formatValue = (value: string | null | number) => {
     if (typeof value === "string") {
@@ -41,7 +42,7 @@ const formatValue = (value: string | null | number) => {
     }
 }
 
-export type TableData = {
+export interface TableData {
     headers: string[]
     rows: (string | number | null)[][]
 }
@@ -50,14 +51,12 @@ interface DataTableBodyProps extends TableProps {
     data: TableData
     unique: string
     stickyColIndex?: number
-    hideSummarize?: boolean;
 }
 
 export const DataTableBody = forwardRef<
     HTMLTableSectionElement,
     DataTableBodyProps
->(({ data, unique, stickyColIndex, hideSummarize, ...props }, ref) => {
-
+>(({ data, unique, stickyColIndex, ...props }, ref) => {
     const { headers, rows: zipped } = data
 
     return (
@@ -111,7 +110,6 @@ export const DataTableBody = forwardRef<
                     ))}
                 </TableBody>
             </Table>
-
         </>
     )
 })
@@ -132,7 +130,6 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         const headers = data.columns.map((it) => it.name)
         const zipped = fancyZip(data.columns.map((col) => col.values))
         const [dialogOpen, setDialogOpen] = useState(false)
-
 
         const summarizeTable = () => {
             setDialogOpen(true)

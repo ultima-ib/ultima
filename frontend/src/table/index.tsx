@@ -13,14 +13,14 @@ import {
     TableCell,
     Button,
     TableCellProps,
-    Box,
+    Box, TableProps,
 } from "@mui/material"
 import { styled } from "@mui/material/styles"
-import DownloadIcon from "@mui/icons-material/Download"
 import { fancyZip } from "../utils"
 import { forwardRef, useState } from "react"
 import SummarizeIcon from "@mui/icons-material/Summarize"
 import { SummaryStats } from "./SummaryStats"
+import SaveCSV from "./SaveCSV"
 
 const StickyTableCell = styled(TableCell)<TableCellProps>(({ theme }) => ({
     left: 0,
@@ -44,39 +44,28 @@ const formatValue = (value: string | null | number) => {
     }
 }
 
-interface DataTableBodyProps {
-    data: GenerateTableDataResponse["columns"]
+export type TableData = {
+    headers: string[]
+    rows: (string | number | null)[][]
+}
+
+interface DataTableBodyProps extends TableProps {
+    data: TableData
     unique: string
-    stickyHeader: boolean
     stickyColIndex?: number
+    hideSummarize?: boolean;
 }
 
 export const DataTableBody = forwardRef<
     HTMLTableSectionElement,
     DataTableBodyProps
->(({ data, unique, stickyHeader, stickyColIndex }, ref) => {
-    const [dialogOpen, setDialogOpen] = useState(false)
+>(({ data, unique, stickyColIndex, hideSummarize, ...props }, ref) => {
 
-    const headers = data.map((it) => it.name)
-    const zipped = fancyZip(data.map((col) => col.values))
-
-    const saveCsv = () => {
-        const csvHeaders = headers.join(",")
-        const rows = zipped
-            .map((cells) => cells.map((it) => it?.toString() ?? "").join(","))
-            .join("\r\n")
-        const csvContent = `data:text/csv;charset=utf-8,${csvHeaders}\r\n${rows}`
-        const encodedUri = encodeURI(csvContent)
-        window.open(encodedUri)
-    }
-
-    const summarizeTable = () => {
-        setDialogOpen(true)
-    }
+    const { headers, rows: zipped } = data
 
     return (
         <>
-            <Table stickyHeader={stickyHeader}>
+            <Table {...props}>
                 <TableHead ref={ref}>
                     <TableRow>
                         {headers.map((it, index) => {
@@ -125,34 +114,7 @@ export const DataTableBody = forwardRef<
                     ))}
                 </TableBody>
             </Table>
-            <Box
-                sx={(theme) => ({
-                    display: "flex",
-                    gap: 2,
-                    pt: 4,
-                    background: theme.palette.background.default,
-                })}
-            >
-                <Button
-                    variant="contained"
-                    endIcon={<DownloadIcon />}
-                    onClick={saveCsv}
-                >
-                    Save as CSV
-                </Button>
 
-                <Button
-                    variant="contained"
-                    endIcon={<SummarizeIcon />}
-                    onClick={summarizeTable}
-                >
-                    Summarize
-                </Button>
-            </Box>
-            <SummaryStats
-                table={{ columns: data }}
-                openState={[dialogOpen, setDialogOpen]}
-            />
         </>
     )
 })
@@ -170,16 +132,47 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
         if (error || !data) {
             return <>{error}</>
         }
+        const headers = data.columns.map((it) => it.name)
+        const zipped = fancyZip(data.columns.map((col) => col.values))
+        const [dialogOpen, setDialogOpen] = useState(false)
+
+
+        const summarizeTable = () => {
+            setDialogOpen(true)
+        }
+
         return (
             <Paper sx={{ overflow: "hidden", width: "100%" }}>
                 <TableContainer sx={{ maxHeight: "calc(100vh - 100px)" }}>
                     <DataTableBody
-                        data={data.columns}
+                        data={{ headers, rows: zipped }}
                         unique={props.unique}
                         ref={ref}
                         stickyHeader={true}
                     />
                 </TableContainer>
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 2,
+                        pt: 4,
+                        pb: 2,
+                    }}
+                >
+                    <SaveCSV rows={zipped} headers={headers} />
+                    <Button
+                        variant="contained"
+                        endIcon={<SummarizeIcon />}
+                        onClick={summarizeTable}
+                    >
+                        Summarize
+                    </Button>
+                </Box>
+
+                <SummaryStats
+                    table={{ columns: data.columns }}
+                    openState={[dialogOpen, setDialogOpen]}
+                />
             </Paper>
         )
     },

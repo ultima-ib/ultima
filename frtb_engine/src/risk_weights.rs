@@ -4,15 +4,17 @@
 
 use crate::drc::drc_weights;
 use base_engine::{
-    col, concat, concat_lst, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput,
+    col, concat_lst, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput,
     IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
-    Series, Utf8NameSpaceImpl,
+    Series, Utf8NameSpaceImpl, helpers::diag_concat_lf,
 };
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 
 /// 21.44 specified currencies
 pub static REDUCED_IR_WEIGHT: &str = "EUR|USD|GBP|AUD|JPY|SEK|CAD";
+static GIRR_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
+
 
 static EQ_SPOT_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
 static EQ_REPO_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -178,8 +180,24 @@ pub fn weights_assign(
         Some(girr_special_buckets),
     )
     .lazy();
-    let girr_rc_rcat_rtype_weights =
-        girr_infl_xccy_weights_frame(xccy_infl_weights.clone(), xccy_infl_weights, ir_base_srs);
+
+    let check_columns0 = [
+        col("RiskClass").cast(DataType::Utf8),
+        col("RiskCategory").cast(DataType::Utf8),
+        col("RiskFactorType").cast(DataType::Utf8),
+        col("Weights").cast(DataType::Utf8),
+    ];
+    let girr_rc_rcat_rtype_weights = GIRR_DELTA_RW.get_or_init(|| {
+        build_params
+            .get("girr_delta_base_weights")
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns0, "Weights").ok())
+            .unwrap_or_else(|| {
+                girr_infl_xccy_weights_frame(xccy_infl_weights.clone(), xccy_infl_weights, ir_base_srs)
+            })
+            .lazy()
+    });
+
+    //dbg!(serde_json::to_string(&girr_rc_rcat_rtype_weights.clone().collect().unwrap()));
 
     // Commodity
     // 21.82
@@ -192,31 +210,31 @@ pub fn weights_assign(
         col("RiskClass").cast(DataType::Utf8),
         col("RiskCategory").cast(DataType::Utf8),
         col("BucketBCBS").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Float64),
+        col("Weights").cast(DataType::Utf8),
     ];
     let check_columns2 = [
         col("RiskClass").cast(DataType::Utf8),
         col("RiskCategory").cast(DataType::Utf8),
         col("BucketBCBS").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Float64),
+        col("Weights").cast(DataType::Utf8),
         col("RiskFactorType").cast(DataType::Utf8),
     ];
     let check_columns3 = [
         col("RiskClass").cast(DataType::Utf8),
         col("RiskCategory").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Float64),
+        col("Weights").cast(DataType::Utf8),
     ];
     let check_columns4 = [
         col("RiskClass").cast(DataType::Utf8),
         col("RiskCategory").cast(DataType::Utf8),
         col("CreditQuality").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Float64),
+        col("Weights").cast(DataType::Utf8),
     ];
 
     let _commodity_weights_frame = COM_DELTA_RW.get_or_init(|| {
         build_params
             .get("commodity_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(&commodity_weights, "Delta", "Commodity", None, None, None)
             })
@@ -233,7 +251,7 @@ pub fn weights_assign(
     let _equity_bucket_spot_weights = EQ_SPOT_DELTA_RW.get_or_init(|| {
         build_params
             .get("equity_spot_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns2).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns2, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_rft_b_weights_frame(&equity_spot_weights, "Delta", "Equity", "EqSpot", None)
             })
@@ -249,7 +267,7 @@ pub fn weights_assign(
     let _equity_bucket_repo_weights = EQ_REPO_DELTA_RW.get_or_init(|| {
         build_params
             .get("equity_repo_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns2).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns2, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_rft_b_weights_frame(&equity_repo_weights, "Delta", "Equity", "EqRepo", None)
             })
@@ -269,7 +287,7 @@ pub fn weights_assign(
     let _csr_non_sec_weights = CSR_NONSEC_RW.get_or_init(|| {
         build_params
             .get("csr_non_sec_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_nonsec_weights_arr,
@@ -293,7 +311,7 @@ pub fn weights_assign(
     let _csr_sec_ctp_weights = CSR_SECCTP_RW.get_or_init(|| {
         build_params
             .get("csr_sec_ctp_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_sec_ctp_weights_arr,
@@ -317,7 +335,7 @@ pub fn weights_assign(
     let _csr_sec_nonctp_weigh = CSR_SECNONCTP_RW.get_or_init(|| {
         build_params
             .get("csr_sec_nonctp_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_sec_nonctp_weight_arr,
@@ -334,10 +352,11 @@ pub fn weights_assign(
     let _vega_risk_class_weight = VEGA_RW.get_or_init(|| {
         build_params
             .get("vega_risk_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns3).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns3, "Weights").ok())
             .unwrap_or_else(vega_default_weights)
             .lazy()
     });
+    //dbg!(_vega_risk_class_weight.clone().collect());
 
     let eq_large_cap = vega_rw(20);
     let eq_small_cap = vega_rw(60);
@@ -361,7 +380,7 @@ pub fn weights_assign(
     let _vega_equity_weight = VEGA_EQ_RW.get_or_init(|| {
         build_params
             .get("equity_vega_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns).ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(&equity_vega_weights, "Vega", "Equity", None, None, None)
             })
@@ -369,7 +388,7 @@ pub fn weights_assign(
     });
 
     // Eq Vega, Com, CSR Delta
-    let rc_rcat_b_weights = concat(
+    let rc_rcat_b_weights = diag_concat_lf(
         &[
             _vega_equity_weight.clone(),
             _csr_sec_nonctp_weigh.clone(),
@@ -383,7 +402,7 @@ pub fn weights_assign(
     )?; // we must never fail
 
     // Eq Delta
-    let rc_rcat_rtype_b_weights = concat(
+    let rc_rcat_rtype_b_weights = diag_concat_lf(
         &[
             _equity_bucket_spot_weights.clone(),
             _equity_bucket_repo_weights.clone(),
@@ -393,7 +412,7 @@ pub fn weights_assign(
         true,
     )?;
 
-    let rc_rcat_weights = concat(
+    let rc_rcat_weights = diag_concat_lf(
         &[_vega_risk_class_weight.clone(), fx_base_weights],
         true,
         true,
@@ -403,7 +422,7 @@ pub fn weights_assign(
         .get_or_init(|| {
             build_params
                 .get("drc_nonsec_weights")
-                .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns4).ok())
+                .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns4, "Weights").ok())
                 .unwrap_or_else(drc_weights::dcr_nonsec_default_weights)
                 .lazy()
         })
@@ -417,7 +436,7 @@ pub fn weights_assign(
         rc_rcat_b_weights_second: fx_rc_rcat_b_second,
         rc_rcat_rtype_b_weights,
         rc_rcat_weights,
-        rc_rcat_rtype_weights: girr_rc_rcat_rtype_weights,
+        rc_rcat_rtype_weights: girr_rc_rcat_rtype_weights.clone(),
         drc_nonsec_weights_frame,
         drc_secnonctp_weights,
     };
@@ -640,7 +659,7 @@ pub(crate) fn girr_infl_xccy_weights_frame(
     xccy_weights: Series,
     infl_weights: Series,
     yield_weights: Series,
-) -> LazyFrame {
+) -> DataFrame {
     df![
         "Weights" => vec![xccy_weights, infl_weights, yield_weights],
         "RiskFactorType" => ["XCCY", "Inflation", "Yield"],
@@ -650,22 +669,35 @@ pub(crate) fn girr_infl_xccy_weights_frame(
     .unwrap() // We must not fail on default frame
     .lazy()
     .with_column(concat_lst([col("Weights")]))
+    .collect()
+    .expect("failed on IR Delta weights") // We must not fail on default frame
 }
 
 /// Checks if `some_str` is a path
 /// If not tries to serialise it
 /// Checks for expected columns
-pub fn frame_from_path_or_str(some_str: &str, check_columns: &[Expr]) -> PolarsResult<DataFrame> {
-    CsvReader::from_path(some_str)
-        .and_then(|csv| csv.has_header(true).finish())
-        .and_then(|df| df.lazy().select(check_columns).collect())
-        .or_else(|_| {
-            serde_json::from_str::<DataFrame>(some_str)
+pub fn frame_from_path_or_str(some_str: &str, check_columns: &[Expr], cast_to_lst_f64: &str) -> PolarsResult<DataFrame> {
+    let df = if let Ok(csv) = CsvReader::from_path(some_str) {
+        csv.has_header(true)
+            .finish()?
+            .lazy()
+            .select(check_columns)
+            .collect()
+    } else {
+        serde_json::from_str::<DataFrame>(some_str)
                 .map_err(|_| {
-                    PolarsError::InvalidOperation("couldn't convert string to frame".into())
+                    PolarsError::InvalidOperation("couldn't serialise string to frame".into())
                 })
                 .and_then(|df| df.lazy().select(check_columns).collect())
-        })
+    }?;
+
+    df_split_weights(df, cast_to_lst_f64)
+}
+
+fn df_split_weights(df: DataFrame, name: &str) -> PolarsResult<DataFrame> {
+    df.lazy()
+    .with_column(col(name).str().split(";").cast(DataType::List(Box::new(DataType::Float64))))
+    .collect()
 }
 
 fn vega_rw(lh: u8) -> f64 {

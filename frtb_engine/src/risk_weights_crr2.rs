@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 
 use base_engine::{
-    col, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom,
-    PolarsResult, Series, Utf8NameSpaceImpl, helpers::diag_concat_lf,
+    col, helpers::diag_concat_lf, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame,
+    NamedFrom, PolarsResult, Series, Utf8NameSpaceImpl,
 };
 use once_cell::sync::OnceCell;
 
@@ -52,7 +52,9 @@ pub fn weights_assign_crr2(
     let csr_non_sec_weights_frane_crr2 = CSR_NONSEC_RW_CRR2.get_or_init(|| {
         build_params
             .get("csr_non_sec_weights_crr2")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "WeightsCRR2").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns, "WeightsCRR2").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_nonsec_weights_crr2,
@@ -75,7 +77,9 @@ pub fn weights_assign_crr2(
     let csr_sec_ctp_weights_frame_crr2 = CSR_SECCTP_RW_CRR2.get_or_init(|| {
         build_params
             .get("csr_non_sec_weights_crr2")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "WeightsCRR2").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns, "WeightsCRR2").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_sec_ctp_weights_crr2,
@@ -103,7 +107,9 @@ pub fn weights_assign_crr2(
         .get_or_init(|| {
             build_params
                 .get("drc_nonsec_weights_crr2")
-                .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns4, "WeightsCRR2").ok())
+                .and_then(|some_string| {
+                    frame_from_path_or_str(some_string, &check_columns4, "WeightsCRR2").ok()
+                })
                 .unwrap_or_else(|| drc_weights::drc_nonsec_weights_frame_crr2())
                 .lazy()
         })

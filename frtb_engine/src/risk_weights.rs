@@ -1,12 +1,12 @@
 //! This module includes complete weights allocation logic (pre build mode). SBM and DRC weights and Scale Factors
 //! It follows the logic prescribed by the text https://www.bis.org/bcbs/publ/d457.pdf
-//! TODO Weights column is a list. We can't read it as list from a csv. frame_from_path_or_str must concat_lst columns which have Sens in the name 
+//! TODO Weights column is a list. We can't read it as list from a csv. frame_from_path_or_str must concat_lst columns which have Sens in the name
 
 use crate::drc::drc_weights;
 use base_engine::{
-    col, concat_lst, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput,
-    IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
-    Series, Utf8NameSpaceImpl, helpers::diag_concat_lf,
+    col, concat_lst, concat_str, df, helpers::diag_concat_lf, CsvReader, DataFrame, DataType, Expr,
+    GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult,
+    SerReader, Series, Utf8NameSpaceImpl,
 };
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
@@ -19,7 +19,6 @@ static FX_BASE_DELRA_RW: OnceCell<LazyFrame> = OnceCell::new();
 pub static REDUCED_IR_WEIGHT: &str = "EUR|USD|GBP|AUD|JPY|SEK|CAD";
 static GIRR_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
 static GIRR_DELTA_SPECIAL_RW: OnceCell<LazyFrame> = OnceCell::new();
-
 
 static EQ_SPOT_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
 static EQ_REPO_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -130,7 +129,9 @@ pub fn weights_assign(
     let fx_rc_rcat_b_first = FX_SPECIAL_DELTA_FULL_RW.get_or_init(|| {
         build_params
             .get("fx_special_delta_weights_full")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &fx_weights_first,
@@ -139,7 +140,8 @@ pub fn weights_assign(
                     None,
                     None,
                     Some(fx_buckets_first),
-                )            })
+                )
+            })
             .lazy()
     });
 
@@ -177,7 +179,9 @@ pub fn weights_assign(
     let fx_rc_rcat_b_second = FX_SPECIAL_DELTA_PARTIAL_RW.get_or_init(|| {
         build_params
             .get("fx_special_delta_weights_partial")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &fx_weights_second,
@@ -185,15 +189,18 @@ pub fn weights_assign(
                     "FX",
                     None,
                     Some("Bucket"),
-                    Some(fx_buckets_second) )
-                            })
+                    Some(fx_buckets_second),
+                )
+            })
             .lazy()
     });
 
     let fx_base_weights = FX_BASE_DELRA_RW.get_or_init(|| {
         build_params
             .get("fx_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 df!(
                     "Weights" => vec![fx_base_srs],
@@ -201,10 +208,9 @@ pub fn weights_assign(
                     "RiskCategory" => ["Delta"]
                 )
                 .expect("Couldn't build base FX weights") // we must never fail on default frame
-                            })
+            })
             .lazy()
     });
-
 
     // GIRR  - can't be put into a frame due to regex requirement
     // 21.44 - Conservative, false by default
@@ -239,7 +245,9 @@ pub fn weights_assign(
     let girr_special_weights = GIRR_DELTA_SPECIAL_RW.get_or_init(|| {
         build_params
             .get("girr_delta_special_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_rft_b_weights_frame(
                     &girr_special_weights_per_bucket,
@@ -247,16 +255,23 @@ pub fn weights_assign(
                     "GIRR",
                     "Yield",
                     Some(girr_special_buckets),
-                )            })
+                )
+            })
             .lazy()
     });
 
     let girr_rc_rcat_rtype_weights = GIRR_DELTA_RW.get_or_init(|| {
         build_params
             .get("girr_delta_base_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns0, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns0, "Weights").ok()
+            })
             .unwrap_or_else(|| {
-                girr_infl_xccy_weights_frame(xccy_infl_weights.clone(), xccy_infl_weights, ir_base_srs)
+                girr_infl_xccy_weights_frame(
+                    xccy_infl_weights.clone(),
+                    xccy_infl_weights,
+                    ir_base_srs,
+                )
             })
             .lazy()
     });
@@ -267,11 +282,12 @@ pub fn weights_assign(
     let commodity_weights = [0.3, 0.35, 0.6, 0.8, 0.4, 0.45, 0.2, 0.35, 0.25, 0.35, 0.5]
         .map(|x| Series::new("", [x; 11]));
 
-
     let _commodity_weights_frame = COM_DELTA_RW.get_or_init(|| {
         build_params
             .get("commodity_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(&commodity_weights, "Delta", "Commodity", None, None, None)
             })
@@ -288,7 +304,9 @@ pub fn weights_assign(
     let _equity_bucket_spot_weights = EQ_SPOT_DELTA_RW.get_or_init(|| {
         build_params
             .get("equity_spot_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_rft_b_weights_frame(&equity_spot_weights, "Delta", "Equity", "EqSpot", None)
             })
@@ -304,7 +322,9 @@ pub fn weights_assign(
     let _equity_bucket_repo_weights = EQ_REPO_DELTA_RW.get_or_init(|| {
         build_params
             .get("equity_repo_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_rft_b_weights_frame(&equity_repo_weights, "Delta", "Equity", "EqRepo", None)
             })
@@ -324,7 +344,9 @@ pub fn weights_assign(
     let _csr_non_sec_weights = CSR_NONSEC_RW.get_or_init(|| {
         build_params
             .get("csr_non_sec_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_nonsec_weights_arr,
@@ -348,7 +370,9 @@ pub fn weights_assign(
     let _csr_sec_ctp_weights = CSR_SECCTP_RW.get_or_init(|| {
         build_params
             .get("csr_sec_ctp_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_sec_ctp_weights_arr,
@@ -372,7 +396,9 @@ pub fn weights_assign(
     let _csr_sec_nonctp_weigh = CSR_SECNONCTP_RW.get_or_init(|| {
         build_params
             .get("csr_sec_nonctp_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_sec_nonctp_weight_arr,
@@ -389,7 +415,9 @@ pub fn weights_assign(
     let _vega_risk_class_weight = VEGA_RW.get_or_init(|| {
         build_params
             .get("vega_risk_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_w, "Weights").ok()
+            })
             .unwrap_or_else(vega_default_weights)
             .lazy()
     });
@@ -417,7 +445,9 @@ pub fn weights_assign(
     let _vega_equity_weight = VEGA_EQ_RW.get_or_init(|| {
         build_params
             .get("equity_vega_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .and_then(|some_string| {
+                frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok()
+            })
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(&equity_vega_weights, "Vega", "Equity", None, None, None)
             })
@@ -459,7 +489,9 @@ pub fn weights_assign(
         .get_or_init(|| {
             build_params
                 .get("drc_nonsec_weights")
-                .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns4, "Weights").ok())
+                .and_then(|some_string| {
+                    frame_from_path_or_str(some_string, &check_columns4, "Weights").ok()
+                })
                 .unwrap_or_else(drc_weights::dcr_nonsec_default_weights)
                 .lazy()
         })
@@ -474,7 +506,10 @@ pub fn weights_assign(
         .get_or_init(|| {
             build_params
                 .get("drc_secnonctp_weights")
-                .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_key_rc_rcat_drcrw, "Weights").ok())
+                .and_then(|some_string| {
+                    frame_from_path_or_str(some_string, &check_columns_key_rc_rcat_drcrw, "Weights")
+                        .ok()
+                })
                 .unwrap_or_else(drc_weights::_drc_secnonctp_weights_frame)
                 .lazy()
         })
@@ -718,7 +753,11 @@ pub(crate) fn girr_infl_xccy_weights_frame(
 /// Checks if `some_str` is a path
 /// If not tries to serialise it
 /// Checks for expected columns
-pub fn frame_from_path_or_str(some_str: &str, check_columns: &[Expr], cast_to_lst_f64: &str) -> PolarsResult<DataFrame> {
+pub fn frame_from_path_or_str(
+    some_str: &str,
+    check_columns: &[Expr],
+    cast_to_lst_f64: &str,
+) -> PolarsResult<DataFrame> {
     let df = if let Ok(csv) = CsvReader::from_path(some_str) {
         csv.has_header(true)
             .finish()?
@@ -727,10 +766,8 @@ pub fn frame_from_path_or_str(some_str: &str, check_columns: &[Expr], cast_to_ls
             .collect()
     } else {
         serde_json::from_str::<DataFrame>(some_str)
-                .map_err(|_| {
-                    PolarsError::InvalidOperation("couldn't serialise string to frame".into())
-                })
-                .and_then(|df| df.lazy().select(check_columns).collect())
+            .map_err(|_| PolarsError::InvalidOperation("couldn't serialise string to frame".into()))
+            .and_then(|df| df.lazy().select(check_columns).collect())
     }?;
 
     df_split_weights(df, cast_to_lst_f64)
@@ -738,8 +775,13 @@ pub fn frame_from_path_or_str(some_str: &str, check_columns: &[Expr], cast_to_ls
 
 fn df_split_weights(df: DataFrame, name: &str) -> PolarsResult<DataFrame> {
     df.lazy()
-    .with_column(col(name).str().split(";").cast(DataType::List(Box::new(DataType::Float64))))
-    .collect()
+        .with_column(
+            col(name)
+                .str()
+                .split(";")
+                .cast(DataType::List(Box::new(DataType::Float64))),
+        )
+        .collect()
 }
 
 fn vega_rw(lh: u8) -> f64 {

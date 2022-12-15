@@ -62,7 +62,7 @@ pub(crate) fn drc_nonsec_weights_frame_crr2() -> DataFrame {
 }
 
 ///CreditQuality_Seniority - Weight
-pub(crate) fn _drc_secnonctp_weights_frame() -> LazyFrame {
+pub(crate) fn _drc_secnonctp_weights_frame() -> DataFrame {
     let (key, weight): (Vec<String>, Vec<f64>) = drc_secnonctp_weights_raw()
         .into_iter()
         .map(|(k, v)| (k.to_string(), v / 100.))
@@ -79,6 +79,8 @@ pub(crate) fn _drc_secnonctp_weights_frame() -> LazyFrame {
     .unwrap() // We must not fail on default frame
     .lazy()
     .with_column(concat_lst([col("RiskWeightDRC")]))
+    .collect()
+    .unwrap() // we should never fail on default frame
 }
 
 ///CreditQuality_Seniority - Weight

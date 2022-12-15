@@ -11,9 +11,14 @@ use base_engine::{
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 
+static FX_SPECIAL_DELTA_FULL_RW: OnceCell<LazyFrame> = OnceCell::new();
+static FX_SPECIAL_DELTA_PARTIAL_RW: OnceCell<LazyFrame> = OnceCell::new();
+static FX_BASE_DELRA_RW: OnceCell<LazyFrame> = OnceCell::new();
+
 /// 21.44 specified currencies
 pub static REDUCED_IR_WEIGHT: &str = "EUR|USD|GBP|AUD|JPY|SEK|CAD";
 static GIRR_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
+static GIRR_DELTA_SPECIAL_RW: OnceCell<LazyFrame> = OnceCell::new();
 
 
 static EQ_SPOT_DELTA_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -28,6 +33,7 @@ static VEGA_RW: OnceCell<LazyFrame> = OnceCell::new();
 static VEGA_EQ_RW: OnceCell<LazyFrame> = OnceCell::new();
 
 static DRC_NONSEC_RW: OnceCell<LazyFrame> = OnceCell::new();
+static DRC_SECNONCTP_RW: OnceCell<LazyFrame> = OnceCell::new();
 
 /// This is just a helper to store parameters
 pub struct SensWeightsConfig {
@@ -52,6 +58,44 @@ pub fn weights_assign(
     lf: LazyFrame,
     build_params: &HashMap<String, String>,
 ) -> PolarsResult<LazyFrame> {
+    // check columns. Some of the cast weights files must contain these:
+    let check_columns0 = [
+        col("RiskClass").cast(DataType::Utf8),
+        col("RiskCategory").cast(DataType::Utf8),
+        col("RiskFactorType").cast(DataType::Utf8),
+        col("Weights").cast(DataType::Utf8),
+    ];
+    let check_columns_rc_rcat_b_w = [
+        col("RiskClass").cast(DataType::Utf8),
+        col("RiskCategory").cast(DataType::Utf8),
+        col("BucketBCBS").cast(DataType::Utf8),
+        col("Weights").cast(DataType::Utf8),
+    ];
+    let check_columns_rcat_rc_rft_b_w = [
+        col("RiskClass").cast(DataType::Utf8),
+        col("RiskCategory").cast(DataType::Utf8),
+        col("BucketBCBS").cast(DataType::Utf8),
+        col("Weights").cast(DataType::Utf8),
+        col("RiskFactorType").cast(DataType::Utf8),
+    ];
+    let check_columns_rc_rcat_w = [
+        col("RiskClass").cast(DataType::Utf8),
+        col("RiskCategory").cast(DataType::Utf8),
+        col("Weights").cast(DataType::Utf8),
+    ];
+    let check_columns4 = [
+        col("RiskClass").cast(DataType::Utf8),
+        col("RiskCategory").cast(DataType::Utf8),
+        col("CreditQuality").cast(DataType::Utf8),
+        col("Weights").cast(DataType::Utf8),
+    ];
+    let check_columns_key_rc_rcat_drcrw = [
+        col("RiskClass").cast(DataType::Utf8),
+        col("RiskCategory").cast(DataType::Utf8),
+        col("Key").cast(DataType::Utf8),
+        col("RiskWeightDRC").cast(DataType::Utf8),
+    ];
+
     // FX  - can't be put into a frame due to regex requirement
     //21.88 - Conservative, false by default
     let fx_sqrt2_div = build_params
@@ -83,16 +127,21 @@ pub fn weights_assign(
         Series::new("", &[0.]),
     ];
 
-    // TODO can be read form file like fx_delta_weights_CCY1CCY2
-    let fx_rc_rcat_b_first = rcat_rc_b_weights_frame(
-        &fx_weights_first,
-        "Delta",
-        "FX",
-        None,
-        None,
-        Some(fx_buckets_first),
-    )
-    .lazy();
+    let fx_rc_rcat_b_first = FX_SPECIAL_DELTA_FULL_RW.get_or_init(|| {
+        build_params
+            .get("fx_special_delta_weights_full")
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .unwrap_or_else(|| {
+                rcat_rc_b_weights_frame(
+                    &fx_weights_first,
+                    "Delta",
+                    "FX",
+                    None,
+                    None,
+                    Some(fx_buckets_first),
+                )            })
+            .lazy()
+    });
 
     // These FX Buckets to also be joined on Bucket, but using only first three chars
     // as per 21.88
@@ -125,24 +174,38 @@ pub fn weights_assign(
         .map(|_| Series::new("", fx_base) * fx_1_over_sqrt2)
         .collect::<Vec<Series>>();
 
-    // TODO can be read form file like fx_delta_weights_CCY1
-    let fx_rc_rcat_b_second = rcat_rc_b_weights_frame(
-        &fx_weights_second,
-        "Delta",
-        "FX",
-        None,
-        Some("Bucket"),
-        Some(fx_buckets_second),
-    )
-    .lazy();
+    let fx_rc_rcat_b_second = FX_SPECIAL_DELTA_PARTIAL_RW.get_or_init(|| {
+        build_params
+            .get("fx_special_delta_weights_partial")
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
+            .unwrap_or_else(|| {
+                rcat_rc_b_weights_frame(
+                    &fx_weights_second,
+                    "Delta",
+                    "FX",
+                    None,
+                    Some("Bucket"),
+                    Some(fx_buckets_second) )
+                            })
+            .lazy()
+    });
 
-    let fx_base_weights = df!(
-        "Weights" => vec![fx_base_srs],
-        "RiskClass" => ["FX"],
-        "RiskCategory" => ["Delta"]
-    )
-    .expect("Couldn't build base FX weights") // we must never fail on default frame
-    .lazy();
+    let fx_base_weights = FX_BASE_DELRA_RW.get_or_init(|| {
+        build_params
+            .get("fx_delta_weights")
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_w, "Weights").ok())
+            .unwrap_or_else(|| {
+                df!(
+                    "Weights" => vec![fx_base_srs],
+                    "RiskClass" => ["FX"],
+                    "RiskCategory" => ["Delta"]
+                )
+                .expect("Couldn't build base FX weights") // we must never fail on default frame
+                            })
+            .lazy()
+    });
+
+
     // GIRR  - can't be put into a frame due to regex requirement
     // 21.44 - Conservative, false by default
     let girr_sqrt2_div = build_params
@@ -172,21 +235,22 @@ pub fn weights_assign(
         .iter()
         .map(|_| ir_base_srs_special.clone())
         .collect();
-    let girr_special_weights = rcat_rc_rft_b_weights_frame(
-        &girr_special_weights_per_bucket,
-        "Delta",
-        "GIRR",
-        "Yield",
-        Some(girr_special_buckets),
-    )
-    .lazy();
 
-    let check_columns0 = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("RiskFactorType").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
-    ];
+    let girr_special_weights = GIRR_DELTA_SPECIAL_RW.get_or_init(|| {
+        build_params
+            .get("girr_delta_special_weights")
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok())
+            .unwrap_or_else(|| {
+                rcat_rc_rft_b_weights_frame(
+                    &girr_special_weights_per_bucket,
+                    "Delta",
+                    "GIRR",
+                    "Yield",
+                    Some(girr_special_buckets),
+                )            })
+            .lazy()
+    });
+
     let girr_rc_rcat_rtype_weights = GIRR_DELTA_RW.get_or_init(|| {
         build_params
             .get("girr_delta_base_weights")
@@ -197,44 +261,17 @@ pub fn weights_assign(
             .lazy()
     });
 
-    //dbg!(serde_json::to_string(&girr_rc_rcat_rtype_weights.clone().collect().unwrap()));
-
     // Commodity
     // 21.82
     // Commodity risk is defined for 11 tenors
     let commodity_weights = [0.3, 0.35, 0.6, 0.8, 0.4, 0.45, 0.2, 0.35, 0.25, 0.35, 0.5]
         .map(|x| Series::new("", [x; 11]));
 
-    // check columns. Some of the cust weights files must contain these:
-    let check_columns = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("BucketBCBS").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
-    ];
-    let check_columns2 = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("BucketBCBS").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
-        col("RiskFactorType").cast(DataType::Utf8),
-    ];
-    let check_columns3 = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
-    ];
-    let check_columns4 = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("CreditQuality").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
-    ];
 
     let _commodity_weights_frame = COM_DELTA_RW.get_or_init(|| {
         build_params
             .get("commodity_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(&commodity_weights, "Delta", "Commodity", None, None, None)
             })
@@ -251,7 +288,7 @@ pub fn weights_assign(
     let _equity_bucket_spot_weights = EQ_SPOT_DELTA_RW.get_or_init(|| {
         build_params
             .get("equity_spot_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns2, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_rft_b_weights_frame(&equity_spot_weights, "Delta", "Equity", "EqSpot", None)
             })
@@ -267,7 +304,7 @@ pub fn weights_assign(
     let _equity_bucket_repo_weights = EQ_REPO_DELTA_RW.get_or_init(|| {
         build_params
             .get("equity_repo_delta_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns2, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rcat_rc_rft_b_w, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_rft_b_weights_frame(&equity_repo_weights, "Delta", "Equity", "EqRepo", None)
             })
@@ -287,7 +324,7 @@ pub fn weights_assign(
     let _csr_non_sec_weights = CSR_NONSEC_RW.get_or_init(|| {
         build_params
             .get("csr_non_sec_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_nonsec_weights_arr,
@@ -311,7 +348,7 @@ pub fn weights_assign(
     let _csr_sec_ctp_weights = CSR_SECCTP_RW.get_or_init(|| {
         build_params
             .get("csr_sec_ctp_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_sec_ctp_weights_arr,
@@ -335,7 +372,7 @@ pub fn weights_assign(
     let _csr_sec_nonctp_weigh = CSR_SECNONCTP_RW.get_or_init(|| {
         build_params
             .get("csr_sec_nonctp_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(
                     &csr_sec_nonctp_weight_arr,
@@ -352,7 +389,7 @@ pub fn weights_assign(
     let _vega_risk_class_weight = VEGA_RW.get_or_init(|| {
         build_params
             .get("vega_risk_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns3, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_w, "Weights").ok())
             .unwrap_or_else(vega_default_weights)
             .lazy()
     });
@@ -380,7 +417,7 @@ pub fn weights_assign(
     let _vega_equity_weight = VEGA_EQ_RW.get_or_init(|| {
         build_params
             .get("equity_vega_weights")
-            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns, "Weights").ok())
+            .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_rc_rcat_b_w, "Weights").ok())
             .unwrap_or_else(|| {
                 rcat_rc_b_weights_frame(&equity_vega_weights, "Vega", "Equity", None, None, None)
             })
@@ -395,7 +432,7 @@ pub fn weights_assign(
             _csr_sec_ctp_weights.clone(),
             _csr_non_sec_weights.clone(),
             _commodity_weights_frame.clone(),
-            fx_rc_rcat_b_first,
+            fx_rc_rcat_b_first.clone(),
         ],
         true,
         true,
@@ -406,14 +443,14 @@ pub fn weights_assign(
         &[
             _equity_bucket_spot_weights.clone(),
             _equity_bucket_repo_weights.clone(),
-            girr_special_weights,
+            girr_special_weights.clone(),
         ],
         true,
         true,
     )?;
 
     let rc_rcat_weights = diag_concat_lf(
-        &[_vega_risk_class_weight.clone(), fx_base_weights],
+        &[_vega_risk_class_weight.clone(), fx_base_weights.clone()],
         true,
         true,
     )?;
@@ -429,11 +466,23 @@ pub fn weights_assign(
         .clone();
 
     // TODO from file
-    let drc_secnonctp_weights: LazyFrame = drc_weights::_drc_secnonctp_weights_frame();
+    //DRC_SECNONCTP_RW
+
+    //let drc_secnonctp_weights: LazyFrame = drc_weights::_drc_secnonctp_weights_frame();
+
+    let drc_secnonctp_weights: LazyFrame = DRC_SECNONCTP_RW
+        .get_or_init(|| {
+            build_params
+                .get("drc_secnonctp_weights")
+                .and_then(|some_string| frame_from_path_or_str(some_string, &check_columns_key_rc_rcat_drcrw, "Weights").ok())
+                .unwrap_or_else(drc_weights::_drc_secnonctp_weights_frame)
+                .lazy()
+        })
+        .clone();
 
     let dlt_weights = SensWeightsConfig {
         rc_rcat_b_weights,
-        rc_rcat_b_weights_second: fx_rc_rcat_b_second,
+        rc_rcat_b_weights_second: fx_rc_rcat_b_second.clone(),
         rc_rcat_rtype_b_weights,
         rc_rcat_weights,
         rc_rcat_rtype_weights: girr_rc_rcat_rtype_weights.clone(),
@@ -473,7 +522,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         .with_column(col("SensWeights").fill_null(col("Weights")))
         .select([col("*").exclude(["Weights"])]);
 
-    // TO ENTER FX SECOND HERE
+    // FX SECOND HERE
     lf1 = lf1.with_column(
         col("BucketBCBS")
             .map(
@@ -482,13 +531,6 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
             )
             .alias("Bucket"),
     );
-
-    //let left_on = [col("RiskClass"), col("RiskCategory"), col("BucketBCBS").map(
-    //    |s| Ok(s.utf8()?.str_slice(0, Some(3))?.into_series()),
-    //    GetOutput::from_type(DataType::Utf8),
-    //).alias("Key")];
-    //dbg!(weights.rc_rcat_b_weights_second.clone().collect());
-    //dbg!(lf1.clone().collect());
     let right_on = [col("RiskClass"), col("RiskCategory"), col("Bucket")];
     lf1 = lf1.join(
         weights.rc_rcat_b_weights_second,

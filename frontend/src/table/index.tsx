@@ -96,7 +96,11 @@ export const DataTableBody = forwardRef<
                                 return (
                                     <Cell
                                         key={key}
-                                        align={typeof it === 'number' ? 'right' : 'inherit'}
+                                        align={
+                                            typeof it === "number"
+                                                ? "right"
+                                                : "inherit"
+                                        }
                                         sx={{
                                             ":hover": {
                                                 fontWeight: "bold",
@@ -138,7 +142,7 @@ const DataTable = forwardRef<HTMLTableSectionElement, DataTableProps>(
 
         return (
             <Paper sx={{ overflow: "hidden", width: "100%" }}>
-                <TableContainer sx={{ maxHeight: "calc(100vh - 190px)" }}>
+                <TableContainer sx={{ maxHeight: "calc(100vh - 185px)" }}>
                     <DataTableBody
                         data={{ headers, rows: zipped }}
                         unique={props.unique}

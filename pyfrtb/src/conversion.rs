@@ -68,6 +68,7 @@ pub fn py_series_to_rust_series(series: &PyAny) -> PyResult<Series> {
 pub fn rust_series_to_py_series(series: &Series) -> PyResult<PyObject> {
     // ensure we have a single chunk
     let series = series.rechunk();
+    let name = series.name();
     let array = series.to_arrow(0);
 
     Python::with_gil(|py| -> PyResult<PyObject> {
@@ -80,6 +81,8 @@ pub fn rust_series_to_py_series(series: &Series) -> PyResult<PyObject> {
         // import polars
         let polars = py.import("polars").expect("Install polars first");
         let out = polars.call_method1("from_arrow", (pyarrow_array,))?;
+        // Have to rename now since it doesn't work in to_py_array schema
+        out.call_method1("rename", (name, true))?;
 
         Ok(out.to_object(py))
     })

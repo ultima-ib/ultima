@@ -1,0 +1,6 @@
+[book]
+authors = ["Anatoly Bugakov"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Ultima FRTB User Guide"

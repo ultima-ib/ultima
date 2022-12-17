@@ -38,6 +38,8 @@ pub trait DataSet: Send + Sync {
         Self: Sized;
     fn get_measures(&self) -> &MeasuresMap;
     fn get_measures_owned(self) -> MeasuresMap;
+    /// Modify lf in place
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
 
     // Cannot be defined since returns Self which is a Struct
     // TODO create a From Trait
@@ -108,6 +110,10 @@ impl DataSet for DataSetBase {
     }
     fn get_lazyframe_owned(self) -> LazyFrame {
         self.frame
+    }
+    /// Modify lf in place
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
+        self.frame = lf;
     }
     fn set_lazyframe(self, lf: LazyFrame) -> Self
     where

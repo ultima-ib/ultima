@@ -50,6 +50,10 @@ impl DataSet for FRTBDataSet {
     fn get_lazyframe_owned(self) -> LazyFrame {
         self.frame
     }
+    /// Modify lf in place
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
+        self.frame = lf;
+    }
     fn set_lazyframe(self, lf: LazyFrame) -> Self
     where
         Self: Sized,

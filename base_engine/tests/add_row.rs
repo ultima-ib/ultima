@@ -14,7 +14,7 @@ fn add_row() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET), false)
+    let res = execute_aggregation(data_req, &*Arc::clone(&*common::TEST_DASET), false)
         .expect("Calculation failed");
 
     let res_sum = dbg!(res)
@@ -38,7 +38,7 @@ fn add_row2() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = execute_aggregation(data_req, Arc::clone(&*common::TEST_DASET), false)
+    let res = execute_aggregation(data_req, &*Arc::clone(&*common::TEST_DASET), false)
         .expect("Calculation failed");
 
     let res_sum = dbg!(res)

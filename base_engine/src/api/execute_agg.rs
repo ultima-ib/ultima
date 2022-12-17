@@ -1,7 +1,5 @@
 //! Main logic of execution in aggregate context
 
-use std::sync::Arc;
-
 use polars::prelude::PolarsError;
 pub use polars::{
     functions::diag_concat_df,
@@ -15,9 +13,9 @@ use crate::{
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
-pub fn execute_aggregation(
+pub fn execute_aggregation<DS: DataSet + ?Sized>(
     req: AggregationRequest,
-    data: Arc<impl DataSet + ?Sized>,
+    data: &DS,
     streaming: bool,
 ) -> PolarsResult<DataFrame> {
     // Step 0.1

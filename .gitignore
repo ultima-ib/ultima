@@ -9,4 +9,4 @@ node_modules
 /frtb_engine/tests/data/datasource_config.toml
 /venv
 book/
-.venv/
+pyfrtb/

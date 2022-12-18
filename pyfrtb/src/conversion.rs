@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use arrow::ffi;
 use polars::prelude::*;
 use polars_arrow::export::arrow;

@@ -1,13 +1,17 @@
 # ultima
 The Ultimate BI tool
 
-# How to run
+# How to build
 from ./ultima/
 ```cargo build``` or ```cargo build --bin server```
 
 Check out ```target/debug/one_off.exe --help``` for optional command line parameters.
 
-The default 
+With UI:
+```cd frontend``` and then ```npm install & npm run build```
+Then go back to ```./ultima```
+
+The default (run is a shortcult for build and run)
 ```cargo run --features FRTB_CRR2 --release```
 is equivallent to:
 ```cargo run --features FRTB_CRR2 --release -- --config="frtb_engine/tests/data/datasource_config.toml" --requests="./driver/src/request.json"```

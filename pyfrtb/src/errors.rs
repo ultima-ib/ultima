@@ -42,7 +42,7 @@ impl std::convert::From<PyUltimaErr> for PyErr {
                     InvalidOperationError::new_err(err.to_string())
                 }
             },
-            SerdeJson(err) => SerdeJsonError::new_err(err.to_string()),
+            SerdeJson(err) => SerdeJsonError::new_err(format!("Couldn't (de)serialise input. Check format. {}", err)),
             _ => default(),
         }
     }
@@ -53,7 +53,7 @@ impl Debug for PyUltimaErr {
         use PyUltimaErr::*;
         match self {
             Polars(err) => write!(f, "{:?}", err),
-            SerdeJson(err) => write!(f, "{:?}", err),
+            SerdeJson(err) => write!(f, "Couldn't serialize string. Check format. {:?}", err),
             Other(err) => write!(f, "BindingsError: {:?}", err),
         }
     }

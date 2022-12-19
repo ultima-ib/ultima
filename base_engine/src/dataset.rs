@@ -9,9 +9,11 @@ use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 /// Usually a client/user would overwrite it with their own DataSet
 #[derive(Default)]
 pub struct DataSetBase {
+    /// Data
     pub frame: LazyFrame,
+    /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
-    /// build_params are used in .prepare()
+    /// build_params are passed into .prepare()
     pub build_params: HashMap<String, String>,
 }
 

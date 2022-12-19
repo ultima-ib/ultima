@@ -4,6 +4,11 @@ build-backend = "maturin"
 
 [project]
 name = "frtb"
+dependencies = [
+  "typing_extensions >= 4.0.0; python_version < '3.10'",
+  "polars",
+  "pyarrow"
+]
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Rust",

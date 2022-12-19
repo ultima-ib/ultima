@@ -1,3 +1,2 @@
 polars
 pyarrow
-json

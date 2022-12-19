@@ -22,6 +22,7 @@ impl FRTBDataSetWrapper {
         let lf = self.dataset.get_lazyframe().clone();
         let new_frame = self.dataset.prepare_frame(Some(lf))
             .map_err(|_|PyErr::new::<PyTypeError, _>("Failed to prepare dataset"))?;
+        
         self.dataset.set_lazyframe_inplace(new_frame);
         Ok(())
     }
@@ -42,15 +43,17 @@ impl FRTBDataSetWrapper {
 }
 
 #[pyclass]
+#[derive(Clone)]
 pub struct AggregationRequestWrapper {
     #[allow(dead_code)]
     pub ar: AggregationRequest,
 }
 #[pymethods]
 impl AggregationRequestWrapper {
+
     #[classmethod]
+    /// Converts str into AggregationRequest
     pub fn from_str(_: &PyType, json_str: &str) -> PyResult<Self> {
-        
         match serde_json::from_str::<AggregationRequest>(json_str) {
             Ok(ar) => Ok(Self{ar}),
             Err(err) => Err(errors::PyUltimaErr::from(err).into()),
@@ -58,43 +61,28 @@ impl AggregationRequestWrapper {
         
     }
     
-    pub fn print(&self) {
-        dbg!(&self.ar);
+    /// Format `AggregationRequest` as String
+    pub fn as_str(&self) -> String {
+        format!("{:?}", self.ar)
     }
 }
 
 /// Function to execute request on prepared data
-/// TODO this to take AggregationRequestWrapper and not String
 #[pyfunction]
 fn _execute_agg(
-    request: String,
+    request: AggregationRequestWrapper,
     prepared_dataset: &FRTBDataSetWrapper,
+    streaming: bool
 ) 
 ->PyResult<Vec<PyObject>>
  {
-    let Ok(data_req) =
-        serde_json::from_str::<AggregationRequest>(&request) else {
-          return Err(pyo3::exceptions::PyException::new_err("Could not parse request"));
-        };
     
-    let Ok(dataframe) = execute_aggregation(data_req, &prepared_dataset.dataset, false) else {
-        return Err(pyo3::exceptions::PyException::new_err("Execute aggregation error"));
-    };
+    let dataframe = execute_aggregation(request.ar, &prepared_dataset.dataset, streaming)
+        .map_err(|err| errors::PyUltimaErr::Polars(err))?;
 
     dataframe.iter()
         .map(rust_series_to_py_series)
         .collect()
-}
-
-
-
-#[pyfunction]
-fn req_from_str(path: String) -> PyResult<AggregationRequestWrapper> {
-    let Ok(ar) =
-        serde_json::from_str::<AggregationRequest>(&path) else{
-          return Err(pyo3::exceptions::PyException::new_err("Could not parse request"));
-        };
-        Ok(AggregationRequestWrapper{ar})
 }
 
 /// A Python module implemented in Rust.
@@ -102,7 +90,6 @@ fn req_from_str(path: String) -> PyResult<AggregationRequestWrapper> {
 fn frtb_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     //m.add_function(wrap_pyfunction!(init_frtb_data_set, m)?)?;
     m.add_function(wrap_pyfunction!(_execute_agg, m)?)?;
-    m.add_function(wrap_pyfunction!(req_from_str, m)?)?;
     m.add_class::<AggregationRequestWrapper>()?;
     m.add_class::<FRTBDataSetWrapper>()?;
     Ok(())

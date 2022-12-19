@@ -8,6 +8,7 @@ use pyo3::{exceptions::*, prelude::*, types::PyType};
 use std::path::Path;
 
 mod conversion;
+mod errors;
 
 #[pyclass]
 struct FRTBDataSetWrapper {
@@ -40,36 +41,23 @@ impl FRTBDataSetWrapper {
     }
 }
 
-/// Function to init dataset from config file
-//#[pyfunction]
-//fn init_frtb_data_set(conf_path: String) -> PyResult<FRTBDataSetWrapper> {
-//    if !Path::new(&conf_path).exists() {
-//        return Err(PyFileNotFoundError::new_err("file didn't exist"));
-//    }
-//
-//    let Ok(conf) = read_toml2::<DataSourceConfig>(&conf_path) else {
-//        return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));
-//    };
-//
-//    let dataset: frtb_engine::FRTBDataSet = DataSet::from_config(conf);
-//    Ok(FRTBDataSetWrapper { dataset })
-//}
-//
 #[pyclass]
 pub struct AggregationRequestWrapper {
     #[allow(dead_code)]
-    ar: AggregationRequest,
+    pub ar: AggregationRequest,
 }
 #[pymethods]
 impl AggregationRequestWrapper {
     #[classmethod]
-    pub fn from_str(_: &PyType, _str: &str) -> PyResult<Self> {
-        let Ok(ar) =
-        serde_json::from_str::<AggregationRequest>(&_str) else{
-          return Err(pyo3::exceptions::PyException::new_err("Could not parse request"));
-        };
-        Ok(Self{ar})
+    pub fn from_str(_: &PyType, json_str: &str) -> PyResult<Self> {
+        
+        match serde_json::from_str::<AggregationRequest>(json_str) {
+            Ok(ar) => Ok(Self{ar}),
+            Err(err) => Err(errors::PyUltimaErr::from(err).into()),
+        }
+        
     }
+    
     pub fn print(&self) {
         dbg!(&self.ar);
     }
@@ -85,7 +73,7 @@ fn _execute_agg(
 ->PyResult<Vec<PyObject>>
  {
     let Ok(data_req) =
-        serde_json::from_str::<AggregationRequest>(&request) else{
+        serde_json::from_str::<AggregationRequest>(&request) else {
           return Err(pyo3::exceptions::PyException::new_err("Could not parse request"));
         };
     

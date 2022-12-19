@@ -8,7 +8,6 @@ pub(crate) type AndOrFltrChain = Vec<Vec<FilterE>>;
 /// Inner elements of each Filter are OR
 /// Filters themselves(eg a Vec of Filters) are AND
 ///
-/// TODO Currently works for Utf8 columns only. In the far future parsing logic will be added based on column datatype.
 ///
 /// (Column, Value(s))
 ///

@@ -40,7 +40,7 @@ pub fn execute_aggregation<DS: DataSet + ?Sized>(
     let op = req.calc_params();
 
     let measure_map = data.get_measures();
-    let prepared_measures = measure_builder(m, measure_map, op);
+    let prepared_measures = measure_builder(m, measure_map, op)?;
 
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
     let (newnames, (aggregateions, fltrs)): (Vec<String>, (Vec<Expr>, Vec<Option<Expr>>)) =

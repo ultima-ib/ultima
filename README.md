@@ -1,5 +1,6 @@
-# ultima
-The Ultimate BI tool
+# The Ultimate BI tool
+https://github.com/ultima-ib/ultima/actions/workflows/main.yml/badge.svg
+
 
 # How to build
 from ./ultima/

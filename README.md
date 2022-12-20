@@ -1,5 +1,5 @@
 # The Ultimate BI tool
-https://github.com/ultima-ib/ultima/actions/workflows/main.yml/badge.svg
+[![Main App](https://github.com/ultima-ib/ultima/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/ultima-ib/ultima/actions/workflows/main.yml)
 
 
 # How to build

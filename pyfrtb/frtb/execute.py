@@ -1,9 +1,10 @@
 import polars as pl
 from frtb.internals import AggRequest
+from frtb.internals import FRTBDataSet
 
-from .rust_module.frtb_pyengine import AggregationRequestWrapper, FRTBDataSetWrapper, _execute_agg
+from .rust_module.frtb_pyengine import AggregationRequestWrapper, FRTBDataSetWrapper, exec_agg
 
-def execute_agg(req: AggRequest, ds: FRTBDataSetWrapper, streaming: bool = False) -> pl.DataFrame:
+def execute_agg(req: AggRequest, ds: FRTBDataSet, streaming: bool = False) -> pl.DataFrame:
     """Executes Request on your DataSet
 
     Args:
@@ -14,5 +15,5 @@ def execute_agg(req: AggRequest, ds: FRTBDataSetWrapper, streaming: bool = False
     Returns:
         pl.DataFrame: Result of type Polars DataFrame
     """
-    vec_srs = _execute_agg(req._ar, ds, streaming)
+    vec_srs = exec_agg(req._ar, ds._ds, streaming)
     return pl.DataFrame(vec_srs)

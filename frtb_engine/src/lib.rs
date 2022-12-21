@@ -23,9 +23,6 @@ use sbm::buckets;
 
 use std::collections::HashMap;
 
-pub trait FRTBDataSetT {
-    fn prepare(self) -> Self;
-}
 pub struct FRTBDataSet {
     pub frame: LazyFrame,
     pub measures: MeasuresMap,
@@ -72,18 +69,6 @@ impl DataSet for FRTBDataSet {
     }
     fn calc_params(&self) -> Vec<CalcParameter> {
         frtb_calc_params()
-    }
-
-    fn from_config(conf: DataSourceConfig) -> Self {
-        let (frames, measure_cols, build_params) = conf.build();
-        let mm: MeasuresMap = derive_measure_map(measure_cols);
-        let mut res = Self {
-            frame: frames,
-            measures: mm,
-            build_params,
-        };
-        res.with_measures(frtb_measure_vec());
-        res
     }
 
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self {
@@ -233,7 +218,7 @@ impl DataSet for FRTBDataSet {
     }
 
     // TODO Validate:
-    // all columns are present
+    // all required columns are present
     //
     // columns are of expected format
     //
@@ -248,6 +233,6 @@ impl DataSet for FRTBDataSet {
     // CSR_nonSec BCBS buckets
     // CSR_nonSec CRR2 buckets
     // if csrnonsec_covered_bond_15 == true in build config then
-    //If DRC validate CreditQuality
+    // If DRC validate CreditQuality
     // fn validate(self) -> Self {}
 }

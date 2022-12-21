@@ -1,5 +1,5 @@
 import json
-from frtb.rust_module.frtb_pyengine import AggregationRequestWrapper
+from ..rust_module.frtb_pyengine import AggregationRequestWrapper
 
 class AggRequest:
     """
@@ -36,7 +36,7 @@ class AggRequest:
             raise ValueError(
                 f"AggRequest constructor called with unsupported type; got {type(data)}"
             )
-            
+
     def __str__(self) -> str:
         return self._ar.as_str()
 

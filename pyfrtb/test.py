@@ -1,10 +1,12 @@
 import frtb.rust_module.frtb_pyengine as frtb_pyengine
 from frtb.internals.agg_request import AggRequest
+from frtb.internals.dataset import FRTBDataSet
 from  frtb.execute import execute_agg
+import polars as pl
 
 # pl.DataFrame
 
-dataset = frtb_pyengine.FRTBDataSetWrapper.from_config_path(
+dataset = FRTBDataSet.from_config_path(
     "./tests/datasource_config.toml")
 
 # print("dataset ", dataset)
@@ -24,3 +26,19 @@ result = execute_agg(request, dataset)
 #res = result.new_agg_result()
 print("Result: ", result)
 print("Type: ", type(result))
+
+data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]}
+df = pl.DataFrame(data)
+ds = FRTBDataSet.from_frame(df)
+print(ds.measures())
+
+r = dict(
+    measures=[("a", "mean"), ("b", "sum")], 
+    groupby=["c"], 
+    totals=False,
+    calc_params={"jurisdiction": "BCBS"}
+     )
+rr = AggRequest(r)
+result = execute_agg(rr, ds)
+
+print(result)

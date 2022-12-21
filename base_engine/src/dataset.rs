@@ -98,7 +98,7 @@ pub trait DataSet: Send + Sync {
 
     fn overridable_columns(&self) -> Vec<String> {
         self.get_lazyframe().schema()
-            .and_then(|schema| Ok(utf8_columns(schema)))
+            .and_then(|schema| Ok(overrides_columns(schema)))
             .unwrap_or_default()
     }
     /// Validate DataSet

@@ -1,10 +1,10 @@
 import polars
-from ..rust_module.frtb_pyengine import FRTBDataSetWrapper, OtherError
+from ..rust_module.frtb_pyengine import OtherError, DataSetWrapper
 from typing import TypeVar, Type
 # Create a generic variable that can be 'Parent', or any subclass.
-T = TypeVar('T', bound='FRTBDataSet')
+T = TypeVar('T', bound='DataSet')
 
-class FRTBDataSet:
+class DataSet:
     """
     Main DataSet class
 
@@ -16,11 +16,12 @@ class FRTBDataSet:
     Returns:
         _type_: _description_
     """
-    _ds: FRTBDataSetWrapper
+
+    ds: DataSetWrapper
     prepared: bool 
 
     def __init__(self, 
-                ds: FRTBDataSetWrapper,
+                ds: DataSetWrapper,
                 prepared: bool = False
     ) -> None:
 
@@ -40,7 +41,7 @@ class FRTBDataSet:
         Returns:
             T: Self
         """
-        return cls(FRTBDataSetWrapper.from_config_path(path), False)
+        return cls(DataSetWrapper.from_config_path(path), False)
 
     @classmethod
     def from_frame(cls: Type[T], 
@@ -57,13 +58,16 @@ class FRTBDataSet:
             df (polars.DataFrame): _description_
             measures (list[str], optional): Used as a constrained on measures.
                 Defaults to all numeric columns in the dataframe.
-            build_params (dict | None, optional): Params to be used in prepare. Defaults to None.
-            prepared (bool, optional): Was your DataFrame already prepared? Defaults to False.
+            build_params (dict | None, optional): Params to be used in prepare. Defaults
+             to None.
+            prepared (bool, optional): Was your DataFrame already prepared? Defaults 
+            to False.
 
         Returns:
             T: Self
         """
-        return cls(FRTBDataSetWrapper.new(df, measures, build_params), prepared)
+        return cls(DataSetWrapper.from_frame(df, measures, build_params), prepared)
+
 
     def prepare(self):
         if not self.prepared:
@@ -79,4 +83,23 @@ class FRTBDataSet:
 
     def measures(self) -> dict[str, str|None]:
         return self._ds.measures()
+
+class FRTBDataSet(DataSet):
+    """FRTB flavour of DataSet
+    """
+
+    @classmethod
+    def from_config_path(cls: Type[T], path: str) -> T:
+        return cls(DataSetWrapper.frtb_from_config_path(path), False)
+
+    @classmethod
+    def from_frame(cls: Type[T], 
+            df: polars.DataFrame,
+            measures: list[str] = None,
+            build_params: (dict|None) = None, 
+            prepared = False
+        ) -> T:
+        return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)
+
+    
 

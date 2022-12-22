@@ -1,6 +1,5 @@
-import frtb.rust_module.frtb_pyengine as frtb_pyengine
 from frtb.internals.agg_request import AggRequest
-from frtb.internals.dataset import FRTBDataSet
+from frtb.internals.dataset import FRTBDataSet, DataSet
 from  frtb.execute import execute_agg
 import polars as pl
 
@@ -19,17 +18,14 @@ request = AggRequest(request)
 print(request)
 
 dataset.prepare()
-print("prepared_dataset ", dataset)
 result = execute_agg(request, dataset)
 
-#result = pyultima._execute_agg(request, dataset)
-#res = result.new_agg_result()
 print("Result: ", result)
 print("Type: ", type(result))
 
 data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]}
 df = pl.DataFrame(data)
-ds = FRTBDataSet.from_frame(df)
+ds = DataSet.from_frame(df)
 print(ds.measures())
 
 r = dict(

@@ -10,6 +10,13 @@ use std::{path::Path, collections::HashMap};
 mod conversion;
 mod errors;
 
+#[pyclass(subclass)]
+struct DataSetWrapper {
+    #[allow(dead_code)]
+    dataset: Box<dyn DataSet + Send>,
+}
+
+//#[pyclass(extends=DataSetWrapper)]
 #[pyclass]
 struct FRTBDataSetWrapper {
     #[allow(dead_code)]

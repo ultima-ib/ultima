@@ -4,9 +4,10 @@ from ultima.internals import FRTBDataSet
 
 from .rust_module.ultima_pyengine import exec_agg
 
+
 def execute_agg(
     req: AggRequest, ds: FRTBDataSet, streaming: bool = False
-)-> pl.DataFrame:
+) -> pl.DataFrame:
     """Executes Request on your DataSet
 
     Args:

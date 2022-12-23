@@ -1,18 +1,25 @@
 from ultima.internals.agg_request import AggRequest
 from ultima.internals.dataset import FRTBDataSet, DataSet
-from  ultima.execute import execute_agg
+from ultima.execute import execute_agg
 import polars as pl
 
 # pl.DataFrame
 
-dataset = FRTBDataSet.from_config_path(
-    "./tests/data/datasource_config.toml")
+dataset = FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
 
 # print("dataset ", dataset)
 
 # Tried to use formatted json via raw literals but something went wrong
-request = r'{"measures": [["DRC_NonSec_GrossJTD", "sum"],["DRC_NonSec_GrossJTD_Scaled", "sum"],["DRC_NonSec_CapitalCharge", "scalar"],["DRC_NonSec_NetLongJTD", "scalar"],["DRC_NonSec_NetShortJTD", "scalar"],["DRC_NonSec_NetLongJTD_Weighted", "scalar"],["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],["DRC_NonSec_HBR", "scalar"]], "groupby": ["Desk", "BucketBCBS"], "type": "AggregationRequest", "hide_zeros": false, "calc_params": { "jurisdiction": "BCBS", "apply_fx_curv_div": "true", "drc_offset": "false" }}'
-#request3 = ultima_pyengine.AggregationRequestWrapper.from_str(request)
+request = r"""{"measures": [
+    ["DRC_NonSec_GrossJTD", "sum"],["DRC_NonSec_GrossJTD_Scaled","sum"],
+    ["DRC_NonSec_CapitalCharge", "scalar"],["DRC_NonSec_NetLongJTD", "scalar"],
+    ["DRC_NonSec_NetShortJTD", "scalar"],["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
+    ["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],["DRC_NonSec_HBR", "scalar"]], 
+    "groupby": ["Desk", "BucketBCBS"], "type": "AggregationRequest", 
+    "hide_zeros": false, "calc_params": { "jurisdiction": "BCBS",
+     "apply_fx_curv_div": "true", "drc_offset": "false" }}
+      """
+# request3 = ultima_pyengine.AggregationRequestWrapper.from_str(request)
 request = AggRequest(request)
 
 print(request)
@@ -30,11 +37,11 @@ ds = DataSet.from_frame(df)
 print(ds.measures())
 
 r = dict(
-    measures=[("a", "mean"), ("b", "sum")], 
-    groupby=["c"], 
+    measures=[("a", "mean"), ("b", "sum")],
+    groupby=["c"],
     totals=False,
-    calc_params={"jurisdiction": "BCBS"}
-     )
+    calc_params={"jurisdiction": "BCBS"},
+)
 rr = AggRequest(r)
 result = execute_agg(rr, ds)
 

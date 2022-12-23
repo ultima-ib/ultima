@@ -1,6 +1,7 @@
 import json
 from ..rust_module.ultima_pyengine import AggregationRequestWrapper
 
+
 class AggRequest:
     """
     This is python based twin of AggregationRequest struct
@@ -9,20 +10,18 @@ class AggRequest:
     Constructing a FRTB AggRequest from a dictionary:
 
     >>> r = dict(
-    ... measures=[("SBM Charge", "scalar"), ("FX Delta Sensitivity", "sum")], 
-    ... groupby=["RiskCategory"], 
+    ... measures=[("SBM Charge", "scalar"), ("FX Delta Sensitivity", "sum")],
+    ... groupby=["RiskCategory"],
     ... totals=True,
     ... calc_params={"jurisdiction": "BCBS"}
     ... )
     >>> ar = frtb.AggRequest(sr)
 
     """
+
     def __init__(
-        self, 
-        data: (
-            dict
-            |str
-            ) ,
+        self,
+        data: (dict | str),
     ) -> None:
 
         if isinstance(data, dict):
@@ -31,7 +30,7 @@ class AggRequest:
 
         elif isinstance(data, str):
             self._ar = AggregationRequestWrapper.from_str(data)
-        
+
         else:
             raise ValueError(
                 f"AggRequest constructor called with unsupported type; got {type(data)}"

@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  AWS_REGION: eu-west-2
+  ECR_REPOSITORY: ultima
+  ECS_CLUSTER: UltimaF
+  CONTAINER_NAME: test
+  ECS_SERVICE: main
+  
+
 jobs:
-  clippy_fmt:
-    name: Clippy & Rustfmt
+  lint_tests:
+    name: Run Clippy & Rustfmt lint tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -36,11 +44,12 @@ jobs:
   rust_tests:
     name: Rust tests
     runs-on: ubuntu-latest
-
+  
     steps:
       - uses: actions/checkout@v2
 
       - uses: Swatinem/rust-cache@v1
+      
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -73,7 +82,7 @@ jobs:
       - name: Typecheck
         run: npx tsc
         working-directory: frontend
-        
+
       - name: Lint
         run: npm run lint
         working-directory: frontend
@@ -83,29 +92,73 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     needs:
-      - clippy_fmt
+      - lint_tests
       - rust_tests
       - frontend_checks
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v2
       
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+#     - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v2
       
+#      - name: Login to ECR
+#        uses: docker/login-action@v2
+#        with:
+#          registry: 347605426234.dkr.ecr.eu-west-2.amazonaws.com
+#          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition first-run-task-definition --query taskDefinition > task-definition.json
+          
       - name: Login to ECR
-        uses: docker/login-action@v2
-        with:
-          registry: 347605426234.dkr.ecr.eu-west-2.amazonaws.com
-          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:latest, 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:${{ github.run_number }}
+#      - name: Build and push
+#        uses: docker/build-push-action@v3
+#        with:
+#          context: .
+#          push: true
+#          tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:latest, 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:${{ github.run_number }}
 
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: my-container
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE}}
+          cluster: ${{ env.ECS_CLUSTER}}
+          wait-for-service-stability: true

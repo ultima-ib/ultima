@@ -86,7 +86,7 @@ jobs:
       - name: Typecheck
         run: npx tsc
         working-directory: frontend
-        gt
+
       - name: Lint
         run: npm run lint
         working-directory: frontend

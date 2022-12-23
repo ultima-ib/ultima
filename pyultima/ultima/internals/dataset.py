@@ -1,5 +1,5 @@
-import polars
-from ..rust_module.frtb_pyengine import OtherError, DataSetWrapper
+import polars as pl
+from ..rust_module.ultima_pyengine import OtherError, DataSetWrapper
 from typing import TypeVar, Type
 # Create a generic variable that can be 'Parent', or any subclass.
 T = TypeVar('T', bound='DataSet')
@@ -8,7 +8,7 @@ class DataSet:
     """
     Main DataSet class
 
-    Holds data, calls prepare on Data, validates,
+    Holds data, calls prepare on Data, validates.
 
     Raises:
         OtherError: When trying to prepare a prepared dataset
@@ -45,7 +45,7 @@ class DataSet:
 
     @classmethod
     def from_frame(cls: Type[T], 
-            df: polars.DataFrame,
+            df: pl.DataFrame,
             measures: list[str] = None,
             build_params: (dict|None) = None, 
             prepared = False
@@ -82,7 +82,18 @@ class DataSet:
         pass
 
     def measures(self) -> dict[str, str|None]:
+        """Measures availiable on the DataSet
+
+        Returns:
+            dict[str, str|None]: {measureName: "aggtype restriction(if any, otherwise 
+            None)"}
+        """
         return self._ds.measures()
+    
+    def frame(self) -> pl.DataFrame:
+        vec_srs = self._ds.frame()
+        return pl.DataFrame(vec_srs)
+
 
 class FRTBDataSet(DataSet):
     """FRTB flavour of DataSet
@@ -94,7 +105,7 @@ class FRTBDataSet(DataSet):
 
     @classmethod
     def from_frame(cls: Type[T], 
-            df: polars.DataFrame,
+            df: pl.DataFrame,
             measures: list[str] = None,
             build_params: (dict|None) = None, 
             prepared = False

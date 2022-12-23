@@ -3,18 +3,24 @@ requires = ["maturin>=0.14,<0.15"]
 build-backend = "maturin"
 
 [project]
-name = "frtb"
+name = "ultima"
 dependencies = [
   "typing_extensions >= 4.0.0; python_version <= '3.11'",
   "polars",
   "pyarrow"
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+
+[tool.ruff]
+line-length = 88
+
+[tool.isort]
+profile = "black"
 
 
 

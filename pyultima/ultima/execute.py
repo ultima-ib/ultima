@@ -1,8 +1,8 @@
 import polars as pl
-from frtb.internals import AggRequest
-from frtb.internals import FRTBDataSet
+from ultima.internals import AggRequest
+from ultima.internals import FRTBDataSet
 
-from .rust_module.frtb_pyengine import exec_agg
+from .rust_module.ultima_pyengine import exec_agg
 
 def execute_agg(
     req: AggRequest, ds: FRTBDataSet, streaming: bool = False

@@ -1,5 +1,5 @@
 import json
-from ..rust_module.frtb_pyengine import AggregationRequestWrapper
+from ..rust_module.ultima_pyengine import AggregationRequestWrapper
 
 class AggRequest:
     """

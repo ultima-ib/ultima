@@ -1,0 +1,5 @@
+black
+blackdoc
+ruff
+isort==5.10.1
+pyupgrade==3.1.0

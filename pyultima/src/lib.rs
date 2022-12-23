@@ -10,7 +10,7 @@ use std::{path::Path, collections::HashMap};
 mod conversion;
 mod errors;
 
-#[pyclass(subclass)]
+#[pyclass]
 struct DataSetWrapper {
     dataset: Box<dyn DataSet>,
 }
@@ -114,6 +114,17 @@ impl DataSetWrapper {
             .collect::<HashMap<String, Option<&str>>>()
 
     }
+    pub fn frame(&self) -> PyResult<Vec<PyObject>> {
+
+        self.dataset
+            .get_lazyframe()
+            .clone()
+            .collect()
+            .map_err(|err|PyUltimaErr::Polars(err))?
+            .iter()
+            .map(rust_series_to_py_series)
+            .collect()   
+    }
 }
 
 #[pyclass]
@@ -162,7 +173,7 @@ fn exec_agg(
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn frtb_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
+fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
     m.add_class::<AggregationRequestWrapper>()?;
     m.add_class::<DataSetWrapper>()?;

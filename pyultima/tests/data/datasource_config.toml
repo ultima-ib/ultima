@@ -4,11 +4,11 @@ bucket = "ultima-bi"
 # first file path
 # if using this file from driver
 # then have to provide full path
-files = ["../frtb_engine/tests/data/Delta.csv"]
+files = ["./tests/data/Delta.csv"]
 # trade attributes
-attributes_path = "../frtb_engine/tests/data/TradeAttributes.csv"
+attributes_path = "./tests/data/TradeAttributes.csv"
 # HMS
-hierarchy_path = "../frtb_engine/tests/data/hms.csv"
+hierarchy_path = "./tests/data/hms.csv"
 # file_1/file_2/file_3 <-> trade attributes
 files_join_attributes = ["TradeId"]
 # attributes <-> hierarchy

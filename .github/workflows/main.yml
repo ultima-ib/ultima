@@ -10,8 +10,8 @@ env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: ultima
   ECS_CLUSTER: UltimaF
-  CONTAINER_NAME: demo-deploy
-  ECS_SERVICE: demo-deploy
+  CONTAINER_NAME: test
+  ECS_SERVICE: main
   
 
 jobs:
@@ -19,10 +19,7 @@ jobs:
     name: Run Clippy & Rustfmt lint tests
     runs-on: ubuntu-latest
     steps:
-      - name: Git clone repostitory
       - uses: actions/checkout@v2
-
-      - name: Update toolchain
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -30,7 +27,6 @@ jobs:
           profile: minimal
           components: clippy, rustfmt
 
-      - name: Make cache
       - uses: Swatinem/rust-cache@v1
 
       - name: Run fmt

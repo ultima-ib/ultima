@@ -1,11 +1,11 @@
-from typing import Type, TypeVar
+from typing import Type, TypeVar, Any
 
 import polars as pl
 
 from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
 
 # Create a generic variable that can be 'Parent', or any subclass.
-T = TypeVar("T", bound="DataSet")
+DS = TypeVar("DS", bound="DataSet")
 
 
 class DataSet:
@@ -30,7 +30,7 @@ class DataSet:
         self.prepared = prepared
 
     @classmethod
-    def from_config_path(cls: Type[T], path: str) -> T:
+    def from_config_path(cls: Type[DS], path: str) -> DS:
         """
         Reads path to <config>.toml
         Converts into DataSourceConfig
@@ -46,12 +46,12 @@ class DataSet:
 
     @classmethod
     def from_frame(
-        cls: Type[T],
+        cls: Type[DS],
         df: pl.DataFrame,
-        measures: list[str] = None,
-        build_params: (dict | None) = None,
-        prepared=False,
-    ) -> T:
+        measures: (list[str]|None) = None,
+        build_params: (dict[Any, Any] | None) = None,
+        prepared: bool = False,
+    ) -> DS:
         """
         Build DataSet directly from df
 
@@ -70,14 +70,14 @@ class DataSet:
         """
         return cls(DataSetWrapper.from_frame(df, measures, build_params), prepared)
 
-    def prepare(self):
+    def prepare(self) -> None:
         if not self.prepared:
             self._ds.prepare()
             self.prepared = True
         else:
             raise OtherError("Calling prepare on an already prepared dataset")
 
-    def validate(self):
+    def validate(self) -> None:
         """TODO: validate when FRTBDataSet validate is ready"""
         pass
 
@@ -99,15 +99,15 @@ class FRTBDataSet(DataSet):
     """FRTB flavour of DataSet"""
 
     @classmethod
-    def from_config_path(cls: Type[T], path: str) -> T:
+    def from_config_path(cls: Type[DS], path: str) -> DS:
         return cls(DataSetWrapper.frtb_from_config_path(path), False)
 
     @classmethod
     def from_frame(
-        cls: Type[T],
+        cls: Type[DS],
         df: pl.DataFrame,
-        measures: list[str] = None,
-        build_params: (dict | None) = None,
-        prepared=False,
-    ) -> T:
+        measures: (list[str]|None) = None,
+        build_params: (dict[Any, Any] | None) = None,
+        prepared: bool = False,
+    ) -> DS:
         return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)

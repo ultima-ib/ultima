@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from ..rust_module.ultima_pyengine import AggregationRequestWrapper
 
@@ -22,7 +23,7 @@ class AggRequest:
 
     def __init__(
         self,
-        data: (dict | str),
+        data: (dict[Any, Any] | str),
     ) -> None:
 
         if isinstance(data, dict):

@@ -1,12 +1,12 @@
 import polars as pl
 
-from ultima.internals import AggRequest, FRTBDataSet
+from ultima.internals import AggRequest, DS
 
 from .rust_module.ultima_pyengine import exec_agg
 
 
 def execute_agg(
-    req: AggRequest, ds: FRTBDataSet, streaming: bool = False
+    req: AggRequest, ds: DS, streaming: bool = False
 ) -> pl.DataFrame:
     """Executes Request on your DataSet
 

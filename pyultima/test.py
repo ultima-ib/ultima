@@ -11,7 +11,7 @@ dataset = FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
 # print("dataset ", dataset)
 
 # Tried to use formatted json via raw literals but something went wrong
-request = r"""{"measures": [
+_request = r"""{"measures": [
     ["DRC_NonSec_GrossJTD", "sum"],["DRC_NonSec_GrossJTD_Scaled","sum"],
     ["DRC_NonSec_CapitalCharge", "scalar"],["DRC_NonSec_NetLongJTD", "scalar"],
     ["DRC_NonSec_NetShortJTD", "scalar"],["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
@@ -21,7 +21,7 @@ request = r"""{"measures": [
      "apply_fx_curv_div": "true", "drc_offset": "false" }}
       """
 # request3 = ultima_pyengine.AggregationRequestWrapper.from_str(request)
-request = AggRequest(request)
+request = AggRequest(_request)
 
 print(request)
 

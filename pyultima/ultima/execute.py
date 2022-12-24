@@ -1,6 +1,6 @@
 import polars as pl
-from ultima.internals import AggRequest
-from ultima.internals import FRTBDataSet
+
+from ultima.internals import AggRequest, FRTBDataSet
 
 from .rust_module.ultima_pyengine import exec_agg
 

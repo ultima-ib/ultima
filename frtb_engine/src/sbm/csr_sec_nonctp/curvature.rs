@@ -10,10 +10,10 @@ pub fn csr_sec_nonctp_curv_delta_weighted(op: &OCP) -> Expr {
     csr_sec_nonctp_curv_delta(op) * col("CurvatureRiskWeight")
 }
 pub fn csr_sec_nonctp_cvr_down(_: &OCP) -> Expr {
-    rc_cvr_5("CSR_Sec_nonCTP", CVR::Down)
+    rc_cvr_5("CSR_Sec_nonCTP", Cvr::Down)
 }
 pub fn csr_sec_nonctp_cvr_up(_: &OCP) -> Expr {
-    rc_cvr_5("CSR_Sec_nonCTP", CVR::Up)
+    rc_cvr_5("CSR_Sec_nonCTP", Cvr::Up)
 }
 pub fn csr_sec_nonctp_pnl_up(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "CSR_Sec_nonCTP", col("PnL_Up"))

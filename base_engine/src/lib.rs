@@ -13,9 +13,9 @@ pub mod prelude;
 pub use crate::prelude::*;
 
 /// Convert requested measure into [ProcessedMeasure] measure by looking up from all_availiable_measures.
-/// 
+///
 /// NOTE: if a measure, which was looked up from all_availiable_measures has a predefined AggExpression
-/// then we override requested measure. 
+/// then we override requested measure.
 ///
 /// by mapping requested String to a map of all availiable measures
 fn measure_builder(
@@ -23,7 +23,6 @@ fn measure_builder(
     all_availiable_measures: &MeasuresMap,
     op: &OCP,
 ) -> PolarsResult<Vec<ProcessedMeasure>> {
-
     let res = requested_measures.iter()
         .map(|(measure_name, action)| {
 
@@ -53,14 +52,14 @@ fn measure_builder(
                     precomputefilter: m.precomputefilter.clone(),
                 }
             )
-            }  
+            }
         )
         .collect::<PolarsResult<Vec<ProcessedMeasure>>>();
 
     res
 }
 
-/// Unlike main Measure struct, this structure holds final name, extended Expr(with aggregation) 
+/// Unlike main Measure struct, this structure holds final name, extended Expr(with aggregation)
 /// and the precompute filter.
 ///
 /// This is basically a "processed" measure

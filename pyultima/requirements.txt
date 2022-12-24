@@ -11,5 +11,8 @@ pyarrow
 # Tooling
 maturin
 mypy
+ruff
+pytest
+pytest-cov
 
 # Stub files

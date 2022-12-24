@@ -91,8 +91,9 @@ pub fn finish(
     // If not provided return all numeric columns
     // TODO move inside the DataSet see FRTBDataSetWrapper::new
     else {
-        let num_cols = concatinated_frame.schema()
-            .and_then(|schema| Ok(numeric_columns(schema)))
+        let num_cols = concatinated_frame
+            .schema()
+            .map(numeric_columns)
             .unwrap_or_default();
         derive_basic_measures_vec(num_cols)
     };

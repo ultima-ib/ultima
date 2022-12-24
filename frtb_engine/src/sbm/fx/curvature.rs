@@ -60,12 +60,12 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
 
 pub fn fx_cvr_up(op: &OCP) -> Expr {
     let div = get_optional_parameter(op, "apply_fx_curv_div", &false);
-    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", CVR::Up));
+    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", Cvr::Up));
     fx_cvr_up_down(div, risk)
 }
 pub fn fx_cvr_down(op: &OCP) -> Expr {
     let div = get_optional_parameter(op, "apply_fx_curv_div", &false);
-    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", CVR::Down));
+    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", Cvr::Down));
     fx_cvr_up_down(div, risk)
 }
 

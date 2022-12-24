@@ -2,8 +2,8 @@ use std::fmt::{Debug, Formatter};
 use std::io::Error;
 
 use polars::prelude::PolarsError;
-use pyo3::{create_exception, PyErr};
 use pyo3::exceptions::{PyException, PyIOError};
+use pyo3::{create_exception, PyErr};
 //use pyo3::prelude::*;
 use thiserror::Error;
 
@@ -42,9 +42,11 @@ impl std::convert::From<PyUltimaErr> for PyErr {
                     InvalidOperationError::new_err(err.to_string())
                 }
             },
-            SerdeJson(err) => SerdeJsonError::new_err(format!("Couldn't (de)serialise input. Check format. {}", err)),
-            Other(_str) => OtherError::new_err(format!("{_str}")),
-
+            SerdeJson(err) => SerdeJsonError::new_err(format!(
+                "Couldn't (de)serialise input. Check format. {}",
+                err
+            )),
+            Other(_str) => OtherError::new_err(_str.to_string()),
         }
     }
 }
@@ -70,5 +72,3 @@ create_exception!(exceptions, DuplicateError, PyException);
 create_exception!(exceptions, InvalidOperationError, PyException);
 create_exception!(exceptions, SerdeJsonError, PyException);
 create_exception!(exceptions, OtherError, PyException);
-
-

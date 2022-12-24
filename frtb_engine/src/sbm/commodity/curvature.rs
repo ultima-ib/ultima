@@ -10,10 +10,10 @@ pub fn com_curv_delta_weighted(op: &OCP) -> Expr {
     com_curv_delta(op) * col("CurvatureRiskWeight")
 }
 pub fn com_cvr_down(_: &OCP) -> Expr {
-    rc_cvr("Commodity", CVR::Down)
+    rc_cvr("Commodity", Cvr::Down)
 }
 pub fn com_cvr_up(_: &OCP) -> Expr {
-    rc_cvr("Commodity", CVR::Up)
+    rc_cvr("Commodity", Cvr::Up)
 }
 pub fn com_pnl_up(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "Commodity", col("PnL_Up"))

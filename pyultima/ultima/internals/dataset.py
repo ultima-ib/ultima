@@ -1,6 +1,8 @@
+from typing import Type, TypeVar
+
 import polars as pl
-from ..rust_module.ultima_pyengine import OtherError, DataSetWrapper
-from typing import TypeVar, Type
+
+from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
 
 # Create a generic variable that can be 'Parent', or any subclass.
 T = TypeVar("T", bound="DataSet")

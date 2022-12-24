@@ -35,7 +35,9 @@ pub trait DataSet: Send + Sync {
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
     fn get_lazyframe(&self) -> &LazyFrame;
     fn get_lazyframe_owned(self) -> LazyFrame;
-    fn set_lazyframe(self, lf: LazyFrame) -> Self where Self: Sized;
+    fn set_lazyframe(self, lf: LazyFrame) -> Self
+    where
+        Self: Sized;
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
 
@@ -46,10 +48,12 @@ pub trait DataSet: Send + Sync {
     /// Not possible to call [DataSet::new] either since it's not on self
     /// TODO create a From Trait
     fn from_config(conf: DataSourceConfig) -> Self
-    where Self: Sized  {
+    where
+        Self: Sized,
+    {
         let (frame, measure_cols, build_params) = conf.build();
         let mm: MeasuresMap = derive_measure_map(measure_cols);
-        Self::new (frame, mm, build_params)
+        Self::new(frame, mm, build_params)
     }
 
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
@@ -97,8 +101,9 @@ pub trait DataSet: Send + Sync {
     }
 
     fn overridable_columns(&self) -> Vec<String> {
-        self.get_lazyframe().schema()
-            .and_then(|schema| Ok(overrides_columns(schema)))
+        self.get_lazyframe()
+            .schema()
+            .map(overrides_columns)
             .unwrap_or_default()
     }
     /// Validate DataSet
@@ -122,9 +127,10 @@ impl DataSet for DataSetBase {
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
         self.frame = lf;
     }
-    fn set_lazyframe(self, lf: LazyFrame) -> Self
-    { Self::new(lf, self.measures, self.build_params) }
-        
+    fn set_lazyframe(self, lf: LazyFrame) -> Self {
+        Self::new(lf, self.measures, self.build_params)
+    }
+
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
     }
@@ -132,7 +138,6 @@ impl DataSet for DataSetBase {
         self.measures
     }
 
-    
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self {
         Self {
             frame,
@@ -157,7 +162,6 @@ impl DataSet for DataSetBase {
 
 // TODO return Result
 pub fn numeric_columns(schema: Arc<Schema>) -> Vec<String> {
-    
     schema
         .iter_fields()
         .filter(|f| f.data_type().is_numeric())
@@ -167,7 +171,6 @@ pub fn numeric_columns(schema: Arc<Schema>) -> Vec<String> {
 
 // TODO return Result
 pub(crate) fn utf8_columns(schema: Arc<Schema>) -> Vec<String> {
-    
     schema
         .iter_fields()
         .filter(|field| matches!(field.data_type(), DataType::Utf8))
@@ -177,7 +180,6 @@ pub(crate) fn utf8_columns(schema: Arc<Schema>) -> Vec<String> {
 
 /// DataTypes supported for overrides are defined in [overrides::string_to_lit]
 pub(crate) fn overrides_columns(schema: Arc<Schema>) -> Vec<String> {
-    
     schema
         .iter_fields()
         .filter(|c| match c.data_type() {
@@ -203,8 +205,10 @@ impl Serialize for dyn DataSet {
             .collect::<HashMap<&String, Option<&str>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
-        let utf8_cols = self.get_lazyframe().schema()
-            .and_then(|schema| Ok(utf8_columns(schema)))
+        let utf8_cols = self
+            .get_lazyframe()
+            .schema()
+            .map(utf8_columns)
             .unwrap_or_default();
         let calc_params = self.calc_params();
 

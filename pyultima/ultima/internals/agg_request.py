@@ -1,4 +1,5 @@
 import json
+
 from ..rust_module.ultima_pyengine import AggregationRequestWrapper
 
 
@@ -10,10 +11,10 @@ class AggRequest:
     Constructing a FRTB AggRequest from a dictionary:
 
     >>> r = dict(
-    ... measures=[("SBM Charge", "scalar"), ("FX Delta Sensitivity", "sum")],
-    ... groupby=["RiskCategory"],
-    ... totals=True,
-    ... calc_params={"jurisdiction": "BCBS"}
+    ...     measures=[("SBM Charge", "scalar"), ("FX Delta Sensitivity", "sum")],
+    ...     groupby=["RiskCategory"],
+    ...     totals=True,
+    ...     calc_params={"jurisdiction": "BCBS"},
     ... )
     >>> ar = frtb.AggRequest(sr)
 

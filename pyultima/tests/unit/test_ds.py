@@ -1,6 +1,8 @@
-import polars as pl
-from ultima.internals.dataset import FRTBDataSet, DataSet
 import unittest
+
+import polars as pl
+
+from ultima.internals.dataset import DataSet, FRTBDataSet
 
 
 class TestCreation(unittest.TestCase):
@@ -22,7 +24,7 @@ class TestCreation(unittest.TestCase):
 
         expected = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]})
         assert ds.frame().frame_equal(expected)
-        assert set(("a", "b")).issubset(ds.measures().keys())
+        assert {"a", "b"}.issubset(ds.measures().keys())
 
 
 if __name__ == "__main__":

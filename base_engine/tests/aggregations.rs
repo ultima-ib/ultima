@@ -38,8 +38,12 @@ fn non_existent_measure() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _ = dbg!(execute_aggregation(data_req, &*Arc::clone(&*common::TEST_DASET), false))
-        .unwrap();
+    let _ = dbg!(execute_aggregation(
+        data_req,
+        &*Arc::clone(&*common::TEST_DASET),
+        false
+    ))
+    .unwrap();
 }
 
 #[test]
@@ -54,6 +58,10 @@ fn non_existent_action() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _ = dbg!(execute_aggregation(data_req, &*Arc::clone(&*common::TEST_DASET), false))
-        .unwrap();
+    let _ = dbg!(execute_aggregation(
+        data_req,
+        &*Arc::clone(&*common::TEST_DASET),
+        false
+    ))
+    .unwrap();
 }

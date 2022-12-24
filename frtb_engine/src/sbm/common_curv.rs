@@ -78,25 +78,25 @@ pub(crate) fn cvr_down_spot() -> Expr {
     lit::<f64>(0.) - (col("PnL_Down") + spot_sens_curv_weighted())
 }
 
-pub(crate) fn rc_cvr(rc: &'static str, dir: CVR) -> Expr {
+pub(crate) fn rc_cvr(rc: &'static str, dir: Cvr) -> Expr {
     let cvr = match dir {
-        CVR::Up => cvr_up(),
-        CVR::Down => cvr_down(),
+        Cvr::Up => cvr_up(),
+        Cvr::Down => cvr_down(),
     };
     rc_sens(rc, cvr)
 }
-pub(crate) fn rc_cvr_spot(rc: &'static str, dir: CVR) -> Expr {
+pub(crate) fn rc_cvr_spot(rc: &'static str, dir: Cvr) -> Expr {
     let cvr = match dir {
-        CVR::Up => cvr_up_spot(),
-        CVR::Down => cvr_down_spot(),
+        Cvr::Up => cvr_up_spot(),
+        Cvr::Down => cvr_down_spot(),
     };
     rc_sens(rc, cvr)
 }
 
-pub(crate) fn rc_cvr_5(rc: &'static str, dir: CVR) -> Expr {
+pub(crate) fn rc_cvr_5(rc: &'static str, dir: Cvr) -> Expr {
     let cvr = match dir {
-        CVR::Up => cvr_up_5(),
-        CVR::Down => cvr_down_5(),
+        Cvr::Up => cvr_up_5(),
+        Cvr::Down => cvr_down_5(),
     };
     rc_sens(rc, cvr)
 }
@@ -114,7 +114,7 @@ pub(crate) fn curv_delta_5(rc: &'static str) -> Expr {
     curv_delta(rc, total_vega_curv_sens())
 }
 
-pub(crate) enum CVR {
+pub(crate) enum Cvr {
     Up,
     Down,
 }

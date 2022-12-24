@@ -1,13 +1,11 @@
 import polars as pl
 
-from ultima.internals import AggRequest, DS
+from ultima.internals import DS, AggRequest
 
 from .rust_module.ultima_pyengine import exec_agg
 
 
-def execute_agg(
-    req: AggRequest, ds: DS, streaming: bool = False
-) -> pl.DataFrame:
+def execute_agg(req: AggRequest, ds: DS, streaming: bool = False) -> pl.DataFrame:
     """Executes Request on your DataSet
 
     Args:

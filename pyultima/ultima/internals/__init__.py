@@ -7,6 +7,6 @@ they all import from each other via this __init__ file using
 """
 
 from .agg_request import AggRequest
-from .dataset import DataSet, FRTBDataSet, DS
+from .dataset import DS, DataSet, FRTBDataSet
 
 __all__ = ["AggRequest", "FRTBDataSet", "DataSet", "DS"]

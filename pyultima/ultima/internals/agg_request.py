@@ -23,7 +23,7 @@ class AggRequest:
 
     def __init__(
         self,
-        data: (dict[Any, Any] | str),
+        data: "dict[Any, Any] | str",
     ) -> None:
 
         if isinstance(data, dict):

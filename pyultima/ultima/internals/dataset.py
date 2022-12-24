@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Any
+from typing import Any, Type, TypeVar
 
 import polars as pl
 
@@ -48,8 +48,8 @@ class DataSet:
     def from_frame(
         cls: Type[DS],
         df: pl.DataFrame,
-        measures: (list[str]|None) = None,
-        build_params: (dict[Any, Any] | None) = None,
+        measures: "list[str] | None" = None,
+        build_params: "dict[Any, Any] | None" = None,
         prepared: bool = False,
     ) -> DS:
         """
@@ -106,8 +106,8 @@ class FRTBDataSet(DataSet):
     def from_frame(
         cls: Type[DS],
         df: pl.DataFrame,
-        measures: (list[str]|None) = None,
-        build_params: (dict[Any, Any] | None) = None,
+        measures: "list[str] | None" = None,
+        build_params: "dict[Any, Any] | None" = None,
         prepared: bool = False,
     ) -> DS:
         return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)

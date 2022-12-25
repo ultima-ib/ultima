@@ -3,9 +3,6 @@ import unittest
 import polars as pl
 import ultima as ul
 
-print(dir(ul))
-
-
 class TestCreation(unittest.TestCase):
     def test_frtbds_from_config(self) -> None:
 

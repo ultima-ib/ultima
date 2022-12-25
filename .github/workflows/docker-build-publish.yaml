@@ -2,11 +2,10 @@ name: Docker Build Publish
 
 on:
   workflow_run:
-    workflows: ["Test Python", "Rust Frontend Lint Test"]
+    workflows: [Test Python, Rust Frontend Lint Test]
+    branches: [master]
     types:
       - completed
-  push:
-    branches: [master]
   
 env:
   AWS_REGION: eu-west-2
@@ -19,7 +18,7 @@ jobs:
   build_and_publish:
     name: Build and Publish
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event_name == 'push' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout

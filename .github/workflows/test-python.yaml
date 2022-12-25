@@ -51,7 +51,7 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-11-24
+          toolchain: stable
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
@@ -97,7 +97,7 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-11-24
+          toolchain: stable
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
@@ -108,9 +108,10 @@ jobs:
         shell: bash
         env:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
+        # pip install target/wheels/ultima-*.whl
         run: |
           maturin build
-          pip install target/wheels/ultima-*.whl
+          pip install --find-links=../target/wheels ultima 
 
       - name: Run tests
         run: pytest

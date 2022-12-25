@@ -16,10 +16,10 @@ pub fn csrsecctp_curv_delta_weighted(op: &OCP) -> Expr {
 }
 
 pub fn csrsecctp_cvr_down(_: &OCP) -> Expr {
-    rc_cvr_5("CSR_Sec_CTP", CVR::Down)
+    rc_cvr_5("CSR_Sec_CTP", Cvr::Down)
 }
 pub fn csrsecctp_cvr_up(_: &OCP) -> Expr {
-    rc_cvr_5("CSR_Sec_CTP", CVR::Up)
+    rc_cvr_5("CSR_Sec_CTP", Cvr::Up)
 }
 pub fn csrsecctp_pnl_up(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "CSR_Sec_CTP", col("PnL_Up"))

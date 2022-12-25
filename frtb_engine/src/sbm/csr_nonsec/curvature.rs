@@ -19,10 +19,10 @@ pub fn csrnonsec_curv_delta_weighted(op: &OCP) -> Expr {
 }
 
 pub fn csrnonsec_cvr_down(_: &OCP) -> Expr {
-    rc_cvr_5("CSR_nonSec", CVR::Down)
+    rc_cvr_5("CSR_nonSec", Cvr::Down)
 }
 pub fn csrnonsec_cvr_up(_: &OCP) -> Expr {
-    rc_cvr_5("CSR_nonSec", CVR::Up)
+    rc_cvr_5("CSR_nonSec", Cvr::Up)
 }
 pub fn csrnonsec_pnl_up(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "CSR_nonSec", col("PnL_Up"))

@@ -2,7 +2,8 @@
 members = [
     'driver',
     'base_engine',
-    'frtb_engine'
+    'frtb_engine',
+    'pyultima'
 ]
 
 [workspace.package]

@@ -1,0 +1,7 @@
+RiskClass,RiskCategory,Weights
+FX,Vega,1;1;1;1;1
+GIRR,Vega,1;1;1;1;1
+CSR_nonSec,Vega,1;1;1;1;1
+CSR_Sec_CTP,Vega,1;1;1;1;1
+CSR_Sec_nonCTP,Vega,1;1;1;1;1
+Commodity,Vega,1;1;1;1;1

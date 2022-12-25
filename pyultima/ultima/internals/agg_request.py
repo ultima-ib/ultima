@@ -13,13 +13,14 @@ class AggRequest:
     --------
     Constructing a FRTB AggRequest from a dictionary:
 
-    >>> r = dict(
+    >>> import ultima as ul
+    >>> request_as_duct = dict(
     ...     measures=[("SBM Charge", "scalar"), ("FX Delta Sensitivity", "sum")],
     ...     groupby=["RiskCategory"],
     ...     totals=True,
     ...     calc_params={"jurisdiction": "BCBS"},
     ... )
-    >>> ar = frtb.AggRequest(sr)
+    >>> ar = ul.AggRequest(request_as_duct)
 
     """
 

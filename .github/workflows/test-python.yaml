@@ -108,10 +108,11 @@ jobs:
         shell: bash
         env:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
-        # pip install target/wheels/ultima-*.whl
+        # pip install ../target/wheels/ultima-*.whl
+        # we do build and install to better mimic real life
         run: |
           maturin build
-          pip install --find-links=../target/wheels ultima 
+          pip install ../target/wheels/ultima-*.whl
 
       - name: Run tests
         run: pytest

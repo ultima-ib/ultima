@@ -30,7 +30,6 @@ fmt: venv  ## Run autoformatting and linting
 	$(VENV_BIN)/blackdoc .
 	$(VENV_BIN)/pyupgrade --py37-plus
 	cargo fmt --all
-	-dprint fmt
 	-$(VENV_BIN)/mypy .
 	-$(VENV_BIN)/ruff .
 

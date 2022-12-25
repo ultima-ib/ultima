@@ -5,6 +5,8 @@ on:
     workflows: ["Lint Python", "Test Python", "Rust Frontend Lint Test"]
     types:
       - completed
+  push:
+    branches: [master]
   
 env:
   AWS_REGION: eu-west-2

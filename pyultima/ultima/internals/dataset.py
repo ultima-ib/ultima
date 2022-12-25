@@ -81,7 +81,7 @@ class DataSet:
         """TODO: validate when FRTBDataSet validate is ready"""
         pass
 
-    def measures(self) -> "dict[str, str] | None":
+    def measures(self) -> "dict[str, str | None]":
         """Measures availiable on the DataSet
 
         Returns:

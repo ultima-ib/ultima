@@ -1,10 +1,10 @@
-name: Lint Test Rust Frtontend
+name: Docker Build Publish
 
 on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+  workflow_run:
+    workflows: ["Lint Python", "Test Python", "Rust Frontend Lint Test"]
+    types:
+      - completed
   
 env:
   AWS_REGION: eu-west-2
@@ -17,14 +17,7 @@ jobs:
   build_and_publish:
     name: Build and Publish
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs:
-      - clippy_fmt
-      - rust_tests
-      - frontend_checks
-      - python_lint
-      - python_test_windows
-      - python_test_ubuntu
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout

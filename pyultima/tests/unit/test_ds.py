@@ -1,14 +1,12 @@
 import unittest
 
 import polars as pl
-
-from ultima.internals.dataset import DataSet, FRTBDataSet
-
+import ultima as ul
 
 class TestCreation(unittest.TestCase):
     def test_frtbds_from_config(self) -> None:
 
-        dataset = FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
+        dataset = ul.FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
 
         frame = dataset.frame()
         assert isinstance(frame, pl.DataFrame)
@@ -20,7 +18,7 @@ class TestCreation(unittest.TestCase):
     def test_ds_from_frame(self) -> None:
         data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]}
         df = pl.DataFrame(data)
-        ds = DataSet.from_frame(df)
+        ds = ul.DataSet.from_frame(df)
 
         expected = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]})
         assert ds.frame().frame_equal(expected)

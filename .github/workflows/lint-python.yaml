@@ -35,16 +35,18 @@ jobs:
           blackdoc --check .
           isort --check .
           ruff .
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly-2022-11-24
-          components: rustfmt, clippy
-      - name: Cache Rust
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: pyultima
-      - name: Lint Rust
-        run: |
-          cargo fmt --all -- --check
-          make clippy
+        
+      # Rust clippy and fmt performed as part of lint-test-rust(main)
+      #- name: Set up Rust
+      #  uses: dtolnay/rust-toolchain@master
+      #  with:
+      #    toolchain: stable
+      #    components: rustfmt, clippy
+      #- name: Cache Rust
+      #  uses: Swatinem/rust-cache@v2
+      #  with:
+      #    workspaces: pyultima
+      #- name: Lint Rust
+      #  run: |
+      #    cargo fmt -- --check
+      #    make clippy

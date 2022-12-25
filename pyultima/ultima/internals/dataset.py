@@ -85,7 +85,7 @@ class DataSet:
         """Measures availiable on the DataSet
 
         Returns:
-            dict[str, str]|None: {measureName: "aggtype restriction(if any, otherwise
+            dict[str, str|None]: {measureName: "aggtype restriction(if any, otherwise
             None)"}
         """
         return self._ds.measures()

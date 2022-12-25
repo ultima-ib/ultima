@@ -13,7 +13,7 @@ env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: ultima
   ECS_CLUSTER: UltimaF
-  CONTAINER_NAME: test
+  CONTAINER_NAME: ultima
   ECS_SERVICE: main
 
 jobs:

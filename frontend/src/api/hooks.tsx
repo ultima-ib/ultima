@@ -4,6 +4,7 @@ import {
     COLUMNS,
     TEMPLATES,
     OVERRIDES,
+    DESCRIBE,
 } from "./routes"
 import useFetch from "fetch-suspense"
 import {
@@ -85,4 +86,17 @@ export const useTableData = (
             }
         }
     }
+}
+
+export const useDescribeTableData = (
+    input: GenerateTableDataResponse,
+): GenerateTableDataResponse => {
+    // const { data } = useTableData(input)
+    return useFetch(DESCRIBE, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+    }) as GenerateTableDataResponse
 }

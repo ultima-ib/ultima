@@ -17,7 +17,7 @@ defaults:
     working-directory: pyultima
 
 jobs:
-  ubuntu:
+  python_test_ubuntu:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -72,7 +72,7 @@ jobs:
         run: python tests/docs/run_doc_examples.py
 
 
-  windows:
+  python_test_windows:
     runs-on: windows-latest
     strategy:
       fail-fast: false

@@ -20,11 +20,11 @@ pub fn girr_curv_delta_weighted(op: &OCP) -> Expr {
 }
 
 pub fn girr_cvr_down(_: &OCP) -> Expr {
-    rc_cvr("GIRR", CVR::Down)
+    rc_cvr("GIRR", Cvr::Down)
 }
 
 pub fn girr_cvr_up(_: &OCP) -> Expr {
-    rc_cvr("GIRR", CVR::Up)
+    rc_cvr("GIRR", Cvr::Up)
 }
 
 pub fn girr_pnl_up(_: &OCP) -> Expr {

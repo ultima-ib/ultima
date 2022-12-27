@@ -1,14 +1,15 @@
-name: Main App
+name: Rust Frontend Lint Test
 
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
+  
 
 jobs:
-  clippy_fmt:
-    name: Clippy & Rustfmt
+  lint_tests:
+    name: Run Clippy & Rustfmt lint tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -36,11 +37,12 @@ jobs:
   rust_tests:
     name: Rust tests
     runs-on: ubuntu-latest
-
+  
     steps:
       - uses: actions/checkout@v2
 
       - uses: Swatinem/rust-cache@v1
+      
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -73,39 +75,7 @@ jobs:
       - name: Typecheck
         run: npx tsc
         working-directory: frontend
-        
+
       - name: Lint
         run: npm run lint
         working-directory: frontend
-
-  build_and_publish:
-    name: Build and Publish
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs:
-      - clippy_fmt
-      - rust_tests
-      - frontend_checks
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
-      - name: Login to ECR
-        uses: docker/login-action@v2
-        with:
-          registry: 347605426234.dkr.ecr.eu-west-2.amazonaws.com
-          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          tags: 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:latest, 347605426234.dkr.ecr.eu-west-2.amazonaws.com/ultima:${{ github.run_number }}
-

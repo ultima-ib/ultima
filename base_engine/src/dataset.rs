@@ -9,9 +9,11 @@ use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
 /// Usually a client/user would overwrite it with their own DataSet
 #[derive(Default)]
 pub struct DataSetBase {
+    /// Data
     pub frame: LazyFrame,
+    /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
-    /// build_params are used in .prepare()
+    /// build_params are passed into .prepare()
     pub build_params: HashMap<String, String>,
 }
 
@@ -36,14 +38,23 @@ pub trait DataSet: Send + Sync {
     fn set_lazyframe(self, lf: LazyFrame) -> Self
     where
         Self: Sized;
+    /// Modify lf in place
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
+
     fn get_measures(&self) -> &MeasuresMap;
     fn get_measures_owned(self) -> MeasuresMap;
 
-    // Cannot be defined since returns Self which is a Struct
-    // TODO create a From Trait
+    /// Cannot be defined since returns Self which is a Struct.
+    /// Not possible to call [DataSet::new] either since it's not on self
+    /// TODO create a From Trait
     fn from_config(conf: DataSourceConfig) -> Self
     where
-        Self: Sized;
+        Self: Sized,
+    {
+        let (frame, measure_cols, build_params) = conf.build();
+        let mm: MeasuresMap = derive_measure_map(measure_cols);
+        Self::new(frame, mm, build_params)
+    }
 
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self
@@ -75,7 +86,7 @@ pub trait DataSet: Send + Sync {
     }
 
     /// By returning a Frame this method can be used on a
-    /// *lf - biffer. if None, function "prepares" self.lazy_frame()
+    /// *lf - buffer. if None, function "prepares" self.lazy_frame()
     fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
         if let Some(lf) = _lf {
             Ok(lf)
@@ -90,7 +101,10 @@ pub trait DataSet: Send + Sync {
     }
 
     fn overridable_columns(&self) -> Vec<String> {
-        overrides_columns(self.get_lazyframe())
+        self.get_lazyframe()
+            .schema()
+            .map(overrides_columns)
+            .unwrap_or_default()
     }
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
@@ -109,16 +123,14 @@ impl DataSet for DataSetBase {
     fn get_lazyframe_owned(self) -> LazyFrame {
         self.frame
     }
-    fn set_lazyframe(self, lf: LazyFrame) -> Self
-    where
-        Self: Sized,
-    {
-        Self {
-            frame: lf,
-            measures: self.measures,
-            build_params: self.build_params,
-        }
+    /// Modify lf in place
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
+        self.frame = lf;
     }
+    fn set_lazyframe(self, lf: LazyFrame) -> Self {
+        Self::new(lf, self.measures, self.build_params)
+    }
+
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
     }
@@ -126,15 +138,6 @@ impl DataSet for DataSetBase {
         self.measures
     }
 
-    fn from_config(conf: DataSourceConfig) -> Self {
-        let (frame, measure_cols, build_params) = conf.build();
-        let mm: MeasuresMap = derive_measure_map(measure_cols);
-        Self {
-            frame,
-            measures: mm,
-            build_params,
-        }
-    }
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self {
         Self {
             frame,
@@ -158,53 +161,36 @@ impl DataSet for DataSetBase {
 }
 
 // TODO return Result
-pub(crate) fn numeric_columns(lf: &LazyFrame) -> Vec<String> {
-    lf.schema().map_or_else(
-        |_| vec![],
-        |schema| {
-            schema
-                .iter_fields()
-                .filter(|f| f.data_type().is_numeric())
-                .map(|f| f.name)
-                .collect::<Vec<String>>()
-        },
-    )
+pub fn numeric_columns(schema: Arc<Schema>) -> Vec<String> {
+    schema
+        .iter_fields()
+        .filter(|f| f.data_type().is_numeric())
+        .map(|f| f.name)
+        .collect::<Vec<String>>()
 }
 
 // TODO return Result
-pub(crate) fn utf8_columns(lf: &LazyFrame) -> Vec<String> {
-    lf.schema().map_or_else(
-        |_| vec![],
-        |schema| {
-            schema
-                .iter_fields()
-                .filter(|field| matches!(field.data_type(), DataType::Utf8))
-                .map(|field| field.name)
-                .collect::<Vec<String>>()
-        },
-    )
+pub(crate) fn utf8_columns(schema: Arc<Schema>) -> Vec<String> {
+    schema
+        .iter_fields()
+        .filter(|field| matches!(field.data_type(), DataType::Utf8))
+        .map(|field| field.name)
+        .collect::<Vec<String>>()
 }
 
 /// DataTypes supported for overrides are defined in [overrides::string_to_lit]
-pub(crate) fn overrides_columns(lf: &LazyFrame) -> Vec<String> {
-    //let mut res = vec![];
-    lf.schema().map_or_else(
-        |_| vec![],
-        |schema| {
-            let res = schema
-                .iter_fields()
-                .filter(|c| match c.data_type() {
-                    DataType::Utf8 | DataType::Boolean | DataType::Float64 => true,
-                    DataType::List(x) => {
-                        matches!(x.as_ref(), DataType::Float64)
-                    }
-                    _ => false,
-                })
-                .map(|c| c.name)
-                .collect::<Vec<String>>();
-            res
-        },
-    )
+pub(crate) fn overrides_columns(schema: Arc<Schema>) -> Vec<String> {
+    schema
+        .iter_fields()
+        .filter(|c| match c.data_type() {
+            DataType::Utf8 | DataType::Boolean | DataType::Float64 => true,
+            DataType::List(x) => {
+                matches!(x.as_ref(), DataType::Float64)
+            }
+            _ => false,
+        })
+        .map(|c| c.name)
+        .collect::<Vec<String>>()
 }
 
 impl Serialize for dyn DataSet {
@@ -219,7 +205,11 @@ impl Serialize for dyn DataSet {
             .collect::<HashMap<&String, Option<&str>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
-        let utf8_cols = utf8_columns(self.get_lazyframe());
+        let utf8_cols = self
+            .get_lazyframe()
+            .schema()
+            .map(utf8_columns)
+            .unwrap_or_default();
         let calc_params = self.calc_params();
 
         let mut seq = serializer.serialize_map(Some(4))?;

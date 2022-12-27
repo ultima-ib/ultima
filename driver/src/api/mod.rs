@@ -26,7 +26,8 @@ use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
 use base_engine::{
-    api::aggregations::BASE_CALCS, col, prelude::PolarsResult, AggregationRequest, DataSet,
+    api::aggregations::BASE_CALCS, col, prelude::PolarsResult, AggregationRequest, DataFrame,
+    DataSet,
 };
 
 #[cfg(feature = "cache")]
@@ -103,6 +104,18 @@ async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Respo
     web::Json(ds)
 }
 
+#[tracing::instrument(name = "Describe", skip(jdf))]
+async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {
+    let df = jdf.into_inner();
+    // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
+    let res = task::spawn_blocking(move || df.describe(None))
+        .await
+        .context("Failed to spawn blocking task.")
+        .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(res))
+}
+
 #[tracing::instrument(name = "Request Execution", skip(data))]
 #[allow(clippy::if_same_then_else)]
 async fn execute(
@@ -120,13 +133,13 @@ async fn execute(
             // base_engine::_execute_with_cache
             base_engine::execute_aggregation(
                 r,
-                Arc::clone(data.get_ref()),
+                &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
             )
         } else {
             base_engine::execute_aggregation(
                 r,
-                Arc::clone(data.get_ref()),
+                &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
             )
         }
@@ -208,7 +221,8 @@ pub fn run_server(
                             .service(overridable_columns)
                             .service(scenarios),
                     )
-                    .route("/aggtypes", web::get().to(measures)),
+                    .route("/aggtypes", web::get().to(measures))
+                    .route("/describe", web::post().to(describe)),
             )
             // must be the last one
             .service(fs::Files::new("/", &static_files_dir).index_file("index.html"))

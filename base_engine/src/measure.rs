@@ -7,9 +7,7 @@ use std::collections::HashMap;
 pub type MeasuresMap = HashMap<String, Measure>;
 /// Optional Calculation Parameters
 pub type OCP = HashMap<String, String>;
-//pub type OCP = Option<CalcParams>;
 
-// TODO try to remove 'a
 type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
 
 /// Measure is the essentially a Struct of a funtion and a name

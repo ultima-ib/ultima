@@ -13,10 +13,10 @@ pub fn eq_curv_delta_weighted(op: &OCP) -> Expr {
     eq_curv_delta(op) * col("CurvatureRiskWeight")
 }
 pub fn eq_cvr_down(_: &OCP) -> Expr {
-    rc_cvr_spot("Equity", CVR::Down)
+    rc_cvr_spot("Equity", Cvr::Down)
 }
 pub fn eq_cvr_up(_: &OCP) -> Expr {
-    rc_cvr_spot("Equity", CVR::Up)
+    rc_cvr_spot("Equity", Cvr::Up)
 }
 pub fn eq_pnl_up(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "Equity", col("PnL_Up"))

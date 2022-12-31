@@ -1,6 +1,6 @@
 # Summary
 
-[Introduction](README.md)
+[Introduction](../README.md)
 
 - [Installation](./installation.md)
 - [FRTB SA - Input Format](./input.md)

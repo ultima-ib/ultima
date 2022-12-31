@@ -51,18 +51,18 @@ fn quantile_95_lower(c: Expr, newname: &str) -> (Expr, String) {
         alias,
     )
 }
-/// Not including "_first" alias to avoid confusion TODO once replaced with scalar - add "_first"
-/// First is usually used by measures such as Capital or RiskWeight
-/// Which are calculated at a level of a certain column such as RiskFactor
+
 fn first(c: Expr, newname: &str) -> (Expr, String) {
-    (c.first().alias(newname), newname.to_string())
+    let alias = format!("{newname}_first");
+    (c.first().alias(alias.as_ref()), alias)
 }
+
 fn count(c: Expr, newname: &str) -> (Expr, String) {
-    let alias = format!("{newname}_list");
+    let alias = format!("{newname}_count");
     (c.count().alias(alias.as_ref()), alias)
 }
 fn count_unique(c: Expr, newname: &str) -> (Expr, String) {
-    let alias = format!("{newname}_list");
+    let alias = format!("{newname}_count_unique");
     (c.n_unique().alias(alias.as_ref()), alias)
 }
 /// scalar to be used how first

@@ -1,4 +1,4 @@
-#![allow(clippy::type_complexity)]
+#![allow(clippy::type_complexity, clippy::unnecessary_lazy_evaluations)]
 
 pub mod add_row;
 pub mod api;

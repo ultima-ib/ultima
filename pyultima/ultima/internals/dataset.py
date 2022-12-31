@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Type, TypeVar
+from typing import Type, TypeVar
 
 import polars as pl
 
@@ -51,7 +51,7 @@ class DataSet:
         cls: Type[DS],
         df: pl.DataFrame,
         measures: "list[str] | None" = None,
-        build_params: "dict[Any, Any] | None" = None,
+        build_params: "dict[str, str] | None" = None,
         prepared: bool = False,
     ) -> DS:
         """
@@ -88,7 +88,9 @@ class DataSet:
 
         Returns:
             dict[str, str|None]: {measureName: "aggtype restriction(if any, otherwise
-            None)"}
+            None)"}. If none, then you can use any of the availiable agg operations.
+            Check :func:`~ultima.internals.aggregation_ops` for supported aggregation
+             operations
         """
         return self._ds.measures()
 
@@ -109,7 +111,7 @@ class FRTBDataSet(DataSet):
         cls: Type[DS],
         df: pl.DataFrame,
         measures: "list[str] | None" = None,
-        build_params: "dict[Any, Any] | None" = None,
+        build_params: "dict[str, str] | None" = None,
         prepared: bool = False,
     ) -> DS:
         return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)

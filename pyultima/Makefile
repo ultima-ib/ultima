@@ -30,12 +30,13 @@ fmt: venv  ## Run autoformatting and linting
 	$(VENV_BIN)/blackdoc .
 	$(VENV_BIN)/pyupgrade --py37-plus
 	cargo fmt --all
-	-$(VENV_BIN)/mypy .
-	-$(VENV_BIN)/ruff .
+	$(VENV_BIN)/mypy .
+	$(VENV_BIN)/ruff .
+	$(VENV_BIN)/python tests/docs/run_doc_examples.py
 
 .PHONY: clippy
 clippy:  ## Run clippy
-	cargo clippy -- -D warnings -A clippy::unnecessary-lazy-evaluations -A clippy::unnecessary-cast
+	cargo clippy -- -D warnings -A clippy::unnecessary-lazy-evaluations
 
 .PHONY: pre-commit
 pre-commit: fmt clippy  ## Run all code quality checks

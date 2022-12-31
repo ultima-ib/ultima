@@ -8,14 +8,15 @@ from .rust_module.ultima_pyengine import exec_agg
 
 
 def execute_agg(req: AggRequest, ds: DS, streaming: bool = False) -> pl.DataFrame:
-    """Executes Request on your DataSet
+    """Executes Aggregation Request(which runs in groupby().apply() context)
+     on your DataSet
 
     Args:
         req (AggregationRequestWrapper): Aggregation Request - defines what you want to
          calculate.
         ds (FRTBDataSetWrapper): Your DataSet
-        streaming (bool): enables streaming feature of polars. Needed to procees larger
-         than RAM datasets
+        streaming (bool): enables streaming feature of polars. Can be used to procees
+         larger than RAM datasets
 
     Returns:
         pl.DataFrame: Result of type Polars DataFrame

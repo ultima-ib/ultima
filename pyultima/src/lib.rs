@@ -167,9 +167,19 @@ fn exec_agg(
     dataframe.iter().map(rust_series_to_py_series).collect()
 }
 
+#[pyfunction]
+fn agg_ops() -> Vec<&'static str> {
+    base_engine::api::aggregations::BASE_CALCS
+        .keys()
+        .filter(|el| **el != "scalar")
+        .copied()
+        .collect::<Vec<&str>>()
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(agg_ops, m)?)?;
     m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
     m.add_class::<AggregationRequestWrapper>()?;
     m.add_class::<DataSetWrapper>()?;

@@ -1,0 +1,36 @@
+title = "setup.toml Example"
+type = "CSV"
+bucket = "ultima-bi"
+# first file path
+# if using this file from driver
+# then have to provide full path
+files = ["data/frtb/Delta.csv"]
+# trade attributes
+attributes_path = "data/frtb/TradeAttributes.csv"
+# HMS
+hierarchy_path = "data/frtb/hms.csv"
+# file_1/file_2/file_3 <-> trade attributes
+files_join_attributes = ["TradeId"]
+# attributes <-> hierarchy
+# must be provided if hierarchy file is provided
+attributes_join_hierarchy = ["BookId"]
+# Measure columns. Optional field. Used as a constraint on which numeric columns
+# can be aggregated eg ("SensitivitySpot", _)
+# f1_measure_cols=[]
+# Polars can't always guess the right type of col. eg an empty col is str
+# So one must provide the list
+f1_numeric_cols = ["GrossJTD", "PnL_Up", "PnL_Down", "SensitivitySpot", "Sensitivity_025Y","Sensitivity_05Y",
+"Sensitivity_1Y","Sensitivity_2Y","Sensitivity_3Y","Sensitivity_5Y",
+"Sensitivity_10Y","Sensitivity_15Y","Sensitivity_20Y","Sensitivity_30Y","Notional"]
+# Columns which must be cast to str in the preprocessing step
+f1_cast_to_str = ["BucketBCBS", "RiskFactor", "RiskFactorType", "GirrVegaUnderlyingMaturity", "MaturityDate", "COB", "CommodityLocation"]
+# Build Params. Optional additional parameters to be passed to DataSet.prepare() and can be used in .build() as well
+# csrnonsec_covered_bond_15 = "true" <-> column CoveredBondReducedWeight must be provided
+[build_params]
+fx_sqrt2_div = "true"
+vega_risk_weights = "./tests/data/vega_risk_weights.csv"
+girr_delta_base_weights = "{\"columns\":[{\"name\":\"RiskClass\",\"datatype\":\"Utf8\",\"values\":[\"GIRR\",\"GIRR\",\"GIRR\"]},{\"name\":\"RiskCategory\",\"datatype\":\"Utf8\",\"values\":[\"Delta\",\"Delta\",\"Delta\"]},{\"name\":\"RiskFactorType\",\"datatype\":\"Utf8\",\"values\":[\"Yield\",\"Inflation\",\"XCCY\"]},{\"name\":\"Weights\",\"datatype\":\"Utf8\",\"values\":[\"0.0;0.017;0.017;0.016;0.013;0.012;0.011;0.011;0.011;0.011;0.011\",\"0.016\",\"0.016\"]}]}"
+girr_sqrt2_div = "true"
+csrnonsec_covered_bond_15 = "true"
+DayCountConvention = "2"
+DateFormat = "%d/%m/%Y"

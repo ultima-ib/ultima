@@ -1,0 +1,5 @@
+BookId,Desk,Country,LegalEntity,Group
+FO001,FXOptions,UK,UK,Ultima
+FO002,FXCash,France,EMEA,Ultima
+BO001,Rates,China,Asia,Ultima
+BO002,RatesEM,SA,BRICS,Ultima

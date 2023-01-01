@@ -1,2 +1,2 @@
 # FRTB SA - Input format
-Hello
+Any calculation/function needs inputs. In case of FRTB SA the input is your portfolio sensitivities at trade level. An example could look like this: [Sensitivities](https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/Delta.csv)

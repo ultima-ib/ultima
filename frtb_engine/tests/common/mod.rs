@@ -7,7 +7,7 @@ use base_engine::prelude::{
 use frtb_engine::prelude::FRTBDataSet;
 
 pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
-    let conf_path = r"./tests/data/datasource_config.toml";
+    let conf_path = r"data/frtb/datasource_config.toml";
     let conf = read_toml2::<DataSourceConfig>(conf_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     let mut data: FRTBDataSet = DataSet::from_config(conf);

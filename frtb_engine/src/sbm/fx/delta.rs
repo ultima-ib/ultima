@@ -8,7 +8,13 @@ use crate::{
     prelude::*,
     sbm::common::{across_bucket_agg, SBMChargeType},
 };
-use polars::lazy::dsl::apply_multiple;
+use base_engine::{
+    polars::prelude::{
+        apply_multiple, df, max_exprs, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
+        Utf8NameSpaceImpl,
+    },
+    OCP,
+};
 
 /// This works for cases like GBP reporting with BCBS params
 pub(crate) fn ccy_regex(op: &OCP) -> String {

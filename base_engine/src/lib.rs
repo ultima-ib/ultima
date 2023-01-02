@@ -1,4 +1,6 @@
 #![allow(clippy::type_complexity)]
+#![allow(clippy::unnecessary_lazy_evaluations)]
+#![doc(html_no_source)]
 
 pub mod add_row;
 pub mod api;
@@ -9,6 +11,8 @@ mod filters;
 mod measure;
 pub mod overrides;
 pub mod prelude;
+
+use crate::polars::error::PolarsError;
 
 pub use crate::prelude::*;
 

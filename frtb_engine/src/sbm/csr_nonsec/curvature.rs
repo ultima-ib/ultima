@@ -3,7 +3,8 @@
 use crate::prelude::*;
 use base_engine::prelude::OCP;
 use ndarray::Array2;
-use polars::lazy::dsl::apply_multiple;
+//use polars::lazy::dsl::apply_multiple;
+use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
 
 pub fn csrnonsec_curv_delta(_: &OCP) -> Expr {
     curv_delta_5("CSR_nonSec")

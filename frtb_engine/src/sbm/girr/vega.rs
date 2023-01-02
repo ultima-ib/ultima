@@ -4,8 +4,13 @@ use crate::sbm::common::{
     across_bucket_agg, option_maturity_rho, rc_rcat_sens, rc_tenor_weighted_sens,
     total_vega_curv_sens, SBMChargeType,
 };
-use base_engine::prelude::*;
-use polars::lazy::dsl::apply_multiple;
+use base_engine::{
+    polars::prelude::{
+        apply_multiple, col, df, lit, max_exprs, ChunkCompare, DataType, Float64Type, GetOutput,
+        TakeRandom,
+    },
+    OCP,
+};
 
 #[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;

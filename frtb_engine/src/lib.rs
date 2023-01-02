@@ -1,5 +1,6 @@
 //! FRTB job entry point
 #![allow(clippy::unnecessary_lazy_evaluations)]
+#![doc(html_no_source)]
 
 mod drc;
 mod rrao;
@@ -16,7 +17,9 @@ mod risk_weights_crr2;
 pub mod statics;
 
 //use crate::drc::drc_weights;
+use base_engine::polars::prelude::{when, AnyValue, LazyFrame, LiteralValue, NamedFrom, Series};
 use base_engine::prelude::*;
+//use polars:: series::Series, lazy::dsl::when};
 use prelude::{calc_params::frtb_calc_params, drc::common::drc_scalinng, frtb_measure_vec};
 use risk_weights::*;
 use sbm::buckets;

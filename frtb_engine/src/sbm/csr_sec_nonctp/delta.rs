@@ -1,9 +1,8 @@
 //! CSR Sec non-CTP Delta Calculations
 use crate::prelude::*;
-use base_engine::prelude::*;
+use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs};
 
 use ndarray::Array2;
-use polars::lazy::dsl::{apply_multiple, GetOutput};
 
 pub fn total_csr_sec_nonctp_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("CSR_Sec_nonCTP", "Delta", total_delta_sens())

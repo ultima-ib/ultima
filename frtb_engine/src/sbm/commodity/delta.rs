@@ -2,10 +2,9 @@
 //! TODO Commodity RiskFactor should be of the form ...CCY (same as FX, where CCY is the reporting CCY)
 
 use crate::prelude::*;
-use base_engine::prelude::*;
+use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs};
 
 use ndarray::Array2;
-use polars::lazy::dsl::apply_multiple;
 
 pub fn total_commodity_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "Commodity", total_delta_sens())

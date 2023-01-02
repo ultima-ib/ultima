@@ -1,5 +1,5 @@
 use crate::{prelude::*, sbm::equity::vega::equity_vega_charge};
-use base_engine::prelude::*;
+use base_engine::polars::prelude::max_exprs;
 
 pub fn total_csr_sec_nonctp_vega_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Vega", "CSR_Sec_nonCTP", total_vega_curv_sens())

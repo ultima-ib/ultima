@@ -10,10 +10,9 @@
 //! 1 based on rft and 2 based on rf
 
 use crate::prelude::*;
-use base_engine::prelude::*;
+use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
 
 use ndarray::Array2;
-use polars::lazy::dsl::apply_multiple;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens(_: &OCP) -> Expr {

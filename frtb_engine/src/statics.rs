@@ -5,9 +5,10 @@ use crate::drc::drc_weights;
 use crate::prelude::sbm::{common::option_maturity_rho, girr::vega::girr_vega_rho};
 use crate::sbm::girr::delta::girr_corr_matrix;
 
+use base_engine::polars::export::num::Float;
+use base_engine::polars::prelude::DataFrame;
 use ndarray::{s, Array1, Array2, Axis};
 use once_cell::sync::Lazy;
-use polars::prelude::DataFrame;
 use serde::Serialize;
 use strum::EnumString;
 
@@ -114,7 +115,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
     // 21.100.1
     let base_csr_nonsec_rho_name_bcbs_curv: [f64; 18] = base_csr_nonsec_rho_name_bcbs
         .iter()
-        .map(|x| (*x as f64).powi(2))
+        .map(|x| x.powi(2))
         .collect::<Vec<f64>>()
         .try_into()
         .unwrap();
@@ -125,7 +126,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
     ];
     let base_csr_nonsec_rho_name_crr2_curv: [f64; 20] = base_csr_nonsec_rho_name_crr2
         .iter()
-        .map(|x| (*x as f64).powi(2))
+        .map(|x| x.powi(2))
         .collect::<Vec<f64>>()
         .try_into()
         .unwrap();
@@ -248,7 +249,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
     ]; // <-- TODO CHECK THIS
     let base_csr_ctp_rho_name_bcbs_curv: [f64; 16] = base_csr_ctp_rho_name_bcbs
         .iter()
-        .map(|x| (*x as f64).powi(2))
+        .map(|x| x.powi(2))
         .collect::<Vec<f64>>()
         .try_into()
         .unwrap();
@@ -259,7 +260,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
     ];
     let base_csr_ctp_rho_name_crr2_curv: [f64; 18] = base_csr_ctp_rho_name_crr2
         .iter()
-        .map(|x| (*x as f64).powi(2))
+        .map(|x| x.powi(2))
         .collect::<Vec<f64>>()
         .try_into()
         .unwrap();
@@ -293,7 +294,7 @@ pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
     let base_csr_sec_nonctp_rho_diff_name: [f64; 25] = vec![0.999; 25].try_into().unwrap();
     let base_csr_sec_nonctp_rho_diff_name_curv: [f64; 25] = base_csr_sec_nonctp_rho_diff_name
         .iter()
-        .map(|x| (*x as f64).powi(2))
+        .map(|x| x.powi(2))
         .collect::<Vec<f64>>()
         .try_into()
         .unwrap();

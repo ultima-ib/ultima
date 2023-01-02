@@ -1,11 +1,10 @@
 //! CSR non-Sec Delta Calculations
 use crate::helpers::*;
 use crate::sbm::common::*;
-use base_engine::prelude::*;
+use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
 use ndarray::Array2;
 
 use crate::prelude::*;
-use polars::lazy::dsl::apply_multiple;
 
 pub fn total_csr_nonsec_delta_sens(_: &OCP) -> Expr {
     rc_rcat_sens("Delta", "CSR_nonSec", total_vega_curv_sens())

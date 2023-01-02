@@ -1,0 +1,12 @@
+[book]
+authors = ["Anatoly Bugakov"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Ultima FRTB User Guide"
+
+[output.html]
+default-theme   = "Ayu"
+mathjax-support = true
+additional-css  = ["tabbed-code-blocks.css"]
+additional-js   = ["tabbed-code-blocks.js"]

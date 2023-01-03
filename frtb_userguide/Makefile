@@ -27,7 +27,7 @@ data:
 fmt: venv  ## Run autoformatting and linting
 	$(VENV_BIN)/black .
 
-run: data venv
+run: data
 	for f in src/examples/*.py; do $(VENV_BIN)/python $$f; done
 # without make: for f in src/examples/*.py; do venv/scripts/python "$f"; done
 

@@ -1,0 +1,40 @@
+name: Ultima User Guide code snippets
+
+on:
+  pull_request:
+    paths:
+      - 'pyultima/**'
+      - 'base_engine/**'
+      - 'frtb_engine/**'
+      - 'frtb_userguide/**'
+      - '.github/workflows/test-python.yaml'
+      - '.github/workflows/test-python-userguide.yaml'
+
+jobs:
+  test:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y graphviz make wget
+          pip install -r requirements.txt
+          pip install -r requirements-lint.txt
+          @unset CONDA_PREFIX && source activate && cd ../pyultima && maturin develop
+
+      - name: Check formatting
+        run: |
+          black --check .
+          mdformat --check $(find ./src -name "*.md" | grep -v SUMMARY.md)
+
+      - name: Run snippets
+        run: |
+          make run

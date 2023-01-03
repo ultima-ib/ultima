@@ -8,6 +8,7 @@ In order to use our library you need to convert your portfolio into [polars](htt
 
 ```python
 {{#include ./examples/input.py:0:10}}
+print(df)
 ```
 
 ## Data Source Config
@@ -16,6 +17,7 @@ In principle, you are free to enrich this structure with as many columns as you 
 
 ```python
 {{#include ./examples/input.py:11:}}
+print(df)
 ```
 
 ## Validate

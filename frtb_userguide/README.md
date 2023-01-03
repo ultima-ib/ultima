@@ -9,6 +9,12 @@ You will need `python`, `make`, `wget` and [`mdbook`](https://github.com/rust-la
 
 *All examples must be plased into src/examples and refered to from .md files as `{#include ./examples/...}`*
 
+First:
+`cd frtb_userguide`
+
+While developing:
+`mdbook watch --open`
+
 Download data:
 `make data`
 

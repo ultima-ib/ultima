@@ -5,6 +5,10 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 
+#Tooling
+.ruff_cache/
+.mypy_cache/
+
 # C extensions
 *.so
 

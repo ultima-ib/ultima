@@ -3,12 +3,24 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..rust_module.ultima_pyengine import AggregationRequestWrapper
+from ..rust_module.ultima_pyengine import AggregationRequestWrapper, agg_ops
+
+
+def aggregation_ops() -> list[str]:
+    """
+    Returns:
+        list[str]: List of supported aggregation operations.
+        This is to be used in AggRequest measures field.
+    """
+    return agg_ops()
 
 
 class AggRequest:
     """
-    This is python based twin of AggregationRequest struct
+    This is python binding of AggregationRequest struct. This is the most basic kind of
+    request. It is executed within .groupby().apply() context. Check aggregation_ops
+    for availiable operations for measures.
+
     Examples
     --------
     Constructing a FRTB AggRequest from a dictionary:

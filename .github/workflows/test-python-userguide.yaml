@@ -32,7 +32,7 @@ jobs:
           sudo apt-get install --no-install-recommends -y graphviz make wget
           pip install -r requirements.txt
           pip install -r requirements-lint.txt
-          @unset CONDA_PREFIX && source activate && cd ../pyultima && maturin develop
+          source activate && cd ../pyultima && maturin develop
 
       - name: Check formatting
         run: |

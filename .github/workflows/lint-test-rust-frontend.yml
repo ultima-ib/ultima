@@ -5,7 +5,10 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
-  
+    paths:
+      - 'base_engine/**'
+      - 'frtb_engine/**'
+      - '.github/workflows/lint-test-rust-frontend.yaml'  
 
 jobs:
   lint_tests:

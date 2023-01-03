@@ -17,15 +17,16 @@ venv:  ## Set up virtual environment. Last step potentially to be replaced with 
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && cd ../pyultima && maturin develop
 
 data:
-	@mkdir -p ./data
-	wget -nc -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/datasource_config.toml -O ./data/frtb/datasource_config.toml
-	wget -nc -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/Delta.csv              -O ./data/frtb/Delta.csv
-	wget -nc -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/hms.csv                -O ./data/frtb/hms.csv
-	wget -nc -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/TradeAttributes.csv    -O ./data/frtb/TradeAttributes.csv
+	@mkdir -p ./data/frtb
+	wget -N -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/datasource_config.toml -O ./data/frtb/datasource_config.toml
+	wget -N -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/Delta.csv              -O ./data/frtb/Delta.csv
+	wget -N -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/hms.csv                -O ./data/frtb/hms.csv
+	wget -N -q --no-check-certificate https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/TradeAttributes.csv    -O ./data/frtb/TradeAttributes.csv
 
 .PHONY: fmt
 fmt: venv  ## Run autoformatting and linting
 	$(VENV_BIN)/black .
+	$(VENV_BIN)/mdformat .
 
 run: data
 	for f in src/examples/*.py; do $(VENV_BIN)/python $$f; done

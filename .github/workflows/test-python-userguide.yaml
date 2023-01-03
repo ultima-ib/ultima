@@ -9,6 +9,10 @@ on:
       - 'frtb_userguide/**'
       - '.github/workflows/test-python.yaml'
       - '.github/workflows/test-python-userguide.yaml'
+    
+defaults:
+  run:
+    working-directory: frtb_userguide
 
 jobs:
   test:

@@ -2,9 +2,10 @@
 //! https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108255 325ae onward
 use std::collections::HashMap;
 
-use base_engine::{
-    col, helpers::diag_concat_lf, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame,
-    NamedFrom, PolarsResult, Series, Utf8NameSpaceImpl,
+use base_engine::helpers::diag_concat_lf;
+use base_engine::polars::prelude::{
+    col, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsResult,
+    Series, Utf8NameSpaceImpl,
 };
 use once_cell::sync::OnceCell;
 

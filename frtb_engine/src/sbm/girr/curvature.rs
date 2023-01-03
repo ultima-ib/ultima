@@ -2,9 +2,11 @@ use crate::{
     prelude::*,
     sbm::common::{across_bucket_agg, rc_rcat_sens, SBMChargeType},
 };
-use base_engine::prelude::OCP;
+use base_engine::{
+    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput},
+    OCP,
+};
 use ndarray::{Array1, Array2};
-use polars::lazy::dsl::apply_multiple;
 
 #[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;

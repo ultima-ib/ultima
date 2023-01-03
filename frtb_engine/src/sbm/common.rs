@@ -2,14 +2,12 @@
 
 use base_engine::prelude::*;
 
-use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
-use polars::export::num::Signed;
-use polars::lazy::dsl::{apply_multiple, GetOutput};
-use polars::prelude::{
-    AnyValue, ChunkAgg, ChunkSet, DataType, FillNullStrategy, Float64Type, NumOpsDispatch,
-    PolarsError,
+use base_engine::polars::export::num::Signed;
+use base_engine::polars::prelude::{
+    apply_multiple, AnyValue, ChunkAgg, ChunkCompare, ChunkSet, DataType, FillNullStrategy,
+    Float64Type, GetOutput, IntoSeries, NamedFrom, NumOpsDispatch, PolarsError, Series, TakeRandom,
 };
-use polars::series::{ChunkCompare, IntoSeries, Series};
+use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
 
 use rayon::{
     iter::{ParallelBridge, ParallelIterator},

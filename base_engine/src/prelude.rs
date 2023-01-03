@@ -6,4 +6,4 @@ pub use super::datasource::*;
 pub use super::measure::*;
 
 //Reexports
-pub use polars::prelude::*;
+pub use polars;

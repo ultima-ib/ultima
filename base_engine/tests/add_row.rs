@@ -1,4 +1,5 @@
-use base_engine::{execute_aggregation, AggregationRequest, Arc};
+use base_engine::{execute_aggregation, AggregationRequest};
+use std::sync::Arc;
 
 mod common;
 

@@ -1,6 +1,9 @@
 use crate::prelude::*;
+use base_engine::polars::prelude::{
+    apply_multiple, df, max_exprs, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
+    GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
+};
 use ndarray::{Array1, Array2};
-use polars::lazy::dsl::apply_multiple;
 
 use super::delta::ccy_regex;
 

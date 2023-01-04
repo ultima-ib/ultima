@@ -165,10 +165,18 @@ impl DataSet for FRTBDataSet {
             // Now, we need to also ammend CRR2 weights
             // Bucket 10 as per
             // https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108776
-            let mut with_cols = vec![col("SensWeightsCRR2")
-                .arr()
-                .max()
-                .alias("CurvatureRiskWeightCRR2")];
+            let mut with_cols = vec![when(
+                col("PnL_Up")
+                    .is_not_null()
+                    .or(col("PnL_Down").is_not_null()),
+            )
+            .then(
+                col("SensWeightsCRR2")
+                    .arr()
+                    .max()
+                    .alias("CurvatureRiskWeightCRR2"),
+            )
+            .otherwise(NULL.lit())];
 
             if csrnonsec_covered_bond_15 {
                 with_cols.push(

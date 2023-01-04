@@ -46,7 +46,7 @@ jobs:
         run: |
           source activate
           cd ../pyultima
-          maturin develop
+          maturin develop --features=CRR2
 
       - name: Check formatting
         run: |

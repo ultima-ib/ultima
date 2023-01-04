@@ -73,6 +73,12 @@ class DataSet:
         return cls(DataSetWrapper.from_frame(df, measures, build_params), prepared)
 
     def prepare(self) -> None:
+        """Does nothing unless overriden. To be used for one of computations.
+            eg Weights Assignments
+
+        Raises:
+            OtherError: Calling prepare on an already prepared dataset
+        """
         if not self.prepared:
             self._ds.prepare()
             self.prepared = True

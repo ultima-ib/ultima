@@ -3,6 +3,7 @@
 Checkout our userguide and [website](https://ultimabi.uk/).
 
 # Contributing
+
 You will need `python`, `make`, `wget` and [`mdbook`](https://github.com/rust-lang/mdBook/releases).
 
 ## Before commit
@@ -18,8 +19,11 @@ While developing:
 Download data:
 `make data`
 
+Build venv:
+`make venv`
+
 Linting:
 `make fmt`
 
-Tests\examples:
+Tests\\examples:
 `make run`

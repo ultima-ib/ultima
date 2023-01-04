@@ -66,7 +66,7 @@ jobs:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
         run: |
           source activate
-          maturin develop
+          maturin develop --features=CRR2
 
       - name: Run tests and report coverage
         run: pytest --cov
@@ -114,7 +114,7 @@ jobs:
         # pip install ../target/wheels/ultima-*.whl
         # we do build and install to better mimic real life
         run: |
-          maturin build
+          maturin build --features=CRR2
           pip install ../target/wheels/ultima-*.whl
 
       - name: Run tests

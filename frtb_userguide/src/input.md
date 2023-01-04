@@ -16,14 +16,10 @@ print(df)
 In principle, you are free to enrich this structure with as many columns as you want (for example Desk, Legal Entity etc). You can either do this manually or use `from_config`. Check out an example with explanations of each field: [datasource_config.toml](https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/datasource_config.toml).
 
 ```python
-{{#include ./examples/input.py:11:}}
+{{#include ./examples/input.py:11:14}}
 print(df)
 ```
 
 ## Validate
 
 If you are missing a required column you will get a runtime error during the execuiton of your request. Alternatively, coming soon, calling .validate() on your dataset will return Ok if you've got all the columns in the correct format or Error if something is missing.
-
-## Prepare
-
-Calling .prepare() on your dataset assigns weights and other metrics required by the regulation, that only need to be assigned once.

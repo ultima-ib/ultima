@@ -6,13 +6,13 @@ on:
       - 'pyultima/**'
       - 'base_engine/**'
       - 'frtb_engine/**'
-      - 'frtb_userguide/**'
+      - 'website/examples/**'
       - '.github/workflows/test-python.yaml'
       - '.github/workflows/test-python-userguide.yaml'
-    
+
 defaults:
   run:
-    working-directory: frtb_userguide
+    working-directory: website
 
 jobs:
   test:
@@ -26,33 +26,26 @@ jobs:
         with:
           python-version: 3.9
           cache: 'pip'
-          cache-dependency-path: 'frtb_userguide/requirements.txt'
+          cache-dependency-path: 'website/examples/requirements.txt'
 
       - name: Create virtual environment
         run: |
           python -m venv venv
-          echo "$GITHUB_WORKSPACE/frtb_userguide/venv/bin" >> $GITHUB_PATH
+          echo "$GITHUB_WORKSPACE/website/venv/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y graphviz make wget
-          pip install -r requirements.txt
-          pip install -r requirements-lint.txt
-        
+
       - name: Install Ultima
         env:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
         run: |
-          source activate
+          source venv/bin/activate
           cd ../pyultima
           maturin develop --features=CRR2
 
-      - name: Check formatting
-        run: |
-          black --check .
-          mdformat --check $(find ./src -name "*.md" | grep -v SUMMARY.md)
-
       - name: Run snippets
-        run: |
-          make run
+        shell: bash
+        run: ./examples/run-examples.sh

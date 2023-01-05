@@ -33,6 +33,7 @@ export const AppWrapper = () => {
         hideZeros: false,
         totals: false,
         calcParams: {},
+        additionalRows: {},
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         dispatcher: () => {},
     }

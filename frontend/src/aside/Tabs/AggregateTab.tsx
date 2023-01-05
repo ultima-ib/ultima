@@ -2,20 +2,22 @@ import { AsideList } from "../List"
 import { Suspense, SyntheticEvent, useState } from "react"
 import Agg from "../AggTypes"
 import Accordion from "../Accordion"
-import { Filters } from "../filters"
-import { Filters as AddRows } from "../filters/AddRow"
+import { Filters } from "../Filters"
+import { AddRows, Rows } from "../AddRow"
 import { Box, Stack } from "@mui/material"
 import { InputStateUpdate, useInputs } from "../InputStateContext"
 import { Overrides } from "../Overrides"
 import {
     Filters as FiltersType,
-    FiltersReducerDispatch,
-} from "../filters/reducer"
+    ReducerDispatch,
+} from "../../utils/NestedKVStoreReducer"
 
 const AggregateTab = ({
     filtersReducer,
+    addRowsReducer,
 }: {
-    filtersReducer: [FiltersType, FiltersReducerDispatch]
+    filtersReducer: [FiltersType, ReducerDispatch]
+    addRowsReducer: [Rows, ReducerDispatch]
 }) => {
     const inputs = useInputs()
 
@@ -73,12 +75,11 @@ const AggregateTab = ({
             >
                 <AddRows
                     component={Box}
-                    reducer={filtersReducer}
-                    fields={inputs.dataSet.fields}
-                    onFiltersChange={(filters) => {
+                    reducer={addRowsReducer}
+                    onChange={(rows) => {
                         inputs.dispatcher({
-                            type: InputStateUpdate.Filters,
-                            data: { filters },
+                            type: InputStateUpdate.AdditionalRows,
+                            data: { additionalRows: rows },
                         })
                     }}
                 />

@@ -19,11 +19,13 @@ import { Dispatch, SetStateAction, useId, useRef, useState } from "react"
 import { Template } from "../api/types"
 import { buildRequest, InputStateUpdate, useInputs } from "./InputStateContext"
 import LaunchIcon from "@mui/icons-material/Launch"
-import { Filters } from "./filters/reducer"
+import { Filters } from "../utils/NestedKVStoreReducer"
+import { Rows } from "./AddRow"
 
 const JSONTemplateDialog = (props: {
     open: [boolean, Dispatch<SetStateAction<boolean>>]
     setFilters: (f: Filters) => void
+    setAdditionalRows: (f: Rows) => void
 }) => {
     const [open, setOpen] = props.open
     const [helperText, setHelperText] = useState("")
@@ -49,6 +51,7 @@ const JSONTemplateDialog = (props: {
                 return
             }
             props.setFilters(data.filters)
+            props.setAdditionalRows(data.additionalRows)
             inputs.dispatcher({
                 type: InputStateUpdate.TemplateSelect,
                 data,
@@ -84,6 +87,7 @@ const JSONTemplateDialog = (props: {
 
 export const Templates = (props: {
     setFilters: (filters: Filters) => void
+    setAdditionalRows: (f: Rows) => void
 }) => {
     const templates = useTemplates()
     const inputs = useInputs()
@@ -142,6 +146,7 @@ export const Templates = (props: {
             <JSONTemplateDialog
                 open={[dialogOpen, setDialogOpen]}
                 setFilters={props.setFilters}
+                setAdditionalRows={props.setAdditionalRows}
             />
         </>
     )

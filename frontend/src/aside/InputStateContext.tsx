@@ -1,9 +1,10 @@
 import { createContext, useContext } from "react"
 import { DataSet, Filter, Filter as FilterType, Override } from "./types"
 import type { Template } from "../api/types"
-import { Filters } from "./filters/reducer"
+import { Filters } from "../utils/NestedKVStoreReducer"
 import { GenerateTableDataRequest } from "../api/types"
-import { mapFilters } from "../utils"
+import { mapFilters, mapRows } from "../utils"
+import { Rows } from "./AddRow"
 
 export enum InputStateUpdate {
     // eslint-disable-next-line
@@ -16,6 +17,7 @@ export enum InputStateUpdate {
     Overrides,
     TemplateSelect,
     CalcParamUpdate,
+    AdditionalRows,
 }
 
 type Data = Partial<Omit<InputStateContext, "dispatcher">>
@@ -112,6 +114,15 @@ export function inputStateReducer(
             update = {
                 calcParams: action.data.calcParams,
             }
+            break
+        }
+        case InputStateUpdate.AdditionalRows: {
+            update = {
+                additionalRows: {
+                    ...action.data.additionalRows,
+                },
+            }
+            break
         }
     }
     return {
@@ -146,6 +157,7 @@ export interface InputStateContext {
     hideZeros: boolean
     totals: boolean
     calcParams: Record<string, string>
+    additionalRows: Rows
     dispatcher: (params: { type: InputStateUpdate; data: Data }) => void
 }
 
@@ -182,5 +194,6 @@ export const buildRequest = (
         hide_zeros: context.hideZeros,
         totals: context.totals,
         calc_params: context.calcParams,
+        additionalRows: mapRows(context.additionalRows),
     }
 }

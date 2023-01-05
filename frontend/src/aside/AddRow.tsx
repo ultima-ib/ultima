@@ -1,34 +1,40 @@
-import { Button, Divider, IconButton, ListItem, Paper, Stack, TextField } from "@mui/material"
+import {
+    Button,
+    Divider,
+    IconButton,
+    ListItem,
+    Paper,
+    Stack,
+    TextField,
+} from "@mui/material"
 import { ElementType, Fragment, useEffect, useState } from "react"
 import CloseIcon from "@mui/icons-material/Close"
-import { ActionType, FiltersReducerDispatch } from "./reducer"
-import { hasValue } from "../../utils"
+import { ActionType, ReducerDispatch } from "../utils/NestedKVStoreReducer"
 
-
-interface Row {
-    key: string,
-    value: string,
+export interface Row {
+    key: string
+    value: string
 }
 
+export type Rows = Record<number, Record<number, Row>>
 
 const Column = (props: {
     onChange: (field: string, val: string | string[]) => void
     key: string | undefined
     value: string | undefined
 }) => {
-    const [field, setField] = useState<string>(props.key ?? '')
-    const [val, setVal] = useState<string>(props.value ?? '')
+    const [field, setField] = useState<string>(props.key ?? "")
+    const [val, setVal] = useState<string>(props.value ?? "")
 
     useEffect(() => {
-        if (field !== null && val !== null) {
-            props.onChange(field, val)
-        }
+        props.onChange(field, val)
     }, [field, val])
 
     return (
         <>
             <TextField
-                variant="standard" label="Key"
+                variant="standard"
+                label="Key"
                 value={field}
                 onChange={(event) => {
                     setField(event.target.value)
@@ -36,7 +42,8 @@ const Column = (props: {
             />
 
             <TextField
-                variant="standard" label="Value"
+                variant="standard"
+                label="Value"
                 value={val}
                 onChange={(event) => {
                     setVal(event.target.value)
@@ -46,21 +53,17 @@ const Column = (props: {
     )
 }
 
-interface FilterListProps {
-    filters: Record<number, Row>
-    removeFilter: (index: number) => void
+interface RowsListProps {
+    rows: Record<number, Row>
+    removeRow: (index: number) => void
     addColumn: () => void
-    onChange: (
-        field: string,
-        val: string | string[],
-        index: number,
-    ) => void
+    onChange: (key: string, value: string | string[], index: number) => void
 }
 
-function RowsList(props: FilterListProps) {
+function RowsList(props: RowsListProps) {
     return (
         <>
-            {Object.keys(props.filters)
+            {Object.keys(props.rows)
                 .map((it) => it as unknown as number)
                 .map((index) => (
                     <ListItem
@@ -74,17 +77,15 @@ function RowsList(props: FilterListProps) {
                         }}
                     >
                         <IconButton
-                            onClick={() => props.removeFilter(index)}
+                            onClick={() => props.removeRow(index)}
                             sx={{ p: 0, alignSelf: "last baseline" }}
                         >
                             <CloseIcon />
                         </IconButton>
                         <Column
-                            onChange={(f, v) =>
-                                props.onChange(f, v, index)
-                            }
-                            key={props.filters[index].key}
-                            value={props.filters[index].value}
+                            onChange={(f, v) => props.onChange(f, v, index)}
+                            key={props.rows[index].key}
+                            value={props.rows[index].value}
                         />
                     </ListItem>
                 ))}
@@ -95,30 +96,23 @@ function RowsList(props: FilterListProps) {
 
 let lastUsed = 1
 
-type RowsTy = Record<number, Record<number, Row>>
-export interface FiltersProps {
-    onFiltersChange: (f: RowsTy) => void
+export interface AddRowsProps {
+    onChange: (f: Rows) => void
     component?: ElementType
-    reducer: [RowsTy, FiltersReducerDispatch]
+    reducer: [Rows, ReducerDispatch]
 }
 
-export const Filters = (props: FiltersProps) => {
-    const [filters, dispatch] = props.reducer
+export const AddRows = (props: AddRowsProps) => {
+    const [rows, dispatch] = props.reducer
 
     useEffect(() => {
-        // props.onFiltersChange(filters)
-        // const rows = Object.values(filters as any).map((rows) =>
-        //     Object.values(rows)
-        //         .filter((it) => hasValue(it.value) && hasValue(it.field))
-        //         .map(({ field, value}) => ({ key: field, row: value })),
-        // )
-        // console.log(rows)
-    }, [filters])
+        props.onChange(rows)
+    }, [rows])
 
     const addNewRow = () => {
         lastUsed += 1
         dispatch({
-            type: ActionType.NewAnd,
+            type: ActionType.NewRoot,
             index: lastUsed,
         })
     }
@@ -126,7 +120,7 @@ export const Filters = (props: FiltersProps) => {
     const addColumn = (index: number) => {
         lastUsed += 1
         dispatch({
-            type: ActionType.NewOr,
+            type: ActionType.NewChild,
             andIndex: index,
             index: lastUsed,
         })
@@ -135,23 +129,19 @@ export const Filters = (props: FiltersProps) => {
     const removeColumn = (andIndex: number) => {
         return (index: number) => {
             dispatch({
-                type: ActionType.RemoveOr,
+                type: ActionType.RemoveChild,
                 andIndex,
                 index,
             })
             dispatch({
-                type: ActionType.RemoveAnd,
+                type: ActionType.RemoveRoot,
                 index: andIndex,
             })
         }
     }
 
     const updateColumn = (andIndex: number) => {
-        return (
-            field: string,
-            value: string | string[],
-            index: number,
-        ) => {
+        return (field: string, value: string | string[], index: number) => {
             dispatch({
                 type: ActionType.Update,
                 andIndex,
@@ -166,17 +156,18 @@ export const Filters = (props: FiltersProps) => {
     return (
         <>
             <Stack component={Component} spacing={1}>
-                {Object.entries(filters)
+                {Object.entries(rows)
                     .map(
-                        ([filterNum, filter]) => [filterNum as unknown as number, filter] as const,
+                        ([rowsNum, rowList]) =>
+                            [rowsNum as unknown as number, rowList] as const,
                     )
-                    .map(([filterNum, filter]) => (
-                        <Fragment key={filterNum}>
+                    .map(([rowsNum, rowList]) => (
+                        <Fragment key={rowsNum}>
                             <RowsList
-                                filters={filter}
-                                removeFilter={removeColumn(filterNum)}
-                                addColumn={() => addColumn(filterNum)}
-                                onChange={updateColumn(filterNum)}
+                                rows={rowList}
+                                removeRow={removeColumn(rowsNum)}
+                                addColumn={() => addColumn(rowsNum)}
+                                onChange={updateColumn(rowsNum)}
                             />
                             <Divider />
                         </Fragment>

@@ -3,7 +3,7 @@ import { DataSet, Filter, Filter as FilterType, Override } from "./types"
 import type { Template } from "../api/types"
 import { Filters } from "../utils/NestedKVStoreReducer"
 import { GenerateTableDataRequest } from "../api/types"
-import { mapFilters, mapRows } from "../utils"
+import { buildAdditionalRowsFromTemplate, mapFilters, mapRows } from "../utils"
 import { Rows } from "./AddRow"
 
 export enum InputStateUpdate {
@@ -71,7 +71,8 @@ export function inputStateReducer(
             break
         }
         case InputStateUpdate.TemplateSelect: {
-            const data = action.data as Template
+            const data = action.data as unknown as Template
+            console.log(data.additionalRows)
             const dataSet = {
                 ...state.dataSet,
                 groupby: data.groupby,
@@ -89,6 +90,7 @@ export function inputStateReducer(
                 })
                 return build
             }
+
             data.overrides.map((override) => ({
                 value: override.value,
                 field: override.field,
@@ -107,6 +109,9 @@ export function inputStateReducer(
                 calcParams: data.calc_params,
                 overrides: data.overrides,
                 aggData,
+                additionalRows: buildAdditionalRowsFromTemplate(
+                    data.additionalRows,
+                ),
             }
             break
         }

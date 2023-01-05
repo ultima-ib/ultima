@@ -12,23 +12,23 @@ import CloseIcon from "@mui/icons-material/Close"
 import { ActionType, ReducerDispatch } from "../utils/NestedKVStoreReducer"
 
 export interface Row {
-    key: string
+    field: string
     value: string
 }
 
 export type Rows = Record<number, Record<number, Row>>
 
 const Column = (props: {
-    onChange: (field: string, val: string | string[]) => void
-    key: string | undefined
+    onChange: (field: string, value: string | string[]) => void
+    field: string | undefined
     value: string | undefined
 }) => {
-    const [field, setField] = useState<string>(props.key ?? "")
-    const [val, setVal] = useState<string>(props.value ?? "")
+    const [field, setField] = useState<string>(props.field ?? "")
+    const [value, setValue] = useState<string>(props.value ?? "")
 
     useEffect(() => {
-        props.onChange(field, val)
-    }, [field, val])
+        props.onChange(field, value)
+    }, [field, value])
 
     return (
         <>
@@ -44,9 +44,9 @@ const Column = (props: {
             <TextField
                 variant="standard"
                 label="Value"
-                value={val}
+                value={value}
                 onChange={(event) => {
-                    setVal(event.target.value)
+                    setValue(event.target.value)
                 }}
             />
         </>
@@ -57,7 +57,7 @@ interface RowsListProps {
     rows: Record<number, Row>
     removeRow: (index: number) => void
     addColumn: () => void
-    onChange: (key: string, value: string | string[], index: number) => void
+    onChange: (field: string, value: string | string[], index: number) => void
 }
 
 function RowsList(props: RowsListProps) {
@@ -84,7 +84,7 @@ function RowsList(props: RowsListProps) {
                         </IconButton>
                         <Column
                             onChange={(f, v) => props.onChange(f, v, index)}
-                            key={props.rows[index].key}
+                            field={props.rows[index].field}
                             value={props.rows[index].value}
                         />
                     </ListItem>
@@ -106,6 +106,7 @@ export const AddRows = (props: AddRowsProps) => {
     const [rows, dispatch] = props.reducer
 
     useEffect(() => {
+        console.log("ya")
         props.onChange(rows)
     }, [rows])
 

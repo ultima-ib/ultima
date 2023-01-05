@@ -21,6 +21,7 @@ import { buildRequest, InputStateUpdate, useInputs } from "./InputStateContext"
 import LaunchIcon from "@mui/icons-material/Launch"
 import { Filters } from "../utils/NestedKVStoreReducer"
 import { Rows } from "./AddRow"
+import { buildAdditionalRowsFromTemplate } from "../utils"
 
 const JSONTemplateDialog = (props: {
     open: [boolean, Dispatch<SetStateAction<boolean>>]
@@ -51,10 +52,16 @@ const JSONTemplateDialog = (props: {
                 return
             }
             props.setFilters(data.filters)
-            props.setAdditionalRows(data.additionalRows)
+            const additionalRows = buildAdditionalRowsFromTemplate(
+                data.additionalRows,
+            )
+            props.setAdditionalRows(additionalRows)
             inputs.dispatcher({
                 type: InputStateUpdate.TemplateSelect,
-                data,
+                data: {
+                    ...data,
+                    additionalRows,
+                },
             })
         }
         handleClose()
@@ -102,10 +109,17 @@ export const Templates = (props: {
             return
         }
         props.setFilters(foundTemplate.filters)
+        const additionalRows = buildAdditionalRowsFromTemplate(
+            foundTemplate.additionalRows,
+        )
+        props.setAdditionalRows(additionalRows)
         setSelectedTemplate(foundTemplate)
         inputs.dispatcher({
             type: InputStateUpdate.TemplateSelect,
-            data: foundTemplate,
+            data: {
+                ...foundTemplate,
+                additionalRows,
+            },
         })
     }
 

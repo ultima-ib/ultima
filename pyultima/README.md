@@ -7,8 +7,6 @@ You will need `python`, `make`.
 
 ## Before commit
 
-*All examples must be plased into src/examples and refered to from .md files as `{#include ./examples/...}`*
-
 First:
 `cd pyultima`
 
@@ -17,3 +15,6 @@ Linting:
 
 Tests\examples:
 `make test`
+
+Playround:
+`make build`

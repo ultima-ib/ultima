@@ -8,8 +8,8 @@ on:
       - 'base_engine/**'
       - 'frtb_engine/**'
       - '.github/workflows/test-python.yaml'
-  push:
-    branches: [master]
+#  push:
+#    branches: [master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

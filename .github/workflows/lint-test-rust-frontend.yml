@@ -8,6 +8,7 @@ on:
     paths:
       - 'base_engine/**'
       - 'frtb_engine/**'
+      - 'frontend/**'
       - '.github/workflows/lint-test-rust-frontend.yaml'  
 
 jobs:

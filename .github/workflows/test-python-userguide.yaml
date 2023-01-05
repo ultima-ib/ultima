@@ -44,6 +44,7 @@ jobs:
         run: |
           source venv/bin/activate
           cd ../pyultima
+          pip install -r requirements.txt
           maturin develop --features=CRR2
 
       - name: Run snippets

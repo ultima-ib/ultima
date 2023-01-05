@@ -1,7 +1,7 @@
 import { Filter } from "./aside/types"
 import { Filters } from "./aside/filters/reducer"
 
-const hasValue = <T>(it: T | null | undefined): boolean =>
+export const hasValue = <T>(it: T | null | undefined): boolean =>
     it !== undefined && it !== null
 
 export const fancyZip = <T>(rows: T[][]): T[][] =>

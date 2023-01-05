@@ -3,6 +3,7 @@ import { Suspense, SyntheticEvent, useState } from "react"
 import Agg from "../AggTypes"
 import Accordion from "../Accordion"
 import { Filters } from "../filters"
+import { Filters as AddRows } from "../filters/AddRow"
 import { Box, Stack } from "@mui/material"
 import { InputStateUpdate, useInputs } from "../InputStateContext"
 import { Overrides } from "../Overrides"
@@ -19,6 +20,8 @@ const AggregateTab = ({
     const inputs = useInputs()
 
     const [filtersAccordionExpanded, setFiltersAccordionExpanded] =
+        useState(false)
+    const [addRowsAccordionExpanded, setAddRowsAccordionExpanded] =
         useState(false)
 
     return (
@@ -50,6 +53,25 @@ const AggregateTab = ({
                 }}
             >
                 <Filters
+                    component={Box}
+                    reducer={filtersReducer}
+                    fields={inputs.dataSet.fields}
+                    onFiltersChange={(filters) => {
+                        inputs.dispatcher({
+                            type: InputStateUpdate.Filters,
+                            data: { filters },
+                        })
+                    }}
+                />
+            </Accordion>
+            <Accordion
+                expanded={addRowsAccordionExpanded}
+                title="Add additional rows"
+                onChange={(event: SyntheticEvent, isExpanded: boolean) => {
+                    setAddRowsAccordionExpanded(isExpanded)
+                }}
+            >
+                <AddRows
                     component={Box}
                     reducer={filtersReducer}
                     fields={inputs.dataSet.fields}

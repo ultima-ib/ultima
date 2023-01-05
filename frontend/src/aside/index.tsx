@@ -83,6 +83,7 @@ const Aside = () => {
     const [activeTab, setActiveTab] = useState(0)
 
     const [filters, dispatch] = useReducer(reducer, {})
+    const [addRows, addRowsDispatch] = useReducer(reducer, {})
 
     const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
         setActiveTab(newValue)

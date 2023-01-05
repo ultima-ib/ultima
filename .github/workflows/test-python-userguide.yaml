@@ -49,4 +49,4 @@ jobs:
 
       - name: Run snippets
         shell: bash
-        run: ./examples/run-examples.sh
+        run: ./run-examples.sh

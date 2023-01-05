@@ -24,15 +24,12 @@ jobs:
           sudo apt-get install --no-install-recommends -y graphviz make wget
           python -m pip install ghp-import
           sudo wget https://github.com/rust-lang/mdBook/releases/download/v0.4.25/mdbook-v0.4.25-x86_64-unknown-linux-gnu.tar.gz -O - | sudo tar -xzf - -C /usr/bin/
-  #sudo wget https://github.com/ritchie46/mdBook/releases/download/api-0.0.1/mdbook -O /usr/bin/mdbook2
-  #sudo chmod +x /usr/bin/mdbook2
-
+  
       - name: Deploy docs
         run: |
           mkdir -p docs
           cd frtb_userguide
           mdbook build --dest-dir ../docs .
           cd ..
-#echo '<meta http-equiv=refresh content=0;url=/polars-book/user-guide/index.html>' > docs/index.html
           ghp-import --no-jekyll docs
           git push -qf https://${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git gh-pages

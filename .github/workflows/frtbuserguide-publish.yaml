@@ -1,6 +1,9 @@
 name: Ultima FRTB Guide
 
 on:
+  pull_request:
+      paths:
+        - 'frtb_userguide/**'
   push:
     branches: [master]
     paths:

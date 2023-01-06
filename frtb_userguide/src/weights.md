@@ -1,11 +1,24 @@
 # Assign Weights
 
-## Prepare
-
-Ultima assigns weights (and few other parameters) to your dataset as per the regulation. Weights assignment is kept separately from the computation because it needs to be done once only. Let's see what columns are assigned.
+First, lets save the original dataset. You can get your dataset like this:
 
 ```python
-{{#include ./examples/input.py:16:33}}
+{{#include ./examples/frtb_example.py:16:16}}
+```
+
+## Prepare
+
+**Ultima assigns weights (and few other parameters) to your dataset as per the regulation**. Weights assignment is kept separately from the computation because it needs to be done once only. Make sure you **assign weights before doing any computations**.
+
+```python
+{{#include ./examples/frtb_example.py:18:20}}
+print(ds.frame())
+```
+
+Now, let's see what happened. We will need a little helper function:
+
+```python
+{{#include ./examples/frtb_example.py:21:33}}
 print(diff(ds.frame(), original))
 ```
 

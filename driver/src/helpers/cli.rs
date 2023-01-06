@@ -1,7 +1,7 @@
 use clap::Parser;
 
 // TODO remove these default values
-const CONFIG: &str = r"frtb_engine/tests/data/datasource_config.toml";
+const CONFIG: &str = r"./frtb_engine/data/frtb/datasource_config.toml";
 pub const REQUESTS: &str = r"./driver/src/request.json";
 
 /// Cli for one_off run

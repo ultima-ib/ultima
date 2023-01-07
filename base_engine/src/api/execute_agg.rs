@@ -84,13 +84,11 @@ pub fn execute_aggregation<DS: DataSet + ?Sized>(
     }
 
     // Step 2.5 Add Row
-    if !req.add_row.1.is_empty() {
+    if !req.add_row.is_empty() {
         let current_schema = f1.schema()?;
-        let mut extra_frame = df_from_maps_and_schema(req.add_row.1, current_schema)?.lazy();
-        if req.add_row.0 {
-            extra_frame = data.prepare_frame(Some(extra_frame))?;
-        }
-        f1 = diag_concat_lf([f1, extra_frame], true, true)?;
+        let extra_frame = dbg!(df_from_maps_and_schema(req.add_row, current_schema)?).lazy();
+        let extra_prepared_frame = data.prepare_frame(Some(extra_frame))?;
+        f1 = diag_concat_lf([f1, extra_prepared_frame], true, true)?;
         //dbg!(f1.clone().collect());
     }
 

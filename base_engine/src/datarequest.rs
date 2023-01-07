@@ -36,7 +36,7 @@ pub struct AggregationRequest {
     pub filters: AndOrFltrChain,
     #[serde(default)]
     pub overrides: Vec<Override>,
-    #[serde(default)]
+    #[serde(default, alias = "additionalRows")]
     pub add_row: Vec<HashMap<String, String>>,
     #[serde(default)]
     pub calc_params: OCP,

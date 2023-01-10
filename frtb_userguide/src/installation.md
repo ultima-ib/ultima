@@ -1,13 +1,13 @@
 # Installation
 
-ultibi is the python library developed by Ultima.
+If you are downloading from a software repository
 
 ```console
-pip install ultibi
+pip install *
 ```
 
 or if you have a .whl file
 
 ```console
-pip install ultibi.whl
+pip install *.whl
 ```

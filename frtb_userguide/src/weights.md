@@ -8,14 +8,14 @@ First, lets save the original table. You can get your data like this:
 
 ## Assign Weights
 
-**Ultima assigns weights (and few other parameters) to your dataset as per the regulation**. Weights assignment is kept separately from the computation because it needs to be done once only. Make sure you **assign weights before doing any computations**.
+First part of the calculation(assuming you've got your exposures/sensitivities) is to assign weights to them as per the regulation. **Ultima assigns weights (and few other parameters) to your exposures as per the regulation**. Make sure you **assign weights before doing any computations**:
 
 ```python
 {{#include ./examples/frtb_input.py:18:20}}
 print(ds.frame())
 ```
 
-Now, let's see what happened. We will need a little helper function:
+You will get an error if you try to assign twice. Now, let's see what happened. We will need a little helper function:
 
 ```python
 {{#include ./examples/frtb_input.py:22:33}}

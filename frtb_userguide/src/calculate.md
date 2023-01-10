@@ -2,19 +2,21 @@
 
 ## Before you run
 
-Before you specify what you want to calculate make sure the measure/risk metric you are interested in is present in the dataset:
+Before you specify what you want to calculate **make sure the measure/risk metric you are interested in is present in the dataset**:
 
 ```python
 print( {{#include ./examples/frtb_calculate.py:5:5}} )
 ```
 
-What you get there is a `dict`. The **keys** are measures name. For example `SensitivitySpot` or `FX DeltaCharge Low`. The items are *aggregation restrictions*, where `scalar` is a special method described below. If `None`, you are free to use any of the availiable:
+What you get there is a `dict`. The **keys** are measures' name. For example `SensitivitySpot` or `FX DeltaCharge Low`. The **items** indicate if there is any *restriction on aggregation method*, where `scalar` is a special method described below. If `None`, you are free to use any of the availiable:
 
 ```python
 print( {{#include ./examples/frtb_calculate.py:6:6}} )
 ```
 
 For example, `SensitivitySpot` can be aggregated any way you want for a given level, say Desk. In other wards, for a given Desk you can find the mean, max, min or sum (etc etc) of `SensitivitySpot`. On the other hand, you can not find mean, max, min (etc etc) of `FX DeltaCharge Low`. This wouldn't make sence since `FX DeltaCharge Low` is simply a single number defined by the regulation. Hence we call such aggregation method `scalar`.
+
+Also, make sure that columns which appear in measures, grouby and filters are present as well.
 
 ## Run
 

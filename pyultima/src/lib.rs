@@ -130,6 +130,15 @@ impl DataSetWrapper {
             .map(rust_series_to_py_series)
             .collect()
     }
+    pub fn fields(&self) -> PyResult<Vec<String>> {
+        let schema = self
+            .dataset
+            .get_lazyframe()
+            .schema()
+            .map_err(PyUltimaErr::Polars)?;
+
+        Ok(base_engine::prelude::fields_columns(schema))
+    }
 }
 
 #[pyclass]

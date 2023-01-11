@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
 import polars as pl
+
+import ultima.internals as uli
 
 from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
 
@@ -30,6 +32,18 @@ class DataSet:
 
         self._ds = ds
         self.prepared = prepared
+
+        """All column which you can group by. Currently those are string 
+            and bool columns
+        """
+        self.fields: list[str] = self._ds.fields()
+
+        """{measureName: "aggtype restriction(if any, otherwise
+            None)"}. If none, then you can use any of the availiable agg operations.
+            Check :func:`~ultima.internals.aggregation_ops` for supported aggregation
+             operations
+        """
+        self.measures: "dict[str, str | None]" = self._ds.measures()
 
     @classmethod
     def from_config_path(cls: Type[DS], path: str) -> DS:
@@ -89,20 +103,27 @@ class DataSet:
         """TODO: validate when FRTBDataSet validate is ready"""
         pass
 
-    def measures(self) -> "dict[str, str | None]":
-        """Measures availiable on the DataSet
-
-        Returns:
-            dict[str, str|None]: {measureName: "aggtype restriction(if any, otherwise
-            None)"}. If none, then you can use any of the availiable agg operations.
-            Check :func:`~ultima.internals.aggregation_ops` for supported aggregation
-             operations
-        """
-        return self._ds.measures()
-
     def frame(self) -> pl.DataFrame:
         vec_srs = self._ds.frame()
         return pl.DataFrame(vec_srs)
+
+    def execute(self, req: "dict[Any, Any]|uli.AggRequest") -> pl.DataFrame:
+        """Make sure that requested groupby and filters exist in self.columns,
+        Make sure that requested measures exist in self.measures
+        Make sure that aggregation type for a measure is selected properly
+
+        Args:
+            req (dict[Any, Any]|uli.AggRequest): Request, to be converted
+            into AggRequest.
+
+        Returns:
+            pl.DataFrame: If your request and data were constructed properly.
+        """
+
+        if isinstance(req, dict):
+            req = uli.AggRequest(req)
+
+        return uli.execute_agg(req, self)
 
 
 class FRTBDataSet(DataSet):

@@ -2,7 +2,7 @@ import ultima as ul
 
 ds = ul.FRTBDataSet.from_config_path("./data/frtb/datasource_config.toml")
 ds.prepare()
-ds.measures()
+ds.measures
 ul.aggregation_ops()
 
 # What do we want to calculate?
@@ -26,9 +26,11 @@ request = dict(
     },
 )
 
-request = ul.AggRequest(request)
+aggrequest = ul.AggRequest(request)
 # print(request)
 
-result = ul.execute_agg(request, ds)
+result = ul.execute_agg(aggrequest, ds)
 # print(result)
 # print("Type: ", type(result))
+
+result = ds.execute(request)

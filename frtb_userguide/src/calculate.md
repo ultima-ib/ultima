@@ -26,9 +26,9 @@ Now we are good to form the request which we need. Say, we want to understand th
 {{#include ./examples/frtb_calculate.py:8:27}}
 ```
 
-This has two parameter which we haven't talked about yet: hide_zeros and calc_params. hide_zeros simply removes rows where each measure is 0, and calc_params and few others we will talk about in [analysis](./whatif.md) chapter.
+This has two parameters which we haven't talked about yet: hide_zeros and calc_params. hide_zeros simply removes rows where each measure is 0, and calc_params and few others we will talk about in [analysis](./whatif.md) chapter.
 
-Convert the dict into Ultima's Aggregation Request. This helps validating that you've formed a legitimate request.
+Valide that you've formed a legitimate request (ie no compulsory field is missing, datatypes are correct etc):
 
 ```python
 {{#include ./examples/frtb_calculate.py:29:29}}
@@ -39,6 +39,13 @@ Finally, let's execute it:
 
 ```python
 {{#include ./examples/frtb_calculate.py:32:32}}
+print(result)
+```
+
+Or, if you want to do it in one go:
+
+```python
+{{#include ./examples/frtb_calculate.py:36:36}}
 print(result)
 print("Type: ", type(result))
 ```

@@ -17,8 +17,7 @@ request = dict(
         "drc_offset": "true",
     },
 )
-request = ul.AggRequest(request)
-result = ul.execute_agg(request, ds)
+result = ds.execute(request)
 
 request = dict(
     measures=[["SBM Charge", "scalar"]],
@@ -32,8 +31,7 @@ request = dict(
         "drc_offset": "true",
     },
 )
-request = ul.AggRequest(request)
-result = ul.execute_agg(request, ds)
+result = ds.execute(request)
 
 request = dict(
     measures=[["SBM Charge", "scalar"]],
@@ -47,8 +45,7 @@ request = dict(
         "drc_offset": "true",
     },
 )
-request = ul.AggRequest(request)
-result = ul.execute_agg(request, ds)
+result = ds.execute(request)
 
 request = dict(
     measures=[["SBM Charge", "scalar"]],
@@ -62,8 +59,7 @@ request = dict(
         "drc_offset": "true",
     },
 )
-request = ul.AggRequest(request)
-result = ul.execute_agg(request, ds)
+result = ds.execute(request)
 
 request = dict(
     measures=[["SBM Charge", "scalar"]],
@@ -83,5 +79,4 @@ request = dict(
         "drc_offset": "true",
     },
 )
-request = ul.AggRequest(request)
-result = ul.execute_agg(request, ds)
+result = ds.execute(request)

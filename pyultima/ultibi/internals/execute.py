@@ -4,7 +4,7 @@ import polars as pl
 
 from ultibi.internals import DS, AggRequest
 
-from ..rust_module.ultima_pyengine import exec_agg  # type: ignore[import]
+from ..rust_module.ultima_pyengine import exec_agg
 
 
 def execute_agg(req: AggRequest, ds: DS, streaming: bool = False) -> pl.DataFrame:

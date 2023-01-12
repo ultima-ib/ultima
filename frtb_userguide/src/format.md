@@ -7,6 +7,7 @@ In our examples we will also be using the optional `hierarchies` file [hms.csv](
 Finally, we need [TradeAttributes.csv](https://ultima-bi.s3.eu-west-2.amazonaws.com/frtb/TradeAttributes.csv). It is similar to our Delta Sensis but The infor here is at Trade level only. Ie Notional, Product/Derivative Type, RRAO Flags etc etc.
 
 # Defenitions
+
 Note that the **[FRTB SA Paper](https://www.bis.org/bcbs/publ/d457.pdf)** actually well defines what a "RiskFactor" is and the formulas for "Sensitivities". See paragraphs `21.8-21.19` and `21.19-21.26` respectively.
 
 # Expected Columns

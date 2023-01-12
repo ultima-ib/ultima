@@ -6,8 +6,7 @@ import polars as pl
 
 import ultibi.internals as uli
 
-from ..rust_module.ultima_pyengine import OtherError  # type: ignore[import]
-from ..rust_module.ultima_pyengine import DataSetWrapper
+from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
 
 # Create a generic variable that can be 'Parent', or any subclass.
 DS = TypeVar("DS", bound="DataSet")

@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..rust_module.ultima_pyengine import agg_ops  # type: ignore[import]
-from ..rust_module.ultima_pyengine import AggregationRequestWrapper
+from ..rust_module.ultima_pyengine import AggregationRequestWrapper, agg_ops
 
 
 def aggregation_ops() -> list[str]:
@@ -13,7 +12,7 @@ def aggregation_ops() -> list[str]:
         list[str]: List of supported aggregation operations.
         This is to be used in AggRequest measures field.
     """
-    return agg_ops()  # type: ignore[no-any-return]
+    return agg_ops()
 
 
 class AggRequest:
@@ -55,7 +54,7 @@ class AggRequest:
             )
 
     def __str__(self) -> str:
-        return self._ar.as_str()  # type: ignore[no-any-return]
+        return self._ar.as_str()
 
     def __repr__(self) -> str:
         return self.__str__()

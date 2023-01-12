@@ -2,7 +2,7 @@ import unittest
 
 import polars as pl
 
-import ultima as ul
+import ultibi as ul
 
 
 class TestCreation(unittest.TestCase):

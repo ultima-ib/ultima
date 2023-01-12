@@ -38,7 +38,7 @@ from tempfile import TemporaryDirectory
 from types import ModuleType
 from typing import Any, Iterator
 
-import ultima
+import ultibi
 
 
 def modules_in_path(p: Path) -> Iterator[ModuleType]:
@@ -84,13 +84,13 @@ if __name__ == "__main__":
     # doctest.REPORT_NDIFF = True
 
     # __file__ returns the __init__.py, so grab the parent
-    src_dir = Path(ultima.__file__).parent
+    src_dir = Path(ultibi.__file__).parent
 
     with TemporaryDirectory() as tmpdir:
         # collect all tests
         tests = [
             doctest.DocTestSuite(
-                m, extraglobs={"pl": ultima, "dirpath": Path(tmpdir)}, optionflags=1
+                m, extraglobs={"pl": ultibi, "dirpath": Path(tmpdir)}, optionflags=1
             )
             for m in modules_in_path(src_dir)
         ]

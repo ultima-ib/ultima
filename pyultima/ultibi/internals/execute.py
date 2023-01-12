@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import polars as pl
 
-from ultima.internals import DS, AggRequest
+from ultibi.internals import DS, AggRequest
 
 from ..rust_module.ultima_pyengine import exec_agg
 

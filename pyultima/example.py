@@ -1,8 +1,8 @@
 import polars as pl
 
-from ultima.internals.agg_request import AggRequest
-from ultima.internals.dataset import DataSet, FRTBDataSet
-from ultima.internals.execute import execute_agg
+from ultibi.internals.agg_request import AggRequest
+from ultibi.internals.dataset import DataSet, FRTBDataSet
+from ultibi.internals.execute import execute_agg
 
 dataset = FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
 

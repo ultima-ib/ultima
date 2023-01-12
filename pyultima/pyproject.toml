@@ -3,9 +3,9 @@ requires = ["maturin>=0.14,<0.15"]
 build-backend = "maturin"
 
 [project]
-name = "ultima"
+name = "ultibi"
 dependencies = [
-  "typing_extensions >= 4.0.0; python_version <= '3.11'",
+#  "typing_extensions >= 4.0.0; python_version <= '3.9'",
   "polars",
   "pyarrow"
 ]
@@ -26,7 +26,7 @@ target-version = "py39"
 profile = "black"
 
 [tool.mypy]
-files = ["ultima", "tests"]
+files = ["ultibi", "tests"]
 namespace_packages = true
 show_error_codes = true
 strict = true
@@ -42,12 +42,12 @@ disable_error_code = [
 [[tool.mypy.overrides]]
 module = [
   "pyarrow.*",
-  "ultima.rust_module.ultima_pyengine",
+  "ultibi.rust_module.ultima_pyengine",
 ]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["ultima.*"]
+module = ["ultibi.*"]
 # We exclude the ultima module from warn_return_any, because the PyO3 api does not have Python
 # type annotations. See https://github.com/PyO3/pyo3/issues/1112 for a discussion on adding
 # this capability. We could add a stub file for ultima.rust_module.ultima_pyengine (the PyO3 api), but that

@@ -14,7 +14,8 @@ venv:  ## Set up virtual environment. Last step potentially to be replaced with 
 	$(VENV_BIN)/python -m pip install --upgrade pip
 	$(VENV_BIN)/pip install -r requirements.txt
 	$(VENV_BIN)/pip install -r requirements-lint.txt
-	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && cd ../pyultima && maturin develop --features=CRR2 --release
+	$(VENV_BIN)/pip install -i https://test.pypi.org/simple/ ultibi
+#@unset CONDA_PREFIX && source $(VENV_BIN)/activate && cd ../pyultima && maturin develop --features=CRR2 --release
 
 data:
 	@mkdir -p ./data/frtb

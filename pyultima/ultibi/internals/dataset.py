@@ -4,7 +4,7 @@ from typing import Any, Type, TypeVar
 
 import polars as pl
 
-import ultima.internals as uli
+import ultibi.internals as uli
 
 from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
 

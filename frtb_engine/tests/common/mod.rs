@@ -19,7 +19,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let ep = if let Some(e) = epsilon { e } else { 1e-5 };
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let excl = data_req._groupby().clone();
+    let excl = data_req.groupby().clone();
     let a = &*LAZY_DASET;
     let res = execute_aggregation(data_req, &*Arc::clone(a), false)
         .expect("Error while calculating results");

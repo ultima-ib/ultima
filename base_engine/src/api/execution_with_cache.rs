@@ -13,7 +13,7 @@ pub(crate) fn _execute_with_cache(
     cache: CACHE,
 ) -> PolarsResult<DataFrame> {
     let requested_measures = req.measures().clone();
-    let grp_by_expr = req._groupby().iter().map(|x| col(x)).collect::<Vec<Expr>>();
+    let grp_by_expr = req.groupby().iter().map(|x| col(x)).collect::<Vec<Expr>>();
     //let order = req.measures().iter().map(|(name, _)|name.as_str()).collect::<Vec<&str>>();
 
     // have already been calculated

@@ -8,5 +8,13 @@ they all import from each other via this __init__ file using
 
 from .agg_request import AggRequest, aggregation_ops
 from .dataset import DS, DataSet, FRTBDataSet
+from .execute import execute_agg
 
-__all__ = ["AggRequest", "aggregation_ops", "FRTBDataSet", "DataSet", "DS"]
+__all__ = [
+    "execute_agg",
+    "AggRequest",
+    "aggregation_ops",
+    "FRTBDataSet",
+    "DataSet",
+    "DS",
+]

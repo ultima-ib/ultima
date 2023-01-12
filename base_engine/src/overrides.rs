@@ -9,7 +9,7 @@ use crate::filters::{fltr_chain, AndOrFltrChain};
 /// ```
 /// /*
 /// Json looks like this:
-/// {   "column": "SensWeights",
+/// {   "field": "SensWeights",
 ///     "value": "[0.005]",
 ///     "filters": []
 /// }

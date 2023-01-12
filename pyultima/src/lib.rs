@@ -162,7 +162,7 @@ fn exec_agg(
     prepared_dataset: &DataSetWrapper,
     streaming: bool,
 ) -> PyResult<Vec<PyObject>> {
-    let dataframe = execute_aggregation(request.ar, prepared_dataset.dataset.as_ref(), streaming)
+    let dataframe = execute_aggregation(&request.ar, prepared_dataset.dataset.as_ref(), streaming)
         .map_err(errors::PyUltimaErr::Polars)?;
 
     dataframe.iter().map(rust_series_to_py_series).collect()

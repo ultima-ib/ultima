@@ -18,11 +18,11 @@ fn simple_fltr_grpby_sum() {
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
     let a = (&*common::TEST_DASET).as_ref();
-    let res = execute_aggregation(data_req, a, false).expect("Calculation failed");
+    let res = execute_aggregation(&data_req, a, false).expect("Calculation failed");
 
     let res_sum = res
         .column("Balance_sum")
-        .expect("Couldn't get column Dalance_sum")
+        .expect("Couldn't get column Balance_sum")
         .sum::<f64>()
         .expect("Couldn't sum");
     assert_eq!(res_sum, 25.0)
@@ -39,7 +39,7 @@ fn missing_groupby() {
         }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _res = execute_aggregation(data_req, &*Arc::clone(&*common::TEST_DASET), false)
+    let _res = execute_aggregation(&data_req, &*Arc::clone(&*common::TEST_DASET), false)
         .expect("Calculation failed");
 }
 
@@ -55,7 +55,7 @@ fn empty_groupby() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _res = execute_aggregation(data_req, &*Arc::clone(&*common::TEST_DASET), false)
+    let _res = execute_with_cache(&data_req, &*Arc::clone(&*common::TEST_DASET), false)
         .expect("Calculation failed");
 }
 
@@ -69,7 +69,7 @@ fn empty_measures() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = execute_aggregation(data_req, &*Arc::clone(&*common::TEST_DASET), false)
+    let res = execute_aggregation(&data_req, &*Arc::clone(&*common::TEST_DASET), false)
         .expect("Calculation failed");
     assert!(res.is_empty())
 }

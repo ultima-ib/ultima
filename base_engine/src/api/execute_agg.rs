@@ -14,7 +14,7 @@ use crate::{
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
 pub fn execute_aggregation<DS: DataSet + ?Sized>(
-    req: AggregationRequest,
+    req: &AggregationRequest,
     data: &DS,
     streaming: bool,
 ) -> PolarsResult<DataFrame> {
@@ -86,7 +86,7 @@ pub fn execute_aggregation<DS: DataSet + ?Sized>(
     // Step 2.5 Add Row
     if !req.add_row.is_empty() {
         let current_schema = f1.schema()?;
-        let extra_frame = dbg!(df_from_maps_and_schema(req.add_row, current_schema)?).lazy();
+        let extra_frame = dbg!(df_from_maps_and_schema(&req.add_row, current_schema)?).lazy();
         let extra_prepared_frame = data.prepare_frame(Some(extra_frame))?;
         f1 = diag_concat_lf([f1, extra_prepared_frame], true, true)?;
         //dbg!(f1.clone().collect());

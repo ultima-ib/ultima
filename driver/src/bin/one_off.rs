@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
         info!("{:?}", rqst_str);
         let now = Instant::now();
         match base_engine::execute_aggregation(
-            request,
+            &request,
             &*Arc::clone(&arc_data),
             cfg!(feature = "streaming"),
         ) {

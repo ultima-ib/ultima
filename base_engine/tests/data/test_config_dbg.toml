@@ -1,0 +1,4 @@
+title = "setup.toml Example"
+type = "CSV"
+files = ["./base_engine/tests/data/testset.csv"]
+f1_numeric_cols = ["Age", "Balance"]

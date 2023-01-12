@@ -32,7 +32,7 @@ use base_engine::{
 
 #[cfg(feature = "cache")]
 // pub type CACHE = base_engine::execution_with_cache::CACHE;
-#[cfg(not(feature = "cache"))]
+// #[cfg(not(feature = "cache"))]
 // pub type CACHE = std::collections::BTreeMap<String, String>; // dummy, not used if cache feature is not activated
 
 // use uuid::Uuid;

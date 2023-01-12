@@ -2,7 +2,9 @@
 
 use std::sync::Arc;
 
-use base_engine::{execute_aggregation, AggregationRequest};
+use base_engine::{
+    execute_aggregation, execution_with_cache::execute_with_cache, AggregationRequest,
+};
 
 mod common;
 
@@ -26,6 +28,38 @@ fn simple_fltr_grpby_sum() {
         .sum::<f64>()
         .expect("Couldn't sum");
     assert_eq!(res_sum, 25.0)
+}
+
+#[test]
+fn simple_fltr_grpby_sum_with_cache() {
+    let req = r#"
+    {"measures": [
+        ["Balance", "sum"]
+            ],
+    "groupby": ["State"],
+    "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]]         
+    }"#;
+    let data_req =
+        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
+    let a = (&*common::TEST_DASET1).as_ref();
+    let res = execute_with_cache(&data_req, a, false).expect("Calculation failed");
+    let res2 = execute_with_cache(&data_req, a, false).expect("Calculation failed");
+    let res3 = execute_with_cache(&data_req, a, false).expect("Calculation failed");
+
+    let res_sum = res
+        .column("Balance_sum")
+        .expect("Couldn't get column Balance_sum")
+        .sum::<f64>()
+        .expect("Couldn't sum");
+
+    let res_sum2 = res2
+        .column("Balance_sum")
+        .expect("Couldn't get column Balance_sum")
+        .sum::<f64>()
+        .expect("Couldn't sum");
+
+    assert_eq!(res_sum, 25.0);
+    assert_eq!(res_sum2, 25.0);
 }
 
 #[test]

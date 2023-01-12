@@ -1,4 +1,4 @@
-import ultima as ul
+import ultibi as ul
 import polars as pl
 
 pl.Config.set_tbl_rows(100)

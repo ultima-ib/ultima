@@ -4,9 +4,10 @@ from typing import Any, Type, TypeVar
 
 import polars as pl
 
-import ultima.internals as uli
+import ultibi.internals as uli
 
-from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
+from ..rust_module.ultima_pyengine import OtherError  # type: ignore[import]
+from ..rust_module.ultima_pyengine import DataSetWrapper
 
 # Create a generic variable that can be 'Parent', or any subclass.
 DS = TypeVar("DS", bound="DataSet")

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import polars as pl
 
-from ultima.internals import DS, AggRequest
+from ultibi.internals import DS, AggRequest
 
-from ..rust_module.ultima_pyengine import exec_agg
+from ..rust_module.ultima_pyengine import exec_agg  # type: ignore[import]
 
 
 def execute_agg(req: AggRequest, ds: DS, streaming: bool = False) -> pl.DataFrame:

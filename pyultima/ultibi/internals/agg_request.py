@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..rust_module.ultima_pyengine import AggregationRequestWrapper, agg_ops
+from ..rust_module.ultima_pyengine import agg_ops  # type: ignore[import]
+from ..rust_module.ultima_pyengine import AggregationRequestWrapper
 
 
 def aggregation_ops() -> list[str]:
@@ -12,7 +13,7 @@ def aggregation_ops() -> list[str]:
         list[str]: List of supported aggregation operations.
         This is to be used in AggRequest measures field.
     """
-    return agg_ops()
+    return agg_ops()  # type: ignore[no-any-return]
 
 
 class AggRequest:
@@ -25,7 +26,7 @@ class AggRequest:
     --------
     Constructing a FRTB AggRequest from a dictionary:
 
-    >>> import ultima as ul
+    >>> import ultibi as ul
     >>> request_as_duct = dict(
     ...     measures=[("SBM Charge", "scalar"), ("FX Delta Sensitivity", "sum")],
     ...     groupby=["RiskCategory"],
@@ -54,7 +55,7 @@ class AggRequest:
             )
 
     def __str__(self) -> str:
-        return self._ar.as_str()
+        return self._ar.as_str()  # type: ignore[no-any-return]
 
     def __repr__(self) -> str:
         return self.__str__()

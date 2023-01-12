@@ -1,5 +1,5 @@
 import polars as pl
-import ultima as ul
+import ultibi as ul
 
 # Note: sometimes Polars needs abit of help to determine the correct datatype for your
 # columns. This is because Polars scans first N rows to determine correct dtype

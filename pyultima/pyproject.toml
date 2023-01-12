@@ -3,7 +3,7 @@ requires = ["maturin>=0.14,<0.15"]
 build-backend = "maturin"
 
 [project]
-name = "ultima"
+name = "ultibi"
 dependencies = [
   "typing_extensions >= 4.0.0; python_version <= '3.11'",
   "polars",

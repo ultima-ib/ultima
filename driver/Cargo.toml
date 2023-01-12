@@ -10,32 +10,32 @@ default-run = "one_off"
 path = "src/lib.rs"
 
 [dependencies]
+base_engine = { path = "../base_engine", version = "*" }
 # Business Logic
-base_engine = {path = "../base_engine"}
-frtb_engine = {path = "../frtb_engine", optional=true}
+frtb_engine = { path = "../frtb_engine", optional = true }
 # JSON
 serde = { workspace = true, features = ["derive", "rc"] }
-serde_json = {workspace = true}
+serde_json = { workspace = true }
 # Web
 log = "0.4"
 pretty_env_logger = "0.4"
-tokio = {version = "1.21.0", features=["full"]}
+tokio = { version = "1.21.0", features = ["full"] }
 actix-web = "4"
 actix-files = "0.6.2"
 tracing = { version = "0.1", features = ["log"] }
-uuid = {version = "1.1.2", features = ["v4"]}
+uuid = { version = "1.1.2", features = ["v4"] }
 # Errors
 thiserror = "1"
 anyhow = "1"
 # Other
-toml = {workspace = true}
+toml = { workspace = true }
 mimalloc = { version = "0.1.29", default-features = false }
 dotenv = "0.15"
-clap = {version="4", features=["derive"]}
+clap = { version = "4", features = ["derive"] }
 actix-web-httpauth = "0.8.0"
 
 # Cache
-dashmap={workspace=true}
+dashmap = { workspace = true }
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 jemallocator = "0.5.0"
@@ -45,8 +45,13 @@ reqwest = "0.11"
 
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.
-FRTB = ["frtb_engine"] # feature FRTB of my lib activate optional dep frtb_engine
-FRTB_CRR2 = ["FRTB", "frtb_engine/CRR2"] # feature FRTB_CRR2 activates optional dep frtb_engine with it's CRR2 feature
+FRTB = [
+    "frtb_engine",
+] # feature FRTB of my lib activate optional dep frtb_engine
+FRTB_CRR2 = [
+    "FRTB",
+    "frtb_engine/CRR2",
+] # feature FRTB_CRR2 activates optional dep frtb_engine with it's CRR2 feature
 # BUT also need to activate FRTB because one_off.rs and server.rs have #[cfg(feature = "FRTB")]
 cache = ["base_engine/cache"]
 streaming = []

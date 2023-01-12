@@ -1,5 +1,5 @@
 use polars::prelude::*;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {
     let s0 = Series::new("AAA", &[0.005]);
@@ -98,8 +98,8 @@ pub(crate) fn drc_secnonctp_weights_frame() -> DataFrame {
 }
 
 /// 22.34
-pub fn drc_secnonctp_weights_raw() -> HashMap<&'static str, f64> {
-    HashMap::from([
+pub fn drc_secnonctp_weights_raw() -> BTreeMap<&'static str, f64> {
+    BTreeMap::from([
         ("AAA_SENIOR", 1.2f64),
         ("AA+_SENIOR", 1.2),
         ("AA_SENIOR", 2.0),

@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
@@ -14,7 +14,7 @@ pub struct DataSetBase {
     /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
     /// build_params are passed into .prepare()
-    pub build_params: HashMap<String, String>,
+    pub build_params: BTreeMap<String, String>,
 }
 
 /// This struct is purely for DataSet descriptive purposes.
@@ -57,7 +57,7 @@ pub trait DataSet: Send + Sync {
     }
 
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self
     where
         Self: Sized;
 
@@ -138,7 +138,7 @@ impl DataSet for DataSetBase {
         self.measures
     }
 
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self {
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {
         Self {
             frame,
             measures: mm,
@@ -202,7 +202,7 @@ impl Serialize for dyn DataSet {
             .get_measures()
             .iter()
             .map(|(x, m)| (x, m.aggregation))
-            .collect::<HashMap<&String, Option<&str>>>();
+            .collect::<BTreeMap<&String, Option<&str>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
         let utf8_cols = self

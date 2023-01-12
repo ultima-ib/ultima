@@ -1,9 +1,10 @@
+use std::collections::BTreeMap;
+
 //use log::error;
 #[cfg(feature = "aws_s3")]
 use polars::functions::diag_concat_df;
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use crate::Measure;
 pub mod helpers;
@@ -49,7 +50,7 @@ pub enum DataSourceConfig {
         f1_cast_to_str: Vec<String>,
         /// parameters to be used for build and prepare
         #[serde(default)]
-        build_params: HashMap<String, String>,
+        build_params: BTreeMap<String, String>,
     },
     #[cfg(feature = "aws_s3")]
     AwsCSV {
@@ -72,7 +73,7 @@ pub enum DataSourceConfig {
         f1_cast_to_str: Vec<String>,
         /// parameters to be used for build and prepare
         #[serde(default)]
-        build_params: HashMap<String, String>,
+        build_params: BTreeMap<String, String>,
     },
 }
 
@@ -82,7 +83,7 @@ impl DataSourceConfig {
     /// Returns:
     ///
     /// (joined concatinated DataFrame, vec of base measures, build params)
-    pub fn build(self) -> (LazyFrame, Vec<Measure>, HashMap<String, String>) {
+    pub fn build(self) -> (LazyFrame, Vec<Measure>, BTreeMap<String, String>) {
         match self {
             DataSourceConfig::CSV {
                 file_paths: files,

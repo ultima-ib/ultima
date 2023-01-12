@@ -1,9 +1,9 @@
 //! TODO for CSR if Bucket is empy - fill null based on CSR Sector and Credit Quality, if these are provided
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use polars::prelude::*;
 
-pub fn sbm_buckets(_: &HashMap<String, String>) -> Expr {
+pub fn sbm_buckets(_: &BTreeMap<String, String>) -> Expr {
     //let offshore_onshore = conf
     //    .get("offshore_onshore_fx")
     //    .and_then(|x| serde_json::from_str::<HashMap<String, String>>(x).ok())

@@ -1,12 +1,12 @@
 use derivative::Derivative;
 use polars::prelude::*;
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 /// (Measure Name, Measure)
-pub type MeasuresMap = HashMap<String, Measure>;
+pub type MeasuresMap = BTreeMap<String, Measure>;
 /// Optional Calculation Parameters
-pub type OCP = HashMap<String, String>;
+pub type OCP = BTreeMap<String, String>;
 
 type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
 
@@ -49,7 +49,7 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
 }
 
 pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MeasuresMap {
-    let mut measure_map: MeasuresMap = HashMap::default();
+    let mut measure_map: MeasuresMap = BTreeMap::default();
     for m in measures_vecs {
         measure_map.insert(m.name.to_string(), m);
     }

@@ -1,4 +1,5 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use polars::functions::diag_concat_df;
 use polars::prelude::{row::Row, AnyValue, DataFrame, Field, PolarsResult, Schema};
@@ -8,7 +9,7 @@ use crate::overrides::string_to_any;
 /// Convers HashMap into a Frame of particular Schema
 /// Filters out any columns not in current schema
 pub(crate) fn map_to_row_schema(
-    map: &HashMap<String, String>,
+    map: &BTreeMap<String, String>,
     sch: Arc<Schema>,
 ) -> PolarsResult<(Row, Schema)> {
     let mut vc = Vec::with_capacity(map.len());
@@ -33,7 +34,7 @@ pub(crate) fn map_to_row_schema(
 /// This allows to combine different schemas within add_row part of request.
 /// Diagonally concatenates these.
 pub(crate) fn df_from_maps_and_schema(
-    maps: Vec<HashMap<String, String>>,
+    maps: &[BTreeMap<String, String>],
     sch: Arc<Schema>,
 ) -> PolarsResult<DataFrame> {
     let new_rows = maps

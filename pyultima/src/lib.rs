@@ -8,7 +8,7 @@ use errors::{OtherError, PyUltimaErr};
 use frtb_engine::FRTBDataSet;
 use pyo3::{exceptions::*, prelude::*, types::PyType, PyTypeInfo};
 use std::sync::Arc;
-use std::{collections::HashMap, path::Path};
+use std::{collections::BTreeMap, path::Path};
 
 mod conversion;
 mod errors;
@@ -35,7 +35,7 @@ fn from_frame<T: DataSet + 'static>(
     py: Python,
     seriess: Vec<Py<PyAny>>,
     measures: Option<Vec<String>>,
-    build_params: Option<HashMap<String, String>>,
+    build_params: Option<BTreeMap<String, String>>,
 ) -> PyResult<DataSetWrapper> {
     let df = DataFrame::new(
         seriess
@@ -85,7 +85,7 @@ impl DataSetWrapper {
         py: Python,
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
-        build_params: Option<HashMap<String, String>>,
+        build_params: Option<BTreeMap<String, String>>,
     ) -> PyResult<Self> {
         from_frame::<DataSetBase>(py, seriess, measures, build_params)
     }
@@ -96,7 +96,7 @@ impl DataSetWrapper {
         py: Python,
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
-        build_params: Option<HashMap<String, String>>,
+        build_params: Option<BTreeMap<String, String>>,
     ) -> PyResult<Self> {
         from_frame::<FRTBDataSet>(py, seriess, measures, build_params)
     }
@@ -113,12 +113,12 @@ impl DataSetWrapper {
         Ok(())
     }
 
-    pub fn measures(&self) -> HashMap<String, Option<&str>> {
+    pub fn measures(&self) -> BTreeMap<String, Option<&str>> {
         self.dataset
             .get_measures()
             .iter()
             .map(|(x, m)| (x.to_string(), m.aggregation))
-            .collect::<HashMap<String, Option<&str>>>()
+            .collect::<BTreeMap<String, Option<&str>>>()
     }
     pub fn frame(&self) -> PyResult<Vec<PyObject>> {
         self.dataset

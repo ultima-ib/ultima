@@ -10,7 +10,7 @@ use base_engine::polars::prelude::{
     Utf8NameSpaceImpl,
 };
 use once_cell::sync::OnceCell;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 static FX_SPECIAL_DELTA_FULL_RW: OnceCell<LazyFrame> = OnceCell::new();
 static FX_SPECIAL_DELTA_PARTIAL_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -56,7 +56,7 @@ pub struct SensWeightsConfig {
 /// Then calls [weight_assign_logic] where weights assignment actually happens
 pub fn weights_assign(
     lf: LazyFrame,
-    build_params: &HashMap<String, String>,
+    build_params: &BTreeMap<String, String>,
 ) -> PolarsResult<LazyFrame> {
     // check columns. Some of the cast weights files must contain these:
     let check_columns0 = [

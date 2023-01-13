@@ -41,12 +41,11 @@ fn simple_fltr_grpby_sum_with_cache() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let a = (&*common::TEST_DASET1).as_ref();
-    let res = execute_with_cache(&data_req, a, false).expect("Calculation failed");
+    let a = (&*common::TEST_DASET).as_ref();
+    let res1 = execute_with_cache(&data_req, a, false).expect("Calculation failed");
     let res2 = execute_with_cache(&data_req, a, false).expect("Calculation failed");
-    let res3 = execute_with_cache(&data_req, a, false).expect("Calculation failed");
 
-    let res_sum = res
+    let res_sum1 = res1
         .column("Balance_sum")
         .expect("Couldn't get column Balance_sum")
         .sum::<f64>()
@@ -58,8 +57,9 @@ fn simple_fltr_grpby_sum_with_cache() {
         .sum::<f64>()
         .expect("Couldn't sum");
 
-    assert_eq!(res_sum, 25.0);
+    assert_eq!(res_sum1, 25.0);
     assert_eq!(res_sum2, 25.0);
+    assert_eq!(res_sum1, res_sum2);
 }
 
 #[test]

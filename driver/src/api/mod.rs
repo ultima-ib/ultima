@@ -30,7 +30,7 @@ use base_engine::{
     DataSet,
 };
 
-#[cfg(feature = "cache")]
+// #[cfg(feature = "cache")]
 // pub type CACHE = base_engine::execution_with_cache::CACHE;
 // #[cfg(not(feature = "cache"))]
 // pub type CACHE = std::collections::BTreeMap<String, String>; // dummy, not used if cache feature is not activated

@@ -73,7 +73,7 @@ pub(crate) fn _drc_secnonctp_weights_frame() -> DataFrame {
     df![
         "Key" => key,
         "RiskWeightDRC" => weight,
-        "RiskClass" => vec!["DRC_SecNonCTP"; len],
+        "RiskClass" => vec!["DRC_Sec_nonCTP"; len],
         "RiskCategory" => vec!["DRC"; len],
     ]
     .unwrap() // We must not fail on default frame

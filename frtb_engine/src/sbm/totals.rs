@@ -58,7 +58,7 @@ fn sbm_charge_high(op: &OCP) -> Expr {
         + csrsecctp_total_high(op)
 }
 
-fn sbm_charge(op: &OCP) -> Expr {
+pub(crate) fn sbm_charge(op: &OCP) -> Expr {
     max_exprs(&[
         sbm_charge_low(op),
         sbm_charge_medium(op),

@@ -122,7 +122,7 @@ fn csrsecctp_vega_max(op: &OCP) -> Expr {
 pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "CSR secCTP VegaSens".to_string(),
+            name: "CSR Sec CTP VegaSens".to_string(),
             calculator: Box::new(total_csrsecctp_vega_sens),
             aggregation: None,
             precomputefilter: Some(
@@ -132,7 +132,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaSens Weighted".to_string(),
+            name: "CSR Sec CTP VegaSens Weighted".to_string(),
             calculator: Box::new(total_csrsecctp_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
@@ -142,7 +142,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaSb".to_string(),
+            name: "CSR Sec CTP VegaSb".to_string(),
             calculator: Box::new(csrsecctp_vega_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
@@ -152,7 +152,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaCharge Low".to_string(),
+            name: "CSR Sec CTP VegaCharge Low".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
@@ -162,7 +162,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaKb Low".to_string(),
+            name: "CSR Sec CTP VegaKb Low".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
@@ -172,7 +172,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaCharge Medium".to_string(),
+            name: "CSR Sec CTP VegaCharge Medium".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
@@ -182,7 +182,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaKb Medium".to_string(),
+            name: "CSR Sec CTP VegaKb Medium".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
@@ -192,7 +192,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaCharge High".to_string(),
+            name: "CSR Sec CTP VegaCharge High".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
@@ -202,7 +202,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaKb High".to_string(),
+            name: "CSR Sec CTP VegaKb High".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
@@ -212,7 +212,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
             ),
         },
         Measure {
-            name: "CSR secCTP VegaCharge MAX".to_string(),
+            name: "CSR Sec CTP VegaCharge MAX".to_string(),
             calculator: Box::new(csrsecctp_vega_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(

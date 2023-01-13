@@ -44,7 +44,11 @@ use crate::sbm::totals::sbm_total_measures;
 use crate::drc::drc_nonsec::drc_nonsec_measures;
 use crate::drc::drc_secnonctp::drc_secnonctp_measures;
 
+use crate::drc::totals::drc_total_measures;
+
 use crate::rrao::rrao_measures;
+
+use crate::totals::sa_total_measures;
 
 /// Exporting Measures
 pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
@@ -95,7 +99,12 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
 
     res.extend(drc_nonsec_measures());
     res.extend(drc_secnonctp_measures());
+
+    res.extend(drc_total_measures());
+
     res.extend(rrao_measures());
+
+    res.extend(sa_total_measures());
 
     res.extend(non_rc_specific);
 

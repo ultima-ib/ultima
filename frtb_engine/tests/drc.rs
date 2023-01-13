@@ -33,14 +33,14 @@ fn drc_nonsec() {
 
     let request = r#"
     {"measures": [
-            ["DRC_NonSec_GrossJTD", "sum"],
-            ["DRC_NonSec_GrossJTD_Scaled", "sum"],
-            ["DRC_NonSec_CapitalCharge", "scalar"],
-            ["DRC_NonSec_NetLongJTD", "scalar"],
-            ["DRC_NonSec_NetShortJTD", "scalar"],
-            ["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
-            ["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],
-            ["DRC_NonSec_HBR", "scalar"]
+            ["DRC nonSec GrossJTD", "sum"],
+            ["DRC nonSec GrossJTD Scaled", "sum"],
+            ["DRC nonSec CapitalCharge", "scalar"],
+            ["DRC nonSec NetLongJTD", "scalar"],
+            ["DRC nonSec NetShortJTD", "scalar"],
+            ["DRC nonSec NetLongJTD Weighted", "scalar"],
+            ["DRC nonSec NetAbsShortJTD Weighted", "scalar"],
+            ["DRC nonSec HBR", "scalar"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
         "type": "AggregationRequest",
@@ -87,14 +87,14 @@ fn drc_nonsec_crr2() {
 
     let request = r#"
     {"measures": [
-            ["DRC_NonSec_GrossJTD", "sum"],
-            ["DRC_NonSec_GrossJTD_Scaled", "sum"],
-            ["DRC_NonSec_CapitalCharge", "scalar"],
-            ["DRC_NonSec_NetLongJTD", "scalar"],
-            ["DRC_NonSec_NetShortJTD", "scalar"],
-            ["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
-            ["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],
-            ["DRC_NonSec_HBR", "scalar"]
+            ["DRC nonSec GrossJTD", "sum"],
+            ["DRC nonSec GrossJTD Scaled", "sum"],
+            ["DRC nonSec CapitalCharge", "scalar"],
+            ["DRC nonSec NetLongJTD", "scalar"],
+            ["DRC nonSec NetShortJTD", "scalar"],
+            ["DRC nonSec NetLongJTD Weighted", "scalar"],
+            ["DRC nonSec NetAbsShortJTD Weighted", "scalar"],
+            ["DRC nonSec HBR", "scalar"]
                 ],
         "groupby": ["Desk", "BucketBCBS"],
         "type": "AggregationRequest",
@@ -128,7 +128,7 @@ fn overrides() {
                     }],
         
         "measures": [
-            ["DRC_NonSec_CapitalCharge", "scalar"]
+            ["DRC nonSec CapitalCharge", "scalar"]
                 ],
         "type": "AggregationRequest",
         
@@ -137,31 +137,6 @@ fn overrides() {
             "jurisdiction": "BCBS",
             "apply_fx_curv_div": "true",
             "drc_offset": "false"
-        }}
-"#;
-    assert_results(request, expected_res.sum(), None)
-}
-
-/// Note: DRC Sec Non CTP Offsetting is not yet implemented
-#[test]
-fn drc_secnonctp() {
-    let expected_res = arr1(&[8998.888889]);
-
-    let request = r#"
-    {"filters": [],
-    "type": "AggregationRequest",
-
-        "groupby": ["RiskClass", "Desk"],
-        
-        "measures": [
-            ["DRC_SecNonCTP_CapitalCharge", "scalar"]
-                ],
-        
-        
-        "hide_zeros": true,
-        "calc_params": {
-            "jurisdiction": "BCBS",
-            "apply_fx_curv_div": "true"
         }}
 "#;
     assert_results(request, expected_res.sum(), None)

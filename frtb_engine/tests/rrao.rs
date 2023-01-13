@@ -9,9 +9,9 @@ fn rrao() {
 
     let request = r#"
     {"measures": [
-        ["Exotic_RRAO_Charge", "sum"],
-        ["Other_RRAO_Charge", "sum"],
-        ["RRAO_Charge", "scalar"]
+        ["Exotic RRAO Charge", "sum"],
+        ["Other RRAO Charge", "sum"],
+        ["RRAO Charge", "scalar"]
                 ],
         "groupby": ["COB"],
         "type": "AggregationRequest"

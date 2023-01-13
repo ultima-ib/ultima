@@ -63,14 +63,14 @@ pub(crate) fn rrao_weighted_notional(weight: Option<f64>, rrao_type: &'static st
     )
 }
 
-pub(crate) fn rrao(op: &OCP) -> Expr {
+pub(crate) fn rrao_charge(op: &OCP) -> Expr {
     let exotic_weight =
         get_optional_parameter(op, "exotic_rrao_weight", &MEDIUM_CORR_SCENARIO.exotic);
     let other_weight = get_optional_parameter(op, "other_rrao_weight", &MEDIUM_CORR_SCENARIO.other);
-    rrao_charge(exotic_weight, other_weight)
+    rrao_calc(exotic_weight, other_weight)
 }
 
-pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
+pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> Expr {
     apply_multiple(
         move |columns| {
             let mut df = df![
@@ -113,32 +113,32 @@ pub(crate) fn rrao_charge(exotic_weight: f64, other_weight: f64) -> Expr {
 pub(crate) fn rrao_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "Exotic_RRAO_Notional".to_string(),
+            name: "Exotic RRAO Notional".to_string(),
             calculator: Box::new(exotic_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
         Measure {
-            name: "Other_RRAO_Notional".to_string(),
+            name: "Other RRAO Notional".to_string(),
             calculator: Box::new(other_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
         Measure {
-            name: "Exotic_RRAO_Charge".to_string(),
+            name: "Exotic RRAO Charge".to_string(),
             calculator: Box::new(exotic_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
         Measure {
-            name: "Other_RRAO_Charge".to_string(),
+            name: "Other RRAO Charge".to_string(),
             calculator: Box::new(other_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
         Measure {
-            name: "RRAO_Charge".to_string(),
-            calculator: Box::new(rrao),
+            name: "RRAO Charge".to_string(),
+            calculator: Box::new(rrao_charge),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },

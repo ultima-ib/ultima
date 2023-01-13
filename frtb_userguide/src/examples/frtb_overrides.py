@@ -18,7 +18,7 @@ request = dict(
             ],
         }
     ],
-    measures=[["DRC_NonSec_CapitalCharge", "scalar"]],
+    measures=[["DRC nonSec CapitalCharge", "scalar"]],
     hide_zeros=True,
     calc_params={
         "jurisdiction": "BCBS",
@@ -30,7 +30,7 @@ result = ds.execute(request)
 request = dict(
     filters=[],
     groupby=["RiskClass", "Desk"],
-    measures=[["DRC_NonSec_CapitalCharge", "scalar"]],
+    measures=[["DRC nonSec CapitalCharge", "scalar"]],
     hide_zeros=True,
     calc_params={
         "jurisdiction": "CRR2",

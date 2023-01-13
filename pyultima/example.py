@@ -13,10 +13,10 @@ print(dataset.measures)
 
 # What do we want to calculate?
 _request = r"""{"measures": [
-    ["DRC_NonSec_GrossJTD", "sum"],["DRC_NonSec_GrossJTD_Scaled","sum"],
-    ["DRC_NonSec_CapitalCharge", "scalar"],["DRC_NonSec_NetLongJTD", "scalar"],
-    ["DRC_NonSec_NetShortJTD", "scalar"],["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
-    ["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],["DRC_NonSec_HBR", "scalar"]], 
+    ["DRC nonSec GrossJTD", "sum"],["DRC nonSec GrossJTD Scaled","sum"],
+    ["DRC nonSec CapitalCharge", "scalar"],["DRC nonSec NetLongJTD", "scalar"],
+    ["DRC nonSec NetShortJTD", "scalar"],["DRC nonSec NetLongJTD Weighted", "scalar"],
+    ["DRC nonSec NetAbsShortJTD Weighted", "scalar"],["DRC nonSec HBR", "scalar"]], 
     "groupby": ["Desk", "BucketBCBS"],
      "type": "AggregationRequest", 
     "hide_zeros": false,

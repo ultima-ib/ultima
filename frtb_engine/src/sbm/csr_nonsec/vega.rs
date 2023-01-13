@@ -112,7 +112,7 @@ fn csr_nonsec_vega_charge_distributor(
     )
 }
 
-/// Used by CSR nonSec, CSR secCTP Vegas
+/// Used by CSR nonSec, CSR Sec CTP Vegas
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn csr_nonsec_vega_charge<F>(
     weight: Expr,

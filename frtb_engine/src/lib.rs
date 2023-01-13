@@ -5,6 +5,7 @@
 mod drc;
 mod rrao;
 mod sbm;
+mod totals;
 
 pub mod calc_params;
 pub mod docs;

@@ -19,13 +19,15 @@ pub fn execute_with_cache<DS: DataSet + ?Sized>(
     if let Ok(mut cache) = GLOBAL_CACHE.write() {
         let cached_result = cache.get(req);
         if let Some(cached) = cached_result {
-            Ok(cached.clone())
-        } else {
-            let val = execute_aggregation(req, data, streaming)?;
-            cache.insert(req.clone(), val.clone());
-            Ok(val)
+            return Ok(cached.clone());
         }
     } else {
-        Err(PolarsError::NoData("Cache didnt exist.".into()))
+        return Err(PolarsError::NoData("Cache didnt exist.".into()));
     }
+
+    let val = execute_aggregation(req, data, streaming)?;
+
+    let mut cache = GLOBAL_CACHE.write().unwrap();
+    cache.insert(req.clone(), val.clone());
+    Ok(val)
 }

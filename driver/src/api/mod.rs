@@ -26,14 +26,9 @@ use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
 use base_engine::{
-    api::aggregations::BASE_CALCS, col, prelude::PolarsResult, AggregationRequest, DataFrame,
-    DataSet,
+    api::aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
+    AggregationRequest, DataFrame, DataSet,
 };
-
-// #[cfg(feature = "cache")]
-// pub type CACHE = base_engine::execution_with_cache::CACHE;
-// #[cfg(not(feature = "cache"))]
-// pub type CACHE = std::collections::BTreeMap<String, String>; // dummy, not used if cache feature is not activated
 
 // use uuid::Uuid;
 // use tracing::Instrument; //enters the span we pass as argument
@@ -120,21 +115,19 @@ async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {
 async fn execute(
     data: Data<Arc<dyn DataSet>>,
     req: web::Json<AggregationRequest>,
-    // cache: Data<CACHE>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
-    // let _cache = cache.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
         // Work in progress
         if cfg!(cache) {
-            // TODO change function to
-            // base_engine::_execute_with_cache
-            base_engine::execution_with_cache::execute_with_cache(
+            #[cfg(feature = "cache")]
+            return base_engine::execution_with_cache::execute_with_cache(
                 &r,
                 &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
-            )
+            );
+            Err(PolarsError::NoData("Cache must be enabled.".into()))
         } else {
             base_engine::execute_aggregation(
                 &r,

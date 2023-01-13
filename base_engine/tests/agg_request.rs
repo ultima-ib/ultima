@@ -1,10 +1,9 @@
 //! Main testing module for the DataSet and measures
 
+#[cfg(feature = "cache")]
+use base_engine::execution_with_cache::execute_with_cache;
+use base_engine::{execute_aggregation, AggregationRequest};
 use std::sync::Arc;
-
-use base_engine::{
-    execute_aggregation, execution_with_cache::execute_with_cache, AggregationRequest,
-};
 
 mod common;
 
@@ -30,6 +29,7 @@ fn simple_fltr_grpby_sum() {
     assert_eq!(res_sum, 25.0)
 }
 
+#[cfg(feature = "cache")]
 #[test]
 fn simple_fltr_grpby_sum_with_cache() {
     let req = r#"
@@ -77,6 +77,7 @@ fn missing_groupby() {
         .expect("Calculation failed");
 }
 
+#[cfg(feature = "cache")]
 #[test]
 #[should_panic(expected = "expected keys in groupby operation, got nothing")]
 fn empty_groupby() {

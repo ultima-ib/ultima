@@ -32,9 +32,13 @@ pub fn path_to_lf(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
 
     let schema = Schema::from_iter(vc);
 
+    //Use abs path
+    let proj_path = String::from(env!("CARGO_MANIFEST_DIR"));
+    let path = proj_path + path;
+
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
-    let lf = LazyCsvReader::new(path)
+    let lf = LazyCsvReader::new(path.as_str())
         .has_header(true)
         .with_parse_dates(true)
         .with_dtype_overwrite(Some(&schema))

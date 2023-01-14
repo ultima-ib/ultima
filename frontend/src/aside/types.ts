@@ -23,3 +23,8 @@ export interface Override {
     value?: string
     filters: Filter[][]
 }
+
+export interface AdditionalRows<R = Record<string, string>[]> {
+    prepare: boolean,
+    rows: R
+}

@@ -106,7 +106,6 @@ export const AddRows = (props: AddRowsProps) => {
     const [rows, dispatch] = props.reducer
 
     useEffect(() => {
-        console.log("ya")
         props.onChange(rows)
     }, [rows])
 

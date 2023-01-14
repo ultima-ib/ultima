@@ -101,10 +101,10 @@ const Aside = () => {
                                 filters: f,
                             })
                         }
-                        setAdditionalRows={(r) =>
+                        setAdditionalRows={({ rows }) =>
                             addRowsDispatch({
                                 type: ActionType.Set,
-                                filters: r,
+                                filters: rows,
                             })
                         }
                     />

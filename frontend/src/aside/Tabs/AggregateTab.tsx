@@ -4,13 +4,10 @@ import Agg from "../AggTypes"
 import Accordion from "../Accordion"
 import { Filters } from "../Filters"
 import { AddRows, Rows } from "../AddRow"
-import { Box, Stack } from "@mui/material"
+import { Box, Checkbox, FormControlLabel, Stack } from "@mui/material"
 import { InputStateUpdate, useInputs } from "../InputStateContext"
 import { Overrides } from "../Overrides"
-import {
-    Filters as FiltersType,
-    ReducerDispatch,
-} from "../../utils/NestedKVStoreReducer"
+import { Filters as FiltersType, ReducerDispatch } from "../../utils/NestedKVStoreReducer"
 
 const AggregateTab = ({
     filtersReducer,
@@ -68,18 +65,27 @@ const AggregateTab = ({
             </Accordion>
             <Accordion
                 expanded={addRowsAccordionExpanded}
-                title="Add additional rows"
+                title="Add rows"
                 onChange={(event: SyntheticEvent, isExpanded: boolean) => {
                     setAddRowsAccordionExpanded(isExpanded)
                 }}
             >
+                <FormControlLabel control={<Checkbox checked={inputs.additionalRows.prepare}
+                onChange={(e) => {
+                    inputs.dispatcher({
+                        type: InputStateUpdate.PrepareAdditionalRows,
+                        data: {
+                            prepare: e.target.checked
+                        }
+                    })
+                }}/>} label="Prepare" />
                 <AddRows
                     component={Box}
                     reducer={addRowsReducer}
                     onChange={(rows) => {
                         inputs.dispatcher({
                             type: InputStateUpdate.AdditionalRows,
-                            data: { additionalRows: rows },
+                            data: { rows },
                         })
                     }}
                 />

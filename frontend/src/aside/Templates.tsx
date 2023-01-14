@@ -22,11 +22,12 @@ import LaunchIcon from "@mui/icons-material/Launch"
 import { Filters } from "../utils/NestedKVStoreReducer"
 import { Rows } from "./AddRow"
 import { buildAdditionalRowsFromTemplate } from "../utils"
+import { AdditionalRows } from "./types"
 
 const JSONTemplateDialog = (props: {
     open: [boolean, Dispatch<SetStateAction<boolean>>]
     setFilters: (f: Filters) => void
-    setAdditionalRows: (f: Rows) => void
+    setAdditionalRows: (f: AdditionalRows<Rows>) => void
 }) => {
     const [open, setOpen] = props.open
     const [helperText, setHelperText] = useState("")
@@ -94,7 +95,7 @@ const JSONTemplateDialog = (props: {
 
 export const Templates = (props: {
     setFilters: (filters: Filters) => void
-    setAdditionalRows: (f: Rows) => void
+    setAdditionalRows: (f: AdditionalRows<Rows>) => void
 }) => {
     const templates = useTemplates()
     const inputs = useInputs()

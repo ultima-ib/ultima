@@ -1,4 +1,4 @@
-import { Filter, Override } from "../aside/types"
+import { AdditionalRows, Filter, Override } from "../aside/types"
 
 export interface GenerateTableDataRequest {
     measures: [string, string][]
@@ -8,7 +8,7 @@ export interface GenerateTableDataRequest {
     overrides: Override[]
     hide_zeros: boolean
     totals: boolean
-    additionalRows: Record<string, string>[]
+    additionalRows: AdditionalRows
 }
 
 export interface GenerateTableDataResponse {

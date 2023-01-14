@@ -1,4 +1,4 @@
-import { Filter } from "./aside/types"
+import { AdditionalRows, Filter } from "./aside/types"
 import { Filters } from "./utils/NestedKVStoreReducer"
 import { Rows } from "./aside/AddRow"
 import { Template } from "./api/types"
@@ -15,8 +15,8 @@ export const mapFilters = (f: Filters): Filter[][] =>
             (it) => hasValue(it.value) && hasValue(it.op) && hasValue(it.field),
         ),
     )
-export const mapRows = (r: Rows): Record<string, string>[] =>
-    Object.values(r).map((rows) => {
+export const mapRows = (r: Rows): Record<string, string>[] => {
+    return Object.values(r).map((rows) => {
         const fields: Record<string, string> = {}
         Object.values(rows)
             .filter((it) => hasValue(it.field) && hasValue(it.value))
@@ -25,12 +25,13 @@ export const mapRows = (r: Rows): Record<string, string>[] =>
             })
         return fields
     })
+}
 
 export const buildAdditionalRowsFromTemplate = (
-    rows: Template["additionalRows"],
-): Rows => {
+    additionalRows: Template["additionalRows"],
+): AdditionalRows<Rows> => {
     const build: Rows = {}
-    rows.forEach((innerRows, index) => {
+    additionalRows.rows.forEach((innerRows, index) => {
         const inner: Rows[number] = {}
         for (const key in innerRows) {
             inner[index] = {
@@ -40,5 +41,8 @@ export const buildAdditionalRowsFromTemplate = (
         }
         build[index] = inner
     })
-    return build
+    return {
+        prepare: additionalRows.prepare,
+        rows: build
+    }
 }

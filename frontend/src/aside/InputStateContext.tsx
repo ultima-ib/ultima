@@ -1,9 +1,15 @@
 import { createContext, useContext } from "react"
-import { AdditionalRows, DataSet, Filter, Filter as FilterType, Override } from "./types"
+import {
+    AdditionalRows,
+    DataSet,
+    Filter,
+    Filter as FilterType,
+    Override,
+} from "./types"
 import type { Template } from "../api/types"
 import { Filters } from "../utils/NestedKVStoreReducer"
 import { GenerateTableDataRequest } from "../api/types"
-import { buildAdditionalRowsFromTemplate, mapFilters, mapRows } from "../utils"
+import { mapFilters, mapRows } from "../utils"
 import { Rows } from "./AddRow"
 
 export enum InputStateUpdate {
@@ -17,11 +23,15 @@ export enum InputStateUpdate {
     Overrides,
     TemplateSelect,
     CalcParamUpdate,
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     AdditionalRows,
     PrepareAdditionalRows,
 }
 
-type Data = Partial<Omit<InputStateContext, "dispatcher">> & { rows?: InputStateContext['additionalRows']['rows'], prepare?: boolean }
+type Data = Partial<Omit<InputStateContext, "dispatcher">> & {
+    rows?: InputStateContext["additionalRows"]["rows"]
+    prepare?: boolean
+}
 
 export function inputStateReducer(
     state: InputStateContext,
@@ -170,7 +180,7 @@ export interface InputStateContext {
     hideZeros: boolean
     totals: boolean
     calcParams: Record<string, string>
-    additionalRows: AdditionalRows<Rows>,
+    additionalRows: AdditionalRows<Rows>
     dispatcher: (params: { type: InputStateUpdate; data: Data }) => void
 }
 
@@ -209,7 +219,7 @@ export const buildRequest = (
         calc_params: context.calcParams,
         additionalRows: {
             prepare: context.additionalRows.prepare,
-            rows: mapRows(context.additionalRows.rows)
+            rows: mapRows(context.additionalRows.rows),
         },
     }
 }

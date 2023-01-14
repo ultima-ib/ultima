@@ -25,6 +25,6 @@ export interface Override {
 }
 
 export interface AdditionalRows<R = Record<string, string>[]> {
-    prepare: boolean,
+    prepare: boolean
     rows: R
 }

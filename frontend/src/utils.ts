@@ -43,6 +43,6 @@ export const buildAdditionalRowsFromTemplate = (
     })
     return {
         prepare: additionalRows.prepare,
-        rows: build
+        rows: build,
     }
 }

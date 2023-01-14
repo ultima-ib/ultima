@@ -7,7 +7,10 @@ import { AddRows, Rows } from "../AddRow"
 import { Box, Checkbox, FormControlLabel, Stack } from "@mui/material"
 import { InputStateUpdate, useInputs } from "../InputStateContext"
 import { Overrides } from "../Overrides"
-import { Filters as FiltersType, ReducerDispatch } from "../../utils/NestedKVStoreReducer"
+import {
+    Filters as FiltersType,
+    ReducerDispatch,
+} from "../../utils/NestedKVStoreReducer"
 
 const AggregateTab = ({
     filtersReducer,
@@ -70,15 +73,22 @@ const AggregateTab = ({
                     setAddRowsAccordionExpanded(isExpanded)
                 }}
             >
-                <FormControlLabel control={<Checkbox checked={inputs.additionalRows.prepare}
-                onChange={(e) => {
-                    inputs.dispatcher({
-                        type: InputStateUpdate.PrepareAdditionalRows,
-                        data: {
-                            prepare: e.target.checked
-                        }
-                    })
-                }}/>} label="Prepare" />
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={inputs.additionalRows.prepare}
+                            onChange={(e) => {
+                                inputs.dispatcher({
+                                    type: InputStateUpdate.PrepareAdditionalRows,
+                                    data: {
+                                        prepare: e.target.checked,
+                                    },
+                                })
+                            }}
+                        />
+                    }
+                    label="Prepare"
+                />
                 <AddRows
                     component={Box}
                     reducer={addRowsReducer}

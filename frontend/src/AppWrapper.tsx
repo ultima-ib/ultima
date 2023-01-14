@@ -35,7 +35,7 @@ export const AppWrapper = () => {
         calcParams: {},
         additionalRows: {
             rows: [],
-            prepare: false
+            prepare: false,
         },
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         dispatcher: () => {},

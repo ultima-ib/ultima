@@ -1,0 +1,172 @@
+name: Create Python release
+
+on:
+  release:
+    types: [published]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  manylinux-x64_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Publish wheel
+        uses: messense/maturin-action@v1
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+          RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma
+        with:
+          rust-toolchain: nightly-2022-12-20
+          maturin-version: '0.14.10'
+          command: publish
+          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing -o wheels -u anatoly.bugakov
+
+  # Needed for Docker on Apple M1
+  manylinux-aarch64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Publish wheel
+        uses: messense/maturin-action@v1
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+          JEMALLOC_SYS_WITH_LG_PAGE: 16
+        with:
+          rust-toolchain: nightly-2022-12-20
+          target: aarch64-unknown-linux-gnu
+          maturin-version: '0.14.10'
+          command: publish
+          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing --no-sdist -o wheels -i python -u anatoly.bugakov
+
+  manylinux-bigidx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Publish wheel
+        uses: messense/maturin-action@v1
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+          RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma
+        with:
+          rust-toolchain: nightly-2022-12-20
+          maturin-version: '0.14.10'
+          command: publish
+          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing -o wheels -u anatoly.bugakov
+
+  manylinux-x64_64-lts-cpu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Prepare lts-cpu
+        run: sed -i 's/name = "ultima"/name = "pyultima-lts-cpu"/' pyultima/pyproject.toml
+
+      - name: Publish wheel
+        uses: messense/maturin-action@v1
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+          RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt --cfg use_mimalloc
+        with:
+          rust-toolchain: nightly-2022-12-20
+          maturin-version: '0.14.10'
+          command: publish
+          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing -o wheels -u anatoly.bugakov
+
+  win-macos:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Publish wheel
+        uses: messense/maturin-action@v1
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+          RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+sse4.1,+sse4.2
+        with:
+          rust-toolchain: nightly-2022-12-20
+          maturin-version: '0.14.10'
+          command: publish
+          args: -m pyultima/Cargo.toml -r=testpypi --no-sdist --skip-existing -o wheels -i python -u anatoly.bugakov
+
+  macos-aarch64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-12-20
+
+      - name: Set up Rust targets
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Publish wheel
+        uses: messense/maturin-action@v1
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+        with:
+          maturin-version: '0.14.10'
+          command: publish
+          args: -m py-polars/Cargo.toml -r=testpypi --target aarch64-apple-darwin --no-sdist -o wheels -i python -u anatoly.bugakov
+
+  # uncomment to build a universal2 wheel
+  # we don't run it because it is twice as big and not needed because we build for both architectures separately
+  # macos-aarch64-universal:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.7'
+
+  #     - name: Fix README symlink
+  #       run: |
+  #         rm py-polars/README.md
+  #         cp README.md py-polars/README.md
+
+  #     - name: Set up Rust
+  #       uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: nightly-2022-12-20
+
+  #     - name: Set up Rust targets
+  #       run: rustup target add aarch64-apple-darwin
+
+  #     - name: Publish wheel
+  #       uses: messense/maturin-action@v1
+  #       env:
+  #         MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+  #       with:
+  #         maturin-version: '0.14.10'
+  #         command: publish
+  #         args: -m py-polars/Cargo.toml --no-sdist --universal2 -o wheels -i python -u ritchie46

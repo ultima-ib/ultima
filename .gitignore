@@ -11,6 +11,7 @@ venv/
 /__pycache__
 book/
 frtb_userguide/data/
+.ipynb*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -64,3 +65,4 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+ 

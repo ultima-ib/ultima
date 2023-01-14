@@ -6,10 +6,10 @@ use base_engine::polars::prelude::{
 //use polars::lazy::dsl::apply_multiple;
 
 pub(crate) fn drc_secnonctp_grossjtd(_: &OCP) -> Expr {
-    rc_sens("DRC_SecNonCTP", col("GrossJTD"))
+    rc_sens("DRC_Sec_nonCTP", col("GrossJTD"))
 }
 pub(crate) fn drc_secnonctp_grossjtd_scaled(_: &OCP) -> Expr {
-    rc_sens("DRC_SecNonCTP", col("GrossJTD") * col("ScaleFactor"))
+    rc_sens("DRC_Sec_nonCTP", col("GrossJTD") * col("ScaleFactor"))
 }
 
 pub(crate) fn drc_secnonctp_charge(op: &OCP) -> Expr {
@@ -35,7 +35,7 @@ fn drc_secnonctp_distributor(_: &OCP, rtrn: ReturnMetric) -> Expr {
     drc_secnonctp_charge_calculator(rtrn)
 }
 
-/// DRC Sec Non CTP Offsetting (22.30) is not implemented yet
+/// TODO DRC Sec Non CTP Offsetting (22.30) is not implemented yet
 fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
     // inner function
     apply_multiple(
@@ -53,7 +53,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             // First, sum over bucket, obligor and seniority
             let mut lf = df
                 .lazy()
-                .filter(col("rc").eq(lit("DRC_SecNonCTP")))
+                .filter(col("rc").eq(lit("DRC_Sec_nonCTP")))
                 .groupby([col("b"), col("rf"), col("rft"), col("tr")])
                 .agg([
                     (col("jtd") * col("s")).sum().alias("scaled_jtd"),
@@ -168,49 +168,49 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
 pub(crate) fn drc_secnonctp_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "DRC_SecNonCTP_GrossJTD".to_string(),
+            name: "DRC Sec nonCTP GrossJTD".to_string(),
             calculator: Box::new(drc_secnonctp_grossjtd),
             aggregation: None,
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         },
         Measure {
-            name: "DRC_SecNonCTP_GrossJTD_Scaled".to_string(),
+            name: "DRC Sec nonCTP GrossJTD Scaled".to_string(),
             calculator: Box::new(drc_secnonctp_grossjtd_scaled),
             aggregation: None,
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         },
         Measure {
-            name: "DRC_SecNonCTP_CapitalCharge".to_string(),
+            name: "DRC Sec nonCTP CapitalCharge".to_string(),
             calculator: Box::new(drc_secnonctp_charge),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         },
         Measure {
-            name: "DRC_SecNonCTP_NetLongJTD".to_string(),
+            name: "DRC Sec nonCTP NetLongJTD".to_string(),
             calculator: Box::new(drc_secnonctp_netlongjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         },
         Measure {
-            name: "DRC_SecNonCTP_NetShortJTD".to_string(),
+            name: "DRC Sec nonCTP NetShortJTD".to_string(),
             calculator: Box::new(drc_secnonctp_netshortjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         },
         Measure {
-            name: "DRC_SecNonCTP_NetLongJTD_Weighted".to_string(),
+            name: "DRC Sec nonCTP NetLongJTD Weighted".to_string(),
             calculator: Box::new(drc_secnonctp_weightednetlongjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         },
         Measure {
-            name: "DRC_SecNonCTP_NetShortJTD_Weighted".to_string(),
+            name: "DRC Sec nonCTP NetShortJTD Weighted".to_string(),
             calculator: Box::new(drc_secnonctp_weightednetabsshortjtd),
             aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
+            precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         },
         Measure {
-            name: "DRC_SecNonCTP_HBR".to_string(),
+            name: "DRC Sec nonCTP HBR".to_string(),
             calculator: Box::new(drc_secnonctp_hbr),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),

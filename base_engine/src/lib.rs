@@ -28,26 +28,30 @@ fn measure_builder(
     op: &OCP,
 ) -> PolarsResult<Vec<ProcessedMeasure>> {
     let res = requested_measures.iter()
-        .map(|(measure_name, action)| {
+        .map(|(requested_measure, requested_action)| {
 
             // Lookup requested measure from all_availiable_measures by name
-            let Some(m) = all_availiable_measures.get(measure_name as &str) else {
-                return Err(PolarsError::ComputeError(format!("No measure {measure_name} exists for the dataset. Availiable measures are: {:?}",
+            let Some(m) = all_availiable_measures.get(requested_measure as &str) else {
+                return Err(PolarsError::ComputeError(format!("No measure {requested_measure} exists for the dataset. Availiable measures are: {:?}",
                     all_availiable_measures.keys()).into()))
             };
 
-            // If measure has predefined aggregation, then override the request
-            let action = m.aggregation
-                .unwrap_or_else(||action as &str);
+            // If measure has predefined aggregation, check that requested aggregation matches it          
+            if let Some(default_action) = m.aggregation {
+                if default_action != requested_action {
+                    return Err(PolarsError::ComputeError(format!("Measure {requested_measure} supports only {default_action} aggregation,
+                    but {requested_action} requested").into()))
+                }
+            }
 
             // Lookup action from the list of supported actions
-            let Some(act) = api::aggregations::BASE_CALCS.get(action) else {
-                return Err(PolarsError::ComputeError(format!("No action {action} supported. Supported actions are: {:?}",
+            let Some(act) = api::aggregations::BASE_CALCS.get(requested_action.as_str()) else {
+                return Err(PolarsError::ComputeError(format!("No action {requested_action} supported. Supported actions are: {:?}",
                     api::aggregations::BASE_CALCS.keys()).into()))
             };
 
             // apply action
-            let (calculator, name) = act((m.calculator)(op), measure_name);
+            let (calculator, name) = act((m.calculator)(op), requested_measure);
 
             Ok(
                 ProcessedMeasure {

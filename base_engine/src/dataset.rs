@@ -169,8 +169,8 @@ pub fn numeric_columns(schema: Arc<Schema>) -> Vec<String> {
         .collect::<Vec<String>>()
 }
 
-// TODO return Result
-pub(crate) fn utf8_columns(schema: Arc<Schema>) -> Vec<String> {
+/// restrict columns which can be fields to Utf8 and Bool
+pub fn fields_columns(schema: Arc<Schema>) -> Vec<String> {
     schema
         .iter_fields()
         .filter(|field| matches!(field.data_type(), DataType::Utf8))
@@ -208,7 +208,7 @@ impl Serialize for dyn DataSet {
         let utf8_cols = self
             .get_lazyframe()
             .schema()
-            .map(utf8_columns)
+            .map(fields_columns)
             .unwrap_or_default();
         let calc_params = self.calc_params();
 

@@ -1,18 +1,18 @@
 [package]
 name = "pyultima"
-version = "0.1.0"
+version = "0.1.4"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "ultima"
+name = "ultibi"
 crate-type = ["cdylib"]
 
 [package.metadata.maturin]
-name = "ultima.rust_module.ultima_pyengine"
+name = "ultibi.rust_module.ultima_pyengine"
 
 [dependencies]
-pyo3 = { version = "0.17.3", features = ["extension-module"] }
+pyo3 = { version = "0.17.3", features = ["extension-module", "abi3-py39"] }
 polars = { version = "0.25.1" }
 polars-arrow = { version = "0.25.1" }
 base_engine = { path = "../base_engine" }

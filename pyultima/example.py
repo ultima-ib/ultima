@@ -1,22 +1,22 @@
 import polars as pl
 
-from ultima.execute import execute_agg
-from ultima.internals.agg_request import AggRequest
-from ultima.internals.dataset import DataSet, FRTBDataSet
+from ultibi.internals.agg_request import AggRequest
+from ultibi.internals.dataset import DataSet, FRTBDataSet
+from ultibi.internals.execute import execute_agg
 
 dataset = FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
 
 # Assigning weights. Keeping it separate since it can be done once only
 dataset.prepare()
 # If you want to play around - check which measures are supported
-print(dataset.measures())
+print(dataset.measures)
 
 # What do we want to calculate?
 _request = r"""{"measures": [
-    ["DRC_NonSec_GrossJTD", "sum"],["DRC_NonSec_GrossJTD_Scaled","sum"],
-    ["DRC_NonSec_CapitalCharge", "scalar"],["DRC_NonSec_NetLongJTD", "scalar"],
-    ["DRC_NonSec_NetShortJTD", "scalar"],["DRC_NonSec_NetLongJTD_Weighted", "scalar"],
-    ["DRC_NonSec_NetAbsShortJTD_Weighted", "scalar"],["DRC_NonSec_HBR", "scalar"]], 
+    ["DRC nonSec GrossJTD", "sum"],["DRC nonSec GrossJTD Scaled","sum"],
+    ["DRC nonSec CapitalCharge", "scalar"],["DRC nonSec NetLongJTD", "scalar"],
+    ["DRC nonSec NetShortJTD", "scalar"],["DRC nonSec NetLongJTD Weighted", "scalar"],
+    ["DRC nonSec NetAbsShortJTD Weighted", "scalar"],["DRC nonSec HBR", "scalar"]], 
     "groupby": ["Desk", "BucketBCBS"],
      "type": "AggregationRequest", 
     "hide_zeros": false,
@@ -37,7 +37,7 @@ print("Type: ", type(result))
 data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]}
 df = pl.DataFrame(data)
 ds = DataSet.from_frame(df)
-print(ds.measures())
+print(ds.measures)
 
 r = dict(
     measures=[("a", "mean"), ("b", "sum")],

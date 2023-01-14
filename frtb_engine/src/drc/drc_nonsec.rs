@@ -217,50 +217,50 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
 pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
     vec![
         Measure {
-            name: "DRC_NonSec_GrossJTD".to_string(),
+            name: "DRC nonSec GrossJTD".to_string(),
             calculator: Box::new(drc_nonsec_grossjtd),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
-            name: "DRC_NonSec_GrossJTD_Scaled".to_string(),
+            name: "DRC nonSec GrossJTD Scaled".to_string(),
             calculator: Box::new(drc_nonsec_grossjtd_scaled),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
-            name: "DRC_NonSec_CapitalCharge".to_string(),
+            name: "DRC nonSec CapitalCharge".to_string(),
             calculator: Box::new(drc_nonsec_charge),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
-            name: "DRC_NonSec_NetLongJTD".to_string(),
+            name: "DRC nonSec NetLongJTD".to_string(),
             calculator: Box::new(drc_nonsec_netlongjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
-            name: "DRC_NonSec_NetShortJTD".to_string(),
+            name: "DRC nonSec NetShortJTD".to_string(),
             calculator: Box::new(drc_nonsec_netshortjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
-            name: "DRC_NonSec_NetLongJTD_Weighted".to_string(),
+            name: "DRC nonSec NetLongJTD Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetlongjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         Measure {
-            name: "DRC_NonSec_NetAbsShortJTD_Weighted".to_string(),
+            name: "DRC nonSec NetAbsShortJTD Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetabsshortjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         },
         // HBR Only makes sence at Bucket level
         Measure {
-            name: "DRC_NonSec_HBR".to_string(),
+            name: "DRC nonSec HBR".to_string(),
             calculator: Box::new(drc_nonsec_hbr),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),

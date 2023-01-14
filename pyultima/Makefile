@@ -2,6 +2,7 @@
 
 SHELL=/bin/bash
 VENV = venv
+PY39 = C:/Python39/python
 
 ifeq ($(OS),Windows_NT)
 	VENV_BIN=$(VENV)/Scripts
@@ -56,6 +57,10 @@ test-all: venv build  ## Run all tests
 .PHONY: coverage
 coverage: venv build  ## Run tests and report coverage
 	$(VENV_BIN)/pytest --cov
+
+.PHONY: publish
+publish: venv
+	maturin publish -r=testpypi -i=$(PY39) --skip-existing
 
 .PHONY: clean
 clean:  ## Clean up caches and build artifacts

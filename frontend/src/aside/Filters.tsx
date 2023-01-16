@@ -21,16 +21,16 @@ import {
     useState,
     useTransition,
 } from "react"
-import { Filter as FilterType } from "../types"
-import { useFilterColumns } from "../../api/hooks"
+import { Filter as FilterType } from "./types"
+import { useFilterColumns } from "../api/hooks"
 import CloseIcon from "@mui/icons-material/Close"
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank"
 import CheckBoxIcon from "@mui/icons-material/CheckBox"
 import {
     ActionType,
     Filters as FiltersType,
-    FiltersReducerDispatch,
-} from "./reducer"
+    ReducerDispatch,
+} from "../utils/NestedKVStoreReducer"
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />
 const checkedIcon = <CheckBoxIcon fontSize="small" />
@@ -214,7 +214,7 @@ export interface FiltersProps {
     fields?: string[]
     onFiltersChange: (f: FiltersType) => void
     component?: ElementType
-    reducer: [FiltersType, FiltersReducerDispatch]
+    reducer: [FiltersType, ReducerDispatch]
 }
 
 export const Filters = (props: FiltersProps) => {
@@ -227,7 +227,7 @@ export const Filters = (props: FiltersProps) => {
     const addNewFilter = () => {
         lastUsed += 1
         dispatch({
-            type: ActionType.NewAnd,
+            type: ActionType.NewRoot,
             index: lastUsed,
         })
     }
@@ -235,7 +235,7 @@ export const Filters = (props: FiltersProps) => {
     const addNewOrFilter = (index: number) => {
         lastUsed += 1
         dispatch({
-            type: ActionType.NewOr,
+            type: ActionType.NewChild,
             andIndex: index,
             index: lastUsed,
         })
@@ -244,12 +244,12 @@ export const Filters = (props: FiltersProps) => {
     const removeOrFilter = (andIndex: number) => {
         return (index: number) => {
             dispatch({
-                type: ActionType.RemoveOr,
+                type: ActionType.RemoveChild,
                 andIndex,
                 index,
             })
             dispatch({
-                type: ActionType.RemoveAnd,
+                type: ActionType.RemoveRoot,
                 index: andIndex,
             })
         }

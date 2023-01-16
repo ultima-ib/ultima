@@ -19,11 +19,15 @@ import { Dispatch, SetStateAction, useId, useRef, useState } from "react"
 import { Template } from "../api/types"
 import { buildRequest, InputStateUpdate, useInputs } from "./InputStateContext"
 import LaunchIcon from "@mui/icons-material/Launch"
-import { Filters } from "./filters/reducer"
+import { Filters } from "../utils/NestedKVStoreReducer"
+import { Rows } from "./AddRow"
+import { buildAdditionalRowsFromTemplate } from "../utils"
+import { AdditionalRows } from "./types"
 
 const JSONTemplateDialog = (props: {
     open: [boolean, Dispatch<SetStateAction<boolean>>]
     setFilters: (f: Filters) => void
+    setAdditionalRows: (f: AdditionalRows<Rows>) => void
 }) => {
     const [open, setOpen] = props.open
     const [helperText, setHelperText] = useState("")
@@ -49,9 +53,16 @@ const JSONTemplateDialog = (props: {
                 return
             }
             props.setFilters(data.filters)
+            const additionalRows = buildAdditionalRowsFromTemplate(
+                data.additionalRows,
+            )
+            props.setAdditionalRows(additionalRows)
             inputs.dispatcher({
                 type: InputStateUpdate.TemplateSelect,
-                data,
+                data: {
+                    ...data,
+                    additionalRows,
+                },
             })
         }
         handleClose()
@@ -84,6 +95,7 @@ const JSONTemplateDialog = (props: {
 
 export const Templates = (props: {
     setFilters: (filters: Filters) => void
+    setAdditionalRows: (f: AdditionalRows<Rows>) => void
 }) => {
     const templates = useTemplates()
     const inputs = useInputs()
@@ -98,10 +110,17 @@ export const Templates = (props: {
             return
         }
         props.setFilters(foundTemplate.filters)
+        const additionalRows = buildAdditionalRowsFromTemplate(
+            foundTemplate.additionalRows,
+        )
+        props.setAdditionalRows(additionalRows)
         setSelectedTemplate(foundTemplate)
         inputs.dispatcher({
             type: InputStateUpdate.TemplateSelect,
-            data: foundTemplate,
+            data: {
+                ...foundTemplate,
+                additionalRows,
+            },
         })
     }
 
@@ -142,6 +161,7 @@ export const Templates = (props: {
             <JSONTemplateDialog
                 open={[dialogOpen, setDialogOpen]}
                 setFilters={props.setFilters}
+                setAdditionalRows={props.setAdditionalRows}
             />
         </>
     )

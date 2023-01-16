@@ -12,7 +12,8 @@ import { Templates } from "./Templates"
 import { useTheme } from "@mui/material/styles"
 import { TabPanel, a11yProps } from "./Tabs/TabPanel"
 import ParamsTab from "./Tabs/ParamsTab"
-import { ActionType, reducer } from "./filters/reducer"
+import { ActionType, reducer } from "../utils/NestedKVStoreReducer"
+import { Rows } from "./AddRow"
 
 interface ResizableProps {
     top?: boolean
@@ -83,6 +84,7 @@ const Aside = () => {
     const [activeTab, setActiveTab] = useState(0)
 
     const [filters, dispatch] = useReducer(reducer, {})
+    const [addRows, addRowsDispatch] = useReducer(reducer, {})
 
     const handleActiveTabChange = (event: SyntheticEvent, newValue: number) => {
         setActiveTab(newValue)
@@ -99,6 +101,12 @@ const Aside = () => {
                                 filters: f,
                             })
                         }
+                        setAdditionalRows={({ rows }) =>
+                            addRowsDispatch({
+                                type: ActionType.Set,
+                                filters: rows,
+                            })
+                        }
                     />
                 </Suspense>
                 <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -112,7 +120,10 @@ const Aside = () => {
                     index={0}
                     sx={{ height: "100%", overflow: "auto" }}
                 >
-                    <AggregateTab filtersReducer={[filters, dispatch]} />
+                    <AggregateTab
+                        filtersReducer={[filters, dispatch]}
+                        addRowsReducer={[addRows as Rows, addRowsDispatch]}
+                    />
                 </TabPanel>
                 <TabPanel
                     value={activeTab}

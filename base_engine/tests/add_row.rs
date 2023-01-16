@@ -11,7 +11,7 @@ fn add_row() {
             ],
     "groupby": ["State"],
     "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]],
-    "add_row": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Balance": "10"}]        
+    "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Balance": "10"}] }    
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
@@ -35,7 +35,7 @@ fn add_row2() {
             ],
     "groupby": ["State"],
     "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]],
-    "add_row": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Age": "29"}]        
+    "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Age": "29"}]}     
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");

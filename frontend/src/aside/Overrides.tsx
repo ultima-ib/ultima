@@ -1,5 +1,5 @@
-import { Filters, FiltersProps } from "./filters"
-import { Filters as FiltersType, reducer } from "./filters/reducer"
+import { Filters, FiltersProps } from "./Filters"
+import { Filters as FiltersType, reducer } from "../utils/NestedKVStoreReducer"
 import Title from "./Title"
 import {
     Autocomplete,

@@ -592,3 +592,31 @@ fn commodity_delta() {
     }"#;
     assert_results(request, expected_res.sum(), None)
 }
+
+#[test]
+#[should_panic(expected = "RiskClass")]
+fn add_rows_missing_risk_class() {
+    let expected_res = arr1(&[
+        0.,
+    ]);
+    let request = r#"
+    {"measures": [
+        ["Commodity DeltaSens", "sum"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+    "add_row": {"prepare": true, "rows": [
+        {
+        "RiskCategory": "Test",
+        "RiskFactorType": "Test",
+        "BucketBCBS": "Test",
+        "CreditQuality": "Test",
+        "CoveredBondReducedWeight": "Test"}
+        ]},  
+
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "BCBS"}
+    }"#;
+    assert_results(request, expected_res.sum(), None)
+}
+

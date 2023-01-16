@@ -13,6 +13,7 @@ mod helpers;
 pub mod measures;
 pub mod prelude;
 mod risk_weights;
+mod validate;
 #[cfg(feature = "CRR2")]
 mod risk_weights_crr2;
 pub mod statics;
@@ -246,5 +247,11 @@ impl DataSet for FRTBDataSet {
     // CSR_nonSec CRR2 buckets
     // if csrnonsec_covered_bond_15 == true in build config then
     // If DRC validate CreditQuality
-    // fn validate(self) -> Self {}
+    fn validate_frame(&self, lf: Option<&LazyFrame>) -> PolarsResult<()>{
+        if let Some(lf) = lf {
+            validate::validate_frame(lf)
+        } else {
+            validate::validate_frame(self.get_lazyframe())
+        }
+    }
 }

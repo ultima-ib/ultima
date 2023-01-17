@@ -32,18 +32,35 @@ fn simple_fltr_grpby_sum() {
 #[cfg(feature = "cache")]
 #[test]
 fn simple_fltr_grpby_sum_with_cache() {
-    let req = r#"
+    use base_engine::execution_with_cache::get_cache_size;
+
+    // TODO: is this req is ok?
+    let raw_req = r#"
     {"measures": [
-        ["Balance", "sum"]
+        ["FX DeltaSens", "sum"],
+        ["FX DeltaSens Weighted", "sum"],
+        ["FX DeltaSb", "scalar"],
+        ["FX DeltaKb", "scalar"],
+        ["FX DeltaCharge Low", "scalar"],
+        ["FX DeltaCharge Medium", "scalar"],
+        ["FX DeltaCharge High", "scalar"],
+        ["FX DeltaCharge MAX", "scalar"]
             ],
-    "groupby": ["State"],
-    "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]]         
+    "groupby": ["Desk"],
+    "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+    "type": "AggregationRequest",
+    
+    "calc_params": {"jurisdiction": "BCBS"}
+            
     }"#;
-    let data_req =
-        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let a = (&*common::TEST_DASET).as_ref();
-    let res1 = execute_with_cache(&data_req, a, false).expect("Calculation failed");
-    let res2 = execute_with_cache(&data_req, a, false).expect("Calculation failed");
+
+    let req = serde_json::from_str::<AggregationRequest>(raw_req).expect("Could not parse request");
+    let dataset = (&*common::TEST_DASET).as_ref();
+    // TODO: find corect data for calculations
+    let res1 = execute_with_cache(&req, dataset, false).expect("Calculation failed");
+    assert_eq!(get_cache_size().unwrap(), 1);
+    let res2 = execute_with_cache(&req, dataset, false).expect("Calculation failed");
+    assert_eq!(get_cache_size().unwrap(), 1);
 
     let res_sum1 = res1
         .column("Balance_sum")
@@ -57,7 +74,6 @@ fn simple_fltr_grpby_sum_with_cache() {
         .sum::<f64>()
         .expect("Couldn't sum");
 
-    assert_eq!(res_sum1, 25.0);
     assert_eq!(res_sum2, 25.0);
     assert_eq!(res_sum1, res_sum2);
 }

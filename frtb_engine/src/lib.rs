@@ -13,10 +13,10 @@ mod helpers;
 pub mod measures;
 pub mod prelude;
 mod risk_weights;
-mod validate;
 #[cfg(feature = "CRR2")]
 mod risk_weights_crr2;
 pub mod statics;
+mod validate;
 
 //use crate::drc::drc_weights;
 use base_engine::polars::prelude::{when, AnyValue, LazyFrame, LiteralValue, NamedFrom, Series};
@@ -204,13 +204,6 @@ impl DataSet for FRTBDataSet {
         //    .expect("Failed to unwrap tmp_frame while .prepare()");
         //lf1 = tmp_frame.lazy()
         lf1 = lf1.with_columns(&[
-            when(
-                col("RiskClass")
-                    .eq(lit("GIRR"))
-                    .and(col("RiskCategory").eq(lit("Vega"))),
-            )
-            .then(col("GirrVegaUnderlyingMaturity").fill_null(col("RiskFactorType")))
-            .otherwise(NULL.lit()),
             drc_scalinng(
                 self.build_params
                     .get("DayCountConvention")
@@ -247,11 +240,17 @@ impl DataSet for FRTBDataSet {
     // CSR_nonSec CRR2 buckets
     // if csrnonsec_covered_bond_15 == true in build config then
     // If DRC validate CreditQuality
-    fn validate_frame(&self, lf: Option<&LazyFrame>) -> PolarsResult<()>{
+    fn validate_frame(&self, lf: Option<&LazyFrame>) -> PolarsResult<()> {
+        let csrnonsec_covered_bond_15 = self
+            .build_params
+            .get("csrnonsec_covered_bond_15")
+            .and_then(|s| s.parse::<bool>().ok())
+            .unwrap_or_else(|| false);
+
         if let Some(lf) = lf {
-            validate::validate_frame(lf)
+            validate::validate_frame(lf, csrnonsec_covered_bond_15)
         } else {
-            validate::validate_frame(self.get_lazyframe())
+            validate::validate_frame(self.get_lazyframe(), csrnonsec_covered_bond_15)
         }
     }
 }

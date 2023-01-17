@@ -139,6 +139,33 @@ impl DataSetWrapper {
 
         Ok(base_engine::prelude::fields_columns(schema))
     }
+    pub fn calc_params(&self) -> PyResult<Vec<HashMap<&str, Option<String>>>> {
+        let name = "name";
+        let hint = "hint";
+
+        let res = self
+            .dataset
+            .calc_params()
+            .iter()
+            .map(|calc_param| {
+                HashMap::from([
+                    (name, Some(calc_param.name.clone())),
+                    (hint, calc_param.type_hint.clone()),
+                ])
+            })
+            .collect::<Vec<HashMap<&str, Option<String>>>>();
+
+        Ok(res)
+    }
+
+    pub fn validate(&self) -> PyResult<()> {
+        let _ = self
+            .dataset
+            .validate_frame(None)
+            .map_err(errors::PyUltimaErr::Polars)?;
+
+        Ok(())
+    }
 }
 
 #[pyclass]
@@ -193,6 +220,22 @@ fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
     m.add_class::<AggregationRequestWrapper>()?;
     m.add_class::<DataSetWrapper>()?;
+
+    m.add("NotFoundError", _py.get_type::<OtherError>())
+        .unwrap();
+    m.add("ComputeError", _py.get_type::<OtherError>()).unwrap();
+    m.add("OtherError", _py.get_type::<OtherError>()).unwrap();
+    m.add("NoDataError", _py.get_type::<OtherError>()).unwrap();
+    m.add("ArrowErrorException", _py.get_type::<OtherError>())
+        .unwrap();
+    m.add("ShapeError", _py.get_type::<OtherError>()).unwrap();
+    m.add("SchemaError", _py.get_type::<OtherError>()).unwrap();
+    m.add("DuplicateError", _py.get_type::<OtherError>())
+        .unwrap();
+    m.add("InvalidOperationError", _py.get_type::<OtherError>())
+        .unwrap();
+    m.add("SerdeJsonError", _py.get_type::<OtherError>())
+        .unwrap();
     m.add("OtherError", _py.get_type::<OtherError>()).unwrap();
 
     Ok(())

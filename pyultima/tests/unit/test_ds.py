@@ -12,14 +12,21 @@ class TestCreation(unittest.TestCase):
 
         frame = dataset.frame()
 
+        dataset.validate()
+
+        dataset.prepare()
+
+        assert "jurisdiction" in [cp["name"] for cp in dataset.calc_params]
+        assert "FX Curvature KbMinus" in dataset.measures
         assert isinstance(frame, pl.DataFrame)
         assert "TradeId" in frame
-        assert "FX Curvature KbMinus" in dataset.measures
 
     def test_ds_from_frame(self) -> None:
         data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]}
         df = pl.DataFrame(data)
         ds = ul.DataSet.from_frame(df)
+        ds.validate()
+        ds.prepare()
 
         expected = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]})
         assert ds.frame().frame_equal(expected)

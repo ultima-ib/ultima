@@ -45,6 +45,14 @@ class DataSet:
         """
         self.measures: "dict[str, str | None]" = self._ds.measures()
 
+        """parameters which you can pass to the Request for the given DataSet
+
+        Returns:
+            list[dict[str, str|None]]: List of {"name": parameter name to be
+            passed to the request, "hint": type hint of the param}
+        """
+        self.calc_params: "list[dict[str, str|None]]" = self._ds.calc_params()
+
     @classmethod
     def from_config_path(cls: Type[DS], path: str) -> DS:
         """
@@ -100,8 +108,8 @@ class DataSet:
             raise OtherError("Calling prepare on an already prepared dataset")
 
     def validate(self) -> None:
-        """TODO: validate when FRTBDataSet validate is ready"""
-        pass
+        """Raises Error if a crucial column is missing"""
+        self._ds.validate()
 
     def frame(self) -> pl.DataFrame:
         vec_srs = self._ds.frame()

@@ -16,7 +16,7 @@ class TestCreation(unittest.TestCase):
 
         dataset.prepare()
 
-        assert "jurisdiction" in dataset.calc_params
+        assert "jurisdiction" in [cp["name"] for cp in dataset.calc_params]
         assert "FX Curvature KbMinus" in dataset.measures
         assert isinstance(frame, pl.DataFrame)
         assert "TradeId" in frame

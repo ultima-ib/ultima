@@ -6,7 +6,7 @@ import polars as pl
 
 import ultibi.internals as uli
 
-from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
+from ..rust_module.ultima_pyengine import DataSetWrapper
 
 # Create a generic variable that can be 'Parent', or any subclass.
 DS = TypeVar("DS", bound="DataSet")
@@ -16,13 +16,8 @@ class DataSet:
     """
     Main DataSet class
 
-    Holds data, calls prepare on Data, validates.
-
-    Raises:
-        OtherError: When trying to prepare a prepared dataset
-
-    Returns:
-        _type_: _description_
+    Holds data, optionally validates and prepares Data,
+     and finally executes request.
     """
 
     ds: DataSetWrapper
@@ -105,10 +100,15 @@ class DataSet:
             self._ds.prepare()
             self.prepared = True
         else:
-            raise OtherError("Calling prepare on an already prepared dataset")
+            raise uli.OtherError("Calling prepare on an already prepared dataset")
 
     def validate(self) -> None:
-        """Raises Error if a crucial column is missing"""
+        """Raises:
+           uli.NoDataError: Calling prepare on an already prepared dataset
+
+        Note: If you can guarantee your particular calculation would not require
+        the missing columns you can proceed at your own risk!
+        """
         self._ds.validate()
 
     def frame(self) -> pl.DataFrame:

@@ -32,6 +32,12 @@ class TestCreation(unittest.TestCase):
         assert ds.frame().frame_equal(expected)
         assert {"a", "b"}.issubset(ds.measures.keys())
 
+    def test_ds_validate(self) -> None:
+        data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]}
+        df = pl.DataFrame(data)
+        ds = ul.FRTBDataSet.from_frame(df)
+        self.assertRaises(ul.internals.NoDataError, ds.validate)
+
 
 if __name__ == "__main__":
     unittest.main()

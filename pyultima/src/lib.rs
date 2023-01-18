@@ -4,7 +4,10 @@ use base_engine::{
     read_toml2, AggregationRequest, DataFrame, DataSet, DataSetBase, DataSourceConfig, IntoLazy,
 };
 use conversion::{py_series_to_rust_series, rust_series_to_py_series};
-use errors::{OtherError, PyUltimaErr};
+use errors::{
+    ArrowErrorException, ComputeError, DuplicateError, InvalidOperationError, NoDataError,
+    NotFoundError, OtherError, PyUltimaErr, SchemaError, SerdeJsonError, ShapeError,
+};
 use frtb_engine::FRTBDataSet;
 use pyo3::{exceptions::*, prelude::*, types::PyType, PyTypeInfo};
 use std::sync::Arc;
@@ -221,22 +224,25 @@ fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<AggregationRequestWrapper>()?;
     m.add_class::<DataSetWrapper>()?;
 
-    m.add("NotFoundError", _py.get_type::<OtherError>())
+    m.add("NotFoundError", _py.get_type::<NotFoundError>())
         .unwrap();
-    m.add("ComputeError", _py.get_type::<OtherError>()).unwrap();
-    m.add("OtherError", _py.get_type::<OtherError>()).unwrap();
-    m.add("NoDataError", _py.get_type::<OtherError>()).unwrap();
-    m.add("ArrowErrorException", _py.get_type::<OtherError>())
-        .unwrap();
-    m.add("ShapeError", _py.get_type::<OtherError>()).unwrap();
-    m.add("SchemaError", _py.get_type::<OtherError>()).unwrap();
-    m.add("DuplicateError", _py.get_type::<OtherError>())
-        .unwrap();
-    m.add("InvalidOperationError", _py.get_type::<OtherError>())
-        .unwrap();
-    m.add("SerdeJsonError", _py.get_type::<OtherError>())
+    m.add("ComputeError", _py.get_type::<ComputeError>())
         .unwrap();
     m.add("OtherError", _py.get_type::<OtherError>()).unwrap();
+    m.add("NoDataError", _py.get_type::<NoDataError>()).unwrap();
+    m.add("ArrowErrorException", _py.get_type::<ArrowErrorException>())
+        .unwrap();
+    m.add("ShapeError", _py.get_type::<ShapeError>()).unwrap();
+    m.add("SchemaError", _py.get_type::<SchemaError>()).unwrap();
+    m.add("DuplicateError", _py.get_type::<DuplicateError>())
+        .unwrap();
+    m.add(
+        "InvalidOperationError",
+        _py.get_type::<InvalidOperationError>(),
+    )
+    .unwrap();
+    m.add("SerdeJsonError", _py.get_type::<SerdeJsonError>())
+        .unwrap();
 
     Ok(())
 }

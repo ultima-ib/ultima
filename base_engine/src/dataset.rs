@@ -109,7 +109,7 @@ pub trait DataSet: Send + Sync {
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
-    fn validate_frame(&self, _: Option<&LazyFrame>) -> PolarsResult<()> {
+    fn validate_frame(&self, _: Option<&LazyFrame>, _: ValidateSet) -> PolarsResult<()> {
         Ok(())
     }
 }
@@ -219,4 +219,9 @@ impl Serialize for dyn DataSet {
         seq.serialize_entry("calc_params", &calc_params)?;
         seq.end()
     }
+}
+
+pub enum ValidateSet {
+    ALL,
+    SUBSET1,
 }

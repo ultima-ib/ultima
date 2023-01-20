@@ -2,6 +2,7 @@ use base_engine::polars::prelude::Series;
 use base_engine::{
     self, derive_basic_measures_vec, derive_measure_map, execute_aggregation, numeric_columns,
     read_toml2, AggregationRequest, DataFrame, DataSet, DataSetBase, DataSourceConfig, IntoLazy,
+    ValidateSet,
 };
 use conversion::{py_series_to_rust_series, rust_series_to_py_series};
 use errors::{
@@ -164,7 +165,7 @@ impl DataSetWrapper {
     pub fn validate(&self) -> PyResult<()> {
         let _ = self
             .dataset
-            .validate_frame(None)
+            .validate_frame(None, ValidateSet::ALL)
             .map_err(errors::PyUltimaErr::Polars)?;
 
         Ok(())

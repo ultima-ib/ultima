@@ -594,7 +594,7 @@ fn commodity_delta() {
 }
 
 #[test]
-#[should_panic(expected = "BucketBCBS")]
+#[should_panic(expected = "RiskClass")]
 /// User sets prepare to true but doesn't provide all columns required by prepare
 fn add_rows_prepare_no_bucket() {
     let expected_res = arr1(&[0.]);

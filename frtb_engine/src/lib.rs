@@ -240,7 +240,7 @@ impl DataSet for FRTBDataSet {
     // CSR_nonSec CRR2 buckets
     // if csrnonsec_covered_bond_15 == true in build config then
     // If DRC validate CreditQuality
-    fn validate_frame(&self, lf: Option<&LazyFrame>) -> PolarsResult<()> {
+    fn validate_frame(&self, lf: Option<&LazyFrame>, v: ValidateSet) -> PolarsResult<()> {
         let csrnonsec_covered_bond_15 = self
             .build_params
             .get("csrnonsec_covered_bond_15")
@@ -248,9 +248,9 @@ impl DataSet for FRTBDataSet {
             .unwrap_or_else(|| false);
 
         if let Some(lf) = lf {
-            validate::validate_frame(lf, csrnonsec_covered_bond_15)
+            validate::validate_frame(lf, csrnonsec_covered_bond_15, v)
         } else {
-            validate::validate_frame(self.get_lazyframe(), csrnonsec_covered_bond_15)
+            validate::validate_frame(self.get_lazyframe(), csrnonsec_covered_bond_15, v)
         }
     }
 }

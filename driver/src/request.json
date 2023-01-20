@@ -2,14 +2,30 @@
     {
         "filters": [],
         "groupby": [
-            "RiskCategory"
+            "Group"
         ],
         "measures": [
-          [
-            "SBM Charge",
-            "scalar"
-          ]
+        ["Commodity DeltaCharge Low", "scalar"],
+        ["Commodity DeltaCharge Medium", "scalar"],
+        ["Commodity DeltaCharge High", "scalar"]
         ],
+        "add_row": {"prepare": true, "rows": [
+          {
+            "SensitivitySpot": "1000000",
+            "PnL_Up": "0",
+            "PnL_Down": "0",
+            "COB": "",
+            "MaturityDate": "",
+            "RiskClass": "Commodity",
+            "RiskFactor": "XAU",
+            "RiskCategory": "Delta",
+            "RiskFactorType": "",
+            "BucketBCBS": "7",
+            "BucketCRR2": "7",
+            "CreditQuality": "",
+            "CoveredBondReducedWeight": "",
+            "Group": "Ultima"}
+          ]},
         "overrides": [],
         "hide_zeros": true,
         "totals": false,
@@ -17,7 +33,8 @@
           "jurisdiction": "BCBS",
           "reporting_ccy": "USD",
           "drc_offset": "true",
-          "apply_fx_curv_div": "true"
+          "apply_fx_curv_div": "true",
+          "com_delta_gamma_low": "{\"v\": 1, \"dim\": [11, 11], \"data\": [0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 1.2, 0.0, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}"
         },
         "name": "Shared Content"
       }

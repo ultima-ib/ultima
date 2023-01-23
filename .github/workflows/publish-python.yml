@@ -3,6 +3,8 @@ name: Create Python release
 on:
   release:
     types: [published]
+    tags:
+        - py-*
 
 defaults:
   run:

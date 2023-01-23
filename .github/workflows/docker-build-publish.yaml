@@ -8,7 +8,7 @@ on:
   #    - completed
   push:
     tags:
-        - demo-*
+        - demo-* 
   
 env:
   AWS_REGION: eu-west-2

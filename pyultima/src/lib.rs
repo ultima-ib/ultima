@@ -11,6 +11,7 @@ use errors::{
 };
 use frtb_engine::FRTBDataSet;
 use pyo3::{exceptions::*, prelude::*, types::PyType, PyTypeInfo};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path};
 

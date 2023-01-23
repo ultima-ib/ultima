@@ -22,7 +22,7 @@ fn config_build() {
 #[should_panic(expected = "Couldn't build")]
 fn config_build2() {
     let path = String::from(env!("CARGO_MANIFEST_DIR"));
-    let conf_path = path + "/tests/data/test_config2.toml";
+    let conf_path = path + "/tests/data/bad_config2.toml";
     // TODO: test_config2.toml didn't exist
     let conf = read_toml2::<DataSourceConfig>(conf_path.as_str())
         .expect("Can not proceed without valid Data Set Up");

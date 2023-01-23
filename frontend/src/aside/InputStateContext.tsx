@@ -1,9 +1,16 @@
 import { createContext, useContext } from "react"
-import { DataSet, Filter, Filter as FilterType, Override } from "./types"
+import {
+    AdditionalRows,
+    DataSet,
+    Filter,
+    Filter as FilterType,
+    Override,
+} from "./types"
 import type { Template } from "../api/types"
-import { Filters } from "./filters/reducer"
+import { Filters } from "../utils/NestedKVStoreReducer"
 import { GenerateTableDataRequest } from "../api/types"
-import { mapFilters } from "../utils"
+import { mapFilters, mapRows } from "../utils"
+import { Rows } from "./AddRow"
 
 export enum InputStateUpdate {
     // eslint-disable-next-line
@@ -16,9 +23,15 @@ export enum InputStateUpdate {
     Overrides,
     TemplateSelect,
     CalcParamUpdate,
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    AdditionalRows,
+    PrepareAdditionalRows,
 }
 
-type Data = Partial<Omit<InputStateContext, "dispatcher">>
+type Data = Partial<Omit<InputStateContext, "dispatcher">> & {
+    rows?: InputStateContext["additionalRows"]["rows"]
+    prepare?: boolean
+}
 
 export function inputStateReducer(
     state: InputStateContext,
@@ -69,7 +82,8 @@ export function inputStateReducer(
             break
         }
         case InputStateUpdate.TemplateSelect: {
-            const data = action.data as Template
+            const data = action.data as unknown as Template
+
             const dataSet = {
                 ...state.dataSet,
                 groupby: data.groupby,
@@ -87,6 +101,7 @@ export function inputStateReducer(
                 })
                 return build
             }
+
             data.overrides.map((override) => ({
                 value: override.value,
                 field: override.field,
@@ -112,6 +127,25 @@ export function inputStateReducer(
             update = {
                 calcParams: action.data.calcParams,
             }
+            break
+        }
+        case InputStateUpdate.AdditionalRows: {
+            update = {
+                additionalRows: {
+                    prepare: state.additionalRows.prepare,
+                    rows: action.data.rows!,
+                },
+            }
+            break
+        }
+        case InputStateUpdate.PrepareAdditionalRows: {
+            update = {
+                additionalRows: {
+                    prepare: action.data.prepare!,
+                    rows: state.additionalRows.rows,
+                },
+            }
+            break
         }
     }
     return {
@@ -146,6 +180,7 @@ export interface InputStateContext {
     hideZeros: boolean
     totals: boolean
     calcParams: Record<string, string>
+    additionalRows: AdditionalRows<Rows>
     dispatcher: (params: { type: InputStateUpdate; data: Data }) => void
 }
 
@@ -182,5 +217,9 @@ export const buildRequest = (
         hide_zeros: context.hideZeros,
         totals: context.totals,
         calc_params: context.calcParams,
+        additionalRows: {
+            prepare: context.additionalRows.prepare,
+            rows: mapRows(context.additionalRows.rows),
+        },
     }
 }

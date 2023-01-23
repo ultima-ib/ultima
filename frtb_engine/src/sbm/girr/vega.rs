@@ -141,11 +141,15 @@ fn girr_vega_charge(
                 "y5" =>   &columns[7],
                 "y10" =>  &columns[8],
                 "weight"=>&columns[9],
+                "rft"   =>&columns[10],
             ]?;
 
             let df = df
                 .lazy()
                 .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Vega"))))
+                // Fill null in case user provided empty underlying maturity for
+                // Inflation and XCCY
+                .with_column(col("um").fill_null(col("rft")))
                 .groupby([col("b"), col("um")])
                 .agg([
                     (col("y05") * col("weight")).sum(),
@@ -206,6 +210,7 @@ fn girr_vega_charge(
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
             col("SensWeights").arr().get(lit(0)),
+            col("RiskFactorType"),
         ],
         GetOutput::from_type(DataType::Float64),
         true,

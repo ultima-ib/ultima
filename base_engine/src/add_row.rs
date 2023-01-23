@@ -3,9 +3,20 @@ use std::sync::Arc;
 
 use polars::functions::diag_concat_df;
 use polars::prelude::{row::Row, AnyValue, DataFrame, Field, PolarsResult, Schema};
+use serde::{Deserialize, Serialize};
 
 use crate::overrides::string_to_any;
 
+/// wrapper for Additional Rows used in [AggregationRequest]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+pub struct AdditionalRows {
+    /// Flag to indicate if .prepare() should be called or not
+    /// eg Assign Weights or not?
+    /// If Assign Weights than make sure alll the required columns are present
+    pub prepare: bool,
+    /// new rows {colName: colValue}
+    pub rows: Vec<BTreeMap<String, String>>,
+}
 /// Convers HashMap into a Frame of particular Schema
 /// Filters out any columns not in current schema
 pub(crate) fn map_to_row_schema(

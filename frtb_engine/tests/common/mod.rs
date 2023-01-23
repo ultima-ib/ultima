@@ -1,8 +1,9 @@
 use once_cell::sync::Lazy;
 use polars::prelude::*;
 
-use base_engine::prelude::{
-    execute_aggregation, read_toml2, AggregationRequest, DataSet, DataSourceConfig,
+use base_engine::{
+    prelude::{execute_aggregation, read_toml2, AggregationRequest, DataSet, DataSourceConfig},
+    ValidateSet,
 };
 use frtb_engine::prelude::FRTBDataSet;
 
@@ -11,7 +12,9 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf = read_toml2::<DataSourceConfig>(conf_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     let mut data: FRTBDataSet = DataSet::from_config(conf);
-    data = data.prepare().unwrap();
+    data.validate_frame(None, ValidateSet::ALL)
+        .expect("failed to validate");
+    data = data.prepare().expect("Failed to prepare");
     Arc::new(data)
 });
 

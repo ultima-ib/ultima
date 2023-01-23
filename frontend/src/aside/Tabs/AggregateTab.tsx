@@ -2,23 +2,28 @@ import { AsideList } from "../List"
 import { Suspense, SyntheticEvent, useState } from "react"
 import Agg from "../AggTypes"
 import Accordion from "../Accordion"
-import { Filters } from "../filters"
-import { Box, Stack } from "@mui/material"
+import { Filters } from "../Filters"
+import { AddRows, Rows } from "../AddRow"
+import { Box, Checkbox, FormControlLabel, Stack } from "@mui/material"
 import { InputStateUpdate, useInputs } from "../InputStateContext"
 import { Overrides } from "../Overrides"
 import {
     Filters as FiltersType,
-    FiltersReducerDispatch,
-} from "../filters/reducer"
+    ReducerDispatch,
+} from "../../utils/NestedKVStoreReducer"
 
 const AggregateTab = ({
     filtersReducer,
+    addRowsReducer,
 }: {
-    filtersReducer: [FiltersType, FiltersReducerDispatch]
+    filtersReducer: [FiltersType, ReducerDispatch]
+    addRowsReducer: [Rows, ReducerDispatch]
 }) => {
     const inputs = useInputs()
 
     const [filtersAccordionExpanded, setFiltersAccordionExpanded] =
+        useState(false)
+    const [addRowsAccordionExpanded, setAddRowsAccordionExpanded] =
         useState(false)
 
     return (
@@ -57,6 +62,40 @@ const AggregateTab = ({
                         inputs.dispatcher({
                             type: InputStateUpdate.Filters,
                             data: { filters },
+                        })
+                    }}
+                />
+            </Accordion>
+            <Accordion
+                expanded={addRowsAccordionExpanded}
+                title="Add rows"
+                onChange={(event: SyntheticEvent, isExpanded: boolean) => {
+                    setAddRowsAccordionExpanded(isExpanded)
+                }}
+            >
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={inputs.additionalRows.prepare}
+                            onChange={(e) => {
+                                inputs.dispatcher({
+                                    type: InputStateUpdate.PrepareAdditionalRows,
+                                    data: {
+                                        prepare: e.target.checked,
+                                    },
+                                })
+                            }}
+                        />
+                    }
+                    label="Prepare"
+                />
+                <AddRows
+                    component={Box}
+                    reducer={addRowsReducer}
+                    onChange={(rows) => {
+                        inputs.dispatcher({
+                            type: InputStateUpdate.AdditionalRows,
+                            data: { rows },
                         })
                     }}
                 />

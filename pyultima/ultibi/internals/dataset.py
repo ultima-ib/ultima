@@ -6,7 +6,7 @@ import polars as pl
 
 import ultibi.internals as uli
 
-from ..rust_module.ultima_pyengine import DataSetWrapper, OtherError
+from ..rust_module.ultima_pyengine import DataSetWrapper
 
 # Create a generic variable that can be 'Parent', or any subclass.
 DS = TypeVar("DS", bound="DataSet")
@@ -16,13 +16,8 @@ class DataSet:
     """
     Main DataSet class
 
-    Holds data, calls prepare on Data, validates.
-
-    Raises:
-        OtherError: When trying to prepare a prepared dataset
-
-    Returns:
-        _type_: _description_
+    Holds data, optionally validates and prepares Data,
+     and finally executes request.
     """
 
     ds: DataSetWrapper
@@ -44,6 +39,14 @@ class DataSet:
              operations
         """
         self.measures: "dict[str, str | None]" = self._ds.measures()
+
+        """parameters which you can pass to the Request for the given DataSet
+
+        Returns:
+            list[dict[str, str|None]]: List of {"name": parameter name to be
+            passed to the request, "hint": type hint of the param}
+        """
+        self.calc_params: "list[dict[str, str|None]]" = self._ds.calc_params()
 
     @classmethod
     def from_config_path(cls: Type[DS], path: str) -> DS:
@@ -97,11 +100,16 @@ class DataSet:
             self._ds.prepare()
             self.prepared = True
         else:
-            raise OtherError("Calling prepare on an already prepared dataset")
+            raise uli.OtherError("Calling prepare on an already prepared dataset")
 
     def validate(self) -> None:
-        """TODO: validate when FRTBDataSet validate is ready"""
-        pass
+        """Raises:
+           uli.NoDataError: Calling prepare on an already prepared dataset
+
+        Note: If you can guarantee your particular calculation would not require
+        the missing columns you can proceed at your own risk!
+        """
+        self._ds.validate()
 
     def frame(self) -> pl.DataFrame:
         vec_srs = self._ds.frame()

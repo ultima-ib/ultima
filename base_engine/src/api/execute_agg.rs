@@ -8,7 +8,7 @@ pub use polars::{
 
 use crate::{
     add_row::df_from_maps_and_schema, filters::fltr_chain, helpers::diag_concat_lf,
-    measure_builder, AggregationRequest, DataSet,
+    measure_builder, AggregationRequest, DataSet, ValidateSet,
 };
 
 /// main function which returns a Result of the calculation
@@ -84,12 +84,16 @@ pub fn execute_aggregation<DS: DataSet + ?Sized>(
     }
 
     // Step 2.5 Add Row
-    if !req.add_row.is_empty() {
+    if !req.add_row.rows.is_empty() {
         let current_schema = f1.schema()?;
-        let extra_frame = dbg!(df_from_maps_and_schema(&req.add_row, current_schema)?).lazy();
-        let extra_prepared_frame = data.prepare_frame(Some(extra_frame))?;
-        f1 = diag_concat_lf([f1, extra_prepared_frame], true, true)?;
-        //dbg!(f1.clone().collect());
+        let mut extra_frame = df_from_maps_and_schema(&req.add_row.rows, current_schema)?.lazy();
+
+        if req.add_row.prepare {
+            // Validating only a subset required for prepare()
+            data.validate_frame(Some(&extra_frame), ValidateSet::SUBSET1)?;
+            extra_frame = data.prepare_frame(Some(extra_frame))?;
+        }
+        f1 = diag_concat_lf([f1, extra_frame], true, true)?;
     }
 
     //dbg!(f1.clone().select([col("TradeId"), col("RiskClass"), col("RiskFactor"),col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());

@@ -592,3 +592,81 @@ fn commodity_delta() {
     }"#;
     assert_results(request, expected_res.sum(), None)
 }
+
+#[test]
+#[should_panic(expected = "RiskClass")]
+/// User sets prepare to true but doesn't provide all columns required by prepare
+fn add_rows_prepare_no_bucket() {
+    let expected_res = arr1(&[0.]);
+    let request = r#"
+    {"measures": [
+        ["Commodity DeltaSens", "sum"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+    "add_row": {"prepare": true, "rows": [
+        {
+            "SensitivitySpot": "1000000"}
+        ]},  
+
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "BCBS"}
+    }"#;
+    assert_results(request, expected_res.sum(), None)
+}
+
+#[test]
+/// User sets prepare to true but none of the required columns matches weights assignments
+fn add_rows_nothing_to_math_prepare() {
+    let expected_res = arr1(&[-250.0]);
+    let request = r#"
+    {"measures": [
+        ["Commodity DeltaSens", "sum"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+    "add_row": {"prepare": true, "rows": [
+        {
+            "SensitivitySpot": "1000000",
+            "PnL_Up": "0",
+            "PnL_Down": "0",
+            "COB": "Test",
+            "MaturityDate": "Test",
+            "RiskClass": "Test",
+            "RiskFactor": "Test",
+            "RiskCategory": "Test",
+            "RiskFactorType": "Test",
+            "BucketBCBS": "Test",
+            "BucketCRR2": "Test",
+            "CreditQuality": "Test",
+            "CoveredBondReducedWeight": "Test"}
+        ]},  
+
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "BCBS"}
+    }"#;
+    assert_results(request, expected_res.sum(), None)
+}
+
+#[test]
+#[should_panic(expected = "could not be parsed")]
+/// PnL_Up must be a number
+fn add_rows_bad_format() {
+    let expected_res = arr1(&[0.]);
+    let request = r#"
+    {"measures": [
+        ["Commodity DeltaSens", "sum"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+    "add_row": {"prepare": true, "rows": [
+        {
+            "SensitivitySpot": "1000000",
+            "PnL_Up": "Test"}
+        ]},  
+
+    "hide_zeros":true,
+    "calc_params": {"jurisdiction": "BCBS"}
+    }"#;
+    assert_results(request, expected_res.sum(), None)
+}

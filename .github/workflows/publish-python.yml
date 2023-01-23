@@ -1,8 +1,12 @@
 name: Create Python release
 
+#on:
+#  release:
+#    types: [published]
+
 on:
-  release:
-    types: [published]
+  push:
+      tags: ['py*.*.*'] 
 
 defaults:
   run:
@@ -26,7 +30,7 @@ jobs:
           rust-toolchain: nightly-2022-12-20
           maturin-version: '0.14.10'
           command: publish
-          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing -o wheels -u anatoly.bugakov
+          args: -m pyultima/Cargo.toml  --all-features --skip-existing -o wheels -u anatoly.bugakov
 
   # Needed for Docker on Apple M1
   manylinux-aarch64:
@@ -47,7 +51,7 @@ jobs:
           target: aarch64-unknown-linux-gnu
           maturin-version: '0.14.10'
           command: publish
-          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing --no-sdist -o wheels -i python -u anatoly.bugakov
+          args: -m pyultima/Cargo.toml  --all-features --skip-existing --no-sdist -o wheels -i python -u anatoly.bugakov
 
   manylinux-bigidx:
     runs-on: ubuntu-latest
@@ -66,7 +70,7 @@ jobs:
           rust-toolchain: nightly-2022-12-20
           maturin-version: '0.14.10'
           command: publish
-          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing -o wheels -u anatoly.bugakov
+          args: -m pyultima/Cargo.toml  --all-features --skip-existing -o wheels -u anatoly.bugakov
 
   manylinux-x64_64-lts-cpu:
     runs-on: ubuntu-latest
@@ -88,7 +92,7 @@ jobs:
           rust-toolchain: nightly-2022-12-20
           maturin-version: '0.14.10'
           command: publish
-          args: -m pyultima/Cargo.toml -r=testpypi --skip-existing -o wheels -u anatoly.bugakov
+          args: -m pyultima/Cargo.toml  --all-features --skip-existing -o wheels -u anatoly.bugakov
 
   win-macos:
     runs-on: ${{ matrix.os }}
@@ -112,7 +116,7 @@ jobs:
           rust-toolchain: nightly-2022-12-20
           maturin-version: '0.14.10'
           command: publish
-          args: -m pyultima/Cargo.toml -r=testpypi --no-sdist --skip-existing -o wheels -i python -u anatoly.bugakov
+          args: -m pyultima/Cargo.toml  --all-features --no-sdist --skip-existing -o wheels -i python -u anatoly.bugakov
 
   macos-aarch64:
     runs-on: macos-latest
@@ -137,4 +141,4 @@ jobs:
         with:
           maturin-version: '0.14.10'
           command: publish
-          args: -m pyultima/Cargo.toml -r=testpypi --target aarch64-apple-darwin --no-sdist -o wheels -i python -u anatoly.bugakov
+          args: -m pyultima/Cargo.toml  --all-features --target aarch64-apple-darwin --no-sdist -o wheels -i python -u anatoly.bugakov

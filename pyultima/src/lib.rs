@@ -2,9 +2,13 @@ use base_engine::polars::prelude::Series;
 use base_engine::{
     self, derive_basic_measures_vec, derive_measure_map, execute_aggregation, numeric_columns,
     read_toml2, AggregationRequest, DataFrame, DataSet, DataSetBase, DataSourceConfig, IntoLazy,
+    ValidateSet,
 };
 use conversion::{py_series_to_rust_series, rust_series_to_py_series};
-use errors::{OtherError, PyUltimaErr};
+use errors::{
+    ArrowErrorException, ComputeError, DuplicateError, InvalidOperationError, NoDataError,
+    NotFoundError, OtherError, PyUltimaErr, SchemaError, SerdeJsonError, ShapeError,
+};
 use frtb_engine::FRTBDataSet;
 use pyo3::{exceptions::*, prelude::*, types::PyType, PyTypeInfo};
 use std::sync::Arc;
@@ -139,6 +143,33 @@ impl DataSetWrapper {
 
         Ok(base_engine::prelude::fields_columns(schema))
     }
+    pub fn calc_params(&self) -> PyResult<Vec<HashMap<&str, Option<String>>>> {
+        let name = "name";
+        let hint = "hint";
+
+        let res = self
+            .dataset
+            .calc_params()
+            .iter()
+            .map(|calc_param| {
+                HashMap::from([
+                    (name, Some(calc_param.name.clone())),
+                    (hint, calc_param.type_hint.clone()),
+                ])
+            })
+            .collect::<Vec<HashMap<&str, Option<String>>>>();
+
+        Ok(res)
+    }
+
+    pub fn validate(&self) -> PyResult<()> {
+        let _ = self
+            .dataset
+            .validate_frame(None, ValidateSet::ALL)
+            .map_err(errors::PyUltimaErr::Polars)?;
+
+        Ok(())
+    }
 }
 
 #[pyclass]
@@ -193,7 +224,26 @@ fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
     m.add_class::<AggregationRequestWrapper>()?;
     m.add_class::<DataSetWrapper>()?;
+
+    m.add("NotFoundError", _py.get_type::<NotFoundError>())
+        .unwrap();
+    m.add("ComputeError", _py.get_type::<ComputeError>())
+        .unwrap();
     m.add("OtherError", _py.get_type::<OtherError>()).unwrap();
+    m.add("NoDataError", _py.get_type::<NoDataError>()).unwrap();
+    m.add("ArrowErrorException", _py.get_type::<ArrowErrorException>())
+        .unwrap();
+    m.add("ShapeError", _py.get_type::<ShapeError>()).unwrap();
+    m.add("SchemaError", _py.get_type::<SchemaError>()).unwrap();
+    m.add("DuplicateError", _py.get_type::<DuplicateError>())
+        .unwrap();
+    m.add(
+        "InvalidOperationError",
+        _py.get_type::<InvalidOperationError>(),
+    )
+    .unwrap();
+    m.add("SerdeJsonError", _py.get_type::<SerdeJsonError>())
+        .unwrap();
 
     Ok(())
 }

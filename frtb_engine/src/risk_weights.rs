@@ -5,9 +5,9 @@
 use crate::drc::drc_weights;
 use base_engine::helpers::diag_concat_lf;
 use base_engine::polars::prelude::{
-    col, concat_lst, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput, IntoLazy,
-    IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader, Series,
-    Utf8NameSpaceImpl,
+    col, concat_lst, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
+    IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
+    Series, Utf8NameSpaceImpl,
 };
 use once_cell::sync::OnceCell;
 use std::collections::BTreeMap;
@@ -498,11 +498,6 @@ pub fn weights_assign(
         })
         .clone();
 
-    // TODO from file
-    //DRC_SECNONCTP_RW
-
-    //let drc_secnonctp_weights: LazyFrame = drc_weights::_drc_secnonctp_weights_frame();
-
     let drc_secnonctp_weights: LazyFrame = DRC_SECNONCTP_RW
         .get_or_init(|| {
             build_params
@@ -545,7 +540,14 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         join_on,
         JoinType::Left,
     );
-    lf1 = lf1.rename(["Weights"], ["SensWeights"]);
+    // tmp workaround, since .rename() panics
+    // TODO remove
+    // Adding here to check if weights were assigned, if not - create a dummy column
+    if !lf1.schema()?.iter_names().any(|col| col == "Weights") {
+        lf1 = lf1.with_column(lit(0.).list().alias("SensWeights"))
+    } else {
+        lf1 = lf1.rename(["Weights"], ["SensWeights"])
+    }
 
     let join_on = [col("RiskClass"), col("RiskCategory"), col("BucketBCBS")];
     lf1 = lf1.join(

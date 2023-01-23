@@ -7,10 +7,10 @@ on:
   #  types:
   #    - completed
   on:
-  release:
-    types: [published]
-    tags:
-        - demo-*
+    release:
+      types: [published]
+      tags:
+          - demo-*
   
 env:
   AWS_REGION: eu-west-2

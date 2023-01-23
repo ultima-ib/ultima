@@ -7,8 +7,7 @@ on:
   #  types:
   #    - completed
   push:
-    tags:
-        - demo-*
+    tags: ['demo*.*.*'] 
   
 env:
   AWS_REGION: eu-west-2

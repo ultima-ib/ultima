@@ -50,8 +50,13 @@ fn measure_builder(
                     api::aggregations::BASE_CALCS.keys()).into()))
             };
 
+            let params: Vec<Option<String>> = m.calc_params
+                .iter()
+                .map(|param|op.get(param).and_then(|value|Some(value.clone())))
+                .collect();
+
             // apply action
-            let (calculator, name) = act((m.calculator)(op), requested_measure);
+            let (calculator, name) = act((m.calculator)(params), requested_measure);
 
             Ok(
                 ProcessedMeasure {

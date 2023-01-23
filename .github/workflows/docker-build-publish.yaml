@@ -1,13 +1,16 @@
 name: Docker Build Publish
 
 on:
-  workflow_run:
-  # TODO need to check Test Python also, but currently cannot because of:
-  # https://github.com/community/community/discussions/16059
-    workflows: [Rust Frontend Lint Test]
-    branches: [master]
-    types:
-      - completed
+  #workflow_run:
+  #  workflows: [Rust Frontend Lint Test]
+  #  branches: [master]
+  #  types:
+  #    - completed
+  on:
+  release:
+    types: [published]
+    tags:
+        - demo-*
   
 env:
   AWS_REGION: eu-west-2

@@ -6,8 +6,7 @@ on:
   #  branches: [master]
   #  types:
   #    - completed
-  release:
-    types: [published]
+  push:
     tags:
         - demo-*
   

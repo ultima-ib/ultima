@@ -109,8 +109,7 @@ pub(crate) fn string_to_any<'a>(
     column_name: &str,
 ) -> PolarsResult<AnyValue<'a>> {
     let emsg = format!(
-        "Argument {} could not be parsed into column {} format. Argument should be a {}",
-        value, column_name, dt
+        "Argument {value} could not be parsed into column {column_name} format. Argument should be a {dt}",
     );
 
     match dt {
@@ -138,11 +137,7 @@ pub(crate) fn string_to_any<'a>(
         DataType::Utf8 => Ok(AnyValue::Utf8(value)),
 
         _ => Err(PolarsError::ComputeError(
-            format!(
-                "Column {} of this format cannot be overwritten",
-                column_name
-            )
-            .into(),
+            format!("Column {column_name} of this format cannot be overwritten",).into(),
         )),
     }
 }

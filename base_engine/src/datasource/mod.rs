@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, path::PathBuf};
 
 //use log::error;
 #[cfg(feature = "aws_s3")]
@@ -194,6 +194,28 @@ impl DataSourceConfig {
                     build_params,
                 )
             }
+        }
+    }
+
+    /// Checks relative path, if file not exists then tries to find file by abs path.
+    /// Panics if failed.
+    pub fn change_path_on_abs_if_not_exist(&mut self, path_to_file_location: &str) {
+        match self {
+            DataSourceConfig::CSV { file_paths, .. } => {
+                file_paths.iter_mut().for_each(|path_str| {
+                    if !PathBuf::from(&path_str).exists() {
+                        let mut new_path_str = String::from(path_to_file_location);
+                        new_path_str.push_str(path_str);
+                        std::mem::swap(path_str, &mut new_path_str);
+
+                        if !PathBuf::from(&path_str).exists() {
+                            panic!("Nonxisted path: {path_str}");
+                        }
+                    }
+                });
+            }
+            #[cfg(feature = "aws_s3")]
+            _ => panic!("Only allowed for CSV data source"),
         }
     }
 }

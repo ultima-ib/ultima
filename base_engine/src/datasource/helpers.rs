@@ -32,10 +32,6 @@ pub fn path_to_lf(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
 
     let schema = Schema::from_iter(vc);
 
-    //Use abs path
-    //let proj_path = String::from(env!("CARGO_MANIFEST_DIR"));
-    //let path = proj_path + path;
-
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
     let lf = LazyCsvReader::new(path)
@@ -87,7 +83,7 @@ pub fn finish(
         // Checking if each measure is present in DF
         measures.iter().for_each(|col| {
             if !fields.contains(col) {
-                panic!("Measure: {}, is not part of the fields: {:?}", col, fields)
+                panic!("Measure: {col}, is not part of the fields: {fields:?}",)
             }
         });
         derive_basic_measures_vec(measures)

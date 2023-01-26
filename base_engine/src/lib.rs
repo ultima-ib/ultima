@@ -22,7 +22,7 @@ pub use crate::prelude::*;
 /// then we override requested measure.
 ///
 /// by mapping requested String to a map of all availiable measures
-fn measure_builder(
+fn base_measure_lookup(
     requested_measures: &[(String, String)],
     all_availiable_measures: &MeasuresMap,
     op: &OCP,
@@ -31,7 +31,7 @@ fn measure_builder(
         .map(|(requested_measure, requested_action)| {
 
             // Lookup requested measure from all_availiable_measures by name
-            let Some(m) = all_availiable_measures.get(requested_measure as &str) else {
+            let Some(Measure::Base(m)) = all_availiable_measures.get(requested_measure as &str) else {
                 return Err(PolarsError::ComputeError(format!("No measure {requested_measure} exists for the dataset. Availiable measures are: {:?}",
                     all_availiable_measures.keys()).into()))
             };
@@ -52,7 +52,7 @@ fn measure_builder(
 
             let params: Vec<Option<String>> = m.calc_params
                 .iter()
-                .map(|param|op.get(param).and_then(|value|Some(value.clone())))
+                .map(|param|op.get(param).cloned())
                 .collect();
 
             // apply action
@@ -80,4 +80,6 @@ struct ProcessedMeasure {
     pub name: String,
     pub calculator: Expr,
     pub precomputefilter: Option<Expr>,
+    // TODO: potentially use as key for cache + ID for dataset
 }
+

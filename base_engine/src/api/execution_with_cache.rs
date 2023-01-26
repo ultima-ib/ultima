@@ -86,7 +86,7 @@ pub fn execute_with_cache<DS: DataSet + ?Sized>(
     // TODO: join cached_results
 
     // unimplemented!()
-    return Err(PolarsError::NoData("WIP".into()));
+    Err(PolarsError::NoData("WIP".into()))
 }
 
 pub fn get_cache_size() -> Option<usize> {

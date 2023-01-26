@@ -31,8 +31,7 @@ pub struct AggregationRequest {
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
     pub measures: Vec<(String, String)>,
-    pub groupby: Vec<String>,
-    #[serde(default)]
+○    #[serde(default)]
     pub filters: AndOrFltrChain,
     #[serde(default)]
     pub overrides: Vec<Override>,

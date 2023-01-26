@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
+use crate::{DataSourceConfig, MeasuresMap};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -27,6 +27,9 @@ pub struct CalcParameter {
     pub type_hint: Option<String>,
 }
 
+struct DtaSetInfo{
+    
+}
 /// The main Trait
 ///
 /// If you have your own DataSet, implement this
@@ -52,7 +55,7 @@ pub trait DataSet: Send + Sync {
         Self: Sized,
     {
         let (frame, measure_cols, build_params) = conf.build();
-        let mm: MeasuresMap = derive_measure_map(measure_cols);
+        let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
         Self::new(frame, mm, build_params)
     }
 
@@ -201,7 +204,7 @@ impl Serialize for dyn DataSet {
         let measures = self
             .get_measures()
             .iter()
-            .map(|(x, m)| (x, m.aggregation))
+            .map(|(x, m)| (x, *m.aggregation()))
             .collect::<BTreeMap<&String, Option<&str>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();

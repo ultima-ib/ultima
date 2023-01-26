@@ -8,7 +8,7 @@ pub use polars::{
 
 use crate::{
     add_row::df_from_maps_and_schema, filters::fltr_chain, helpers::diag_concat_lf,
-    measure_builder, AggregationRequest, DataSet, ValidateSet,
+    base_measure_lookup, AggregationRequest, DataSet, ValidateSet,
 };
 
 /// main function which returns a Result of the calculation
@@ -40,7 +40,7 @@ pub fn execute_aggregation<DS: DataSet + ?Sized>(
     let op = req.calc_params();
 
     let measure_map = data.get_measures();
-    let prepared_measures = measure_builder(m, measure_map, op)?;
+    let prepared_measures = base_measure_lookup(m, measure_map, op)?;
 
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
     let (newnames, (aggregateions, fltrs)): (Vec<String>, (Vec<Expr>, Vec<Option<Expr>>)) =

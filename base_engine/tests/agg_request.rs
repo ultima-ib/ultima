@@ -18,7 +18,7 @@ fn simple_fltr_grpby_sum() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let a = (&*common::TEST_DASET).as_ref();
+    let a = (*common::TEST_DASET).as_ref();
     let res = execute_aggregation(&data_req, a, false).expect("Calculation failed");
 
     let res_sum = res
@@ -55,7 +55,7 @@ fn simple_fltr_grpby_sum_with_cache() {
     }"#;
 
     let req = serde_json::from_str::<AggregationRequest>(raw_req).expect("Could not parse request");
-    let dataset = (&*common::TEST_DASET).as_ref();
+    let dataset = (*common::TEST_DASET).as_ref();
     // TODO: find corect data for calculations
     let res1 = execute_with_cache(&req, dataset, false).expect("Calculation failed");
     assert_eq!(get_cache_size().unwrap(), 1);

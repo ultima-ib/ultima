@@ -1,53 +1,53 @@
 use crate::{prelude::*, sbm::equity::vega::equity_vega_charge};
 use base_engine::polars::prelude::max_exprs;
 
-pub fn total_csr_sec_nonctp_vega_sens(_: &OCP) -> Expr {
+pub fn total_csr_sec_nonctp_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     rc_rcat_sens("Vega", "CSR_Sec_nonCTP", total_vega_curv_sens())
 }
 
-pub fn total_csr_sec_nonctp_vega_sens_weighted(op: &OCP) -> Expr {
+pub fn total_csr_sec_nonctp_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
     total_csr_sec_nonctp_vega_sens(op) * col("SensWeights").arr().get(lit(0))
 }
 ///Interm Result
-pub(crate) fn csr_sec_nonctp_vega_sb(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_nonctp_vega_sb(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_nonctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
-pub(crate) fn csr_sec_nonctp_vega_kb_low(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_nonctp_vega_kb_low(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_nonctp_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Sec nonCTP Vega Low Capital charge
-pub(crate) fn csr_sec_nonctp_vega_charge_low(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_nonctp_vega_charge_low(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_nonctp_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
-pub(crate) fn csr_sec_nonctp_vega_kb_medium(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_nonctp_vega_kb_medium(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_nonctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Sec nonCTP Vega Low Capital charge
-pub(crate) fn csr_sec_nonctp_vega_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_nonctp_vega_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_nonctp_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
-pub(crate) fn csr_sec_nonctp_vega_kb_high(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_nonctp_vega_kb_high(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_nonctp_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Sec nonCTP Vega Low Capital charge
-pub(crate) fn csr_sec_nonctp_vega_charge_high(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_nonctp_vega_charge_high(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_nonctp_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn csr_sec_nonctp_vega_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
+) -> PolarsResult<Expr> {
     let _suffix = scenario.as_str();
     //TODO check
     let csr_sec_nonctp_gamma = get_optional_parameter_array(
@@ -81,7 +81,7 @@ fn csr_sec_nonctp_vega_charge_distributor(
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn csrsecnonctp_vega_max(op: &OCP) -> Expr {
+fn csrsecnonctp_vega_max(op: &CPM) -> PolarsResult<Expr> {
     max_exprs(&[
         csr_sec_nonctp_vega_charge_low(op),
         csr_sec_nonctp_vega_charge_medium(op),
@@ -92,7 +92,7 @@ fn csrsecnonctp_vega_max(op: &OCP) -> Expr {
 /// Exporting Measures
 pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaSens".to_string(),
             calculator: Box::new(total_csr_sec_nonctp_vega_sens),
             aggregation: None,
@@ -102,7 +102,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaSens Weighted".to_string(),
             calculator: Box::new(total_csr_sec_nonctp_vega_sens_weighted),
             aggregation: None,
@@ -112,7 +112,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaSb".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_sb),
             aggregation: Some("scalar"),
@@ -122,7 +122,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_charge_low),
             aggregation: Some("scalar"),
@@ -132,7 +132,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaKb Low".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_kb_low),
             aggregation: Some("scalar"),
@@ -142,7 +142,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_charge_medium),
             aggregation: Some("scalar"),
@@ -152,7 +152,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaKb Medium".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_kb_medium),
             aggregation: Some("scalar"),
@@ -162,7 +162,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge High".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_charge_high),
             aggregation: Some("scalar"),
@@ -172,7 +172,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaKb High".to_string(),
             calculator: Box::new(csr_sec_nonctp_vega_kb_high),
             aggregation: Some("scalar"),
@@ -182,7 +182,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge MAX".to_string(),
             calculator: Box::new(csrsecnonctp_vega_max),
             aggregation: Some("scalar"),

@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use base_engine::{
     polars::prelude::{apply_multiple, col, df, lit, max_exprs, when, DataType, GetOutput},
-    OCP,
+    CPM,
 };
 //use polars::lazy::dsl::{apply_multiple, col, lit, when};
 use rayon::prelude::IntoParallelIterator;
@@ -9,46 +9,46 @@ use rayon::prelude::IntoParallelIterator;
 use crate::risk_weights::REDUCED_IR_WEIGHT;
 use ndarray::{parallel::prelude::ParallelIterator, Array1, Array2};
 
-pub fn total_ir_delta_sens(_: &OCP) -> Expr {
+pub fn total_ir_delta_sens(_: &CPM) -> PolarsResult<Expr> {
     rc_rcat_sens("Delta", "GIRR", total_delta_sens())
 }
 /// Helper functions
-fn girr_delta_sens_weighted_spot() -> Expr {
+fn girr_delta_sens_weighted_spot() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "SensitivitySpot", "SensWeights", 0)
 }
-fn girr_delta_sens_weighted_025y() -> Expr {
+fn girr_delta_sens_weighted_025y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_025Y", "SensWeights", 1)
 }
-fn girr_delta_sens_weighted_05y() -> Expr {
+fn girr_delta_sens_weighted_05y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_05Y", "SensWeights", 2)
 }
-fn girr_delta_sens_weighted_1y() -> Expr {
+fn girr_delta_sens_weighted_1y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_1Y", "SensWeights", 3)
 }
-fn girr_delta_sens_weighted_2y() -> Expr {
+fn girr_delta_sens_weighted_2y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_2Y", "SensWeights", 4)
 }
-fn girr_delta_sens_weighted_3y() -> Expr {
+fn girr_delta_sens_weighted_3y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_3Y", "SensWeights", 5)
 }
-fn girr_delta_sens_weighted_5y() -> Expr {
+fn girr_delta_sens_weighted_5y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_5Y", "SensWeights", 6)
 }
-fn girr_delta_sens_weighted_10y() -> Expr {
+fn girr_delta_sens_weighted_10y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_10Y", "SensWeights", 7)
 }
-fn girr_delta_sens_weighted_15y() -> Expr {
+fn girr_delta_sens_weighted_15y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_15Y", "SensWeights", 8)
 }
-fn girr_delta_sens_weighted_20y() -> Expr {
+fn girr_delta_sens_weighted_20y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_20Y", "SensWeights", 9)
 }
-fn girr_delta_sens_weighted_30y() -> Expr {
+fn girr_delta_sens_weighted_30y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "GIRR", "Sensitivity_30Y", "SensWeights", 10)
 }
 
 /// Total GIRR Delta Seins
-pub(crate) fn girr_delta_sens_weighted(_: &OCP) -> Expr {
+pub(crate) fn girr_delta_sens_weighted(_: &CPM) -> PolarsResult<Expr> {
     girr_delta_sens_weighted_spot().fill_null(0.)
         + girr_delta_sens_weighted_025y().fill_null(0.)
         + girr_delta_sens_weighted_05y().fill_null(0.)
@@ -63,44 +63,44 @@ pub(crate) fn girr_delta_sens_weighted(_: &OCP) -> Expr {
 }
 
 /// Interm Result: GIRR Delta Sb <--> Sb Low == Sb Medium == Sb High
-pub(crate) fn girr_delta_sb(op: &OCP) -> Expr {
+pub(crate) fn girr_delta_sb(op: &CPM) -> PolarsResult<Expr> {
     girr_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///calculate GIRR Delta Low Capital charge
-pub(crate) fn girr_delta_charge_low(op: &OCP) -> Expr {
+pub(crate) fn girr_delta_charge_low(op: &CPM) -> PolarsResult<Expr> {
     girr_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 /// Interm Result: GIRR Delta Kb Low
-pub(crate) fn girr_delta_kb_low(op: &OCP) -> Expr {
+pub(crate) fn girr_delta_kb_low(op: &CPM) -> PolarsResult<Expr> {
     girr_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Delta Medium Capital charge
-pub(crate) fn girr_delta_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn girr_delta_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     girr_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 /// Interm Result: GIRR Delta Kb Medium
-pub(crate) fn girr_delta_kb_medium(op: &OCP) -> Expr {
+pub(crate) fn girr_delta_kb_medium(op: &CPM) -> PolarsResult<Expr> {
     girr_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Delta High Capital charge
-pub(crate) fn girr_delta_charge_high(op: &OCP) -> Expr {
+pub(crate) fn girr_delta_charge_high(op: &CPM) -> PolarsResult<Expr> {
     girr_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 /// Interm Result: GIRR Delta Kb High
-pub(crate) fn girr_delta_kb_high(op: &OCP) -> Expr {
+pub(crate) fn girr_delta_kb_high(op: &CPM) -> PolarsResult<Expr> {
     girr_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn girr_delta_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
+) -> PolarsResult<Expr> {
     let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
     let rep_ccy = op.get("reporting_ccy").map_or_else(
@@ -174,7 +174,7 @@ fn girr_delta_charge<F>(
     _erm2ccys: Vec<String>,
     scenario_fn: F,
     rep_ccy: String,
-) -> Expr
+) -> PolarsResult<Expr>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
@@ -432,7 +432,7 @@ pub(crate) fn girr_corr_matrix() -> Array2<f64> {
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn girr_delta_max(op: &OCP) -> Expr {
+fn girr_delta_max(op: &CPM) -> PolarsResult<Expr> {
     max_exprs(&[
         girr_delta_charge_low(op),
         girr_delta_charge_medium(op),
@@ -442,7 +442,7 @@ fn girr_delta_max(op: &OCP) -> Expr {
 /// Exporting Measures
 pub(crate) fn girr_delta_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaSens".to_string(),
             calculator: Box::new(total_ir_delta_sens),
             aggregation: None,
@@ -452,7 +452,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaSens Weighted".to_string(),
             calculator: Box::new(girr_delta_sens_weighted),
             aggregation: None,
@@ -462,7 +462,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaSb".to_string(),
             calculator: Box::new(girr_delta_sb),
             aggregation: Some("scalar"),
@@ -472,7 +472,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge Low".to_string(),
             calculator: Box::new(girr_delta_charge_low),
             aggregation: Some("scalar"),
@@ -482,7 +482,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaKb Low".to_string(),
             calculator: Box::new(girr_delta_kb_low),
             aggregation: Some("scalar"),
@@ -492,7 +492,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge Medium".to_string(),
             calculator: Box::new(girr_delta_charge_medium),
             aggregation: Some("scalar"),
@@ -502,7 +502,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaKb Medium".to_string(),
             calculator: Box::new(girr_delta_kb_medium),
             aggregation: Some("scalar"),
@@ -512,7 +512,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge High".to_string(),
             calculator: Box::new(girr_delta_charge_high),
             aggregation: Some("scalar"),
@@ -522,7 +522,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaKb High".to_string(),
             calculator: Box::new(girr_delta_kb_high),
             aggregation: Some("scalar"),
@@ -532,7 +532,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge MAX".to_string(),
             calculator: Box::new(girr_delta_max),
             aggregation: Some("scalar"),

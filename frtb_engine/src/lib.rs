@@ -41,7 +41,7 @@ impl FRTBDataSet {
         Self: Sized,
     {
         let self_measures = &mut self.measures;
-        self_measures.extend(bespoke.into_iter().map(|m| (m.name.clone(), m)));
+        self_measures.extend(bespoke.into_iter().map(|m| (m.name().clone(), m)));
     }
 }
 

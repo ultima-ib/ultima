@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::{DataSourceConfig, MeasuresMap};
+use crate::{DataSourceConfig, MeasuresMap, CalcParameter};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -17,19 +17,6 @@ pub struct DataSetBase {
     pub build_params: BTreeMap<String, String>,
 }
 
-/// This struct is purely for DataSet descriptive purposes.
-/// Recall measure may take parameters in form of HashMap<paramName, paramValue>
-/// This struct returns all possible paramNames for the given Dataset (for UI purposes only)
-#[derive(Debug, Default, Clone, Serialize)]
-pub struct CalcParameter {
-    pub name: String,
-    pub default: Option<String>,
-    pub type_hint: Option<String>,
-}
-
-struct DtaSetInfo{
-    
-}
 /// The main Trait
 ///
 /// If you have your own DataSet, implement this

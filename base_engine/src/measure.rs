@@ -1,16 +1,32 @@
 //use derivative::Derivative;
-use polars::prelude::{Expr, col};
+use polars::prelude::{Expr, col, PolarsResult, PolarsError};
+use serde::Serialize;
 //use serde::Serialize;
 use std::collections::BTreeMap;
+
+use crate::CPM;
+
+//pub type OCPM = BTreeMap<String, String>;
+
 
 pub type MeasureName = String;
 /// (Measure Name, Measure)
 pub type MeasuresMap = BTreeMap<MeasureName, Measure>;
 /// Optional Calculation Parameters
-pub type OCP = BTreeMap<String, String>;
+//pub type OCP = [Option<String>];
 
 //type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
-type Calculator = Box<dyn Fn(Vec<Option<String>>) -> Expr + Send + Sync>;
+type Calculator = Box<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
+
+/// This struct is purely for DataSet descriptive purposes(for now).
+/// Recall measure may take parameters in form of HashMap<paramName, paramValue>
+/// This struct returns all possible paramNames for the given Dataset (for UI purposes only)
+#[derive(Debug, Default, Clone, Copy, Serialize)]
+pub struct CalcParameter {
+    pub name: &'static str,
+    pub default: Option<&'static str>,
+    pub type_hint: Option<&'static str>,
+}
 
 /// Measure is the essentially a Struct of a calculator and a name
 pub struct BaseMeasure {
@@ -21,7 +37,7 @@ pub struct BaseMeasure {
 
     //pub calculator2: Expr,
     /// parameters which will go into calculator
-    pub calc_params: Vec<String>,
+    pub calc_params: &'static [CalcParameter],
     /// Optional: this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
     pub aggregation: Option<&'static str>,
@@ -127,8 +143,8 @@ impl Default for BaseMeasure {
     fn default() -> BaseMeasure {
         BaseMeasure {
             name: "Default".into(),
-            calculator: Box::new(|_: Vec<Option<String>>| col("*")),
-            calc_params: vec![],
+            calculator: Box::new(|_: &CPM| Ok(col("*"))),
+            calc_params: &[],
             aggregation: None,
             precomputefilter: None,
         }
@@ -142,7 +158,7 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
             let y = x.clone();
             Measure::Base(BaseMeasure{
                 name: x.clone(),
-                calculator: Box::new(move |_| col(y.as_str())),
+                calculator: Box::new(move |_| Ok(col(y.as_str()))),
                 ..Default::default()
 
             })
@@ -150,11 +166,72 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
         .collect::<Vec<Measure>>()
 }
 
-// Consumes Measure vec, returns Measure map
-//pub fn derive_measure_map(measures_vecs: Vec<Measure>) -> MeasuresMap {
-//    let mut measure_map: MeasuresMap = BTreeMap::default();
-//    for m in measures_vecs {
-//        measure_map.insert(m.name(), m);
-//    }
-//    measure_map
-//}
+/// Convert requested measure into [ProcessedMeasure] measure by looking up from all_availiable_measures.
+///
+/// NOTE: if a measure, which was looked up from all_availiable_measures has a predefined AggExpression
+/// then we override requested measure.
+///
+/// by mapping requested String to a map of all availiable measures
+pub(crate) fn base_measure_lookup(
+    requested_measures: &[(String, String)],
+    all_availiable_measures: &MeasuresMap,
+    op: &CPM,
+) -> PolarsResult<Vec<ProcessedMeasure>> {
+    let res = requested_measures.iter()
+        .map(|(requested_measure, requested_action)| {
+
+            // Lookup requested measure from all_availiable_measures by name
+            let Some(Measure::Base(m)) = all_availiable_measures.get(requested_measure as &str) else {
+                return Err(PolarsError::ComputeError(format!("No measure {requested_measure} exists for the dataset. Availiable measures are: {:?}",
+                    all_availiable_measures.keys()).into()))
+            };
+
+            // If measure has predefined aggregation, check that requested aggregation matches it          
+            if let Some(default_action) = m.aggregation {
+                if default_action != requested_action {
+                    return Err(PolarsError::ComputeError(format!("Measure {requested_measure} supports only {default_action} aggregation,
+                    but {requested_action} requested").into()))
+                }
+            }
+
+            // Lookup action from the list of supported actions
+            let Some(act) = crate::api::aggregations::BASE_CALCS.get(requested_action.as_str()) else {
+                return Err(PolarsError::ComputeError(format!("No action {requested_action} supported. Supported actions are: {:?}",
+                crate::api::aggregations::BASE_CALCS.keys()).into()))
+            };
+
+            //let params: CPM = m.calc_params
+            //    .iter()
+            //    .map(|param|(param, op.get(param).cloned()))
+            //    .collect::<BTreeMap<String, String>>();
+
+            // apply action
+            let (calculator, name) = act(
+                    (m.calculator)(op)?, 
+                    requested_measure
+                );
+
+            Ok(
+                ProcessedMeasure {
+                    name,
+                    calculator,
+                    precomputefilter: m.precomputefilter.clone(),
+                }
+            )
+            }
+        )
+        .collect::<PolarsResult<Vec<ProcessedMeasure>>>();
+
+    res
+}
+
+/// Unlike main Measure struct, this structure holds final name, extended Expr(with aggregation)
+/// and the precompute filter.
+///
+/// This is basically a "processed" measure
+pub(crate)struct ProcessedMeasure {
+    pub name: String,
+    pub calculator: Expr,
+    pub precomputefilter: Option<Expr>,
+    // TODO: potentially use as key for cache + ID for dataset
+}

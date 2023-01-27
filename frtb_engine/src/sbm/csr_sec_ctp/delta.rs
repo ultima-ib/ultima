@@ -6,30 +6,30 @@ use sbm::csr_nonsec::delta::csr_nonsec_delta_charge;
 
 use crate::prelude::*;
 
-pub fn total_csr_sec_ctp_delta_sens(_: &OCP) -> Expr {
+pub fn total_csr_sec_ctp_delta_sens(_: &CPM) -> PolarsResult<Expr> {
     rc_rcat_sens("Delta", "CSR_Sec_CTP", total_delta_sens())
 }
 /// Helper functions
 
-fn csr_sec_ctp_delta_sens_weighted_05y_bcbs() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_05y_bcbs() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_05Y", "SensWeights", 0)
 }
-fn csr_sec_ctp_delta_sens_weighted_1y_bcbs() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_1y_bcbs() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_1Y", "SensWeights", 1)
 }
-fn csr_sec_ctp_delta_sens_weighted_3y_bcbs() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_3y_bcbs() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_3Y", "SensWeights", 2)
 }
-fn csr_sec_ctp_delta_sens_weighted_5y_bcbs() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_5y_bcbs() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_5Y", "SensWeights", 3)
 }
-fn csr_sec_ctp_delta_sens_weighted_10y_bcbs() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_10y_bcbs() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Delta", "CSR_Sec_CTP", "Sensitivity_10Y", "SensWeights", 4)
 }
 
 //CRR2
 #[cfg(feature = "CRR2")]
-fn csr_sec_ctp_delta_sens_weighted_05y_crr2() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_05y_crr2() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens(
         "Delta",
         "CSR_Sec_CTP",
@@ -39,7 +39,7 @@ fn csr_sec_ctp_delta_sens_weighted_05y_crr2() -> Expr {
     )
 }
 #[cfg(feature = "CRR2")]
-fn csr_sec_ctp_delta_sens_weighted_1y_crr2() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_1y_crr2() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens(
         "Delta",
         "CSR_Sec_CTP",
@@ -49,7 +49,7 @@ fn csr_sec_ctp_delta_sens_weighted_1y_crr2() -> Expr {
     )
 }
 #[cfg(feature = "CRR2")]
-fn csr_sec_ctp_delta_sens_weighted_3y_crr2() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_3y_crr2() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens(
         "Delta",
         "CSR_Sec_CTP",
@@ -59,7 +59,7 @@ fn csr_sec_ctp_delta_sens_weighted_3y_crr2() -> Expr {
     )
 }
 #[cfg(feature = "CRR2")]
-fn csr_sec_ctp_delta_sens_weighted_5y_crr2() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_5y_crr2() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens(
         "Delta",
         "CSR_Sec_CTP",
@@ -69,7 +69,7 @@ fn csr_sec_ctp_delta_sens_weighted_5y_crr2() -> Expr {
     )
 }
 #[cfg(feature = "CRR2")]
-fn csr_sec_ctp_delta_sens_weighted_10y_crr2() -> Expr {
+fn csr_sec_ctp_delta_sens_weighted_10y_crr2() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens(
         "Delta",
         "CSR_Sec_CTP",
@@ -81,7 +81,7 @@ fn csr_sec_ctp_delta_sens_weighted_10y_crr2() -> Expr {
 
 /// Total weighted CSR non-Sec Delta
 /// Not used in calculation
-pub(crate) fn csr_sec_ctp_delta_sens_weighted(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
     let juri: Jurisdiction = get_jurisdiction(op);
 
     match juri {
@@ -105,34 +105,34 @@ pub(crate) fn csr_sec_ctp_delta_sens_weighted(op: &OCP) -> Expr {
 
 //Interm Results
 ///Sb is same for each scenario
-pub(crate) fn csr_sec_ctp_delta_sb(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_sb(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
-pub(crate) fn csr_sec_ctp_delta_kb_low(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_kb_low(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
-pub(crate) fn csr_sec_ctp_delta_kb_medium(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_kb_medium(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
-pub(crate) fn csr_sec_ctp_delta_kb_high(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_kb_high(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR non-Sec Delta Low Capital charge
-pub(crate) fn csr_sec_ctp_delta_charge_low(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_charge_low(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta Medium Capital charge
-pub(crate) fn csr_sec_ctp_delta_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta High Capital charge
-pub(crate) fn csr_sec_ctp_delta_charge_high(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_charge_high(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
@@ -141,10 +141,10 @@ pub(crate) fn csr_sec_ctp_delta_charge_high(op: &OCP) -> Expr {
 /// And pass them to the main Delta Charge calculator accordingly
 /// calls csr_nonsec_delta_charge because the calculation is identical
 fn csr_sec_ctp_delta_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
+) -> PolarsResult<Expr> {
     let _suffix = scenario.as_str();
     let juri: Jurisdiction = get_jurisdiction(op);
 
@@ -224,7 +224,7 @@ fn csr_sec_ctp_delta_charge_distributor(
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn csrsecctp_delta_max(op: &OCP) -> Expr {
+fn csrsecctp_delta_max(op: &CPM) -> PolarsResult<Expr> {
     max_exprs(&[
         csr_sec_ctp_delta_charge_low(op),
         csr_sec_ctp_delta_charge_medium(op),
@@ -235,7 +235,7 @@ fn csrsecctp_delta_max(op: &OCP) -> Expr {
 /// Exporting Measures
 pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSens".to_string(),
             calculator: Box::new(total_csr_sec_ctp_delta_sens),
             aggregation: None,
@@ -245,7 +245,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSens Weighted".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_sens_weighted),
             aggregation: None,
@@ -255,7 +255,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSb".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_sb),
             aggregation: Some("scalar"),
@@ -265,7 +265,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb Low".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_kb_low),
             aggregation: Some("scalar"),
@@ -275,7 +275,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb Medium".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_kb_medium),
             aggregation: Some("scalar"),
@@ -285,7 +285,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb High".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_kb_high),
             aggregation: Some("scalar"),
@@ -295,7 +295,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge Low".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_low),
             aggregation: Some("scalar"),
@@ -305,7 +305,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge Medium".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_medium),
             aggregation: Some("scalar"),
@@ -315,7 +315,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge High".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_high),
             aggregation: Some("scalar"),
@@ -325,7 +325,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge MAX".to_string(),
             calculator: Box::new(csrsecctp_delta_max),
             aggregation: Some("scalar"),

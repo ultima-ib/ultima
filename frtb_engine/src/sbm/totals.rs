@@ -1,5 +1,5 @@
 //! Totals across different Risk Classes
-use base_engine::{Measure, OCP};
+use base_engine::{Measure, CPM};
 use polars::lazy::dsl::{max_exprs, Expr};
 
 use super::commodity::totals::*;
@@ -15,7 +15,7 @@ use super::girr::totals::*;
 /// https://github.com/pola-rs/polars/issues/4659
 ///
 /// *`expr` to contain at least one item
-//pub(crate) fn total_sum(expr: &[Expr]) -> Expr {
+//pub(crate) fn total_sum(expr: &[Expr]) -> PolarsResult<Expr> {
 //    apply_multiple(
 //        move |columns| {
 //            let mut res = unsafe { columns.get_unchecked(0) }.fill_null(FillNullStrategy::Zero);
@@ -30,7 +30,7 @@ use super::girr::totals::*;
 //    )
 //}
 
-fn sbm_charge_low(op: &OCP) -> Expr {
+fn sbm_charge_low(op: &CPM) -> PolarsResult<Expr> {
     fx_total_low(op)
         + girr_total_low(op)
         + eq_total_low(op)
@@ -39,7 +39,7 @@ fn sbm_charge_low(op: &OCP) -> Expr {
         + csrnonsec_total_low(op)
         + csrsecctp_total_low(op)
 }
-fn sbm_charge_medium(op: &OCP) -> Expr {
+fn sbm_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     fx_total_medium(op)
         + girr_total_medium(op)
         + eq_total_medium(op)
@@ -48,7 +48,7 @@ fn sbm_charge_medium(op: &OCP) -> Expr {
         + csrnonsec_total_medium(op)
         + csrsecctp_total_medium(op)
 }
-fn sbm_charge_high(op: &OCP) -> Expr {
+fn sbm_charge_high(op: &CPM) -> PolarsResult<Expr> {
     fx_total_high(op)
         + girr_total_high(op)
         + eq_total_high(op)
@@ -58,7 +58,7 @@ fn sbm_charge_high(op: &OCP) -> Expr {
         + csrsecctp_total_high(op)
 }
 
-pub(crate) fn sbm_charge(op: &OCP) -> Expr {
+pub(crate) fn sbm_charge(op: &CPM) -> PolarsResult<Expr> {
     max_exprs(&[
         sbm_charge_low(op),
         sbm_charge_medium(op),
@@ -68,25 +68,25 @@ pub(crate) fn sbm_charge(op: &OCP) -> Expr {
 
 pub(crate) fn sbm_total_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "SBM Charge Low".to_string(),
             calculator: Box::new(sbm_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: None,
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "SBM Charge Medium".to_string(),
             calculator: Box::new(sbm_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: None,
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "SBM Charge High".to_string(),
             calculator: Box::new(sbm_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: None,
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "SBM Charge".to_string(),
             calculator: Box::new(sbm_charge),
             aggregation: Some("scalar"),

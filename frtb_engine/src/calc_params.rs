@@ -1,4 +1,12 @@
 use base_engine::CalcParameter;
+use once_cell::sync::Lazy;
+use polars::export::ahash::HashMap;
+
+pub(crate)static FRTB_CALC_PARAMS: Lazy<HashMap<&'static str,  CalcParameter>> = Lazy::new(||{
+    frtb_calc_params().into_iter()
+        .map(|param| (param.name, param))
+        .collect()
+});
 
 pub(crate) fn frtb_calc_params() -> Vec<CalcParameter> {
     let mut res = vec![
@@ -153,7 +161,7 @@ pub(crate) fn frtb_calc_params() -> Vec<CalcParameter> {
             type_hint: type_hint.clone(),
         });
     }
-    // scenario params
+    // per scenario params
     let params = [
         ("fx_delta_gamma", None, Some("float".into())),
         ("fx_opt_mat_vega_rho", None, Some("float".into())),
@@ -246,17 +254,17 @@ pub(crate) fn frtb_calc_params() -> Vec<CalcParameter> {
 
     for (name, default, type_hint) in params {
         res.push(CalcParameter {
-            name: format!("{}_high", name),
+            name: format!("{}_high", name).as_str(),
             default: default.clone(),
             type_hint: type_hint.clone(),
         });
         res.push(CalcParameter {
-            name: format!("{}_medium", name),
+            name: format!("{}_medium", name).as_str(),
             default: default.clone(),
             type_hint: type_hint.clone(),
         });
         res.push(CalcParameter {
-            name: format!("{}_low", name),
+            name: format!("{}_low", name).as_str(),
             default,
             type_hint,
         });

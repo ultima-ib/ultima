@@ -3,11 +3,12 @@
 
 use std::collections::BTreeMap;
 
-use super::measure::OCP;
 use crate::overrides::Override;
 use crate::{add_row::AdditionalRows, filters::AndOrFltrChain};
 
 use serde::{Deserialize, Serialize};
+
+pub type CPM = BTreeMap<String, String>;
 
 /// Fundamentally, user might want to:
 ///
@@ -31,14 +32,15 @@ pub struct AggregationRequest {
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
     pub measures: Vec<(String, String)>,
-○    #[serde(default)]
+    pub groupby: Vec<String>,
+    #[serde(default)]
     pub filters: AndOrFltrChain,
     #[serde(default)]
     pub overrides: Vec<Override>,
     #[serde(default, alias = "additionalRows")]
     pub add_row: AdditionalRows,
     #[serde(default)]
-    pub calc_params: OCP,
+    pub calc_params: CPM,
     /// drop rows where all results are NULL or 0
     #[serde(default)]
     pub hide_zeros: bool,
@@ -60,7 +62,7 @@ impl AggregationRequest {
         &self.groupby
     }
 
-    pub fn calc_params(&self) -> &OCP {
+    pub fn calc_params(&self) -> &CPM {
         &self.calc_params
     }
 

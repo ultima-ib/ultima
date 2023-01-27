@@ -3,53 +3,53 @@ use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetO
 
 use ndarray::Array2;
 
-pub fn total_eq_vega_sens(_: &OCP) -> Expr {
+pub fn total_eq_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     rc_rcat_sens("Vega", "Equity", total_vega_curv_sens())
 }
 
-pub fn total_eq_vega_sens_weighted(op: &OCP) -> Expr {
+pub fn total_eq_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
     total_eq_vega_sens(op) * col("SensWeights").arr().get(lit(0))
 }
 ///Interm Result
-pub(crate) fn equity_vega_sb(op: &OCP) -> Expr {
+pub(crate) fn equity_vega_sb(op: &CPM) -> PolarsResult<Expr> {
     equity_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
-pub(crate) fn equity_vega_kb_low(op: &OCP) -> Expr {
+pub(crate) fn equity_vega_kb_low(op: &CPM) -> PolarsResult<Expr> {
     equity_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Equity Vega Low Capital charge
-pub(crate) fn equity_vega_charge_low(op: &OCP) -> Expr {
+pub(crate) fn equity_vega_charge_low(op: &CPM) -> PolarsResult<Expr> {
     equity_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
-pub(crate) fn equity_vega_kb_medium(op: &OCP) -> Expr {
+pub(crate) fn equity_vega_kb_medium(op: &CPM) -> PolarsResult<Expr> {
     equity_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Equity Vega Low Capital charge
-pub(crate) fn equity_vega_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn equity_vega_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     equity_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///Interm Result
-pub(crate) fn equity_vega_kb_high(op: &OCP) -> Expr {
+pub(crate) fn equity_vega_kb_high(op: &CPM) -> PolarsResult<Expr> {
     equity_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate Equity Vega Low Capital charge
-pub(crate) fn equity_vega_charge_high(op: &OCP) -> Expr {
+pub(crate) fn equity_vega_charge_high(op: &CPM) -> PolarsResult<Expr> {
     equity_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn equity_vega_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
+) -> PolarsResult<Expr> {
     let _suffix = scenario.as_str();
     //TODO check
     let eq_gamma = get_optional_parameter_array(
@@ -85,7 +85,7 @@ pub(crate) fn equity_vega_charge<F>(
     rtrn: ReturnMetric,
     special_bucket: Option<&'static str>,
     rc: &'static str,
-) -> Expr
+) -> PolarsResult<Expr>
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
@@ -168,7 +168,7 @@ where
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn eq_vega_max(op: &OCP) -> Expr {
+fn eq_vega_max(op: &CPM) -> PolarsResult<Expr> {
     max_exprs(&[
         equity_vega_charge_low(op),
         equity_vega_charge_medium(op),
@@ -179,7 +179,7 @@ fn eq_vega_max(op: &OCP) -> Expr {
 /// Exporting Measures
 pub(crate) fn eq_vega_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaSens".to_string(),
             calculator: Box::new(total_eq_vega_sens),
             aggregation: None,
@@ -189,7 +189,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaSens Weighted".to_string(),
             calculator: Box::new(total_eq_vega_sens_weighted),
             aggregation: None,
@@ -199,7 +199,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaSb".to_string(),
             calculator: Box::new(equity_vega_sb),
             aggregation: Some("scalar"),
@@ -209,7 +209,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaKb Low".to_string(),
             calculator: Box::new(equity_vega_kb_low),
             aggregation: Some("scalar"),
@@ -219,7 +219,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaCharge Low".to_string(),
             calculator: Box::new(equity_vega_charge_low),
             aggregation: Some("scalar"),
@@ -229,7 +229,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaKb Medium".to_string(),
             calculator: Box::new(equity_vega_kb_medium),
             aggregation: Some("scalar"),
@@ -239,7 +239,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaCharge Medium".to_string(),
             calculator: Box::new(equity_vega_charge_medium),
             aggregation: Some("scalar"),
@@ -249,7 +249,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaKb High".to_string(),
             calculator: Box::new(equity_vega_kb_high),
             aggregation: Some("scalar"),
@@ -259,7 +259,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaCharge High".to_string(),
             calculator: Box::new(equity_vega_charge_high),
             aggregation: Some("scalar"),
@@ -269,7 +269,7 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "EQ VegaCharge MAX".to_string(),
             calculator: Box::new(eq_vega_max),
             aggregation: Some("scalar"),

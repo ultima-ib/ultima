@@ -9,7 +9,7 @@ use base_engine::{
         apply_multiple, col, df, lit, max_exprs, ChunkCompare, DataType, Float64Type, GetOutput,
         TakeRandom,
     },
-    OCP,
+    CPM,
 };
 
 #[cfg(feature = "CRR2")]
@@ -18,28 +18,28 @@ use super::delta::build_girr_crr2_gamma;
 use ndarray::{s, Array1, Array2};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-pub fn total_ir_vega_sens(_: &OCP) -> Expr {
+pub fn total_ir_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     rc_rcat_sens("Vega", "GIRR", total_vega_curv_sens())
 }
 
-fn girr_vega_sens_weighted_05y() -> Expr {
+fn girr_vega_sens_weighted_05y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_05Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_1y() -> Expr {
+fn girr_vega_sens_weighted_1y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_1Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_3y() -> Expr {
+fn girr_vega_sens_weighted_3y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_3Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_5y() -> Expr {
+fn girr_vega_sens_weighted_5y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_5Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_10y() -> Expr {
+fn girr_vega_sens_weighted_10y() -> PolarsResult<Expr> {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_10Y", "SensWeights", 0)
 }
 
 /// Total GIRR Vega Seins
-pub(crate) fn girr_vega_sens_weighted(_: &OCP) -> Expr {
+pub(crate) fn girr_vega_sens_weighted(_: &CPM) -> PolarsResult<Expr> {
     girr_vega_sens_weighted_05y().fill_null(0.)
         + girr_vega_sens_weighted_1y().fill_null(0.)
         + girr_vega_sens_weighted_3y().fill_null(0.)
@@ -48,47 +48,47 @@ pub(crate) fn girr_vega_sens_weighted(_: &OCP) -> Expr {
 }
 
 /// Interm Result: GIRR Vega Sb <--> Sb Low == Sb Medium == Sb High
-pub(crate) fn girr_vega_sb(op: &OCP) -> Expr {
+pub(crate) fn girr_vega_sb(op: &CPM) -> PolarsResult<Expr> {
     girr_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///calculate GIRR Vega Low Capital charge
-pub(crate) fn girr_vega_charge_low(op: &OCP) -> Expr {
+pub(crate) fn girr_vega_charge_low(op: &CPM) -> PolarsResult<Expr> {
     girr_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Interm Result: GIRR Vega Low Kb
-pub(crate) fn girr_vega_kb_low(op: &OCP) -> Expr {
+pub(crate) fn girr_vega_kb_low(op: &CPM) -> PolarsResult<Expr> {
     girr_vega_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Vega Medium Capital charge
-pub(crate) fn girr_vega_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn girr_vega_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     girr_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Interm Result: GIRR Vega Medium Kb
-pub(crate) fn girr_vega_kb_medium(op: &OCP) -> Expr {
+pub(crate) fn girr_vega_kb_medium(op: &CPM) -> PolarsResult<Expr> {
     girr_vega_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate GIRR Vega Medium Capital charge
-pub(crate) fn girr_vega_charge_high(op: &OCP) -> Expr {
+pub(crate) fn girr_vega_charge_high(op: &CPM) -> PolarsResult<Expr> {
     girr_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Interm Result: GIRR Vega Medium Kb
-pub(crate) fn girr_vega_kb_high(op: &OCP) -> Expr {
+pub(crate) fn girr_vega_kb_high(op: &CPM) -> PolarsResult<Expr> {
     girr_vega_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn girr_vega_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
+) -> PolarsResult<Expr> {
     let juri: Jurisdiction = get_jurisdiction(op);
     let _suffix = scenario.as_str();
 
@@ -127,7 +127,7 @@ fn girr_vega_charge(
     juri: Jurisdiction,
     _erm2_gamma: f64,
     _erm2ccys: Vec<String>,
-) -> Expr {
+) -> PolarsResult<Expr> {
     apply_multiple(
         move |columns| {
             let df = df![
@@ -317,7 +317,7 @@ pub(crate) fn girr_vega_rho() -> Array2<f64> {
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn girr_vega_max(op: &OCP) -> Expr {
+fn girr_vega_max(op: &CPM) -> PolarsResult<Expr> {
     max_exprs(&[
         girr_vega_charge_low(op),
         girr_vega_charge_medium(op),
@@ -328,7 +328,7 @@ fn girr_vega_max(op: &OCP) -> Expr {
 /// Exporting Measures
 pub(crate) fn girr_vega_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaSens".to_string(),
             calculator: Box::new(total_ir_vega_sens),
             aggregation: None,
@@ -338,7 +338,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaSens Weighted".to_string(),
             calculator: Box::new(girr_vega_sens_weighted),
             aggregation: None,
@@ -348,7 +348,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaSb".to_string(),
             calculator: Box::new(girr_vega_sb),
             aggregation: Some("scalar"),
@@ -358,7 +358,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge Low".to_string(),
             calculator: Box::new(girr_vega_charge_low),
             aggregation: Some("scalar"),
@@ -368,7 +368,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaKb Low".to_string(),
             calculator: Box::new(girr_vega_kb_low),
             aggregation: Some("scalar"),
@@ -378,7 +378,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge Medium".to_string(),
             calculator: Box::new(girr_vega_charge_medium),
             aggregation: Some("scalar"),
@@ -388,7 +388,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaKb Medium".to_string(),
             calculator: Box::new(girr_vega_kb_medium),
             aggregation: Some("scalar"),
@@ -398,7 +398,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge High".to_string(),
             calculator: Box::new(girr_vega_charge_high),
             aggregation: Some("scalar"),
@@ -408,7 +408,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaKb High".to_string(),
             calculator: Box::new(girr_vega_kb_high),
             aggregation: Some("scalar"),
@@ -418,7 +418,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge MAX".to_string(),
             calculator: Box::new(girr_vega_max),
             aggregation: Some("scalar"),

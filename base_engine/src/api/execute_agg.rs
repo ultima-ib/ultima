@@ -8,7 +8,7 @@ pub use polars::{
 
 use crate::{
     add_row::df_from_maps_and_schema, filters::fltr_chain, helpers::diag_concat_lf,
-    base_measure_lookup, AggregationRequest, DataSet, ValidateSet,
+    AggregationRequest, DataSet, ValidateSet, measure::base_measure_lookup
 };
 
 /// main function which returns a Result of the calculation

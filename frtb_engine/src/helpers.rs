@@ -1,38 +1,35 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
-use base_engine::OCP;
-use log::warn;
+use base_engine::{CPM, PolarsResult};
 use ndarray::Array2;
-use polars::prelude::{BooleanType, ChunkedArray, Utf8Type};
+use polars::prelude::{BooleanType, ChunkedArray, Utf8Type, PolarsError};
 use serde::{Deserialize, Serialize};
 
 use crate::prelude::Jurisdiction;
 
 /// if CRR2 feature is not activated, this will return BCBS
 /// if jurisdiction is not part of optional params or can't parse this will return BCBS
-pub(crate) fn get_jurisdiction(op: &OCP) -> Jurisdiction {
-    op.get("jurisdiction")
-        .and_then(|x| x.parse::<Jurisdiction>().ok())
-        //.unwrap()
-        .unwrap_or_else(|| {
-            warn!("Jurisdiction defaulted to: BCBS");
-            Jurisdiction::default()
-        })
+pub(crate) fn get_jurisdiction(op: &CPM) -> PolarsResult<Jurisdiction> {
+    match op.get("jurisdiction") {
+        Some(j) => j.parse::<Jurisdiction>().map_err(|_|PolarsError::ComputeError("Invalid jurisdiction".into())),
+        _ => Ok(Jurisdiction::default())
+    }
 }
 
 /// Limited to types which implement Copy because this should only be used for types like f64
-pub(crate) fn get_optional_parameter<'a, T>(op: &'a OCP, param: &str, default: &T) -> T
+pub(crate) fn get_optional_parameter<'a, T>(op: &'a CPM, param: &str, default: &T) -> PolarsResult<T>
 where
     T: Deserialize<'a> + Copy,
 {
-    op.get(param)
-        .and_then(|x| serde_json::from_str::<T>(x).ok())
-        .unwrap_or_else(|| *default)
+    match op.get(param) {
+        Some(pat) => serde_json::from_str::<T>(pat).map_err(PolarsError::ComputeError(format!("Could not parse parameter {pat}").into())),
+        None => Ok(*default)
+    }
 }
 
 /// we need to assert vec len, no other way to do it than create a func for vec
 pub(crate) fn get_optional_parameter_vec<'a, T>(
-    op: &'a OCP,
+    op: &'a CPM,
     param: &str,
     default: &Vec<T>,
 ) -> Vec<T>
@@ -53,7 +50,7 @@ where
 
 /// we need to assert arr shape, so we have a separate func for arrs
 pub(crate) fn get_optional_parameter_array<'a>(
-    op: &'a OCP,
+    op: &'a CPM,
     param: &str,
     default: &Array2<f64>,
 ) -> Array2<f64> {
@@ -70,7 +67,7 @@ pub(crate) fn get_optional_parameter_array<'a>(
 }
 
 /// we need to assert arr shape, so we have a separate func for arrs
-pub(crate) fn get_optional_parameter_opt<'a, T>(op: &'a OCP, param: &str) -> Option<T>
+pub(crate) fn get_optional_parameter_opt<'a, T>(op: &'a CPM, param: &str) -> Option<T>
 where
     T: Deserialize<'a> + std::fmt::Debug,
 {

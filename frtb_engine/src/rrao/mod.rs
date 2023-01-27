@@ -6,7 +6,7 @@ use crate::helpers::first_appearance;
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
 use base_engine::Measure;
-use base_engine::{col, OCP};
+use base_engine::{col, CPM};
 use polars::lazy::dsl::apply_multiple;
 use polars::{
     df,
@@ -17,28 +17,28 @@ use polars::{
     series::Series,
 };
 
-pub(crate) fn exotic_notional(_: &OCP) -> Expr {
+pub(crate) fn exotic_notional(_: &CPM) -> PolarsResult<Expr> {
     rrao_weighted_notional(None, "EXOTIC_RRAO")
 }
 
-pub(crate) fn other_notional(_: &OCP) -> Expr {
+pub(crate) fn other_notional(_: &CPM) -> PolarsResult<Expr> {
     rrao_weighted_notional(None, "OTHER_RRAO")
 }
 
-pub(crate) fn exotic_charge(op: &OCP) -> Expr {
+pub(crate) fn exotic_charge(op: &CPM) -> PolarsResult<Expr> {
     let exotic_weight =
         get_optional_parameter(op, "exotic_rrao_weight", &MEDIUM_CORR_SCENARIO.exotic);
 
     rrao_weighted_notional(Some(exotic_weight), "EXOTIC_RRAO")
 }
 
-pub(crate) fn other_charge(op: &OCP) -> Expr {
+pub(crate) fn other_charge(op: &CPM) -> PolarsResult<Expr> {
     let other_weight = get_optional_parameter(op, "other_rrao_weight", &MEDIUM_CORR_SCENARIO.other);
 
     rrao_weighted_notional(Some(other_weight), "OTHER_RRAO")
 }
 
-pub(crate) fn rrao_weighted_notional(weight: Option<f64>, rrao_type: &'static str) -> Expr {
+pub(crate) fn rrao_weighted_notional(weight: Option<f64>, rrao_type: &'static str) -> PolarsResult<Expr> {
     apply_multiple(
         move |columns| {
             let first_appearance_mask = first_appearance(columns[0].utf8()?);
@@ -63,14 +63,14 @@ pub(crate) fn rrao_weighted_notional(weight: Option<f64>, rrao_type: &'static st
     )
 }
 
-pub(crate) fn rrao_charge(op: &OCP) -> Expr {
+pub(crate) fn rrao_charge(op: &CPM) -> PolarsResult<Expr> {
     let exotic_weight =
         get_optional_parameter(op, "exotic_rrao_weight", &MEDIUM_CORR_SCENARIO.exotic);
     let other_weight = get_optional_parameter(op, "other_rrao_weight", &MEDIUM_CORR_SCENARIO.other);
     rrao_calc(exotic_weight, other_weight)
 }
 
-pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> Expr {
+pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> PolarsResult<Expr> {
     apply_multiple(
         move |columns| {
             let mut df = df![
@@ -112,31 +112,31 @@ pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> Expr {
 /// Exporting Measures
 pub(crate) fn rrao_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "Exotic RRAO Notional".to_string(),
             calculator: Box::new(exotic_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "Other RRAO Notional".to_string(),
             calculator: Box::new(other_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "Exotic RRAO Charge".to_string(),
             calculator: Box::new(exotic_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "Other RRAO Charge".to_string(),
             calculator: Box::new(other_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         },
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "RRAO Charge".to_string(),
             calculator: Box::new(rrao_charge),
             aggregation: Some("scalar"),

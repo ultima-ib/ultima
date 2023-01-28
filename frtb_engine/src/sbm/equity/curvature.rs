@@ -1,5 +1,7 @@
 #![allow(clippy::type_complexity)]
 
+use std::sync::Arc;
+
 use crate::prelude::*;
 use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
 use base_engine::prelude::CPM;
@@ -203,7 +205,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureDelta".to_string(),
-            calculator: Box::new(eq_curv_delta),
+            calculator: Arc::new(eq_curv_delta),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -213,7 +215,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureDelta_Weighted".to_string(),
-            calculator: Box::new(eq_curv_delta_weighted),
+            calculator: Arc::new(eq_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -223,7 +225,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ PnLup".to_string(),
-            calculator: Box::new(eq_pnl_up),
+            calculator: Arc::new(eq_pnl_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -233,7 +235,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ PnLdown".to_string(),
-            calculator: Box::new(eq_pnl_down),
+            calculator: Arc::new(eq_pnl_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -243,7 +245,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ CVRup".to_string(),
-            calculator: Box::new(eq_cvr_up),
+            calculator: Arc::new(eq_cvr_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -253,7 +255,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ CVRdown".to_string(),
-            calculator: Box::new(eq_cvr_down),
+            calculator: Arc::new(eq_cvr_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -263,7 +265,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus Medium".to_string(),
-            calculator: Box::new(eq_curvature_kb_plus_medium),
+            calculator: Arc::new(eq_curvature_kb_plus_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -273,7 +275,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus Medium".to_string(),
-            calculator: Box::new(eq_curvature_kb_minus_medium),
+            calculator: Arc::new(eq_curvature_kb_minus_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -283,7 +285,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb Medium".to_string(),
-            calculator: Box::new(eq_curvature_kb_medium),
+            calculator: Arc::new(eq_curvature_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -293,7 +295,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb Medium".to_string(),
-            calculator: Box::new(eq_curvature_sb_medium),
+            calculator: Arc::new(eq_curvature_sb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -303,7 +305,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge Medium".to_string(),
-            calculator: Box::new(eq_curvature_charge_medium),
+            calculator: Arc::new(eq_curvature_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -313,7 +315,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus Low".to_string(),
-            calculator: Box::new(eq_curvature_kb_plus_low),
+            calculator: Arc::new(eq_curvature_kb_plus_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -323,7 +325,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus Low".to_string(),
-            calculator: Box::new(eq_curvature_kb_minus_low),
+            calculator: Arc::new(eq_curvature_kb_minus_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -333,7 +335,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb Low".to_string(),
-            calculator: Box::new(eq_curvature_kb_low),
+            calculator: Arc::new(eq_curvature_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -343,7 +345,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb Low".to_string(),
-            calculator: Box::new(eq_curvature_sb_low),
+            calculator: Arc::new(eq_curvature_sb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -353,7 +355,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge Low".to_string(),
-            calculator: Box::new(eq_curvature_charge_low),
+            calculator: Arc::new(eq_curvature_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -363,7 +365,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus High".to_string(),
-            calculator: Box::new(eq_curvature_kb_plus_high),
+            calculator: Arc::new(eq_curvature_kb_plus_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -373,7 +375,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus High".to_string(),
-            calculator: Box::new(eq_curvature_kb_minus_high),
+            calculator: Arc::new(eq_curvature_kb_minus_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -383,7 +385,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb High".to_string(),
-            calculator: Box::new(eq_curvature_kb_high),
+            calculator: Arc::new(eq_curvature_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -393,7 +395,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb High".to_string(),
-            calculator: Box::new(eq_curvature_sb_high),
+            calculator: Arc::new(eq_curvature_sb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -403,7 +405,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge High".to_string(),
-            calculator: Box::new(eq_curvature_charge_high),
+            calculator: Arc::new(eq_curvature_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -413,7 +415,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge MAX".to_string(),
-            calculator: Box::new(eq_curv_max),
+            calculator: Arc::new(eq_curv_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

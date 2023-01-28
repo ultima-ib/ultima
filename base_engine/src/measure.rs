@@ -2,7 +2,7 @@
 use polars::prelude::{col, Expr, PolarsError, PolarsResult};
 use serde::Serialize;
 //use serde::Serialize;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 use crate::CPM;
 
@@ -15,7 +15,7 @@ pub type MeasuresMap = BTreeMap<MeasureName, Measure>;
 //pub type OCP = [Option<String>];
 
 //type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
-type Calculator = Box<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
+type Calculator = Arc<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
 
 /// This struct is purely for DataSet descriptive purposes(for now).
 /// Recall measure may take parameters in form of HashMap<paramName, paramValue>
@@ -28,6 +28,7 @@ pub struct CalcParameter {
 }
 
 /// Measure is the essentially a Struct of a calculator and a name
+#[derive(Clone)]
 pub struct BaseMeasure {
     pub name: MeasureName,
     /// Main function which performs the calculation
@@ -58,6 +59,7 @@ pub struct BaseMeasure {
 /// Useful for caching.
 ///
 /// No precomputefilter - it is inherited from parents
+#[derive(Clone)]
 pub struct DependantMeasure {
     pub name: String,
 
@@ -65,7 +67,7 @@ pub struct DependantMeasure {
     pub calculator: Calculator, // MAX, SUM...
 
     /// parameters which will go into calculator
-    pub calc_params: Vec<String>,
+    // pub calc_params: Vec<String>,
 
     /// this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
@@ -73,12 +75,13 @@ pub struct DependantMeasure {
 
     /// Vec<(Depends Upon Measure Name, Aggregation type)>
     /// eg vec![(FXDeltaCharge, scalar), (Sensitivity, mean)]
-    pub depends_upon: Vec<(Measure, String)>,
+    pub depends_upon: Vec<(&'static str, &'static str)>,
 }
 
 /// AggRequest --> execute -->  split DependantMeasure into BaseMeasure's (BaseMeasure leave as they are) --> execute_aggregation --> combine back into original request
 /// make cahce default (ie not a feature)
 /// do not change the OUTPUT of any existing .get_measures() - because user/client does not/should not care about what kind of measure they are calling
+#[derive(Clone)]
 pub enum Measure {
     /// A typical measure
     /// execute_aggregation .groupby().agg(X)
@@ -139,7 +142,7 @@ impl Default for BaseMeasure {
     fn default() -> BaseMeasure {
         BaseMeasure {
             name: "Default".into(),
-            calculator: Box::new(|_: &CPM| Ok(col("*"))),
+            calculator: Arc::new(|_: &CPM| Ok(col("*"))),
             //calc_params: &[],
             aggregation: None,
             precomputefilter: None,
@@ -154,7 +157,7 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
             let y = x.clone();
             Measure::Base(BaseMeasure {
                 name: x.clone(),
-                calculator: Box::new(move |_| Ok(col(y.as_str()))),
+                calculator: Arc::new(move |_| Ok(col(y.as_str()))),
                 ..Default::default()
             })
         })

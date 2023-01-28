@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::prelude::*;
 use base_engine::{
     polars::prelude::{
@@ -456,7 +458,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaSens".to_string(),
-            calculator: Box::new(total_ir_delta_sens),
+            calculator: Arc::new(total_ir_delta_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -466,7 +468,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaSens Weighted".to_string(),
-            calculator: Box::new(girr_delta_sens_weighted),
+            calculator: Arc::new(girr_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -476,7 +478,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaSb".to_string(),
-            calculator: Box::new(girr_delta_sb),
+            calculator: Arc::new(girr_delta_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -486,7 +488,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge Low".to_string(),
-            calculator: Box::new(girr_delta_charge_low),
+            calculator: Arc::new(girr_delta_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -496,7 +498,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaKb Low".to_string(),
-            calculator: Box::new(girr_delta_kb_low),
+            calculator: Arc::new(girr_delta_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -506,7 +508,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge Medium".to_string(),
-            calculator: Box::new(girr_delta_charge_medium),
+            calculator: Arc::new(girr_delta_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -516,7 +518,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaKb Medium".to_string(),
-            calculator: Box::new(girr_delta_kb_medium),
+            calculator: Arc::new(girr_delta_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -526,7 +528,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge High".to_string(),
-            calculator: Box::new(girr_delta_charge_high),
+            calculator: Arc::new(girr_delta_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -536,7 +538,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaKb High".to_string(),
-            calculator: Box::new(girr_delta_kb_high),
+            calculator: Arc::new(girr_delta_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -546,7 +548,7 @@ pub(crate) fn girr_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR DeltaCharge MAX".to_string(),
-            calculator: Box::new(girr_delta_max),
+            calculator: Arc::new(girr_delta_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

@@ -26,20 +26,20 @@ pub(crate) fn csrsecctp_total_high(op: &CPM) -> PolarsResult<Expr> {
 pub(crate) fn csrsecctp_total_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
-            name: "CSR_secCTP_TotalCharge_Low".to_string(),
-            calculator: Box::new(csrsecctp_total_low),
+            name: "CSR secCTP TotalCharge Low".to_string(),
+            calculator: Arc::new(csrsecctp_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
         }),
         Measure::Base(BaseMeasure {
-            name: "CSR_secCTP_TotalCharge_Medium".to_string(),
-            calculator: Box::new(csrsecctp_total_medium),
+            name: "CSR secCTP TotalCharge Medium".to_string(),
+            calculator: Arc::new(csrsecctp_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
         }),
         Measure::Base(BaseMeasure {
-            name: "CSR_secCTP_TotalCharge_High".to_string(),
-            calculator: Box::new(csrsecctp_total_high),
+            name: "CSR secCTP TotalCharge High".to_string(),
+            calculator: Arc::new(csrsecctp_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
         }),

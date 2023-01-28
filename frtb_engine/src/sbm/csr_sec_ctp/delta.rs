@@ -1,5 +1,7 @@
 //! CSR Sec CTP Delta Calculations
 //!
+use std::sync::Arc;
+
 use crate::helpers::*;
 use base_engine::polars::prelude::max_exprs;
 use sbm::csr_nonsec::delta::csr_nonsec_delta_charge;
@@ -233,7 +235,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSens".to_string(),
-            calculator: Box::new(total_csr_sec_ctp_delta_sens),
+            calculator: Arc::new(total_csr_sec_ctp_delta_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -243,7 +245,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSens Weighted".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_sens_weighted),
+            calculator: Arc::new(csr_sec_ctp_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -253,7 +255,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSb".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_sb),
+            calculator: Arc::new(csr_sec_ctp_delta_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -263,7 +265,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb Low".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_kb_low),
+            calculator: Arc::new(csr_sec_ctp_delta_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -273,7 +275,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb Medium".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_kb_medium),
+            calculator: Arc::new(csr_sec_ctp_delta_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -283,7 +285,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb High".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_kb_high),
+            calculator: Arc::new(csr_sec_ctp_delta_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -293,7 +295,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge Low".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_charge_low),
+            calculator: Arc::new(csr_sec_ctp_delta_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -303,7 +305,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge Medium".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_charge_medium),
+            calculator: Arc::new(csr_sec_ctp_delta_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -313,7 +315,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge High".to_string(),
-            calculator: Box::new(csr_sec_ctp_delta_charge_high),
+            calculator: Arc::new(csr_sec_ctp_delta_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -323,7 +325,7 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge MAX".to_string(),
-            calculator: Box::new(csrsecctp_delta_max),
+            calculator: Arc::new(csrsecctp_delta_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

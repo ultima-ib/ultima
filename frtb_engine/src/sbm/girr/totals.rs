@@ -25,19 +25,19 @@ pub(crate) fn girr_total_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "GIRR TotalCharge Low".to_string(),
-            calculator: Box::new(girr_total_low),
+            calculator: Arc::new(girr_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("GIRR"))),
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR TotalCharge Medium".to_string(),
-            calculator: Box::new(girr_total_medium),
+            calculator: Arc::new(girr_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("GIRR"))),
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR TotalCharge High".to_string(),
-            calculator: Box::new(girr_total_high),
+            calculator: Arc::new(girr_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("GIRR"))),
         }),

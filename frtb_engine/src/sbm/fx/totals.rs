@@ -21,19 +21,19 @@ pub(crate) fn fx_total_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "FX TotalCharge Low".to_string(),
-            calculator: Box::new(fx_total_low),
+            calculator: Arc::new(fx_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
         }),
         Measure::Base(BaseMeasure {
             name: "FX TotalCharge Medium".to_string(),
-            calculator: Box::new(fx_total_medium),
+            calculator: Arc::new(fx_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
         }),
         Measure::Base(BaseMeasure {
             name: "FX TotalCharge High".to_string(),
-            calculator: Box::new(fx_total_high),
+            calculator: Arc::new(fx_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
         }),

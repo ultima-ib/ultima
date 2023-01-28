@@ -9,6 +9,8 @@
 //! Hence, it's sufficient to build two matrixes:
 //! 1 based on rft and 2 based on rf
 
+use std::sync::Arc;
+
 use crate::prelude::*;
 use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
 
@@ -193,7 +195,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "EQ DeltaSens".to_string(),
-            calculator: Box::new(equity_delta_sens),
+            calculator: Arc::new(equity_delta_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -203,7 +205,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaSens Weighted".to_string(),
-            calculator: Box::new(equity_delta_sens_weighted),
+            calculator: Arc::new(equity_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -213,7 +215,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaSb".to_string(),
-            calculator: Box::new(eq_delta_sb),
+            calculator: Arc::new(eq_delta_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -223,7 +225,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaKb Low".to_string(),
-            calculator: Box::new(eq_delta_kb_low),
+            calculator: Arc::new(eq_delta_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -233,7 +235,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaKb Medium".to_string(),
-            calculator: Box::new(eq_delta_kb_medium),
+            calculator: Arc::new(eq_delta_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -243,7 +245,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaKb High".to_string(),
-            calculator: Box::new(eq_delta_kb_high),
+            calculator: Arc::new(eq_delta_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -253,7 +255,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge Low".to_string(),
-            calculator: Box::new(equity_delta_charge_low),
+            calculator: Arc::new(equity_delta_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -263,7 +265,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge Medium".to_string(),
-            calculator: Box::new(equity_delta_charge_medium),
+            calculator: Arc::new(equity_delta_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -273,7 +275,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge High".to_string(),
-            calculator: Box::new(equity_delta_charge_high),
+            calculator: Arc::new(equity_delta_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -283,7 +285,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge MAX".to_string(),
-            calculator: Box::new(eq_delta_max),
+            calculator: Arc::new(eq_delta_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

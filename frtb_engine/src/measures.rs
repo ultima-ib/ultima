@@ -1,5 +1,7 @@
 //! This file defines all the measures, associated with this library
 
+use std::sync::Arc;
+
 use base_engine::{BaseMeasure, Measure};
 
 use crate::sbm::common::sens_weights;
@@ -54,7 +56,7 @@ use crate::totals::sa_total_measures;
 pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
     let non_rc_specific = vec![Measure::Base(BaseMeasure {
         name: "RiskWeights".to_string(),
-        calculator: Box::new(sens_weights),
+        calculator: Arc::new(sens_weights),
         aggregation: Some("first"),
         precomputefilter: None,
     })];

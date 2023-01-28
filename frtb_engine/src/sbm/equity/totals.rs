@@ -27,19 +27,19 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "EQ TotalCharge Low".to_string(),
-            calculator: Box::new(eq_total_low),
+            calculator: Arc::new(eq_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("Equity"))),
         }),
         Measure::Base(BaseMeasure {
             name: "EQ TotalCharge Medium".to_string(),
-            calculator: Box::new(eq_total_medium),
+            calculator: Arc::new(eq_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("Equity"))),
         }),
         Measure::Base(BaseMeasure {
             name: "EQ TotalCharge High".to_string(),
-            calculator: Box::new(eq_total_high),
+            calculator: Arc::new(eq_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("Equity"))),
         }),

@@ -1,5 +1,5 @@
 //! Totals across different Risk Classes
-use base_engine::{Measure, CPM};
+use base_engine::{BaseMeasure, Measure, PolarsResult, CPM};
 use polars::lazy::dsl::{max_exprs, Expr};
 
 use super::commodity::totals::*;
@@ -31,39 +31,39 @@ use super::girr::totals::*;
 //}
 
 fn sbm_charge_low(op: &CPM) -> PolarsResult<Expr> {
-    fx_total_low(op)
-        + girr_total_low(op)
-        + eq_total_low(op)
-        + csrsecnonctp_total_low(op)
-        + com_total_low(op)
-        + csrnonsec_total_low(op)
-        + csrsecctp_total_low(op)
+    Ok(fx_total_low(op)?
+        + girr_total_low(op)?
+        + eq_total_low(op)?
+        + csrsecnonctp_total_low(op)?
+        + com_total_low(op)?
+        + csrnonsec_total_low(op)?
+        + csrsecctp_total_low(op)?)
 }
 fn sbm_charge_medium(op: &CPM) -> PolarsResult<Expr> {
-    fx_total_medium(op)
-        + girr_total_medium(op)
-        + eq_total_medium(op)
-        + csrsecnonctp_total_medium(op)
-        + com_total_medium(op)
-        + csrnonsec_total_medium(op)
-        + csrsecctp_total_medium(op)
+    Ok(fx_total_medium(op)?
+        + girr_total_medium(op)?
+        + eq_total_medium(op)?
+        + csrsecnonctp_total_medium(op)?
+        + com_total_medium(op)?
+        + csrnonsec_total_medium(op)?
+        + csrsecctp_total_medium(op)?)
 }
 fn sbm_charge_high(op: &CPM) -> PolarsResult<Expr> {
-    fx_total_high(op)
-        + girr_total_high(op)
-        + eq_total_high(op)
-        + csrsecnonctp_total_high(op)
-        + com_total_high(op)
-        + csrnonsec_total_high(op)
-        + csrsecctp_total_high(op)
+    Ok(fx_total_high(op)?
+        + girr_total_high(op)?
+        + eq_total_high(op)?
+        + csrsecnonctp_total_high(op)?
+        + com_total_high(op)?
+        + csrnonsec_total_high(op)?
+        + csrsecctp_total_high(op)?)
 }
 
 pub(crate) fn sbm_charge(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        sbm_charge_low(op),
-        sbm_charge_medium(op),
-        sbm_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        sbm_charge_low(op)?,
+        sbm_charge_medium(op)?,
+        sbm_charge_high(op)?,
+    ]))
 }
 
 pub(crate) fn sbm_total_measures() -> Vec<Measure> {
@@ -73,24 +73,24 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
             calculator: Box::new(sbm_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: None,
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "SBM Charge Medium".to_string(),
             calculator: Box::new(sbm_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: None,
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "SBM Charge High".to_string(),
             calculator: Box::new(sbm_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: None,
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "SBM Charge".to_string(),
             calculator: Box::new(sbm_charge),
             aggregation: Some("scalar"),
             precomputefilter: None,
-        },
+        }),
     ]
 }

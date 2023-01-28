@@ -6,12 +6,12 @@ use ndarray::{Array, Array1};
 use crate::{
     helpers::get_jurisdiction,
     prelude::*,
-    sbm::common::{across_bucket_agg, SBMChargeType}, calc_params::FRTB_CALC_PARAMS,
+    sbm::common::{across_bucket_agg, SBMChargeType},
 };
 use base_engine::{
     polars::prelude::{
         apply_multiple, df, max_exprs, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
-        Utf8NameSpaceImpl, PolarsError
+        PolarsError, Utf8NameSpaceImpl,
     },
     CPM,
 };
@@ -23,10 +23,12 @@ pub(crate) fn ccy_regex(op: &CPM) -> PolarsResult<String> {
         if s.len() == 3 {
             Ok(format!("^...{s}$"))
         } else {
-            Err(PolarsError::ComputeError("reporting_ccy must be of length 3: XXXCCY".into()))
+            Err(PolarsError::ComputeError(
+                "reporting_ccy must be of length 3: XXXCCY".into(),
+            ))
         }
     } else {
-        match juri{
+        match juri {
             #[cfg(feature = "CRR2")]
             Jurisdiction::CRR2 => Ok("^...EUR$".to_string()),
             _ => Ok("^...USD$".to_string()),
@@ -39,8 +41,7 @@ pub(crate) fn ccy_regex(op: &CPM) -> PolarsResult<String> {
 /// !and if not, then is based on Jurisdiction
 pub(crate) fn fx_delta_sens_repccy(op: &CPM) -> PolarsResult<Expr> {
     let ccy_regex = ccy_regex(op)?;
-Ok(
-    apply_multiple(
+    Ok(apply_multiple(
         move |columns| {
             let mask1 = columns[0].utf8()?.equal("FX");
 
@@ -63,13 +64,12 @@ Ok(
         ],
         GetOutput::from_type(DataType::Float64),
         false,
-    )
-)
+    ))
 }
 
 /// takes CalcParams because we need to know reporting CCY
 pub(crate) fn fx_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    Ok( fx_delta_sens_repccy(op)? * col("SensWeights").arr().get(lit(0)) )
+    Ok(fx_delta_sens_repccy(op)? * col("SensWeights").arr().get(lit(0)))
 }
 ///calculate FX Delta Sb, same for all scenarios
 pub(crate) fn fx_delta_sb(op: &CPM) -> PolarsResult<Expr> {
@@ -120,8 +120,7 @@ fn fx_delta_charge_distributor(
 /// Hence it makes sence to run regex after filtering
 fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsResult<Expr> {
     // inner function
-    Ok(
-    apply_multiple(
+    Ok(apply_multiple(
         move |columns| {
             let df = df![
                 "rcat" => &columns[0],
@@ -188,8 +187,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
         ],
         GetOutput::from_type(DataType::Float64),
         true,
-    )
-    )
+    ))
 }
 /// Returns max of three scenarios
 ///
@@ -197,22 +195,19 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(
-    max_exprs(&[
+    Ok(max_exprs(&[
         fx_delta_charge_low(op)?,
         fx_delta_charge_medium(op)?,
         fx_delta_charge_high(op)?,
-    ])
-    )
+    ]))
 }
 /// Exporting Measures
 pub(crate) fn fx_delta_measures() -> Vec<Measure> {
-    let reporting_ccy  = FRTB_CALC_PARAMS.get("reporting_ccy").unwrap(); // it must be present
-    let jurisdiction  = FRTB_CALC_PARAMS.get("jurisdiction").unwrap(); // it must be present
-    let fx_delta_gamma_low  = FRTB_CALC_PARAMS.get("fx_delta_gamma_low").unwrap(); // it must be present
-    let fx_delta_gamma_medium  = FRTB_CALC_PARAMS.get("fx_delta_gamma_medium").unwrap(); // it must be present
-    let fx_delta_gamma_high  = FRTB_CALC_PARAMS.get("fx_delta_gamma_high").unwrap(); // it must be present
-
+    //let reporting_ccy  = FRTB_CALC_PARAMS_MAP.get("reporting_ccy").unwrap(); // it must be present
+    //let jurisdiction  = FRTB_CALC_PARAMS_MAP.get("jurisdiction").unwrap(); // it must be present
+    //let fx_delta_gamma_low  = FRTB_CALC_PARAMS_MAP.get("fx_delta_gamma_low").unwrap(); // it must be present
+    //let fx_delta_gamma_medium  = FRTB_CALC_PARAMS_MAP.get("fx_delta_gamma_medium").unwrap(); // it must be present
+    //let fx_delta_gamma_high  = FRTB_CALC_PARAMS_MAP.get("fx_delta_gamma_high").unwrap(); // it must be present
 
     vec![
         Measure::Base(BaseMeasure {
@@ -224,7 +219,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction]
+            //calc_params: &[*reporting_ccy, *jurisdiction]
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaSens Weighted".to_string(),
@@ -235,7 +230,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction]
+            //calc_params: &[*reporting_ccy, *jurisdiction]
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaSb".to_string(),
@@ -246,7 +241,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaKb".to_string(),
@@ -257,7 +252,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Low".to_string(),
@@ -268,7 +263,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Medium".to_string(),
@@ -279,7 +274,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge High".to_string(),
@@ -290,7 +285,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge MAX".to_string(),
@@ -301,7 +296,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
         }),
     ]
 }

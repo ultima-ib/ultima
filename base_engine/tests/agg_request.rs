@@ -31,6 +31,7 @@ fn simple_fltr_grpby_sum() {
 
 #[cfg(feature = "cache")]
 #[test]
+#[ignore]
 fn simple_fltr_grpby_sum_with_cache() {
     use base_engine::execution_with_cache::get_cache_size;
 

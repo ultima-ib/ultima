@@ -7,12 +7,12 @@ use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetO
 use ndarray::Array2;
 
 pub fn total_commodity_delta_sens(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "Commodity", total_delta_sens())
+    Ok(rc_rcat_sens("Delta", "Commodity", total_delta_sens()))
 }
 
 /// Total Commodity Delta
 pub(crate) fn commodity_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    total_commodity_delta_sens(op) * col("SensWeights").arr().get(lit(0))
+    total_commodity_delta_sens(op).map(|expr| expr * col("SensWeights").arr().get(lit(0)))
 }
 
 /// Interm Result: Commodity Delta Sb <--> Sb Low == Sb Medium == Sb High
@@ -60,27 +60,28 @@ fn commodity_delta_charge_distributor(
         op,
         format!("com_delta_gamma{_suffix}").as_str(),
         &scenario.com_delta_vega_gamma,
-    );
+    )?;
     let commodity_rho_bucket = get_optional_parameter(
         op,
         "com_delta_diff_cty_rho_per_bucket_base",
         &scenario.com_delta_vega_diff_cty_rho_per_bucket_base,
-    );
+    )?;
     let commodity_rho_diff_loc = get_optional_parameter(
         op,
         "com_delta_rho_diff_loc_base",
         &scenario.com_delta_rho_diff_loc_base,
-    );
+    )?;
     let commodity_rho_diff_tenor = get_optional_parameter(
         op,
         "com_delta_rho_diff_tenor_base",
         &scenario.com_delta_rho_diff_tenor_base,
-    );
+    )?;
 
+    let default: Option<RhoOverwrite> = None;
     let rho_overwrite: Option<RhoOverwrite> =
-        get_optional_parameter_opt(op, "com_delta_rho_overwrite_base");
+        get_optional_parameter_clone(op, "com_delta_rho_overwrite_base", &default)?;
 
-    commodity_delta_charge(
+    Ok(commodity_delta_charge(
         commodity_rho_bucket,
         com_gamma,
         commodity_rho_diff_loc,
@@ -88,7 +89,7 @@ fn commodity_delta_charge_distributor(
         scenario.scenario_fn,
         rtrn,
         rho_overwrite,
-    )
+    ))
 }
 
 fn commodity_delta_charge<F>(
@@ -99,7 +100,7 @@ fn commodity_delta_charge<F>(
     scenario_fn: F,
     rtrn: ReturnMetric,
     rho_overwrite: Option<RhoOverwrite>,
-) -> PolarsResult<Expr>
+) -> Expr
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
@@ -254,11 +255,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        commodity_delta_charge_low(op),
-        commodity_delta_charge_medium(op),
-        commodity_delta_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        commodity_delta_charge_low(op)?,
+        commodity_delta_charge_medium(op)?,
+        commodity_delta_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -273,7 +274,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSens Weighted".to_string(),
             calculator: Box::new(commodity_delta_sens_weighted),
@@ -283,7 +284,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSb".to_string(),
             calculator: Box::new(commodity_delta_sb),
@@ -293,7 +294,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Low".to_string(),
             calculator: Box::new(commodity_delta_kb_low),
@@ -303,7 +304,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Medium".to_string(),
             calculator: Box::new(commodity_delta_kb_medium),
@@ -313,7 +314,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb High".to_string(),
             calculator: Box::new(commodity_delta_kb_high),
@@ -323,7 +324,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Low".to_string(),
             calculator: Box::new(commodity_delta_charge_low),
@@ -333,7 +334,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Medium".to_string(),
             calculator: Box::new(commodity_delta_charge_medium),
@@ -343,7 +344,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge High".to_string(),
             calculator: Box::new(commodity_delta_charge_high),
@@ -353,7 +354,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge MAX".to_string(),
             calculator: Box::new(com_delta_max),
@@ -363,6 +364,6 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
     ]
 }

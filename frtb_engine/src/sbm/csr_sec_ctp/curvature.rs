@@ -3,29 +3,33 @@ use base_engine::prelude::CPM;
 use polars::prelude::*;
 
 pub fn csrsecctp_curv_delta(_: &CPM) -> PolarsResult<Expr> {
-    curv_delta_5("CSR_Sec_CTP")
+    Ok(curv_delta_5("CSR_Sec_CTP"))
 }
 /// Helper functions
 pub fn csrsecctp_curv_delta_weighted(op: &CPM) -> PolarsResult<Expr> {
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
     match juri {
         #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => csrsecctp_curv_delta(op) * col("CurvatureRiskWeightCRR2"),
-        Jurisdiction::BCBS => csrsecctp_curv_delta(op) * col("CurvatureRiskWeight"),
+        Jurisdiction::CRR2 => {
+            csrsecctp_curv_delta(op).map(|expr| expr * col("CurvatureRiskWeightCRR2"))
+        }
+        Jurisdiction::BCBS => {
+            csrsecctp_curv_delta(op).map(|expr| expr * col("CurvatureRiskWeight"))
+        }
     }
 }
 
 pub fn csrsecctp_cvr_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr_5("CSR_Sec_CTP", Cvr::Down)
+    Ok(rc_cvr_5("CSR_Sec_CTP", Cvr::Down))
 }
 pub fn csrsecctp_cvr_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr_5("CSR_Sec_CTP", Cvr::Up)
+    Ok(rc_cvr_5("CSR_Sec_CTP", Cvr::Up))
 }
 pub fn csrsecctp_pnl_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "CSR_Sec_CTP", col("PnL_Up"))
+    Ok(rc_rcat_sens("Delta", "CSR_Sec_CTP", col("PnL_Up")))
 }
 pub fn csrsecctp_pnl_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "CSR_Sec_CTP", col("PnL_Down"))
+    Ok(rc_rcat_sens("Delta", "CSR_Sec_CTP", col("PnL_Down")))
 }
 
 pub(crate) fn csrsecctp_curvature_kb_plus_low(op: &CPM) -> PolarsResult<Expr> {
@@ -82,7 +86,7 @@ fn csrsecctp_curvature_charge_distributor(
     rtrn: ReturnMetric,
 ) -> PolarsResult<Expr> {
     let _suffix = scenario.as_str();
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
 
     let (weight, bucket_col, name_rho_vec, gamma, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
@@ -104,14 +108,14 @@ fn csrsecctp_curvature_charge_distributor(
     };
 
     let csr_secctp_curv_gamma =
-        get_optional_parameter_array(op, format!("csr_ctp_curv_gamma{_suffix}").as_str(), gamma);
+        get_optional_parameter_array(op, format!("csr_ctp_curv_gamma{_suffix}").as_str(), gamma)?;
     let csr_secctp_curv_rho = get_optional_parameter_vec(
         op,
         format!("csr_ctp_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
         &name_rho_vec,
-    );
+    )?;
 
-    csrnonsec_curvature_charge(
+    Ok(csrnonsec_curvature_charge(
         csr_secctp_curv_rho,
         csr_secctp_curv_gamma,
         rtrn,
@@ -119,7 +123,7 @@ fn csrsecctp_curvature_charge_distributor(
         weight,
         bucket_col,
         "CSR_Sec_CTP",
-    )
+    ))
 }
 
 /// Returns max of three scenarios
@@ -127,11 +131,11 @@ fn csrsecctp_curvature_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecctp_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        csrsecctp_curvature_charge_low(op),
-        csrsecctp_curvature_charge_medium(op),
-        csrsecctp_curvature_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        csrsecctp_curvature_charge_low(op)?,
+        csrsecctp_curvature_charge_medium(op)?,
+        csrsecctp_curvature_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -146,7 +150,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureDelta_Weighted".to_string(),
             calculator: Box::new(csrsecctp_curv_delta_weighted),
@@ -156,7 +160,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP PnLup".to_string(),
             calculator: Box::new(csrsecctp_pnl_up),
@@ -166,7 +170,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP PnLdown".to_string(),
             calculator: Box::new(csrsecctp_pnl_down),
@@ -176,7 +180,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CVRup".to_string(),
             calculator: Box::new(csrsecctp_cvr_up),
@@ -186,7 +190,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CVRdown".to_string(),
             calculator: Box::new(csrsecctp_cvr_down),
@@ -196,7 +200,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_plus_medium),
@@ -206,7 +210,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_minus_medium),
@@ -216,7 +220,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_medium),
@@ -226,7 +230,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_sb_medium),
@@ -236,7 +240,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge Medium".to_string(),
             calculator: Box::new(csrsecctp_curvature_charge_medium),
@@ -246,7 +250,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_plus_low),
@@ -256,7 +260,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_minus_low),
@@ -266,7 +270,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_low),
@@ -276,7 +280,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_sb_low),
@@ -286,7 +290,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge Low".to_string(),
             calculator: Box::new(csrsecctp_curvature_charge_low),
@@ -296,7 +300,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus High".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_plus_high),
@@ -306,7 +310,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus High".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_minus_high),
@@ -316,7 +320,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb High".to_string(),
             calculator: Box::new(csrsecctp_curvature_kb_high),
@@ -326,7 +330,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb High".to_string(),
             calculator: Box::new(csrsecctp_curvature_sb_high),
@@ -336,7 +340,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge High".to_string(),
             calculator: Box::new(csrsecctp_curvature_charge_high),
@@ -346,7 +350,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge MAX".to_string(),
             calculator: Box::new(csrsecctp_curv_max),
@@ -356,6 +360,6 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
     ]
 }

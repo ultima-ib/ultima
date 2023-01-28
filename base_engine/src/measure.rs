@@ -1,5 +1,5 @@
 //use derivative::Derivative;
-use polars::prelude::{Expr, col, PolarsResult, PolarsError};
+use polars::prelude::{col, Expr, PolarsError, PolarsResult};
 use serde::Serialize;
 //use serde::Serialize;
 use std::collections::BTreeMap;
@@ -7,7 +7,6 @@ use std::collections::BTreeMap;
 use crate::CPM;
 
 //pub type OCPM = BTreeMap<String, String>;
-
 
 pub type MeasureName = String;
 /// (Measure Name, Measure)
@@ -35,9 +34,9 @@ pub struct BaseMeasure {
     /// Executed in .groupby().agg() context
     pub calculator: Calculator,
 
-    //pub calculator2: Expr,
-    /// parameters which will go into calculator
-    pub calc_params: &'static [CalcParameter],
+    // TODO find a nice way to attach calc_params to a measure
+    // parameters which will go into calculator
+    //pub calc_params: &'static [CalcParameter],
     /// Optional: this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
     pub aggregation: Option<&'static str>,
@@ -55,12 +54,11 @@ pub struct BaseMeasure {
 //BaseMeasure (EXPR)
 /// Dependant Measure cannot be computed directly. Instead it is broken down into it's parents
 /// parents get executed, and then used to compute the DependantMeasure.
-/// 
+///
 /// Useful for caching.
-/// 
+///
 /// No precomputefilter - it is inherited from parents
 pub struct DependantMeasure {
-
     pub name: String,
 
     /// executed within .with_columns() context
@@ -75,9 +73,8 @@ pub struct DependantMeasure {
 
     /// Vec<(Depends Upon Measure Name, Aggregation type)>
     /// eg vec![(FXDeltaCharge, scalar), (Sensitivity, mean)]
-    pub depends_upon: Vec<(Measure, String)>
+    pub depends_upon: Vec<(Measure, String)>,
 }
-
 
 /// AggRequest --> execute -->  split DependantMeasure into BaseMeasure's (BaseMeasure leave as they are) --> execute_aggregation --> combine back into original request
 /// make cahce default (ie not a feature)
@@ -105,15 +102,15 @@ impl FromIterator<Measure> for BTreeMap<MeasureName, Measure> {
 impl Measure {
     pub fn aggregation(&self) -> &Option<&'static str> {
         match self {
-            Measure::Base(BaseMeasure{aggregation,..})|
-            Measure::Dependant(DependantMeasure{aggregation,..}) => aggregation,
+            Measure::Base(BaseMeasure { aggregation, .. })
+            | Measure::Dependant(DependantMeasure { aggregation, .. }) => aggregation,
         }
     }
-    
+
     pub fn name(&self) -> &MeasureName {
         match self {
-            Measure::Base(BaseMeasure{name,..})|
-            Measure::Dependant(DependantMeasure{name,..}) => name,
+            Measure::Base(BaseMeasure { name, .. })
+            | Measure::Dependant(DependantMeasure { name, .. }) => name,
         }
     }
     /*
@@ -138,13 +135,12 @@ impl Measure {
     */
 }
 
-
 impl Default for BaseMeasure {
     fn default() -> BaseMeasure {
         BaseMeasure {
             name: "Default".into(),
             calculator: Box::new(|_: &CPM| Ok(col("*"))),
-            calc_params: &[],
+            //calc_params: &[],
             aggregation: None,
             precomputefilter: None,
         }
@@ -156,11 +152,10 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
         .iter()
         .map(|x| {
             let y = x.clone();
-            Measure::Base(BaseMeasure{
+            Measure::Base(BaseMeasure {
                 name: x.clone(),
                 calculator: Box::new(move |_| Ok(col(y.as_str()))),
                 ..Default::default()
-
             })
         })
         .collect::<Vec<Measure>>()
@@ -207,7 +202,7 @@ pub(crate) fn base_measure_lookup(
 
             // apply action
             let (calculator, name) = act(
-                    (m.calculator)(op)?, 
+                    (m.calculator)(op)?,
                     requested_measure
                 );
 
@@ -229,7 +224,7 @@ pub(crate) fn base_measure_lookup(
 /// and the precompute filter.
 ///
 /// This is basically a "processed" measure
-pub(crate)struct ProcessedMeasure {
+pub(crate) struct ProcessedMeasure {
     pub name: String,
     pub calculator: Expr,
     pub precomputefilter: Option<Expr>,

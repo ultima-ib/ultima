@@ -3,23 +3,23 @@ use base_engine::prelude::CPM;
 use polars::prelude::*;
 
 pub fn com_curv_delta(_: &CPM) -> PolarsResult<Expr> {
-    curv_delta_total("Commodity")
+    Ok(curv_delta_total("Commodity"))
 }
 /// Helper functions
 pub fn com_curv_delta_weighted(op: &CPM) -> PolarsResult<Expr> {
-    com_curv_delta(op) * col("CurvatureRiskWeight")
+    com_curv_delta(op).map(|expr| expr * col("CurvatureRiskWeight"))
 }
 pub fn com_cvr_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr("Commodity", Cvr::Down)
+    Ok(rc_cvr("Commodity", Cvr::Down))
 }
 pub fn com_cvr_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr("Commodity", Cvr::Up)
+    Ok(rc_cvr("Commodity", Cvr::Up))
 }
 pub fn com_pnl_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "Commodity", col("PnL_Up"))
+    Ok(rc_rcat_sens("Delta", "Commodity", col("PnL_Up")))
 }
 pub fn com_pnl_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "Commodity", col("PnL_Down"))
+    Ok(rc_rcat_sens("Delta", "Commodity", col("PnL_Down")))
 }
 
 pub(crate) fn com_curvature_kb_plus_low(op: &CPM) -> PolarsResult<Expr> {
@@ -81,21 +81,21 @@ fn com_curvature_charge_distributor(
         op,
         format!("commodity_curv_gamma{_suffix}").as_str(),
         &scenario.com_curv_gamma,
-    );
+    )?;
     let com_curv_rho = get_optional_parameter(
         op,
         format!("com_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
         &scenario.com_curv_diff_name_rho_per_bucket,
-    );
+    )?;
 
     // Same methodology as EQ Curvature
-    eq_curvature_charge(
+    Ok(eq_curvature_charge(
         com_curv_rho.to_vec(),
         com_curv_gamma,
         rtrn,
         "Commodity",
         None,
-    )
+    ))
 }
 
 /// Returns max of three scenarios
@@ -104,11 +104,11 @@ fn com_curvature_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        com_curvature_charge_low(op),
-        com_curvature_charge_medium(op),
-        com_curvature_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        com_curvature_charge_low(op)?,
+        com_curvature_charge_medium(op)?,
+        com_curvature_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -123,7 +123,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureDelta Weighted".to_string(),
             calculator: Box::new(com_curv_delta_weighted),
@@ -133,7 +133,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity PnLup".to_string(),
             calculator: Box::new(com_pnl_up),
@@ -143,7 +143,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity PnLdown".to_string(),
             calculator: Box::new(com_pnl_down),
@@ -153,7 +153,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity CVRup".to_string(),
             calculator: Box::new(com_cvr_up),
@@ -163,7 +163,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity CVRdown".to_string(),
             calculator: Box::new(com_cvr_down),
@@ -173,7 +173,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbPlus Medium".to_string(),
             calculator: Box::new(com_curvature_kb_plus_medium),
@@ -183,7 +183,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbMinus Medium".to_string(),
             calculator: Box::new(com_curvature_kb_minus_medium),
@@ -193,7 +193,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Kb Medium".to_string(),
             calculator: Box::new(com_curvature_kb_medium),
@@ -203,7 +203,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Sb Medium".to_string(),
             calculator: Box::new(com_curvature_sb_medium),
@@ -213,7 +213,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge Medium".to_string(),
             calculator: Box::new(com_curvature_charge_medium),
@@ -223,7 +223,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbPlus Low".to_string(),
             calculator: Box::new(com_curvature_kb_plus_low),
@@ -233,7 +233,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbMinus Low".to_string(),
             calculator: Box::new(com_curvature_kb_minus_low),
@@ -243,7 +243,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Kb Low".to_string(),
             calculator: Box::new(com_curvature_kb_low),
@@ -253,7 +253,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Sb Low".to_string(),
             calculator: Box::new(com_curvature_sb_low),
@@ -263,7 +263,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge Low".to_string(),
             calculator: Box::new(com_curvature_charge_low),
@@ -273,7 +273,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbPlus High".to_string(),
             calculator: Box::new(com_curvature_kb_plus_high),
@@ -283,7 +283,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbMinus High".to_string(),
             calculator: Box::new(com_curvature_kb_minus_high),
@@ -293,7 +293,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Kb High".to_string(),
             calculator: Box::new(com_curvature_kb_high),
@@ -303,7 +303,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Sb High".to_string(),
             calculator: Box::new(com_curvature_sb_high),
@@ -313,7 +313,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge High".to_string(),
             calculator: Box::new(com_curvature_charge_high),
@@ -323,7 +323,7 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge MAX".to_string(),
             calculator: Box::new(com_curv_max),
@@ -333,6 +333,6 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
-        },
+        }),
     ]
 }

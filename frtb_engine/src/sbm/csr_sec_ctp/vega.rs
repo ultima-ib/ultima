@@ -2,18 +2,19 @@ use crate::{prelude::*, sbm::csr_nonsec::vega::csr_nonsec_vega_charge};
 use base_engine::polars::prelude::max_exprs;
 
 pub fn total_csrsecctp_vega_sens(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Vega", "CSR_Sec_CTP", total_vega_curv_sens())
+    Ok(rc_rcat_sens("Vega", "CSR_Sec_CTP", total_vega_curv_sens()))
 }
 
 pub fn total_csrsecctp_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
 
     match juri {
         #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => {
-            total_csrsecctp_vega_sens(op) * col("SensWeightsCRR2").arr().get(lit(0))
+        Jurisdiction::CRR2 => total_csrsecctp_vega_sens(op)
+            .map(|expr| expr * col("SensWeightsCRR2").arr().get(lit(0))),
+        Jurisdiction::BCBS => {
+            total_csrsecctp_vega_sens(op).map(|expr| expr * col("SensWeights").arr().get(lit(0)))
         }
-        Jurisdiction::BCBS => total_csrsecctp_vega_sens(op) * col("SensWeights").arr().get(lit(0)),
     }
 }
 
@@ -59,7 +60,7 @@ fn csrsecctp_vega_charge_distributor(
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
 ) -> PolarsResult<Expr> {
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
     let _suffix = scenario.as_str();
 
     let (weight, bucket_col, name_rho_vec, rho_opt, gamma, special_bucket) = match juri {
@@ -84,15 +85,15 @@ fn csrsecctp_vega_charge_distributor(
     };
 
     let csr_gamma =
-        get_optional_parameter_array(op, format!("csr_ctp_vega_gamma{_suffix}").as_str(), gamma);
+        get_optional_parameter_array(op, format!("csr_ctp_vega_gamma{_suffix}").as_str(), gamma)?;
     let base_csr_rho_bucket = get_optional_parameter_vec(
         op,
         "csr_ctp_vega_diff_name_rho_per_bucket_base",
         &name_rho_vec,
-    );
-    let csr_vega_rho = get_optional_parameter_array(op, "csr_ctp_opt_mat_vega_rho_base", rho_opt);
+    )?;
+    let csr_vega_rho = get_optional_parameter_array(op, "csr_ctp_opt_mat_vega_rho_base", rho_opt)?;
 
-    csr_nonsec_vega_charge(
+    Ok(csr_nonsec_vega_charge(
         weight,
         bucket_col,
         scenario.scenario_fn,
@@ -103,7 +104,7 @@ fn csrsecctp_vega_charge_distributor(
         "CSR_Sec_CTP",
         "Vega",
         rtrn,
-    )
+    ))
 }
 
 /// Returns max of three scenarios
@@ -111,11 +112,11 @@ fn csrsecctp_vega_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecctp_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        csrsecctp_vega_charge_low(op),
-        csrsecctp_vega_charge_medium(op),
-        csrsecctp_vega_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        csrsecctp_vega_charge_low(op)?,
+        csrsecctp_vega_charge_medium(op)?,
+        csrsecctp_vega_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -130,7 +131,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaSens Weighted".to_string(),
             calculator: Box::new(total_csrsecctp_vega_sens_weighted),
@@ -140,7 +141,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaSb".to_string(),
             calculator: Box::new(csrsecctp_vega_sb),
@@ -150,7 +151,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge Low".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_low),
@@ -160,7 +161,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb Low".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_low),
@@ -170,7 +171,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge Medium".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_medium),
@@ -180,7 +181,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb Medium".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_medium),
@@ -190,7 +191,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge High".to_string(),
             calculator: Box::new(csrsecctp_vega_charge_high),
@@ -200,7 +201,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb High".to_string(),
             calculator: Box::new(csrsecctp_vega_kb_high),
@@ -210,7 +211,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge MAX".to_string(),
             calculator: Box::new(csrsecctp_vega_max),
@@ -220,6 +221,6 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
     ]
 }

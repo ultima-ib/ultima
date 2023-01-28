@@ -1,8 +1,8 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
-use base_engine::{CPM, PolarsResult};
+use base_engine::{PolarsResult, CPM};
 use ndarray::Array2;
-use polars::prelude::{BooleanType, ChunkedArray, Utf8Type, PolarsError};
+use polars::prelude::{BooleanType, ChunkedArray, PolarsError, Utf8Type};
 use serde::{Deserialize, Serialize};
 
 use crate::prelude::Jurisdiction;
@@ -11,19 +11,29 @@ use crate::prelude::Jurisdiction;
 /// if jurisdiction is not part of optional params or can't parse this will return BCBS
 pub(crate) fn get_jurisdiction(op: &CPM) -> PolarsResult<Jurisdiction> {
     match op.get("jurisdiction") {
-        Some(j) => j.parse::<Jurisdiction>().map_err(|_|PolarsError::ComputeError("Invalid jurisdiction".into())),
-        _ => Ok(Jurisdiction::default())
+        Some(j) => j
+            .parse::<Jurisdiction>()
+            .map_err(|_| PolarsError::ComputeError("Invalid jurisdiction".into())),
+        _ => Ok(Jurisdiction::default()),
     }
 }
 
 /// Limited to types which implement Copy because this should only be used for types like f64
-pub(crate) fn get_optional_parameter<'a, T>(op: &'a CPM, param: &str, default: &T) -> PolarsResult<T>
+pub(crate) fn get_optional_parameter<'a, T>(
+    op: &'a CPM,
+    param: &str,
+    default: &T,
+) -> PolarsResult<T>
 where
     T: Deserialize<'a> + Copy,
 {
     match op.get(param) {
-        Some(pat) => serde_json::from_str::<T>(pat).map_err(PolarsError::ComputeError(format!("Could not parse parameter {pat}").into())),
-        None => Ok(*default)
+        Some(pat) => serde_json::from_str::<T>(pat).map_err(|_| {
+            PolarsError::ComputeError(
+                format!("Could not parse {param}: invalid value: {pat}").into(),
+            )
+        }),
+        None => Ok(*default),
     }
 }
 
@@ -32,20 +42,27 @@ pub(crate) fn get_optional_parameter_vec<'a, T>(
     op: &'a CPM,
     param: &str,
     default: &Vec<T>,
-) -> Vec<T>
+) -> PolarsResult<Vec<T>>
 where
     T: Deserialize<'a> + Clone,
 {
-    op.get(param)
-        .and_then(|x| serde_json::from_str::<Vec<T>>(x).ok())
-        .and_then(|v| {
-            if v.len() == default.len() {
-                Some(v)
-            } else {
-                None
-            }
-        })
-        .unwrap_or_else(|| default.clone())
+    match op.get(param) {
+        Some(x) => serde_json::from_str::<Vec<T>>(x)
+            .map_err(|_| {
+                PolarsError::ComputeError(format!("Could not parse {param} into vec: {x}").into())
+            })
+            .and_then(|arr| {
+                if arr.len() == default.len() {
+                    Ok(arr)
+                } else {
+                    Err(PolarsError::ComputeError(
+                        format!("Invalid len of {param} vec {x}").into(),
+                    ))
+                }
+            }),
+
+        None => Ok(default.to_owned()),
+    }
 }
 
 /// we need to assert arr shape, so we have a separate func for arrs
@@ -53,26 +70,40 @@ pub(crate) fn get_optional_parameter_array<'a>(
     op: &'a CPM,
     param: &str,
     default: &Array2<f64>,
-) -> Array2<f64> {
-    op.get(param)
-        .and_then(|x| serde_json::from_str::<Array2<f64>>(x).ok())
-        .and_then(|arr| {
-            if arr.shape() == default.shape() {
-                Some(arr)
-            } else {
-                None
-            }
-        })
-        .unwrap_or_else(|| default.to_owned())
+) -> PolarsResult<Array2<f64>> {
+    match op.get(param) {
+        Some(x) => serde_json::from_str::<Array2<f64>>(x)
+            .map_err(|_| {
+                PolarsError::ComputeError(format!("Could not parse {param} array: {x}").into())
+            })
+            .and_then(|arr| {
+                if arr.shape() == default.shape() {
+                    Ok(arr)
+                } else {
+                    Err(PolarsError::ComputeError(
+                        format!("Invalid shape of {param} array {x}").into(),
+                    ))
+                }
+            }),
+
+        None => Ok(default.to_owned()),
+    }
 }
 
-/// we need to assert arr shape, so we have a separate func for arrs
-pub(crate) fn get_optional_parameter_opt<'a, T>(op: &'a CPM, param: &str) -> Option<T>
+/// Used for commodity Rho
+pub(crate) fn get_optional_parameter_clone<'a, T>(
+    op: &'a CPM,
+    param: &str,
+    default: &T,
+) -> PolarsResult<T>
 where
-    T: Deserialize<'a> + std::fmt::Debug,
+    T: Deserialize<'a> + Clone,
 {
-    op.get(param)
-        .and_then(|x| serde_json::from_str::<T>(x).ok())
+    match op.get(param) {
+        Some(x) => serde_json::from_str::<T>(x)
+            .map_err(|_| PolarsError::ComputeError(format!("Could not parse {param}: {x}").into())),
+        None => Ok(default.clone()),
+    }
 }
 
 /// For the cases where the requirement is completely outside of standradised approach, eg:

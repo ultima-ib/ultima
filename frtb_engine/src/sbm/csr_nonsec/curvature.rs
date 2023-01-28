@@ -7,29 +7,33 @@ use ndarray::Array2;
 use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
 
 pub fn csrnonsec_curv_delta(_: &CPM) -> PolarsResult<Expr> {
-    curv_delta_5("CSR_nonSec")
+    Ok(curv_delta_5("CSR_nonSec"))
 }
 /// Helper functions
 pub fn csrnonsec_curv_delta_weighted(op: &CPM) -> PolarsResult<Expr> {
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
     match juri {
         #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => csrnonsec_curv_delta(op) * col("CurvatureRiskWeightCRR2"),
-        Jurisdiction::BCBS => csrnonsec_curv_delta(op) * col("CurvatureRiskWeight"),
+        Jurisdiction::CRR2 => {
+            csrnonsec_curv_delta(op).map(|expr| expr * col("CurvatureRiskWeightCRR2"))
+        }
+        Jurisdiction::BCBS => {
+            csrnonsec_curv_delta(op).map(|expr| expr * col("CurvatureRiskWeight"))
+        }
     }
 }
 
 pub fn csrnonsec_cvr_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr_5("CSR_nonSec", Cvr::Down)
+    Ok(rc_cvr_5("CSR_nonSec", Cvr::Down))
 }
 pub fn csrnonsec_cvr_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr_5("CSR_nonSec", Cvr::Up)
+    Ok(rc_cvr_5("CSR_nonSec", Cvr::Up))
 }
 pub fn csrnonsec_pnl_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "CSR_nonSec", col("PnL_Up"))
+    Ok(rc_rcat_sens("Delta", "CSR_nonSec", col("PnL_Up")))
 }
 pub fn csrnonsec_pnl_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "CSR_nonSec", col("PnL_Down"))
+    Ok(rc_rcat_sens("Delta", "CSR_nonSec", col("PnL_Down")))
 }
 
 pub(crate) fn csrnonsec_curvature_kb_plus_low(op: &CPM) -> PolarsResult<Expr> {
@@ -86,7 +90,7 @@ fn csrnonsec_curvature_charge_distributor(
     rtrn: ReturnMetric,
 ) -> PolarsResult<Expr> {
     let _suffix = scenario.as_str();
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
 
     let (weight, bucket_col, name_rho_vec, gamma, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
@@ -111,14 +115,14 @@ fn csrnonsec_curvature_charge_distributor(
         op,
         format!("csr_nonsec_curv_gamma{_suffix}").as_str(),
         gamma,
-    );
+    )?;
     let csr_nonsec_curv_rho = get_optional_parameter_vec(
         op,
         format!("csr_nonsec_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
         &name_rho_vec,
-    );
+    )?;
 
-    csrnonsec_curvature_charge(
+    Ok(csrnonsec_curvature_charge(
         csr_nonsec_curv_rho,
         csr_nonsec_curv_gamma,
         rtrn,
@@ -126,7 +130,7 @@ fn csrnonsec_curvature_charge_distributor(
         weight,
         bucket_col,
         "CSR_nonSec",
-    )
+    ))
 }
 
 pub(crate) fn csrnonsec_curvature_charge(
@@ -137,7 +141,7 @@ pub(crate) fn csrnonsec_curvature_charge(
     weight: Expr,
     bucket_col: Expr,
     rc: &'static str,
-) -> PolarsResult<Expr> {
+) -> Expr {
     apply_multiple(
         move |columns| {
             let df = df![
@@ -231,11 +235,11 @@ pub(crate) fn csrnonsec_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrnonsec_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        csrnonsec_curvature_charge_low(op),
-        csrnonsec_curvature_charge_medium(op),
-        csrnonsec_curvature_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        csrnonsec_curvature_charge_low(op)?,
+        csrnonsec_curvature_charge_medium(op)?,
+        csrnonsec_curvature_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -250,7 +254,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec CurvatureDeltaWeighted".to_string(),
             calculator: Box::new(csrnonsec_curv_delta_weighted),
@@ -260,7 +264,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec PnLup".to_string(),
             calculator: Box::new(csrnonsec_pnl_up),
@@ -270,7 +274,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec PnLdown".to_string(),
             calculator: Box::new(csrnonsec_pnl_down),
@@ -280,7 +284,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec CVRup".to_string(),
             calculator: Box::new(csrnonsec_cvr_up),
@@ -290,7 +294,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec CVRdown".to_string(),
             calculator: Box::new(csrnonsec_cvr_down),
@@ -300,7 +304,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature KbPlus Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_plus_medium),
@@ -310,7 +314,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature KbMinus Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_minus_medium),
@@ -320,7 +324,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature Kb Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_medium),
@@ -330,7 +334,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature Sb Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_sb_medium),
@@ -340,7 +344,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec CurvatureCharge Medium".to_string(),
             calculator: Box::new(csrnonsec_curvature_charge_medium),
@@ -350,7 +354,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature KbPlus Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_plus_low),
@@ -360,7 +364,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature KbMinus Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_minus_low),
@@ -370,7 +374,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature Kb Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_low),
@@ -380,7 +384,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature Sb Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_sb_low),
@@ -390,7 +394,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec CurvatureCharge Low".to_string(),
             calculator: Box::new(csrnonsec_curvature_charge_low),
@@ -400,7 +404,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature KbPlus High".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_plus_high),
@@ -410,7 +414,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature KbMinus High".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_minus_high),
@@ -420,7 +424,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature Kb High".to_string(),
             calculator: Box::new(csrnonsec_curvature_kb_high),
@@ -430,7 +434,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec Curvature Sb High".to_string(),
             calculator: Box::new(csrnonsec_curvature_sb_high),
@@ -440,7 +444,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec CurvatureCharge High".to_string(),
             calculator: Box::new(csrnonsec_curvature_charge_high),
@@ -450,7 +454,7 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec CurvatureCharge MAX".to_string(),
             calculator: Box::new(csrnonsec_curv_max),
@@ -460,6 +464,6 @@ pub(crate) fn csrnonsec_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
-        },
+        }),
     ]
 }

@@ -6,23 +6,23 @@ use base_engine::prelude::CPM;
 use ndarray::Array2;
 
 pub fn eq_curv_delta(_: &CPM) -> PolarsResult<Expr> {
-    curv_delta_spot("Equity")
+    Ok(curv_delta_spot("Equity"))
 }
 /// Helper functions
 pub fn eq_curv_delta_weighted(op: &CPM) -> PolarsResult<Expr> {
-    eq_curv_delta(op) * col("CurvatureRiskWeight")
+    eq_curv_delta(op).map(|expr| expr * col("CurvatureRiskWeight"))
 }
 pub fn eq_cvr_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr_spot("Equity", Cvr::Down)
+    Ok(rc_cvr_spot("Equity", Cvr::Down))
 }
 pub fn eq_cvr_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_cvr_spot("Equity", Cvr::Up)
+    Ok(rc_cvr_spot("Equity", Cvr::Up))
 }
 pub fn eq_pnl_up(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "Equity", col("PnL_Up"))
+    Ok(rc_rcat_sens("Delta", "Equity", col("PnL_Up")))
 }
 pub fn eq_pnl_down(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "Equity", col("PnL_Down"))
+    Ok(rc_rcat_sens("Delta", "Equity", col("PnL_Down")))
 }
 
 pub(crate) fn eq_curvature_kb_plus_low(op: &CPM) -> PolarsResult<Expr> {
@@ -84,19 +84,19 @@ fn eq_curvature_charge_distributor(
         op,
         format!("eq_curv_gamma{_suffix}").as_str(),
         &scenario.eq_curv_gamma,
-    );
+    )?;
     let eq_curv_rho = get_optional_parameter(
         op,
         format!("eq_curv_diff_name_rho_per_bucket{_suffix}").as_str(),
         &scenario.eq_curv_diff_name_rho_per_bucket,
-    );
-    eq_curvature_charge(
+    )?;
+    Ok(eq_curvature_charge(
         eq_curv_rho.to_vec(),
         eq_curv_gamma,
         rtrn,
         "Equity",
         Some(11),
-    )
+    ))
 }
 
 pub(crate) fn eq_curvature_charge(
@@ -105,7 +105,7 @@ pub(crate) fn eq_curvature_charge(
     return_metric: ReturnMetric,
     rc: &'static str,
     special_bucket: Option<usize>,
-) -> PolarsResult<Expr> {
+) -> Expr {
     apply_multiple(
         move |columns| {
             let df = df![
@@ -191,11 +191,11 @@ pub(crate) fn eq_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        eq_curvature_charge_low(op),
-        eq_curvature_charge_medium(op),
-        eq_curvature_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        eq_curvature_charge_low(op)?,
+        eq_curvature_charge_medium(op)?,
+        eq_curvature_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -210,7 +210,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureDelta_Weighted".to_string(),
             calculator: Box::new(eq_curv_delta_weighted),
@@ -220,7 +220,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ PnLup".to_string(),
             calculator: Box::new(eq_pnl_up),
@@ -230,7 +230,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ PnLdown".to_string(),
             calculator: Box::new(eq_pnl_down),
@@ -240,7 +240,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ CVRup".to_string(),
             calculator: Box::new(eq_cvr_up),
@@ -250,7 +250,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ CVRdown".to_string(),
             calculator: Box::new(eq_cvr_down),
@@ -260,7 +260,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus Medium".to_string(),
             calculator: Box::new(eq_curvature_kb_plus_medium),
@@ -270,7 +270,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus Medium".to_string(),
             calculator: Box::new(eq_curvature_kb_minus_medium),
@@ -280,7 +280,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb Medium".to_string(),
             calculator: Box::new(eq_curvature_kb_medium),
@@ -290,7 +290,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb Medium".to_string(),
             calculator: Box::new(eq_curvature_sb_medium),
@@ -300,7 +300,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge Medium".to_string(),
             calculator: Box::new(eq_curvature_charge_medium),
@@ -310,7 +310,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus Low".to_string(),
             calculator: Box::new(eq_curvature_kb_plus_low),
@@ -320,7 +320,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus Low".to_string(),
             calculator: Box::new(eq_curvature_kb_minus_low),
@@ -330,7 +330,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb Low".to_string(),
             calculator: Box::new(eq_curvature_kb_low),
@@ -340,7 +340,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb Low".to_string(),
             calculator: Box::new(eq_curvature_sb_low),
@@ -350,7 +350,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge Low".to_string(),
             calculator: Box::new(eq_curvature_charge_low),
@@ -360,7 +360,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus High".to_string(),
             calculator: Box::new(eq_curvature_kb_plus_high),
@@ -370,7 +370,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus High".to_string(),
             calculator: Box::new(eq_curvature_kb_minus_high),
@@ -380,7 +380,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb High".to_string(),
             calculator: Box::new(eq_curvature_kb_high),
@@ -390,7 +390,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb High".to_string(),
             calculator: Box::new(eq_curvature_sb_high),
@@ -400,7 +400,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge High".to_string(),
             calculator: Box::new(eq_curvature_charge_high),
@@ -410,7 +410,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge MAX".to_string(),
             calculator: Box::new(eq_curv_max),
@@ -420,6 +420,6 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
     ]
 }

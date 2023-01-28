@@ -91,7 +91,7 @@ pub fn rc_tenor_weighted_sens(
     delta_tenor: &str,
     weights_col: &str,
     weight_idx: i64,
-) -> PolarsResult<Expr> {
+) -> Expr {
     apply_multiple(
         move |columns| {
             //RiskClass

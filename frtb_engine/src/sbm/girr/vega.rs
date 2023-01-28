@@ -19,32 +19,32 @@ use ndarray::{s, Array1, Array2};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 pub fn total_ir_vega_sens(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Vega", "GIRR", total_vega_curv_sens())
+    Ok(rc_rcat_sens("Vega", "GIRR", total_vega_curv_sens()))
 }
 
-fn girr_vega_sens_weighted_05y() -> PolarsResult<Expr> {
+fn girr_vega_sens_weighted_05y() -> Expr {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_05Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_1y() -> PolarsResult<Expr> {
+fn girr_vega_sens_weighted_1y() -> Expr {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_1Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_3y() -> PolarsResult<Expr> {
+fn girr_vega_sens_weighted_3y() -> Expr {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_3Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_5y() -> PolarsResult<Expr> {
+fn girr_vega_sens_weighted_5y() -> Expr {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_5Y", "SensWeights", 0)
 }
-fn girr_vega_sens_weighted_10y() -> PolarsResult<Expr> {
+fn girr_vega_sens_weighted_10y() -> Expr {
     rc_tenor_weighted_sens("Vega", "GIRR", "Sensitivity_10Y", "SensWeights", 0)
 }
 
 /// Total GIRR Vega Seins
 pub(crate) fn girr_vega_sens_weighted(_: &CPM) -> PolarsResult<Expr> {
-    girr_vega_sens_weighted_05y().fill_null(0.)
+    Ok(girr_vega_sens_weighted_05y().fill_null(0.)
         + girr_vega_sens_weighted_1y().fill_null(0.)
         + girr_vega_sens_weighted_3y().fill_null(0.)
         + girr_vega_sens_weighted_5y().fill_null(0.)
-        + girr_vega_sens_weighted_10y().fill_null(0.)
+        + girr_vega_sens_weighted_10y().fill_null(0.))
 }
 
 /// Interm Result: GIRR Vega Sb <--> Sb Low == Sb Medium == Sb High
@@ -89,35 +89,35 @@ fn girr_vega_charge_distributor(
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
 ) -> PolarsResult<Expr> {
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
     let _suffix = scenario.as_str();
 
     let girr_vega_rho = get_optional_parameter_array(
         op,
         format!("girr_vega_rho{_suffix}").as_str(),
         &scenario.girr_vega_rho,
-    );
+    )?;
     let girr_vega_gamma = get_optional_parameter(
         op,
         format!("girr_vega_gamma{_suffix}").as_str(),
         &scenario.girr_delta_vega_gamma,
-    );
+    )?;
 
     let girr_vega_gamma_crr2_erm2 = get_optional_parameter(
         op,
         format!("girr_vega_gamma_erm2{_suffix}").as_str(),
         &scenario.girr_delta_vega_gamma_erm2,
-    );
-    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_ccys);
+    )?;
+    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_ccys)?;
 
-    girr_vega_charge(
+    Ok(girr_vega_charge(
         girr_vega_rho,
         girr_vega_gamma,
         rtrn,
         juri,
         girr_vega_gamma_crr2_erm2,
         erm2ccys,
-    )
+    ))
 }
 
 fn girr_vega_charge(
@@ -127,7 +127,7 @@ fn girr_vega_charge(
     juri: Jurisdiction,
     _erm2_gamma: f64,
     _erm2ccys: Vec<String>,
-) -> PolarsResult<Expr> {
+) -> Expr {
     apply_multiple(
         move |columns| {
             let df = df![
@@ -318,11 +318,11 @@ pub(crate) fn girr_vega_rho() -> Array2<f64> {
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        girr_vega_charge_low(op),
-        girr_vega_charge_medium(op),
-        girr_vega_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        girr_vega_charge_low(op)?,
+        girr_vega_charge_medium(op)?,
+        girr_vega_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -337,7 +337,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaSens Weighted".to_string(),
             calculator: Box::new(girr_vega_sens_weighted),
@@ -347,7 +347,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaSb".to_string(),
             calculator: Box::new(girr_vega_sb),
@@ -357,7 +357,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge Low".to_string(),
             calculator: Box::new(girr_vega_charge_low),
@@ -367,7 +367,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaKb Low".to_string(),
             calculator: Box::new(girr_vega_kb_low),
@@ -377,7 +377,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge Medium".to_string(),
             calculator: Box::new(girr_vega_charge_medium),
@@ -387,7 +387,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaKb Medium".to_string(),
             calculator: Box::new(girr_vega_kb_medium),
@@ -397,7 +397,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge High".to_string(),
             calculator: Box::new(girr_vega_charge_high),
@@ -407,7 +407,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaKb High".to_string(),
             calculator: Box::new(girr_vega_kb_high),
@@ -417,7 +417,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge MAX".to_string(),
             calculator: Box::new(girr_vega_max),
@@ -427,6 +427,6 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
     ]
 }

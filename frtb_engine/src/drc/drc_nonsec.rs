@@ -7,11 +7,11 @@ use base_engine::polars::prelude::{
 //use polars::prelude::ChunkApply;
 
 pub(crate) fn drc_nonsec_grossjtd(_: &CPM) -> PolarsResult<Expr> {
-    rc_sens("DRC_nonSec", col("GrossJTD"))
+    Ok(rc_sens("DRC_nonSec", col("GrossJTD")))
 }
 pub(crate) fn drc_nonsec_grossjtd_scaled(_: &CPM) -> PolarsResult<Expr> {
     //drc_nonsec_distributor(op, ReturnMetric::ScaledGrossJTD)
-    rc_sens("DRC_nonSec", col("GrossJTD") * col("ScaleFactor"))
+    Ok(rc_sens("DRC_nonSec", col("GrossJTD") * col("ScaleFactor")))
 }
 
 pub(crate) fn drc_nonsec_charge(op: &CPM) -> PolarsResult<Expr> {
@@ -34,19 +34,19 @@ pub(crate) fn drc_nonsec_hbr(op: &CPM) -> PolarsResult<Expr> {
 }
 
 fn drc_nonsec_distributor(op: &CPM, rtrn: ReturnMetric) -> PolarsResult<Expr> {
-    let juri: Jurisdiction = get_jurisdiction(op);
-    let offset = get_optional_parameter(op, "drc_offset", &true);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
+    let offset = get_optional_parameter(op, "drc_offset", &true)?;
 
     let weights = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => col("SensWeightsCRR2"),
         _ => col("SensWeights"),
     };
-    drc_nonsec_charge_calculator(rtrn, offset, weights)
+    Ok(drc_nonsec_charge_calculator(rtrn, offset, weights))
 }
 
 /// calculate FX Delta Capital charge
-fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr) -> PolarsResult<Expr> {
+fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr) -> Expr {
     // inner function
     apply_multiple(
         move |columns| {
@@ -221,49 +221,49 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
             calculator: Box::new(drc_nonsec_grossjtd),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec GrossJTD Scaled".to_string(),
             calculator: Box::new(drc_nonsec_grossjtd_scaled),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec CapitalCharge".to_string(),
             calculator: Box::new(drc_nonsec_charge),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD".to_string(),
             calculator: Box::new(drc_nonsec_netlongjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetShortJTD".to_string(),
             calculator: Box::new(drc_nonsec_netshortjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetlongjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetAbsShortJTD Weighted".to_string(),
             calculator: Box::new(drc_nonsec_weightednetabsshortjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
         // HBR Only makes sence at Bucket level
         Measure::Base(BaseMeasure {
             name: "DRC nonSec HBR".to_string(),
             calculator: Box::new(drc_nonsec_hbr),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
-        },
+        }),
     ]
 }

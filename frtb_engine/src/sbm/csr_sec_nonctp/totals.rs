@@ -1,3 +1,4 @@
+use base_engine::BaseMeasure;
 use base_engine::Measure;
 use base_engine::CPM;
 use polars::prelude::*;
@@ -7,27 +8,27 @@ use super::delta::*;
 use super::vega::*;
 
 pub(crate) fn csrsecnonctp_total_low(op: &CPM) -> PolarsResult<Expr> {
-    csr_sec_nonctp_delta_charge_low(op)
-        + csr_sec_nonctp_vega_charge_low(op)
-        + csr_sec_nonctp_curvature_charge_low(op)
+    Ok(csr_sec_nonctp_delta_charge_low(op)?
+        + csr_sec_nonctp_vega_charge_low(op)?
+        + csr_sec_nonctp_curvature_charge_low(op)?)
 }
 pub(crate) fn csrsecnonctp_total_medium(op: &CPM) -> PolarsResult<Expr> {
-    csr_sec_nonctp_delta_charge_medium(op)
-        + csr_sec_nonctp_vega_charge_medium(op)
-        + csr_sec_nonctp_curvature_charge_medium(op)
+    Ok(csr_sec_nonctp_delta_charge_medium(op)?
+        + csr_sec_nonctp_vega_charge_medium(op)?
+        + csr_sec_nonctp_curvature_charge_medium(op)?)
 }
 pub(crate) fn csrsecnonctp_total_high(op: &CPM) -> PolarsResult<Expr> {
-    csr_sec_nonctp_delta_charge_high(op)
-        + csr_sec_nonctp_vega_charge_high(op)
-        + csr_sec_nonctp_curvature_charge_high(op)
+    Ok(csr_sec_nonctp_delta_charge_high(op)?
+        + csr_sec_nonctp_vega_charge_high(op)?
+        + csr_sec_nonctp_curvature_charge_high(op)?)
 }
 
 fn csrsecnonctp_total_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        csrsecnonctp_total_low(op),
-        csrsecnonctp_total_medium(op),
-        csrsecnonctp_total_high(op),
-    ])
+    Ok(max_exprs(&[
+        csrsecnonctp_total_low(op)?,
+        csrsecnonctp_total_medium(op)?,
+        csrsecnonctp_total_high(op)?,
+    ]))
 }
 
 pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
@@ -37,24 +38,24 @@ pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
             calculator: Box::new(csrsecnonctp_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP TotalCharge Medium".to_string(),
             calculator: Box::new(csrsecnonctp_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP TotalCharge High".to_string(),
             calculator: Box::new(csrsecnonctp_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP TotalCharge MAX".to_string(),
             calculator: Box::new(csrsecnonctp_total_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
-        },
+        }),
     ]
 }

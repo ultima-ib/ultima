@@ -62,19 +62,22 @@ fn fx_vega_charge_distributor(
         op,
         format!("fx_opt_mat_vega_rho{_suffix}").as_str(),
         &scenario.fx_opt_mat_vega_rho,
-    );
+    )?;
     let fx_vega_gamma = get_optional_parameter(
         op,
         format!("fx_vega_gamma{_suffix}").as_str(),
         &scenario.fx_delta_vega_gamma,
-    );
+    )?;
 
     fx_vega_charge(fx_vega_rho, fx_vega_gamma, rtrn)
 }
 
-fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetric) -> PolarsResult<Expr> {
-    Ok(
-    apply_multiple(
+fn fx_vega_charge(
+    fx_vega_rho: Array2<f64>,
+    fx_vega_gamma: f64,
+    rtrn: ReturnMetric,
+) -> PolarsResult<Expr> {
+    Ok(apply_multiple(
         move |columns| {
             let df = df![
                 "rcat" => &columns[0],
@@ -151,8 +154,7 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
         ],
         GetOutput::from_type(DataType::Float64),
         true,
-    )
-)
+    ))
 }
 
 /// Returns max of three scenarios
@@ -161,13 +163,11 @@ fn fx_vega_charge(fx_vega_rho: Array2<f64>, fx_vega_gamma: f64, rtrn: ReturnMetr
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(
-    max_exprs(&[
+    Ok(max_exprs(&[
         fx_vega_charge_low(op)?,
         fx_vega_charge_medium(op)?,
         fx_vega_charge_high(op)?,
-    ])
-    )
+    ]))
 }
 
 /// Exporting Measures
@@ -182,7 +182,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec![]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaSens Weighted".to_string(),
@@ -193,7 +192,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec![]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaSb".to_string(),
@@ -204,8 +202,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaKb Low".to_string(),
@@ -216,8 +212,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaKb Medium".to_string(),
@@ -228,8 +222,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaKb High".to_string(),
@@ -240,8 +232,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge Low".to_string(),
@@ -252,8 +242,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge Medium".to_string(),
@@ -264,8 +252,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge High".to_string(),
@@ -276,8 +262,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge MAX".to_string(),
@@ -288,8 +272,6 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["fx_opt_mat_vega_rho_low", "fx_opt_mat_vega_rho_medium", "fx_opt_mat_vega_rho_high",
-            "fx_vega_gamma_low", "fx_vega_gamma_medium", "fx_vega_gamma_high"]
         }),
     ]
 }

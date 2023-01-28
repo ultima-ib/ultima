@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::{DataSourceConfig, MeasuresMap, CalcParameter};
+use crate::{CalcParameter, DataSourceConfig, MeasuresMap};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -87,6 +87,9 @@ pub trait DataSet: Send + Sync {
 
     /// Calc params are used for the UI and hence are totally optional
     fn calc_params(&self) -> Vec<CalcParameter> {
+        //self.get_measures()
+        //    .iter()
+        //    .map(|(name, measure)| measure.calc_params)
         vec![]
     }
 

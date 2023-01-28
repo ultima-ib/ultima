@@ -16,14 +16,14 @@ use ndarray::Array2;
 
 /// Total Equity Delta Sens
 pub(crate) fn equity_delta_sens(_: &CPM) -> PolarsResult<Expr> {
-    rc_rcat_sens("Delta", "Equity", col("SensitivitySpot"))
+    Ok(rc_rcat_sens("Delta", "Equity", col("SensitivitySpot")))
 }
 // wrapper of equity_delta_sens_weighted_spot which takes a param o
 pub(crate) fn equity_delta_sens_weighted(_: &CPM) -> PolarsResult<Expr> {
-    equity_delta_sens_weighted_spot()
+    Ok(equity_delta_sens_weighted_spot())
 }
 ///
-pub(crate) fn equity_delta_sens_weighted_spot() -> PolarsResult<Expr> {
+pub(crate) fn equity_delta_sens_weighted_spot() -> Expr {
     rc_tenor_weighted_sens("Delta", "Equity", "SensitivitySpot", "SensWeights", 0)
 }
 /// Interm Result: Equity Delta Sb <--> Sb Low == Sb Medium == Sb High
@@ -68,25 +68,25 @@ fn equity_delta_charge_distributor(
         op,
         format!("eq_delta_gamma{_suffix}").as_str(),
         &scenario.eq_delta_vega_gamma,
-    );
+    )?;
     let base_eq_rho_bucket = get_optional_parameter(
         op,
         "eq_delta_diff_name_rho_per_bucket_base",
         &scenario.eq_delta_vega_diff_name_rho_per_bucket_base,
-    );
+    )?;
     let eq_rho_diff_type = get_optional_parameter(
         op,
         "eq_delta_diff_type_rho_base",
         &scenario.eq_delta_diff_type_rho_base,
-    );
+    )?;
 
-    equity_delta_charge(
+    Ok(equity_delta_charge(
         eq_gamma,
         base_eq_rho_bucket,
         eq_rho_diff_type,
         scenario.scenario_fn,
         rtrn,
-    )
+    ))
 }
 
 /// calculate FX Delta Capital charge
@@ -96,7 +96,7 @@ fn equity_delta_charge<F>(
     eq_rho_diff_type: f64,
     scenario_fn: F,
     rtrn: ReturnMetric,
-) -> PolarsResult<Expr>
+) -> Expr
 where
     F: Fn(f64) -> f64 + Sync + Send + Copy + 'static,
 {
@@ -181,11 +181,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        equity_delta_charge_low(op),
-        equity_delta_charge_medium(op),
-        equity_delta_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        equity_delta_charge_low(op)?,
+        equity_delta_charge_medium(op)?,
+        equity_delta_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -200,7 +200,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaSens Weighted".to_string(),
             calculator: Box::new(equity_delta_sens_weighted),
@@ -210,7 +210,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaSb".to_string(),
             calculator: Box::new(eq_delta_sb),
@@ -220,7 +220,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaKb Low".to_string(),
             calculator: Box::new(eq_delta_kb_low),
@@ -230,7 +230,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaKb Medium".to_string(),
             calculator: Box::new(eq_delta_kb_medium),
@@ -240,7 +240,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaKb High".to_string(),
             calculator: Box::new(eq_delta_kb_high),
@@ -250,7 +250,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge Low".to_string(),
             calculator: Box::new(equity_delta_charge_low),
@@ -260,7 +260,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge Medium".to_string(),
             calculator: Box::new(equity_delta_charge_medium),
@@ -270,7 +270,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge High".to_string(),
             calculator: Box::new(equity_delta_charge_high),
@@ -280,7 +280,7 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
         Measure::Base(BaseMeasure {
             name: "EQ DeltaCharge MAX".to_string(),
             calculator: Box::new(eq_delta_max),
@@ -290,6 +290,6 @@ pub(crate) fn eq_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
-        },
+        }),
     ]
 }

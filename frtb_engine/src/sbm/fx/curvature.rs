@@ -11,8 +11,7 @@ use super::delta::ccy_regex;
 /// th form ...CCY where CCY is the reporting CCY
 fn risk_filtered_by_ccy(op: &CPM, risk: Expr) -> PolarsResult<Expr> {
     let ccy_regex = ccy_regex(op)?;
-    Ok(
-    risk.apply_many(
+    Ok(risk.apply_many(
         move |columns| {
             let mask = columns[1].utf8()?.contains(ccy_regex.as_str())?;
 
@@ -22,8 +21,7 @@ fn risk_filtered_by_ccy(op: &CPM, risk: Expr) -> PolarsResult<Expr> {
         },
         &[col("BucketBCBS")],
         GetOutput::from_type(DataType::Float64),
-    )
-)
+    ))
 }
 /// FX Curvature Delta, filtered by reporting ccy
 pub fn fx_curv_delta(op: &CPM) -> PolarsResult<Expr> {
@@ -64,14 +62,14 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
 }
 
 pub fn fx_cvr_up(op: &CPM) -> PolarsResult<Expr> {
-    let div = get_optional_parameter(op, "apply_fx_curv_div", &false);
-    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", Cvr::Up));
-    fx_cvr_up_down(div, risk)
+    let div = get_optional_parameter(op, "apply_fx_curv_div", &false)?;
+    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", Cvr::Up))?;
+    Ok(fx_cvr_up_down(div, risk))
 }
 pub fn fx_cvr_down(op: &CPM) -> PolarsResult<Expr> {
-    let div = get_optional_parameter(op, "apply_fx_curv_div", &false);
-    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", Cvr::Down));
-    fx_cvr_up_down(div, risk)
+    let div = get_optional_parameter(op, "apply_fx_curv_div", &false)?;
+    let risk = risk_filtered_by_ccy(op, rc_cvr_spot("FX", Cvr::Down))?;
+    Ok(fx_cvr_up_down(div, risk))
 }
 
 // Kb, Sb, KbPlus, KbMinus is same across all scenarios for АЧ
@@ -106,18 +104,18 @@ fn fx_curvature_charge_distributor(
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
 ) -> PolarsResult<Expr> {
-    let ccy_regex = ccy_regex(op);
+    let ccy_regex = ccy_regex(op)?;
 
     let _suffix = scenario.as_str();
-    let div = get_optional_parameter(op, "apply_fx_curv_div", &false);
+    let div = get_optional_parameter(op, "apply_fx_curv_div", &false)?;
 
     let fx_curv_gamma = get_optional_parameter(
         op,
         format!("fx_curv_gamma{_suffix}").as_str(),
         &scenario.fx_curv_gamma,
-    );
+    )?;
 
-    fx_curvature_charge(fx_curv_gamma, rtrn, ccy_regex, div)
+    Ok(fx_curvature_charge(fx_curv_gamma, rtrn, ccy_regex, div))
 }
 
 fn fx_curvature_charge(
@@ -125,7 +123,7 @@ fn fx_curvature_charge(
     return_metric: ReturnMetric,
     ccy_regex: String,
     div: bool,
-) -> PolarsResult<Expr> {
+) -> Expr {
     apply_multiple(
         move |columns| {
             let df = df![
@@ -223,11 +221,11 @@ fn fx_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    max_exprs(&[
-        fx_curvature_charge_low(op),
-        fx_curvature_charge_medium(op),
-        fx_curvature_charge_high(op),
-    ])
+    Ok(max_exprs(&[
+        fx_curvature_charge_low(op)?,
+        fx_curvature_charge_medium(op)?,
+        fx_curvature_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
@@ -242,7 +240,6 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["reporting_ccy", "jurisdiction"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureDelta Weighted".to_string(),
@@ -253,7 +250,6 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["reporting_ccy", "jurisdiction"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX PnLup".to_string(),
@@ -264,7 +260,6 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["reporting_ccy", "jurisdiction"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX PnLdown".to_string(),
@@ -275,7 +270,6 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["reporting_ccy", "jurisdiction", "apply_fx_curv_div"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX CVRup".to_string(),
@@ -286,7 +280,6 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            calc_params: vec!["reporting_ccy", "jurisdiction", "apply_fx_curv_div"]
         }),
         Measure::Base(BaseMeasure {
             name: "FX CVRdown".to_string(),

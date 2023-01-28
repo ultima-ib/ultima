@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use base_engine::{derive_measure_map, read_toml2, DataSet, DataSourceConfig};
+use base_engine::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 use log::info;
 
 /// Reads initial DataSet from Source
@@ -16,7 +16,7 @@ pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
 
     let (lf, measure_vec, build_params) = conf.build();
 
-    let mut data = DS::new(lf, derive_measure_map(measure_vec), build_params);
+    let mut data = DS::new(lf, MeasuresMap::from_iter(measure_vec), build_params);
 
     // If cfg is streaming then we can't collect, otherwise collect to check errors
     if !cfg!(feature = "streaming") {

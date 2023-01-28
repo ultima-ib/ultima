@@ -21,8 +21,9 @@ mod validate;
 //use crate::drc::drc_weights;
 use base_engine::polars::prelude::{when, AnyValue, LazyFrame, LiteralValue, NamedFrom, Series};
 use base_engine::prelude::*;
+use prelude::calc_params::FRTB_CALC_PARAMS;
 //use polars:: series::Series, lazy::dsl::when};
-use prelude::{calc_params::frtb_calc_params, drc::common::drc_scalinng, frtb_measure_vec};
+use prelude::{drc::common::drc_scalinng, frtb_measure_vec};
 use risk_weights::*;
 use sbm::buckets;
 
@@ -73,7 +74,7 @@ impl DataSet for FRTBDataSet {
         self.measures
     }
     fn calc_params(&self) -> Vec<CalcParameter> {
-        frtb_calc_params()
+        FRTB_CALC_PARAMS.clone()
     }
 
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {

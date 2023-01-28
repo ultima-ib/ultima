@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::overrides::string_to_any;
 
 /// wrapper for Additional Rows used in [AggregationRequest]
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct AdditionalRows {
     /// Flag to indicate if .prepare() should be called or not
     /// eg Assign Weights or not?

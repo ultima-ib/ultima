@@ -1,6 +1,3 @@
-// TODO fix properly
-#![allow(clippy::derived_hash_with_manual_eq)]
-
 use std::collections::BTreeMap;
 
 use crate::overrides::Override;
@@ -23,7 +20,7 @@ pub enum DataRequestE {
     Breakdown,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub struct AggregationRequest {
     // general fields
@@ -68,24 +65,5 @@ impl AggregationRequest {
 
     pub fn overrides(&self) -> &Vec<Override> {
         &self.overrides
-    }
-}
-
-use std::hash::{Hash, Hasher};
-
-impl Hash for AggregationRequest {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.measures.hash(state);
-        self.groupby.hash(state);
-        self.filters.hash(state);
-        self.overrides.hash(state);
-        self.hide_zeros.hash(state);
-        self.totals.hash(state);
-        //Hashmap is only hashable via BTreeMap
-        self.calc_params
-            .iter()
-            .collect::<BTreeMap<_, _>>()
-            .hash(state);
-        self.add_row.prepare.hash(state);
     }
 }

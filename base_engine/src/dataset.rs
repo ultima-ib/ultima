@@ -46,14 +46,14 @@ pub trait DataSet: Send + Sync {
         Self::new(frame, mm, build_params)
     }
 
-    ///
+    /// TODO remove this, this is not good for production
     fn from_config_for_tests(mut conf: DataSourceConfig, path_to_file_location: &str) -> Self
     where
         Self: Sized,
     {
         conf.change_path_on_abs_if_not_exist(path_to_file_location);
         let (frame, measure_cols, build_params) = conf.build();
-        let mm: MeasuresMap = derive_measure_map(measure_cols);
+        let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
         Self::new(frame, mm, build_params)
     }
 

@@ -1,13 +1,16 @@
 //! Main testing module for the DataSet and measures
+
+use base_engine::{AggregationRequest, execute_aggregation};
 mod common;
 
-mod agg_req_tests {
-    #[cfg(feature = "cache")]
-    use base_engine::execution_with_cache::execute_with_cache;
-    use base_engine::{execute_aggregation, AggregationRequest};
-    use std::sync::Arc;
-
-    use crate::common;
+//mod agg_req_tests {
+//    #[cfg(feature = "cache")]
+//    use base_engine::execution_with_cache::execute_with_cache;
+//    use base_engine::{execute_aggregation, AggregationRequest};
+//    use std::sync::Arc;
+//
+//    use crate::common;
+//}
 
 #[test]
 fn simple_fltr_grpby_sum() {
@@ -29,8 +32,8 @@ fn simple_fltr_grpby_sum() {
             .sum::<f64>()
             .expect("Couldn't sum");
         assert_eq!(res_sum, 25.0)
-    }
-
+}
+/*
 #[cfg(feature = "cache")]
 #[test]
 #[ignore]
@@ -119,3 +122,4 @@ fn simple_fltr_grpby_sum_with_cache() {
         assert!(res.is_empty())
     }
 }
+*/

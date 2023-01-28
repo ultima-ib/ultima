@@ -1,5 +1,5 @@
 // TODO fix properly
-#![allow(clippy::derive_hash_xor_eq)]
+#![allow(clippy::derived_hash_with_manual_eq)]
 
 use std::collections::BTreeMap;
 

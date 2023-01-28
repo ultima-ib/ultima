@@ -2,11 +2,12 @@ use std::path::PathBuf;
 
 use base_engine::{read_toml2, DataSet, DataSetBase, DataSourceConfig};
 
-#[test]
-fn toml2config() {
-    let conf_path = r"./tests/data/test_config.toml";
-    read_toml2::<DataSourceConfig>(conf_path).unwrap();
-}
+    #[test]
+    fn toml2config() {
+        let path = String::from(env!("CARGO_MANIFEST_DIR"));
+        let conf_path = path + "/tests/data/bad_config.toml";
+        read_toml2::<DataSourceConfig>(conf_path.as_str()).unwrap();
+    }
 
 #[test]
 #[should_panic(expected = "Error reading file")]

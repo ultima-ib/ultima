@@ -18,6 +18,8 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     Arc::new(data)
 });
 
+#[ignore]
+#[allow(dead_code)]
 pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let ep = if let Some(e) = epsilon { e } else { 1e-5 };
     let data_req =

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::prelude::*;
 use base_engine::polars::prelude::{
     apply_multiple, df, ChunkApply, DataType, GetOutput, IntoSeries, NamedFromOwned,
@@ -220,50 +218,50 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "DRC nonSec GrossJTD".to_string(),
-            calculator: Arc::new(drc_nonsec_grossjtd),
+            calculator: Box::new(drc_nonsec_grossjtd),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec GrossJTD Scaled".to_string(),
-            calculator: Arc::new(drc_nonsec_grossjtd_scaled),
+            calculator: Box::new(drc_nonsec_grossjtd_scaled),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec CapitalCharge".to_string(),
-            calculator: Arc::new(drc_nonsec_charge),
+            calculator: Box::new(drc_nonsec_charge),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD".to_string(),
-            calculator: Arc::new(drc_nonsec_netlongjtd),
+            calculator: Box::new(drc_nonsec_netlongjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetShortJTD".to_string(),
-            calculator: Arc::new(drc_nonsec_netshortjtd),
+            calculator: Box::new(drc_nonsec_netshortjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD Weighted".to_string(),
-            calculator: Arc::new(drc_nonsec_weightednetlongjtd),
+            calculator: Box::new(drc_nonsec_weightednetlongjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetAbsShortJTD Weighted".to_string(),
-            calculator: Arc::new(drc_nonsec_weightednetabsshortjtd),
+            calculator: Box::new(drc_nonsec_weightednetabsshortjtd),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         // HBR Only makes sence at Bucket level
         Measure::Base(BaseMeasure {
             name: "DRC nonSec HBR".to_string(),
-            calculator: Arc::new(drc_nonsec_hbr),
+            calculator: Box::new(drc_nonsec_hbr),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),

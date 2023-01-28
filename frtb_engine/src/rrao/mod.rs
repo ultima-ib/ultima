@@ -2,8 +2,6 @@
 //! RRAO is calculated at Trade Level - hence we usually need to drop duplicates
 //! ,
 
-use std::sync::Arc;
-
 use crate::helpers::first_appearance;
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
@@ -118,31 +116,31 @@ pub(crate) fn rrao_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "Exotic RRAO Notional".to_string(),
-            calculator: Arc::new(exotic_notional),
+            calculator: Box::new(exotic_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Other RRAO Notional".to_string(),
-            calculator: Arc::new(other_notional),
+            calculator: Box::new(other_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Exotic RRAO Charge".to_string(),
-            calculator: Arc::new(exotic_charge),
+            calculator: Box::new(exotic_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Other RRAO Charge".to_string(),
-            calculator: Arc::new(other_charge),
+            calculator: Box::new(other_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "RRAO Charge".to_string(),
-            calculator: Arc::new(rrao_charge),
+            calculator: Box::new(rrao_charge),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),

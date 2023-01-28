@@ -36,25 +36,25 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "CSR nonSec TotalCharge Low".to_string(),
-            calculator: Arc::new(csrnonsec_total_low),
+            calculator: Box::new(csrnonsec_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec TotalCharge Medium".to_string(),
-            calculator: Arc::new(csrnonsec_total_medium),
+            calculator: Box::new(csrnonsec_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec TotalCharge High".to_string(),
-            calculator: Arc::new(csrnonsec_total_high),
+            calculator: Box::new(csrnonsec_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec TotalCharge MAX".to_string(),
-            calculator: Arc::new(csrnonsec_total_max),
+            calculator: Box::new(csrnonsec_total_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
         }),

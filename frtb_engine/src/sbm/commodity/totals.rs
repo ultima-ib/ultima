@@ -33,25 +33,25 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "Commodity TotalCharge Low".to_string(),
-            calculator: Arc::new(com_total_low),
+            calculator: Box::new(com_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity TotalCharge Medium".to_string(),
-            calculator: Arc::new(com_total_medium),
+            calculator: Box::new(com_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity TotalCharge High".to_string(),
-            calculator: Arc::new(com_total_high),
+            calculator: Box::new(com_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity TotalCharge MAX".to_string(),
-            calculator: Arc::new(com_total_max),
+            calculator: Box::new(com_total_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("Commodity"))),
         }),

@@ -1,8 +1,6 @@
 //! Commodity Delta Risk Charge
 //! TODO Commodity RiskFactor should be of the form ...CCY (same as FX, where CCY is the reporting CCY)
 
-use std::sync::Arc;
-
 use crate::prelude::*;
 use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs};
 
@@ -269,7 +267,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSens".to_string(),
-            calculator: Arc::new(total_commodity_delta_sens),
+            calculator: Box::new(total_commodity_delta_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -279,7 +277,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSens Weighted".to_string(),
-            calculator: Arc::new(commodity_delta_sens_weighted),
+            calculator: Box::new(commodity_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -289,7 +287,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSb".to_string(),
-            calculator: Arc::new(commodity_delta_sb),
+            calculator: Box::new(commodity_delta_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -299,7 +297,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Low".to_string(),
-            calculator: Arc::new(commodity_delta_kb_low),
+            calculator: Box::new(commodity_delta_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -309,7 +307,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Medium".to_string(),
-            calculator: Arc::new(commodity_delta_kb_medium),
+            calculator: Box::new(commodity_delta_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -319,7 +317,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb High".to_string(),
-            calculator: Arc::new(commodity_delta_kb_high),
+            calculator: Box::new(commodity_delta_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -329,7 +327,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Low".to_string(),
-            calculator: Arc::new(commodity_delta_charge_low),
+            calculator: Box::new(commodity_delta_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -339,7 +337,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Medium".to_string(),
-            calculator: Arc::new(commodity_delta_charge_medium),
+            calculator: Box::new(commodity_delta_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -349,7 +347,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge High".to_string(),
-            calculator: Arc::new(commodity_delta_charge_high),
+            calculator: Box::new(commodity_delta_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -359,7 +357,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge MAX".to_string(),
-            calculator: Arc::new(com_delta_max),
+            calculator: Box::new(com_delta_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

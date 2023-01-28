@@ -35,25 +35,25 @@ pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP TotalCharge Low".to_string(),
-            calculator: Arc::new(csrsecnonctp_total_low),
+            calculator: Box::new(csrsecnonctp_total_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP TotalCharge Medium".to_string(),
-            calculator: Arc::new(csrsecnonctp_total_medium),
+            calculator: Box::new(csrsecnonctp_total_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP TotalCharge High".to_string(),
-            calculator: Arc::new(csrsecnonctp_total_high),
+            calculator: Box::new(csrsecnonctp_total_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP TotalCharge MAX".to_string(),
-            calculator: Arc::new(csrsecnonctp_total_max),
+            calculator: Box::new(csrsecnonctp_total_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
         }),

@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
-use base_engine::{AggregationRequest, execute_aggregation};
+use base_engine::{execute_aggregation, AggregationRequest};
 mod common;
 use common::LAZY_DASET;
 
 #[test]
 #[ignore]
 fn dependant_sbm() {
-    
     let request_basic = r#"
     {"measures": [
         ["SBM Charge", "scalar"],
@@ -40,8 +39,8 @@ fn dependant_sbm() {
 
     let req_basic =
         serde_json::from_str::<AggregationRequest>(request_basic).expect("Could not parse request");
-    let req_dep =
-        serde_json::from_str::<AggregationRequest>(request_dependant).expect("Could not parse request");
+    let req_dep = serde_json::from_str::<AggregationRequest>(request_dependant)
+        .expect("Could not parse request");
 
     let a = &*LAZY_DASET;
     let res1 = execute_aggregation(&req_basic, &*Arc::clone(a), false)

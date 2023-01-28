@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use base_engine::polars::prelude::Expr;
 use base_engine::{BaseMeasure, Measure, PolarsResult, CPM};
 
@@ -14,7 +12,7 @@ pub(crate) fn drc_charge(op: &CPM) -> PolarsResult<Expr> {
 pub(crate) fn drc_total_measures() -> Vec<Measure> {
     vec![Measure::Base(BaseMeasure {
         name: "DRC Charge".to_string(),
-        calculator: Arc::new(drc_charge),
+        calculator: Box::new(drc_charge),
         aggregation: Some("scalar"),
         precomputefilter: None,
     })]

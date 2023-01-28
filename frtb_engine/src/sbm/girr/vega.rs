@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::helpers::{get_optional_parameter, get_optional_parameter_array, ReturnMetric};
 use crate::prelude::*;
 use crate::sbm::common::{
@@ -332,7 +330,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "GIRR VegaSens".to_string(),
-            calculator: Arc::new(total_ir_vega_sens),
+            calculator: Box::new(total_ir_vega_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -342,7 +340,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaSens Weighted".to_string(),
-            calculator: Arc::new(girr_vega_sens_weighted),
+            calculator: Box::new(girr_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -352,7 +350,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaSb".to_string(),
-            calculator: Arc::new(girr_vega_sb),
+            calculator: Box::new(girr_vega_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -362,7 +360,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge Low".to_string(),
-            calculator: Arc::new(girr_vega_charge_low),
+            calculator: Box::new(girr_vega_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -372,7 +370,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaKb Low".to_string(),
-            calculator: Arc::new(girr_vega_kb_low),
+            calculator: Box::new(girr_vega_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -382,7 +380,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge Medium".to_string(),
-            calculator: Arc::new(girr_vega_charge_medium),
+            calculator: Box::new(girr_vega_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -392,7 +390,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaKb Medium".to_string(),
-            calculator: Arc::new(girr_vega_kb_medium),
+            calculator: Box::new(girr_vega_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -402,7 +400,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge High".to_string(),
-            calculator: Arc::new(girr_vega_charge_high),
+            calculator: Box::new(girr_vega_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -412,7 +410,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaKb High".to_string(),
-            calculator: Arc::new(girr_vega_kb_high),
+            calculator: Box::new(girr_vega_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -422,7 +420,7 @@ pub(crate) fn girr_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR VegaCharge MAX".to_string(),
-            calculator: Arc::new(girr_vega_max),
+            calculator: Box::new(girr_vega_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

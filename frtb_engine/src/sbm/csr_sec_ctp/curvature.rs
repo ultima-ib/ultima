@@ -143,7 +143,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureDelta".to_string(),
-            calculator: Arc::new(csrsecctp_curv_delta),
+            calculator: Box::new(csrsecctp_curv_delta),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -153,7 +153,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureDelta_Weighted".to_string(),
-            calculator: Arc::new(csrsecctp_curv_delta_weighted),
+            calculator: Box::new(csrsecctp_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -163,7 +163,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP PnLup".to_string(),
-            calculator: Arc::new(csrsecctp_pnl_up),
+            calculator: Box::new(csrsecctp_pnl_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -173,7 +173,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP PnLdown".to_string(),
-            calculator: Arc::new(csrsecctp_pnl_down),
+            calculator: Box::new(csrsecctp_pnl_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -183,7 +183,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CVRup".to_string(),
-            calculator: Arc::new(csrsecctp_cvr_up),
+            calculator: Box::new(csrsecctp_cvr_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -193,7 +193,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CVRdown".to_string(),
-            calculator: Arc::new(csrsecctp_cvr_down),
+            calculator: Box::new(csrsecctp_cvr_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -203,7 +203,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus Medium".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_plus_medium),
+            calculator: Box::new(csrsecctp_curvature_kb_plus_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -213,7 +213,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus Medium".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_minus_medium),
+            calculator: Box::new(csrsecctp_curvature_kb_minus_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -223,7 +223,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb Medium".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_medium),
+            calculator: Box::new(csrsecctp_curvature_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -233,7 +233,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb Medium".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_sb_medium),
+            calculator: Box::new(csrsecctp_curvature_sb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -243,7 +243,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge Medium".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_charge_medium),
+            calculator: Box::new(csrsecctp_curvature_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -253,7 +253,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus Low".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_plus_low),
+            calculator: Box::new(csrsecctp_curvature_kb_plus_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -263,7 +263,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus Low".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_minus_low),
+            calculator: Box::new(csrsecctp_curvature_kb_minus_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -273,7 +273,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb Low".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_low),
+            calculator: Box::new(csrsecctp_curvature_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -283,7 +283,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb Low".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_sb_low),
+            calculator: Box::new(csrsecctp_curvature_sb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -293,7 +293,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge Low".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_charge_low),
+            calculator: Box::new(csrsecctp_curvature_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -303,7 +303,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus High".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_plus_high),
+            calculator: Box::new(csrsecctp_curvature_kb_plus_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -313,7 +313,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus High".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_minus_high),
+            calculator: Box::new(csrsecctp_curvature_kb_minus_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -323,7 +323,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb High".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_kb_high),
+            calculator: Box::new(csrsecctp_curvature_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -333,7 +333,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb High".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_sb_high),
+            calculator: Box::new(csrsecctp_curvature_sb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -343,7 +343,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge High".to_string(),
-            calculator: Arc::new(csrsecctp_curvature_charge_high),
+            calculator: Box::new(csrsecctp_curvature_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -353,7 +353,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge MAX".to_string(),
-            calculator: Arc::new(csrsecctp_curv_max),
+            calculator: Box::new(csrsecctp_curv_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

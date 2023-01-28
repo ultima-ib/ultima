@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::prelude::*;
 use base_engine::polars::prelude::{
     apply_multiple, df, max_exprs, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
@@ -235,7 +233,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "FX CurvatureDelta".to_string(),
-            calculator: Arc::new(fx_curv_delta),
+            calculator: Box::new(fx_curv_delta),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -245,7 +243,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureDelta Weighted".to_string(),
-            calculator: Arc::new(fx_curv_delta_weighted),
+            calculator: Box::new(fx_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -255,7 +253,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX PnLup".to_string(),
-            calculator: Arc::new(fx_pnl_up),
+            calculator: Box::new(fx_pnl_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -265,7 +263,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX PnLdown".to_string(),
-            calculator: Arc::new(fx_pnl_down),
+            calculator: Box::new(fx_pnl_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -275,7 +273,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX CVRup".to_string(),
-            calculator: Arc::new(fx_cvr_up),
+            calculator: Box::new(fx_cvr_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -285,7 +283,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX CVRdown".to_string(),
-            calculator: Arc::new(fx_cvr_down),
+            calculator: Box::new(fx_cvr_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -295,7 +293,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature KbPlus".to_string(),
-            calculator: Arc::new(fx_curvature_kb_plus),
+            calculator: Box::new(fx_curvature_kb_plus),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -305,7 +303,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature KbMinus".to_string(),
-            calculator: Arc::new(fx_curvature_kb_minus),
+            calculator: Box::new(fx_curvature_kb_minus),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -315,7 +313,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature Kb".to_string(),
-            calculator: Arc::new(fx_curvature_kb),
+            calculator: Box::new(fx_curvature_kb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -325,7 +323,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature Sb".to_string(),
-            calculator: Arc::new(fx_curvature_sb),
+            calculator: Box::new(fx_curvature_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -335,7 +333,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge Low".to_string(),
-            calculator: Arc::new(fx_curvature_charge_low),
+            calculator: Box::new(fx_curvature_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -345,7 +343,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge Medium".to_string(),
-            calculator: Arc::new(fx_curvature_charge_medium),
+            calculator: Box::new(fx_curvature_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -355,7 +353,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge High".to_string(),
-            calculator: Arc::new(fx_curvature_charge_high),
+            calculator: Box::new(fx_curvature_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -365,7 +363,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge MAX".to_string(),
-            calculator: Arc::new(fx_curv_max),
+            calculator: Box::new(fx_curv_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

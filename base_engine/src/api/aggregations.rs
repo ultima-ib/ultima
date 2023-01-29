@@ -5,6 +5,9 @@ use std::collections::HashMap;
 use once_cell::sync::Lazy;
 use polars::prelude::{Expr, QuantileInterpolOptions};
 
+/// To represent availiable agg types living in [BASE_CALCS]
+pub type AggregationMethod = String;
+
 /// The list of supported aggregations will be changing ofter, hence keep it as HashMap
 pub static BASE_CALCS: Lazy<HashMap<&'static str, fn(Expr, &str) -> (Expr, String)>> =
     Lazy::new(|| {

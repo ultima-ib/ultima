@@ -4,15 +4,16 @@ use serde::Serialize;
 //use serde::Serialize;
 use std::collections::BTreeMap;
 
-use crate::CPM;
+use crate::{CPM, aggregations::AggregationMethod};
 
 //pub type OCPM = BTreeMap<String, String>;
 
+/// Each [DataSet] has measures accessed via get_measures()
+/// This alias to represent a measure name, a unique string
 pub type MeasureName = String;
+
 /// (Measure Name, Measure)
 pub type MeasuresMap = BTreeMap<MeasureName, Measure>;
-/// Optional Calculation Parameters
-//pub type OCP = [Option<String>];
 
 //type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
 type Calculator = Box<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
@@ -61,7 +62,7 @@ pub struct BaseMeasure {
 /// No precomputefilter - it is inherited from parents
 //#[derive(Clone)]
 pub struct DependantMeasure {
-    pub name: String,
+    pub name: MeasureName,
 
     /// executed within .with_columns() context
     pub calculator: Calculator, // MAX, SUM...
@@ -171,7 +172,7 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
 ///
 /// by mapping requested String to a map of all availiable measures
 pub(crate) fn base_measure_lookup(
-    requested_measures: &[(String, String)],
+    requested_measures: &[(MeasureName, AggregationMethod)],
     all_availiable_measures: &MeasuresMap,
     op: &CPM,
 ) -> PolarsResult<Vec<ProcessedMeasure>> {

@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use crate::MeasureName;
+use crate::aggregations::AggregationMethod;
 use crate::overrides::Override;
 use crate::{add_row::AdditionalRows, filters::AndOrFltrChain};
 
@@ -28,7 +30,7 @@ pub struct AggregationRequest {
     pub name: Option<String>,
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
-    pub measures: Vec<(String, String)>,
+    pub measures: Vec<(MeasureName, AggregationMethod)>,
     pub groupby: Vec<String>,
     #[serde(default)]
     pub filters: AndOrFltrChain,

@@ -4,7 +4,7 @@ use crate::{
 };
 use base_engine::{
     polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput},
-    OCP,
+    CPM,
 };
 use ndarray::{Array1, Array2};
 
@@ -12,85 +12,85 @@ use ndarray::{Array1, Array2};
 use super::delta::build_girr_crr2_gamma;
 use crate::helpers::ReturnMetric;
 
-pub fn ir_curv_delta(_: &OCP) -> Expr {
-    curv_delta_total("GIRR")
+pub fn ir_curv_delta(_: &CPM) -> PolarsResult<Expr> {
+    Ok(curv_delta_total("GIRR"))
 }
 
 /// Helper functions
-pub fn girr_curv_delta_weighted(op: &OCP) -> Expr {
-    ir_curv_delta(op) * col("CurvatureRiskWeight")
+pub fn girr_curv_delta_weighted(op: &CPM) -> PolarsResult<Expr> {
+    ir_curv_delta(op).map(|expr| expr * col("CurvatureRiskWeight"))
 }
 
-pub fn girr_cvr_down(_: &OCP) -> Expr {
-    rc_cvr("GIRR", Cvr::Down)
+pub fn girr_cvr_down(_: &CPM) -> PolarsResult<Expr> {
+    Ok(rc_cvr("GIRR", Cvr::Down))
 }
 
-pub fn girr_cvr_up(_: &OCP) -> Expr {
-    rc_cvr("GIRR", Cvr::Up)
+pub fn girr_cvr_up(_: &CPM) -> PolarsResult<Expr> {
+    Ok(rc_cvr("GIRR", Cvr::Up))
 }
 
-pub fn girr_pnl_up(_: &OCP) -> Expr {
-    rc_rcat_sens("Delta", "GIRR", col("PnL_Up"))
+pub fn girr_pnl_up(_: &CPM) -> PolarsResult<Expr> {
+    Ok(rc_rcat_sens("Delta", "GIRR", col("PnL_Up")))
 }
 
-pub fn girr_pnl_down(_: &OCP) -> Expr {
-    rc_rcat_sens("Delta", "GIRR", col("PnL_Down"))
+pub fn girr_pnl_down(_: &CPM) -> PolarsResult<Expr> {
+    Ok(rc_rcat_sens("Delta", "GIRR", col("PnL_Down")))
 }
 
 // Kb, Sb, KbPlus, KbMinus is same across all scenarios for GIRR
-pub(crate) fn girr_curvature_kb_plus(op: &OCP) -> Expr {
+pub(crate) fn girr_curvature_kb_plus(op: &CPM) -> PolarsResult<Expr> {
     girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
 }
-pub(crate) fn girr_curvature_kb_minus(op: &OCP) -> Expr {
+pub(crate) fn girr_curvature_kb_minus(op: &CPM) -> PolarsResult<Expr> {
     girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbMinus)
 }
-pub(crate) fn girr_curvature_kb(op: &OCP) -> Expr {
+pub(crate) fn girr_curvature_kb(op: &CPM) -> PolarsResult<Expr> {
     girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
-pub(crate) fn girr_curvature_sb(op: &OCP) -> Expr {
+pub(crate) fn girr_curvature_sb(op: &CPM) -> PolarsResult<Expr> {
     girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 /// Calculate GIRR Curvature Capital charge
-pub(crate) fn girr_curvature_charge_low(op: &OCP) -> Expr {
+pub(crate) fn girr_curvature_charge_low(op: &CPM) -> PolarsResult<Expr> {
     girr_curvature_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
-pub(crate) fn girr_curvature_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn girr_curvature_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     girr_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
-pub(crate) fn girr_curvature_charge_high(op: &OCP) -> Expr {
+pub(crate) fn girr_curvature_charge_high(op: &CPM) -> PolarsResult<Expr> {
     girr_curvature_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 /// Helper funciton
 /// Extracts relevant fields from OptionalParams
 fn girr_curvature_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
-    let juri: Jurisdiction = get_jurisdiction(op);
+) -> PolarsResult<Expr> {
+    let juri: Jurisdiction = get_jurisdiction(op)?;
     let _suffix = scenario.as_str();
 
     let girr_curv_gamma = get_optional_parameter(
         op,
         format!("girr_curv_gamma{_suffix}").as_str(),
         &scenario.girr_curv_gamma,
-    );
+    )?;
     let girr_vega_gamma_crr2_erm2 = get_optional_parameter(
         op,
         format!("girr_curv_gamma_erm2{_suffix}").as_str(),
         &scenario.girr_curv_gamma_erm2,
-    );
-    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_ccys);
+    )?;
+    let erm2ccys = get_optional_parameter_vec(op, "erm2_ccys", &scenario.erm2_ccys)?;
 
-    girr_curvature_charge(
+    Ok(girr_curvature_charge(
         girr_curv_gamma,
         girr_vega_gamma_crr2_erm2,
         rtrn,
         juri,
         erm2ccys,
-    )
+    ))
 }
 
 /// https://www.clarusft.com/frtb-curvature-risk-charge/
@@ -221,18 +221,18 @@ fn girr_curvature_charge(
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn girr_curv_max(op: &OCP) -> Expr {
-    max_exprs(&[
-        girr_curvature_charge_low(op),
-        girr_curvature_charge_medium(op),
-        girr_curvature_charge_high(op),
-    ])
+fn girr_curv_max(op: &CPM) -> PolarsResult<Expr> {
+    Ok(max_exprs(&[
+        girr_curvature_charge_low(op)?,
+        girr_curvature_charge_medium(op)?,
+        girr_curvature_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
 pub(crate) fn girr_curv_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "GIRR CurvatureDelta".to_string(),
             calculator: Box::new(ir_curv_delta),
             aggregation: None,
@@ -241,8 +241,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR PnLup".to_string(),
             calculator: Box::new(girr_pnl_up),
             aggregation: None,
@@ -251,8 +251,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR PnLdown".to_string(),
             calculator: Box::new(girr_pnl_down),
             aggregation: None,
@@ -261,8 +261,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR CurvatureDelta Weighted".to_string(),
             calculator: Box::new(girr_curv_delta_weighted),
             aggregation: None,
@@ -271,8 +271,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR CVRup".to_string(),
             calculator: Box::new(girr_cvr_up),
             aggregation: None,
@@ -281,8 +281,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR CVRdown".to_string(),
             calculator: Box::new(girr_cvr_down),
             aggregation: None,
@@ -291,8 +291,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR Curvature KbPlus".to_string(),
             calculator: Box::new(girr_curvature_kb_plus),
             aggregation: Some("scalar"),
@@ -301,8 +301,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR Curvature KbMinus".to_string(),
             calculator: Box::new(girr_curvature_kb_minus),
             aggregation: Some("scalar"),
@@ -311,8 +311,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR Curvature Kb".to_string(),
             calculator: Box::new(girr_curvature_kb),
             aggregation: Some("scalar"),
@@ -321,8 +321,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR Curvature Sb".to_string(),
             calculator: Box::new(girr_curvature_sb),
             aggregation: Some("scalar"),
@@ -331,8 +331,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge Low".to_string(),
             calculator: Box::new(girr_curvature_charge_low),
             aggregation: Some("scalar"),
@@ -341,8 +341,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge Medium".to_string(),
             calculator: Box::new(girr_curvature_charge_medium),
             aggregation: Some("scalar"),
@@ -351,8 +351,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge High".to_string(),
             calculator: Box::new(girr_curvature_charge_high),
             aggregation: Some("scalar"),
@@ -361,8 +361,8 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge MAX".to_string(),
             calculator: Box::new(girr_curv_max),
             aggregation: Some("scalar"),
@@ -371,6 +371,6 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
-        },
+        }),
     ]
 }

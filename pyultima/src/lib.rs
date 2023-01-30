@@ -1,7 +1,7 @@
 use base_engine::polars::prelude::Series;
 use base_engine::{
-    self, derive_basic_measures_vec, derive_measure_map, execute_aggregation, numeric_columns,
-    read_toml2, AggregationRequest, DataFrame, DataSet, DataSetBase, DataSourceConfig, IntoLazy,
+    self, derive_basic_measures_vec, execute_aggregation, numeric_columns, read_toml2,
+    AggregationRequest, DataFrame, DataSet, DataSetBase, DataSourceConfig, IntoLazy, MeasuresMap,
     ValidateSet,
 };
 use conversion::{py_series_to_rust_series, rust_series_to_py_series};
@@ -11,8 +11,9 @@ use errors::{
 };
 use frtb_engine::FRTBDataSet;
 use pyo3::{exceptions::*, prelude::*, types::PyType, PyTypeInfo};
+use std::collections::HashMap;
 use std::sync::Arc;
-use std::{collections::HashMap, path::Path};
+use std::{collections::BTreeMap, path::Path};
 
 mod conversion;
 mod errors;
@@ -39,7 +40,7 @@ fn from_frame<T: DataSet + 'static>(
     py: Python,
     seriess: Vec<Py<PyAny>>,
     measures: Option<Vec<String>>,
-    build_params: Option<HashMap<String, String>>,
+    build_params: Option<BTreeMap<String, String>>,
 ) -> PyResult<DataSetWrapper> {
     let df = DataFrame::new(
         seriess
@@ -54,7 +55,7 @@ fn from_frame<T: DataSet + 'static>(
     // If measures is None - assume all numeric column
     let measures = measures.unwrap_or_else(|| numeric_columns(arc_schema));
     let mv = derive_basic_measures_vec(measures);
-    let mm = derive_measure_map(mv);
+    let mm: MeasuresMap = MeasuresMap::from_iter(mv);
 
     let build_params = build_params.unwrap_or_default();
 
@@ -89,7 +90,7 @@ impl DataSetWrapper {
         py: Python,
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
-        build_params: Option<HashMap<String, String>>,
+        build_params: Option<BTreeMap<String, String>>,
     ) -> PyResult<Self> {
         from_frame::<DataSetBase>(py, seriess, measures, build_params)
     }
@@ -100,7 +101,7 @@ impl DataSetWrapper {
         py: Python,
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
-        build_params: Option<HashMap<String, String>>,
+        build_params: Option<BTreeMap<String, String>>,
     ) -> PyResult<Self> {
         from_frame::<FRTBDataSet>(py, seriess, measures, build_params)
     }
@@ -117,12 +118,12 @@ impl DataSetWrapper {
         Ok(())
     }
 
-    pub fn measures(&self) -> HashMap<String, Option<&str>> {
+    pub fn measures(&self) -> BTreeMap<String, Option<&str>> {
         self.dataset
             .get_measures()
             .iter()
-            .map(|(x, m)| (x.to_string(), m.aggregation))
-            .collect::<HashMap<String, Option<&str>>>()
+            .map(|(x, m)| (x.to_string(), *m.aggregation()))
+            .collect::<BTreeMap<String, Option<&str>>>()
     }
     pub fn frame(&self) -> PyResult<Vec<PyObject>> {
         self.dataset
@@ -153,8 +154,8 @@ impl DataSetWrapper {
             .iter()
             .map(|calc_param| {
                 HashMap::from([
-                    (name, Some(calc_param.name.clone())),
-                    (hint, calc_param.type_hint.clone()),
+                    (name, Some(calc_param.name.to_string())),
+                    (hint, calc_param.type_hint.map(str::to_string)),
                 ])
             })
             .collect::<Vec<HashMap<&str, Option<String>>>>();
@@ -163,8 +164,7 @@ impl DataSetWrapper {
     }
 
     pub fn validate(&self) -> PyResult<()> {
-        let _ = self
-            .dataset
+        self.dataset
             .validate_frame(None, ValidateSet::ALL)
             .map_err(errors::PyUltimaErr::Polars)?;
 
@@ -202,7 +202,7 @@ fn exec_agg(
     prepared_dataset: &DataSetWrapper,
     streaming: bool,
 ) -> PyResult<Vec<PyObject>> {
-    let dataframe = execute_aggregation(request.ar, prepared_dataset.dataset.as_ref(), streaming)
+    let dataframe = execute_aggregation(&request.ar, prepared_dataset.dataset.as_ref(), streaming)
         .map_err(errors::PyUltimaErr::Polars)?;
 
     dataframe.iter().map(rust_series_to_py_series).collect()

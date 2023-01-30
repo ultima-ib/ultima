@@ -1,6 +1,6 @@
 //! This module is for CRR2 specific Risk weights
 //! https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108255 325ae onward
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use base_engine::helpers::diag_concat_lf;
 use base_engine::polars::prelude::{
@@ -30,7 +30,7 @@ pub struct SensWeightsConfig {
 /// Note: CRR2 weights have to be joined on BucketCRR2, not BucketBCBS
 pub fn weights_assign_crr2(
     lf: LazyFrame,
-    build_params: &HashMap<String, String>,
+    build_params: &BTreeMap<String, String>,
 ) -> PolarsResult<LazyFrame> {
     let check_columns = [
         col("RiskClass").cast(DataType::Utf8),
@@ -111,7 +111,7 @@ pub fn weights_assign_crr2(
                 .and_then(|some_string| {
                     frame_from_path_or_str(some_string, &check_columns4, "WeightsCRR2").ok()
                 })
-                .unwrap_or_else(|| drc_weights::drc_nonsec_weights_frame_crr2())
+                .unwrap_or_else(drc_weights::drc_nonsec_weights_frame_crr2)
                 .lazy()
         })
         .clone();

@@ -1,4 +1,4 @@
 title = "setup.toml Example"
 type = "CSV"
 files = ["./tests/data/testset.csv"]
-f1_numeric_cols = ["Age","Balance"]
+f1_numeric_cols = ["Age", "Balance"]

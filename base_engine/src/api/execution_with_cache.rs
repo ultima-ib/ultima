@@ -1,83 +1,98 @@
-use std::sync::Arc;
+use once_cell::sync::Lazy;
+use polars::prelude::{DataFrame, PolarsError, PolarsResult};
+use schnellru::{ByLength, LruMap};
+use std::sync::RwLock;
 
-use polars::prelude::IntoLazy;
-use polars::prelude::{col, DataFrame, Expr, JoinType, PolarsResult};
+use crate::{execute_aggregation, AggregationRequest, DataSet};
 
-use crate::{AggregationRequest, DataSet};
-pub type CACHE = dashmap::DashMap<AggregationRequest, DataFrame>;
+// //TODO: may be use enum instead of string?
+#[derive(Debug, Clone, Hash, PartialEq)]
+struct Measure(String, String);
 
-/// TODO work in progress
-pub(crate) fn _execute_with_cache(
-    data: Arc<impl DataSet + ?Sized>,
-    req: AggregationRequest,
-    cache: CACHE,
+// #[derive(Debug)]
+// enum MeasureType {
+//     Basic(Measure),    // (eg FX DeltaCharge Low)
+//     Sum(Vec<Measure>), // (eg sbm_charge)
+//     Max(Vec<Measure>), // (eg sbm_charge_high)
+// }
+
+// TODO: may be replace to ByMemoryUsage?
+static GLOBAL_CACHE: Lazy<RwLock<LruMap<Measure, DataFrame>>> =
+    Lazy::new(|| RwLock::new(LruMap::new(ByLength::new(100))));
+
+// TODO: WIP!!!
+pub fn execute_with_cache<DS: DataSet + ?Sized>(
+    req: &AggregationRequest,
+    data: &DS,
+    streaming: bool,
 ) -> PolarsResult<DataFrame> {
-    let requested_measures = req.measures().clone();
-    let grp_by_expr = req.groupby().iter().map(|x| col(x)).collect::<Vec<Expr>>();
-    //let order = req.measures().iter().map(|(name, _)|name.as_str()).collect::<Vec<&str>>();
+    let measures: Vec<Measure> = req
+        .measures
+        .clone()
+        .into_iter()
+        .map(|s| Measure(s.0, s.1))
+        .collect();
 
-    // have already been calculated
-    let mut cached_res = vec![];
-    // Need to be calculated
-    let mut new = vec![];
-    // for each measure in req check cache
-    for m in requested_measures {
-        let sub_req = AggregationRequest {
-            measures: vec![m.clone()],
-            ..req.clone()
-        };
-        // checking cache
-        match cache.get(&sub_req) {
-            // If found - store result
-            Some(rf) => {
-                cached_res.push(rf.value().clone());
+    let mut cached_results: Vec<(Measure, DataFrame)> = vec![];
+    let mut non_cached_measures: Vec<Measure> = vec![];
+
+    // Get Write lock on Read cause modify cashe range
+    if let Ok(mut cache) = GLOBAL_CACHE.write() {
+        for measure in measures {
+            if let Some(cached) = cache.get(&measure) {
+                cached_results.push((measure, cached.clone()));
+            } else {
+                non_cached_measures.push(measure);
             }
-            // if not push to those which will have to be calculated
-            _ => new.push(m),
+        }
+    } else {
+        return Err(PolarsError::NoData("Cache didnt exist.".into()));
+    }
+
+    // exec non-cachet measures
+    let mut req = req.clone();
+    let mut calculated_non_cached: Vec<(Measure, Result<_, _>)> = non_cached_measures
+        .into_iter()
+        .map(|measure| {
+            // TODO: execution method for one measure needed
+            req.measures = vec![(measure.0.clone(), measure.1.clone())];
+            (measure, execute_aggregation(&req, data, streaming))
+        })
+        .collect();
+
+    // return first exec error
+    // TODO: find a more elegant solution than index after impl execute_one_measure
+    let first_err_idx = calculated_non_cached
+        .iter()
+        .enumerate()
+        .find(|(_, (_, res))| res.is_err())
+        .map(|(i, _)| i);
+
+    if let Some(i) = first_err_idx {
+        let (_, res) = calculated_non_cached.remove(i);
+        return res;
+    }
+
+    // insert to cache calculated df-s
+    if let Ok(mut cache) = GLOBAL_CACHE.write() {
+        for (measure, result) in calculated_non_cached {
+            let df = result.unwrap();
+            if cache.insert(measure.clone(), df.clone()) {
+                cached_results.push((measure, df));
+            }
         }
     }
 
-    let mut _res: DataFrame;
+    // TODO: join cached_results
 
-    // retrieve cached results
-    let _chached_df = if !cached_res.is_empty() {
-        let mut it = cached_res.into_iter();
-        let mut res = it.next().unwrap(); //cached_res is not empty
-        for df in it {
-            res = res
-                .lazy()
-                .join(
-                    df.lazy(),
-                    grp_by_expr.clone(),
-                    grp_by_expr.clone(),
-                    JoinType::Outer,
-                )
-                .collect()?
-        }
-        Some(res)
+    // unimplemented!()
+    Err(PolarsError::NoData("WIP".into()))
+}
+
+pub fn get_cache_size() -> Option<usize> {
+    if let Ok(cache) = GLOBAL_CACHE.read() {
+        Some(cache.len())
     } else {
         None
-    };
-
-    let _new_res = if !new.is_empty() {
-        let new_req = AggregationRequest {
-            measures: new.clone(),
-            ..req.clone()
-        };
-        let new_res = super::execute_aggregation(new_req, &*data, false)?;
-        // Now save each of new measures to cache
-        for new_measure in new {
-            let _new_m_req = AggregationRequest {
-                measures: vec![new_measure],
-                ..req.clone()
-            };
-            // TODO
-            //let new_res_df = new_res[new_name];
-            //cache.insert(new_m_req, );
-        }
-        Some(new_res)
-    } else {
-        None
-    };
-    unimplemented!()
+    }
 }

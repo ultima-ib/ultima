@@ -1,13 +1,13 @@
 //! CSR Sec CTP Delta Calculations
-//!
+
 use crate::helpers::*;
 use base_engine::polars::prelude::max_exprs;
 use sbm::csr_nonsec::delta::csr_nonsec_delta_charge;
 
 use crate::prelude::*;
 
-pub fn total_csr_sec_ctp_delta_sens(_: &OCP) -> Expr {
-    rc_rcat_sens("Delta", "CSR_Sec_CTP", total_delta_sens())
+pub fn total_csr_sec_ctp_delta_sens(_: &CPM) -> PolarsResult<Expr> {
+    Ok(rc_rcat_sens("Delta", "CSR_Sec_CTP", total_delta_sens()))
 }
 /// Helper functions
 
@@ -81,58 +81,54 @@ fn csr_sec_ctp_delta_sens_weighted_10y_crr2() -> Expr {
 
 /// Total weighted CSR non-Sec Delta
 /// Not used in calculation
-pub(crate) fn csr_sec_ctp_delta_sens_weighted(op: &OCP) -> Expr {
-    let juri: Jurisdiction = get_jurisdiction(op);
+pub(crate) fn csr_sec_ctp_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
+    let juri: Jurisdiction = get_jurisdiction(op)?;
 
     match juri {
         #[cfg(feature = "CRR2")]
-        Jurisdiction::CRR2 => {
-            csr_sec_ctp_delta_sens_weighted_05y_crr2().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_1y_crr2().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_3y_crr2().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_5y_crr2().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_10y_crr2().fill_null(0.)
-        }
-        Jurisdiction::BCBS => {
-            csr_sec_ctp_delta_sens_weighted_05y_bcbs().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_1y_bcbs().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_3y_bcbs().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_5y_bcbs().fill_null(0.)
-                + csr_sec_ctp_delta_sens_weighted_10y_bcbs().fill_null(0.)
-        }
+        Jurisdiction::CRR2 => Ok(csr_sec_ctp_delta_sens_weighted_05y_crr2().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_1y_crr2().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_3y_crr2().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_5y_crr2().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_10y_crr2().fill_null(0.)),
+        Jurisdiction::BCBS => Ok(csr_sec_ctp_delta_sens_weighted_05y_bcbs().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_1y_bcbs().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_3y_bcbs().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_5y_bcbs().fill_null(0.)
+            + csr_sec_ctp_delta_sens_weighted_10y_bcbs().fill_null(0.)),
     }
 }
 
 //Interm Results
 ///Sb is same for each scenario
-pub(crate) fn csr_sec_ctp_delta_sb(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_sb(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
-pub(crate) fn csr_sec_ctp_delta_kb_low(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_kb_low(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
-pub(crate) fn csr_sec_ctp_delta_kb_medium(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_kb_medium(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
-pub(crate) fn csr_sec_ctp_delta_kb_high(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_kb_high(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate CSR non-Sec Delta Low Capital charge
-pub(crate) fn csr_sec_ctp_delta_charge_low(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_charge_low(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta Medium Capital charge
-pub(crate) fn csr_sec_ctp_delta_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate CSR non-Sec Delta High Capital charge
-pub(crate) fn csr_sec_ctp_delta_charge_high(op: &OCP) -> Expr {
+pub(crate) fn csr_sec_ctp_delta_charge_high(op: &CPM) -> PolarsResult<Expr> {
     csr_sec_ctp_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
@@ -141,12 +137,12 @@ pub(crate) fn csr_sec_ctp_delta_charge_high(op: &OCP) -> Expr {
 /// And pass them to the main Delta Charge calculator accordingly
 /// calls csr_nonsec_delta_charge because the calculation is identical
 fn csr_sec_ctp_delta_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
+) -> PolarsResult<Expr> {
     let _suffix = scenario.as_str();
-    let juri: Jurisdiction = get_jurisdiction(op);
+    let juri: Jurisdiction = get_jurisdiction(op)?;
 
     // First, obtaining parameters specific to jurisdiciton
     let (weight, bucket_col, name_rho_vec, gamma, n_buckets, special_bucket) = match juri {
@@ -186,25 +182,25 @@ fn csr_sec_ctp_delta_charge_distributor(
         op,
         "csr_ctp_delta_diff_tenor_rho_base",
         &scenario.csr_ctp_delta_diff_tenor_rho_base,
-    );
+    )?;
 
     let name_rho_vec = get_optional_parameter_vec(
         op,
         "csr_ctp_delta_diff_name_rho_per_bucket_base",
         &name_rho_vec,
-    );
+    )?;
 
     let base_csr_ctp_rho_basis = get_optional_parameter(
         op,
         "csr_ctp_diff_basis_rho_base",
         &scenario.csr_nonsec_delta_diff_basis_rho_base,
-    );
+    )?;
 
     let gamma =
-        get_optional_parameter_array(op, format!("csr_ctp_delta_gamma{_suffix}").as_str(), gamma);
+        get_optional_parameter_array(op, format!("csr_ctp_delta_gamma{_suffix}").as_str(), gamma)?;
 
     // CTP calc is identical to nonSec, with the only exception on rho, gamma and number of buckets
-    csr_nonsec_delta_charge(
+    Ok(csr_nonsec_delta_charge(
         weight,
         base_csr_ctp_rho_tenor,
         name_rho_vec,
@@ -217,25 +213,25 @@ fn csr_sec_ctp_delta_charge_distributor(
         "CSR_Sec_CTP",
         "Delta",
         rtrn,
-    )
+    ))
 }
 
 /// Returns max of three scenarios
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn csrsecctp_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[
-        csr_sec_ctp_delta_charge_low(op),
-        csr_sec_ctp_delta_charge_medium(op),
-        csr_sec_ctp_delta_charge_high(op),
-    ])
+fn csrsecctp_delta_max(op: &CPM) -> PolarsResult<Expr> {
+    Ok(max_exprs(&[
+        csr_sec_ctp_delta_charge_low(op)?,
+        csr_sec_ctp_delta_charge_medium(op)?,
+        csr_sec_ctp_delta_charge_high(op)?,
+    ]))
 }
 
 /// Exporting Measures
 pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSens".to_string(),
             calculator: Box::new(total_csr_sec_ctp_delta_sens),
             aggregation: None,
@@ -244,8 +240,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSens Weighted".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_sens_weighted),
             aggregation: None,
@@ -254,8 +250,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaSb".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_sb),
             aggregation: Some("scalar"),
@@ -264,8 +260,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb Low".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_kb_low),
             aggregation: Some("scalar"),
@@ -274,8 +270,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb Medium".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_kb_medium),
             aggregation: Some("scalar"),
@@ -284,8 +280,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaKb High".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_kb_high),
             aggregation: Some("scalar"),
@@ -294,8 +290,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge Low".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_low),
             aggregation: Some("scalar"),
@@ -304,8 +300,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge Medium".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_medium),
             aggregation: Some("scalar"),
@@ -314,8 +310,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge High".to_string(),
             calculator: Box::new(csr_sec_ctp_delta_charge_high),
             aggregation: Some("scalar"),
@@ -324,8 +320,8 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
-        Measure {
+        }),
+        Measure::Base(BaseMeasure {
             name: "CSR Sec CTP DeltaCharge MAX".to_string(),
             calculator: Box::new(csrsecctp_delta_max),
             aggregation: Some("scalar"),
@@ -334,6 +330,6 @@ pub(crate) fn csrsecctp_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
-        },
+        }),
     ]
 }

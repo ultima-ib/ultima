@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use polars::{
     prelude::{
@@ -52,8 +52,8 @@ pub fn finish(
     mut df_attr: LazyFrame,
     df_hms: LazyFrame,
     mut concatinated_frame: LazyFrame,
-    build_params: HashMap<String, String>,
-) -> (LazyFrame, Vec<Measure>, HashMap<String, String>) {
+    build_params: BTreeMap<String, String>,
+) -> (LazyFrame, Vec<Measure>, BTreeMap<String, String>) {
     // join with hms if a2h was provided
     if !a2h.is_empty() {
         let a2h_expr = a2h.iter().map(|c| col(c)).collect::<Vec<Expr>>();
@@ -83,7 +83,7 @@ pub fn finish(
         // Checking if each measure is present in DF
         measures.iter().for_each(|col| {
             if !fields.contains(col) {
-                panic!("Measure: {}, is not part of the fields: {:?}", col, fields)
+                panic!("Measure: {col}, is not part of the fields: {fields:?}",)
             }
         });
         derive_basic_measures_vec(measures)

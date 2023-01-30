@@ -8,13 +8,13 @@ pub use polars::{
 
 use crate::{
     add_row::df_from_maps_and_schema, filters::fltr_chain, helpers::diag_concat_lf,
-    measure_builder, AggregationRequest, DataSet, ValidateSet,
+    measure::base_measure_lookup, AggregationRequest, DataSet, ValidateSet,
 };
 
 /// main function which returns a Result of the calculation
 /// currently support only the first element of frames
 pub fn execute_aggregation<DS: DataSet + ?Sized>(
-    req: AggregationRequest,
+    req: &AggregationRequest,
     data: &DS,
     streaming: bool,
 ) -> PolarsResult<DataFrame> {
@@ -40,7 +40,7 @@ pub fn execute_aggregation<DS: DataSet + ?Sized>(
     let op = req.calc_params();
 
     let measure_map = data.get_measures();
-    let prepared_measures = measure_builder(m, measure_map, op)?;
+    let prepared_measures = base_measure_lookup(m, measure_map, op)?;
 
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
     let (newnames, (aggregateions, fltrs)): (Vec<String>, (Vec<Expr>, Vec<Option<Expr>>)) =
@@ -86,7 +86,7 @@ pub fn execute_aggregation<DS: DataSet + ?Sized>(
     // Step 2.5 Add Row
     if !req.add_row.rows.is_empty() {
         let current_schema = f1.schema()?;
-        let mut extra_frame = df_from_maps_and_schema(req.add_row.rows, current_schema)?.lazy();
+        let mut extra_frame = df_from_maps_and_schema(&req.add_row.rows, current_schema)?.lazy();
 
         if req.add_row.prepare {
             // Validating only a subset required for prepare()

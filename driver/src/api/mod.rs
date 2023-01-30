@@ -26,19 +26,13 @@ use std::{net::TcpListener, sync::Arc};
 use tokio::task;
 
 use base_engine::{
-    api::aggregations::BASE_CALCS, col, prelude::PolarsResult, AggregationRequest, DataFrame,
-    DataSet,
+    api::aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
+    AggregationRequest, DataFrame, DataSet,
 };
-
-#[cfg(feature = "cache")]
-pub type CACHE = base_engine::execution_with_cache::CACHE;
-#[cfg(not(feature = "cache"))]
-pub type CACHE = std::collections::HashMap<String, String>; // dummy, not used if cache feature is not activated
 
 // use uuid::Uuid;
 // use tracing::Instrument; //enters the span we pass as argument
 // every time self, the future, is polled; it exits the span every time the future is parked.
-
 #[get("/scenarios/{scen}")]
 async fn scenarios(path: web::Path<String>) -> Result<HttpResponse> {
     let scenario = path.into_inner();
@@ -121,24 +115,22 @@ async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {
 async fn execute(
     data: Data<Arc<dyn DataSet>>,
     req: web::Json<AggregationRequest>,
-    cache: Data<CACHE>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
-    let _cache = cache.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
         // Work in progress
         if cfg!(cache) {
-            // TODO change function to
-            // base_engine::_execute_with_cache
-            base_engine::execute_aggregation(
-                r,
+            #[cfg(feature = "cache")]
+            return base_engine::execution_with_cache::execute_with_cache(
+                &r,
                 &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
-            )
+            );
+            Err(PolarsError::NoData("Cache must be enabled.".into()))
         } else {
             base_engine::execute_aggregation(
-                r,
+                &r,
                 &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
             )
@@ -201,7 +193,7 @@ pub fn run_server(
         std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
-    let cache = Data::new(CACHE::new());
+    // let cache = Data::new(CACHE::new());
 
     let server = HttpServer::new(move || {
         let auth = HttpAuthentication::basic(validator);
@@ -228,7 +220,7 @@ pub fn run_server(
             .service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
             .app_data(ds.clone())
             .app_data(_templates.clone())
-            .app_data(cache.clone())
+        // .app_data(cache.clone())
     })
     .listen(listener)?
     .run();

@@ -1,9 +1,9 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::{derive_measure_map, DataSourceConfig, MeasuresMap};
+use crate::{CalcParameter, DataSourceConfig, MeasuresMap};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -14,17 +14,7 @@ pub struct DataSetBase {
     /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
     /// build_params are passed into .prepare()
-    pub build_params: HashMap<String, String>,
-}
-
-/// This struct is purely for DataSet descriptive purposes.
-/// Recall measure may take parameters in form of HashMap<paramName, paramValue>
-/// This struct returns all possible paramNames for the given Dataset (for UI purposes only)
-#[derive(Debug, Default, Clone, Serialize)]
-pub struct CalcParameter {
-    pub name: String,
-    pub default: Option<String>,
-    pub type_hint: Option<String>,
+    pub build_params: BTreeMap<String, String>,
 }
 
 /// The main Trait
@@ -52,12 +42,23 @@ pub trait DataSet: Send + Sync {
         Self: Sized,
     {
         let (frame, measure_cols, build_params) = conf.build();
-        let mm: MeasuresMap = derive_measure_map(measure_cols);
+        let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
+        Self::new(frame, mm, build_params)
+    }
+
+    /// TODO remove this, this is not good for production
+    fn from_config_for_tests(mut conf: DataSourceConfig, path_to_file_location: &str) -> Self
+    where
+        Self: Sized,
+    {
+        conf.change_path_on_abs_if_not_exist(path_to_file_location);
+        let (frame, measure_cols, build_params) = conf.build();
+        let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
         Self::new(frame, mm, build_params)
     }
 
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self
     where
         Self: Sized;
 
@@ -97,6 +98,9 @@ pub trait DataSet: Send + Sync {
 
     /// Calc params are used for the UI and hence are totally optional
     fn calc_params(&self) -> Vec<CalcParameter> {
+        //self.get_measures()
+        //    .iter()
+        //    .map(|(name, measure)| measure.calc_params)
         vec![]
     }
 
@@ -138,7 +142,7 @@ impl DataSet for DataSetBase {
         self.measures
     }
 
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: HashMap<String, String>) -> Self {
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {
         Self {
             frame,
             measures: mm,
@@ -201,8 +205,8 @@ impl Serialize for dyn DataSet {
         let measures = self
             .get_measures()
             .iter()
-            .map(|(x, m)| (x, m.aggregation))
-            .collect::<HashMap<&String, Option<&str>>>();
+            .map(|(x, m)| (x, *m.aggregation()))
+            .collect::<BTreeMap<&String, Option<&str>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
         let utf8_cols = self

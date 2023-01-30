@@ -116,8 +116,8 @@ pub fn rc_tenor_weighted_sens(
 }
 
 ///makes sence at RiskClass-Bucket view
-pub fn sens_weights(_: &OCP) -> Expr {
-    col("SensWeights")
+pub fn sens_weights(_: &CPM) -> PolarsResult<Expr> {
+    Ok(col("SensWeights"))
 }
 
 pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(

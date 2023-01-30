@@ -1,6 +1,6 @@
 //! This file defines all the measures, associated with this library
 
-use base_engine::Measure;
+use base_engine::{BaseMeasure, Measure};
 
 use crate::sbm::common::sens_weights;
 
@@ -52,12 +52,12 @@ use crate::totals::sa_total_measures;
 
 /// Exporting Measures
 pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
-    let non_rc_specific = vec![Measure {
+    let non_rc_specific = vec![Measure::Base(BaseMeasure {
         name: "RiskWeights".to_string(),
         calculator: Box::new(sens_weights),
         aggregation: Some("first"),
         precomputefilter: None,
-    }];
+    })];
 
     let mut res = vec![];
     res.extend(fx_delta_measures());

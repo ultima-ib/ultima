@@ -18,13 +18,15 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     Arc::new(data)
 });
 
+#[ignore]
+#[allow(dead_code)]
 pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let ep = if let Some(e) = epsilon { e } else { 1e-5 };
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
     let excl = data_req.groupby().clone();
     let a = &*LAZY_DASET;
-    let res = execute_aggregation(data_req, &*Arc::clone(a), false)
+    let res = execute_aggregation(&data_req, &*Arc::clone(a), false)
         .expect("Error while calculating results");
     let res_numeric = res
         .lazy()

@@ -11,36 +11,37 @@ use crate::{
 use base_engine::{
     polars::prelude::{
         apply_multiple, df, max_exprs, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
-        Utf8NameSpaceImpl,
+        PolarsError, Utf8NameSpaceImpl,
     },
-    OCP,
+    CPM,
 };
 
 /// This works for cases like GBP reporting with BCBS params
-pub(crate) fn ccy_regex(op: &OCP) -> String {
-    let juri: Jurisdiction = get_jurisdiction(op);
-    op.get("reporting_ccy")
-        .and_then(|s| {
-            if s.len() == 3 {
-                Some(format!("^...{s}$"))
-            } else {
-                None
-            }
-        })
-        .unwrap_or_else(|| match juri {
+pub(crate) fn ccy_regex(op: &CPM) -> PolarsResult<String> {
+    let juri: Jurisdiction = get_jurisdiction(op)?;
+    if let Some(s) = op.get("reporting_ccy") {
+        if s.len() == 3 {
+            Ok(format!("^...{s}$"))
+        } else {
+            Err(PolarsError::ComputeError(
+                "reporting_ccy must be of length 3: XXXCCY".into(),
+            ))
+        }
+    } else {
+        match juri {
             #[cfg(feature = "CRR2")]
-            Jurisdiction::CRR2 => "^...EUR$".to_string(),
-            _ => "^...USD$".to_string(),
-        })
+            Jurisdiction::CRR2 => Ok("^...EUR$".to_string()),
+            _ => Ok("^...USD$".to_string()),
+        }
+    }
 }
 
 /// Returns a Series equal to SensitivitySpot with RiskClass == FX and RiskFactor == ...CCY
 /// !where CCY is either provided as part of optional parameters,
 /// !and if not, then is based on Jurisdiction
-pub(crate) fn fx_delta_sens_repccy(op: &OCP) -> Expr {
-    let ccy_regex = ccy_regex(op);
-
-    apply_multiple(
+pub(crate) fn fx_delta_sens_repccy(op: &CPM) -> PolarsResult<Expr> {
+    let ccy_regex = ccy_regex(op)?;
+    Ok(apply_multiple(
         move |columns| {
             let mask1 = columns[0].utf8()?.equal("FX");
 
@@ -63,45 +64,45 @@ pub(crate) fn fx_delta_sens_repccy(op: &OCP) -> Expr {
         ],
         GetOutput::from_type(DataType::Float64),
         false,
-    )
+    ))
 }
 
 /// takes CalcParams because we need to know reporting CCY
-pub(crate) fn fx_delta_sens_weighted(op: &OCP) -> Expr {
-    fx_delta_sens_repccy(op) * col("SensWeights").arr().get(lit(0))
+pub(crate) fn fx_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
+    Ok(fx_delta_sens_repccy(op)? * col("SensWeights").arr().get(lit(0)))
 }
 ///calculate FX Delta Sb, same for all scenarios
-pub(crate) fn fx_delta_sb(op: &OCP) -> Expr {
+pub(crate) fn fx_delta_sb(op: &CPM) -> PolarsResult<Expr> {
     fx_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Sb)
 }
 
 ///calculate FX Delta Kb, same for all scenarios
-pub(crate) fn fx_delta_kb(op: &OCP) -> Expr {
+pub(crate) fn fx_delta_kb(op: &CPM) -> PolarsResult<Expr> {
     fx_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::Kb)
 }
 
 ///calculate FX Delta High Capital charge
-pub(crate) fn fx_delta_charge_high(op: &OCP) -> Expr {
+pub(crate) fn fx_delta_charge_high(op: &CPM) -> PolarsResult<Expr> {
     fx_delta_charge_distributor(op, &HIGH_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate FX Delta Medium Capital charge
-pub(crate) fn fx_delta_charge_medium(op: &OCP) -> Expr {
+pub(crate) fn fx_delta_charge_medium(op: &CPM) -> PolarsResult<Expr> {
     fx_delta_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 ///calculate FX Delta Low Capital charge
-pub(crate) fn fx_delta_charge_low(op: &OCP) -> Expr {
+pub(crate) fn fx_delta_charge_low(op: &CPM) -> PolarsResult<Expr> {
     fx_delta_charge_distributor(op, &LOW_CORR_SCENARIO, ReturnMetric::CapitalCharge)
 }
 
 fn fx_delta_charge_distributor(
-    op: &OCP,
+    op: &CPM,
     scenario: &'static ScenarioConfig,
     rtrn: ReturnMetric,
-) -> Expr {
+) -> PolarsResult<Expr> {
     //let fx_delta_sens_weighted_with_rep_ccy = fx_delta_sens_weighted(op);
-    let ccy_regex = ccy_regex(op);
+    let ccy_regex = ccy_regex(op)?;
 
     let _suffix = scenario.as_str();
 
@@ -109,7 +110,7 @@ fn fx_delta_charge_distributor(
         op,
         format!("fx_delta_gamma{_suffix}").as_ref() as &str,
         &scenario.fx_delta_vega_gamma,
-    );
+    )?;
 
     fx_delta_charge(fx_delta_gamma, rtrn, ccy_regex)
 }
@@ -117,9 +118,9 @@ fn fx_delta_charge_distributor(
 /// calculate FX Delta Capital charge
 /// Note, we don't want to run a regex on the whole column
 /// Hence it makes sence to run regex after filtering
-fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
+fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsResult<Expr> {
     // inner function
-    apply_multiple(
+    Ok(apply_multiple(
         move |columns| {
             let df = df![
                 "rcat" => &columns[0],
@@ -186,24 +187,30 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> Expr {
         ],
         GetOutput::from_type(DataType::Float64),
         true,
-    )
+    ))
 }
 /// Returns max of three scenarios
 ///
 /// !Note This is not a real measure, as MAX should be taken as
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
-fn fx_delta_max(op: &OCP) -> Expr {
-    max_exprs(&[
-        fx_delta_charge_low(op),
-        fx_delta_charge_medium(op),
-        fx_delta_charge_high(op),
-    ])
+fn fx_delta_max(op: &CPM) -> PolarsResult<Expr> {
+    Ok(max_exprs(&[
+        fx_delta_charge_low(op)?,
+        fx_delta_charge_medium(op)?,
+        fx_delta_charge_high(op)?,
+    ]))
 }
 /// Exporting Measures
 pub(crate) fn fx_delta_measures() -> Vec<Measure> {
+    //let reporting_ccy  = FRTB_CALC_PARAMS_MAP.get("reporting_ccy").unwrap(); // it must be present
+    //let jurisdiction  = FRTB_CALC_PARAMS_MAP.get("jurisdiction").unwrap(); // it must be present
+    //let fx_delta_gamma_low  = FRTB_CALC_PARAMS_MAP.get("fx_delta_gamma_low").unwrap(); // it must be present
+    //let fx_delta_gamma_medium  = FRTB_CALC_PARAMS_MAP.get("fx_delta_gamma_medium").unwrap(); // it must be present
+    //let fx_delta_gamma_high  = FRTB_CALC_PARAMS_MAP.get("fx_delta_gamma_high").unwrap(); // it must be present
+
     vec![
-        Measure {
+        Measure::Base(BaseMeasure {
             name: "FX DeltaSens".to_string(),
             calculator: Box::new(fx_delta_sens_repccy),
             aggregation: None,
@@ -212,8 +219,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
-        Measure {
+            //calc_params: &[*reporting_ccy, *jurisdiction]
+        }),
+        Measure::Base(BaseMeasure {
             name: "FX DeltaSens Weighted".to_string(),
             calculator: Box::new(fx_delta_sens_weighted),
             aggregation: None,
@@ -222,8 +230,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
-        Measure {
+            //calc_params: &[*reporting_ccy, *jurisdiction]
+        }),
+        Measure::Base(BaseMeasure {
             name: "FX DeltaSb".to_string(),
             calculator: Box::new(fx_delta_sb),
             aggregation: Some("scalar"),
@@ -232,8 +241,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
-        Measure {
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+        }),
+        Measure::Base(BaseMeasure {
             name: "FX DeltaKb".to_string(),
             calculator: Box::new(fx_delta_kb),
             aggregation: Some("scalar"),
@@ -242,8 +252,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
-        Measure {
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+        }),
+        Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Low".to_string(),
             calculator: Box::new(fx_delta_charge_low),
             aggregation: Some("scalar"),
@@ -252,8 +263,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
-        Measure {
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+        }),
+        Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Medium".to_string(),
             calculator: Box::new(fx_delta_charge_medium),
             aggregation: Some("scalar"),
@@ -262,8 +274,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
-        Measure {
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+        }),
+        Measure::Base(BaseMeasure {
             name: "FX DeltaCharge High".to_string(),
             calculator: Box::new(fx_delta_charge_high),
             aggregation: Some("scalar"),
@@ -272,8 +285,9 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
-        Measure {
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+        }),
+        Measure::Base(BaseMeasure {
             name: "FX DeltaCharge MAX".to_string(),
             calculator: Box::new(fx_delta_max),
             aggregation: Some("scalar"),
@@ -282,6 +296,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-        },
+            //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+        }),
     ]
 }

@@ -5,10 +5,10 @@ files = ["./tests/data/testset.csv"]
 files_join_attributes = ["TradeId"]
 # attributes <-> hierarchy
 # must be provided if hierarchy file is provided
-attributes_join_hierarchy = ["BookId"] 
+attributes_join_hierarchy = ["BookId"]
 # Measure columns. Optional field. Used as a constraint on which numeric columns
 # can be aggregated eg ("SensitivitySpot", _)
 # f1_measure_cols=[]
 # Polars can't always guess the right type of col. eg an empty col is str
 # So one must provide the list
-f1_numeric_cols = ["Age",]
+f1_numeric_cols = ["Age"]

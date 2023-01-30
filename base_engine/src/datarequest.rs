@@ -1,13 +1,13 @@
-// TODO fix properly
-#![allow(clippy::derive_hash_xor_eq)]
-
 use std::collections::BTreeMap;
 
-use super::measure::OCP;
+use crate::MeasureName;
+use crate::aggregations::AggregationMethod;
 use crate::overrides::Override;
 use crate::{add_row::AdditionalRows, filters::AndOrFltrChain};
 
 use serde::{Deserialize, Serialize};
+
+pub type CPM = BTreeMap<String, String>;
 
 /// Fundamentally, user might want to:
 ///
@@ -22,7 +22,7 @@ pub enum DataRequestE {
     Breakdown,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub struct AggregationRequest {
     // general fields
@@ -30,7 +30,7 @@ pub struct AggregationRequest {
     pub name: Option<String>,
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
-    pub measures: Vec<(String, String)>,
+    pub measures: Vec<(MeasureName, AggregationMethod)>,
     pub groupby: Vec<String>,
     #[serde(default)]
     pub filters: AndOrFltrChain,
@@ -39,7 +39,7 @@ pub struct AggregationRequest {
     #[serde(default, alias = "additionalRows")]
     pub add_row: AdditionalRows,
     #[serde(default)]
-    pub calc_params: OCP,
+    pub calc_params: CPM,
     /// drop rows where all results are NULL or 0
     #[serde(default)]
     pub hide_zeros: bool,
@@ -61,36 +61,11 @@ impl AggregationRequest {
         &self.groupby
     }
 
-    pub fn calc_params(&self) -> &OCP {
+    pub fn calc_params(&self) -> &CPM {
         &self.calc_params
     }
 
     pub fn overrides(&self) -> &Vec<Override> {
         &self.overrides
-    }
-}
-
-use std::hash::{Hash, Hasher};
-
-impl Hash for AggregationRequest {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.measures.hash(state);
-        self.groupby.hash(state);
-        self.filters.hash(state);
-        self.overrides.hash(state);
-        self.hide_zeros.hash(state);
-        self.totals.hash(state);
-        //Hashmap is only hashable via BTreeMap
-        self.calc_params
-            .iter()
-            .collect::<BTreeMap<_, _>>()
-            .hash(state);
-        self.add_row
-            .rows
-            .iter()
-            .map(|map| map.iter().collect::<BTreeMap<_, _>>())
-            .collect::<Vec<BTreeMap<_, _>>>()
-            .hash(state);
-        self.add_row.prepare.hash(state);
     }
 }

@@ -47,7 +47,8 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
     if !div {
         risk
     } else {
-        risk.apply_many(
+        apply_multiple(
+        
             |columns| {
                 let mult: Vec<f64> = vec![1.; columns[0].len()];
                 let mult = Float64Chunked::from_vec("multiplicator", mult);
@@ -55,8 +56,9 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
                 let mult = mult.set(&mask, Some(1.5))?.into_series();
                 columns[0].f64()?.divide(&mult)
             },
-            &[col("FxCurvDivEligibility")],
+            &[risk, col("FxCurvDivEligibility")],
             GetOutput::from_type(DataType::Float64),
+            false
         )
     }
 }
@@ -72,7 +74,7 @@ pub fn fx_cvr_down(op: &CPM) -> PolarsResult<Expr> {
     Ok(fx_cvr_up_down(div, risk))
 }
 
-// Kb, Sb, KbPlus, KbMinus is same across all scenarios for АЧ
+// Kb, Sb, KbPlus, KbMinus is same across all scenarios for FX
 pub(crate) fn fx_curvature_kb_plus(op: &CPM) -> PolarsResult<Expr> {
     fx_curvature_charge_distributor(op, &MEDIUM_CORR_SCENARIO, ReturnMetric::KbPlus)
 }
@@ -136,17 +138,15 @@ fn fx_curvature_charge(
                 "FxCurvDivEligibility"=>&columns[6],
             ]?;
 
+            //dbg!(&df);
+
             let ccy_regex = ccy_regex.clone();
             let df = df
                 .lazy()
                 .filter(
                     col("rc")
                         .eq(lit("FX"))
-                        .and(
-                            col("PnL_Up")
-                                .is_not_null()
-                                .or(col("PnL_Down").is_not_null()),
-                        )
+                        .and(col("CurvatureRiskWeight").is_not_null())
                         .and(col("b").apply(
                             move |col| Ok(col.utf8()?.contains(&ccy_regex)?.into_series()),
                             GetOutput::from_type(DataType::Boolean),
@@ -168,7 +168,7 @@ fn fx_curvature_charge(
                     fx_cvr_up_down(div, cvr_down_spot()).sum().alias("cvr_down"),
                 ])
                 .collect()?;
-
+            
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {
                 return Ok(Series::new("res", [kb_plus.iter().sum::<f64>()]));

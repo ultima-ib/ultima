@@ -549,6 +549,8 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         lf1 = lf1.rename(["Weights"], ["SensWeights"])
     }
 
+    //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS"), col("RiskFactor"), col("SensWeights")]).collect());
+
     let join_on = [col("RiskClass"), col("RiskCategory"), col("BucketBCBS")];
     lf1 = lf1.join(
         weights.rc_rcat_b_weights,

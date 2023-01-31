@@ -100,11 +100,14 @@ impl DataSet for FRTBDataSet {
             self.get_lazyframe().clone()
         };
 
-        //First, identify buckets
-        lf1 = lf1.with_column(buckets::sbm_buckets(&self.build_params));
+        //First, where possible (FX and GIRR) - assign buckets
+        //this really is an optional step
+        lf1 = lf1.with_column(buckets::sbm_buckets(&self.build_params).alias("BucketBCBS"));
+        //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS")]).collect());
 
         // Then assign SensWeights(BCBS) based on buckets
         lf1 = weights_assign(lf1, &self.build_params)?;
+
         // TODO Remove after this issue
         // workaround for https://github.com/pola-rs/polars/issues/5812
         let a = Expr::Literal(
@@ -116,6 +119,7 @@ impl DataSet for FRTBDataSet {
                 .otherwise(col("SensWeights"))
                 .alias("SensWeights"),
         );
+        //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS"), col("SensWeights")]).collect());
 
         // Curvature risk weight
         //lf1 = tmp_frame.lazy()
@@ -128,7 +132,7 @@ impl DataSet for FRTBDataSet {
             .then(col("SensWeights").arr().max().alias("CurvatureRiskWeight"))
             .otherwise(NULL.lit()),
         );
-        //dbg!(lf1.clone().select([col("*")]).collect());
+        //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS"), col("SensWeights"), col("CurvatureRiskWeight")]).collect());
 
         // Now,  ammend weights if required. ie has to be done after main assignment of risk weights
         let mut other_cols: Vec<Expr> = vec![];
@@ -207,8 +211,7 @@ impl DataSet for FRTBDataSet {
         lf1 = lf1.with_columns(&[
             drc_scalinng(
                 self.build_params
-                    .get("DayCountConvention")
-                    .and_then(|x| x.parse::<u8>().ok()),
+                    .get("DayCountConvention"),
                 self.build_params.get("DateFormat"),
             )
             .alias("ScaleFactor"),

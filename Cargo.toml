@@ -24,6 +24,6 @@ polars = { version = "0.25.1", features = [
     "csv-file",
     "diagonal_concat",
 ] }
-toml = "0.5"
+toml = "0.7.2"
 once_cell = "1.12"
-schnellru = "0.1.1"
+dashmap = "5.4.0"

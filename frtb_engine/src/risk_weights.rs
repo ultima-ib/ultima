@@ -3,7 +3,7 @@
 //! TODO Weights column is a list. We can't read it as list from a csv. frame_from_path_or_str must concat_lst columns which have Sens in the name
 
 use crate::drc::drc_weights;
-use base_engine::helpers::diag_concat_lf;
+use base_engine::prelude::helpers::diag_concat_lf;
 use base_engine::polars::prelude::{
     col, concat_lst, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
     IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,

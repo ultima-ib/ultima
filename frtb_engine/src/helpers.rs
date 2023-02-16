@@ -66,8 +66,8 @@ where
 }
 
 /// we need to assert arr shape, so we have a separate func for arrs
-pub(crate) fn get_optional_parameter_array<'a>(
-    op: &'a CPM,
+pub(crate) fn get_optional_parameter_array(
+    op: &CPM,
     param: &str,
     default: &Array2<f64>,
 ) -> PolarsResult<Array2<f64>> {

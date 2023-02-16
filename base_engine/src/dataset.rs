@@ -23,16 +23,18 @@ pub struct DataSetBase {
 pub trait DataSet: Send + Sync {
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
+    /// This method gets the main LazyFrame of the Dataset
     fn get_lazyframe(&self) -> &LazyFrame;
-    fn get_lazyframe_owned(self) -> LazyFrame;
+
+    /// Set LazyFrame of your DataSet
     fn set_lazyframe(self, lf: LazyFrame) -> Self
     where
         Self: Sized;
+
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
 
     fn get_measures(&self) -> &MeasuresMap;
-    fn get_measures_owned(self) -> MeasuresMap;
 
     /// Cannot be defined since returns Self which is a Struct.
     /// Not possible to call [DataSet::new] either since it's not on self
@@ -124,9 +126,6 @@ impl DataSet for DataSetBase {
     fn get_lazyframe(&self) -> &LazyFrame {
         &self.frame
     }
-    fn get_lazyframe_owned(self) -> LazyFrame {
-        self.frame
-    }
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
         self.frame = lf;
@@ -137,9 +136,6 @@ impl DataSet for DataSetBase {
 
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
-    }
-    fn get_measures_owned(self) -> MeasuresMap {
-        self.measures
     }
 
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {

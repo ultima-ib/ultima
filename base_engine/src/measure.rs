@@ -42,6 +42,7 @@ pub struct BaseMeasure {
     /// Optional: this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
     pub aggregation: Option<&'static str>,
+
     /// Optional
     /// Say you want to compute CSR Delta by Bucket
     ///
@@ -72,6 +73,7 @@ pub struct DependantMeasure {
 
     /// this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
+    /// must be one of BASE_CALCS
     pub aggregation: Option<&'static str>,
 
     /// Vec<(Depends Upon Measure Name, Aggregation type)>
@@ -194,9 +196,9 @@ pub(crate) fn base_measure_lookup(
             }
 
             // Lookup action from the list of supported actions
-            let Some(act) = crate::api::aggregations::BASE_CALCS.get(requested_action.as_str()) else {
+            let Some(act) = crate::aggregations::BASE_CALCS.get(requested_action.as_str()) else {
                 return Err(PolarsError::ComputeError(format!("No action {requested_action} supported. Supported actions are: {:?}",
-                crate::api::aggregations::BASE_CALCS.keys()).into()))
+                crate::aggregations::BASE_CALCS.keys()).into()))
             };
 
             //let params: CPM = m.calc_params
@@ -206,7 +208,7 @@ pub(crate) fn base_measure_lookup(
 
             // apply action
             let (calculator, name) = act(
-                    (m.calculator)(op)?,
+                    (m.calculator)(op)?, // Calling Calculator with Parameters, returns an Expr
                     requested_measure
                 );
 

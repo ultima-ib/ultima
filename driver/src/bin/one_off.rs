@@ -29,6 +29,7 @@ pub type DataSetType = frtb_engine::FRTBDataSet;
 #[cfg(not(feature = "FRTB"))]
 pub type DataSetType = base_engine::DataSetBase;
 
+#[allow(clippy::uninlined_format_args)] 
 fn main() -> anyhow::Result<()> {
     // Read .env
     // TODO in production use env variables, not .env
@@ -67,7 +68,7 @@ fn main() -> anyhow::Result<()> {
 
             Ok(df) => {
                 let elapsed = now.elapsed();
-                println!("result: {:?}", df);
+                println!("result: {df}");
                 println!("Time to Compute: {:.6?}", elapsed);
             }
         }

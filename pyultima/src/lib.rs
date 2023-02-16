@@ -210,7 +210,7 @@ fn exec_agg(
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {
-    base_engine::api::aggregations::BASE_CALCS
+    base_engine::aggregations::BASE_CALCS
         .keys()
         .filter(|el| **el != "scalar")
         .copied()

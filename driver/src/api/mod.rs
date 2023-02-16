@@ -22,11 +22,11 @@ use actix_web::{
 use actix_web_httpauth::{extractors::basic::BasicAuth, middleware::HttpAuthentication};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
-use std::{net::TcpListener, sync::Arc};
+use std::{net::TcpListener, sync::Arc, path::{PathBuf, Path}};
 use tokio::task;
 
 use base_engine::{
-    api::aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
+    aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
     AggregationRequest, DataFrame, DataSet,
 };
 
@@ -71,7 +71,7 @@ async fn column_search(
         let lf = d.get_lazyframe();
         let df = lf.clone().select([col(&column_name)]).collect()?;
         let srs = df.column(&column_name)?;
-        let search = base_engine::searches::filter_contains_unique(srs, &pat)?;
+        let search = base_engine::helpers::searches::filter_contains_unique(srs, &pat)?;
         let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
@@ -193,7 +193,10 @@ pub fn run_server(
         std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
-    // let cache = Data::new(CACHE::new());
+    //let test = include_str!("../frontend/dist/index.html");
+    //let a = env!("CARGO_MANIFEST_DIR");
+    //static SETTINGS_STR: &str = include_str!("index.html");
+
 
     let server = HttpServer::new(move || {
         let auth = HttpAuthentication::basic(validator);
@@ -225,4 +228,16 @@ pub fn run_server(
     .listen(listener)?
     .run();
     Ok(server)
+}
+
+fn workspace_dir() -> PathBuf {
+    let output = std::process::Command::new(env!("CARGO"))
+        .arg("locate-project")
+        .arg("--workspace")
+        .arg("--message-format=plain")
+        .output()
+        .unwrap()
+        .stdout;
+    let cargo_path = Path::new(std::str::from_utf8(&output).unwrap().trim());
+    cargo_path.parent().unwrap().to_path_buf()
 }

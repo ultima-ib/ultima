@@ -50,9 +50,6 @@ impl DataSet for FRTBDataSet {
     fn get_lazyframe(&self) -> &LazyFrame {
         &self.frame
     }
-    fn get_lazyframe_owned(self) -> LazyFrame {
-        self.frame
-    }
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
         self.frame = lf;
@@ -69,9 +66,6 @@ impl DataSet for FRTBDataSet {
     }
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
-    }
-    fn get_measures_owned(self) -> MeasuresMap {
-        self.measures
     }
     fn calc_params(&self) -> Vec<CalcParameter> {
         FRTB_CALC_PARAMS.clone()

@@ -19,7 +19,7 @@ pub enum PyUltimaErr {
 
 impl std::convert::From<std::io::Error> for PyUltimaErr {
     fn from(value: Error) -> Self {
-        PyUltimaErr::Other(format!("{:?}", value))
+        PyUltimaErr::Other(format!("{value}"))
     }
 }
 
@@ -36,15 +36,14 @@ impl std::convert::From<PyUltimaErr> for PyErr {
                 PolarsError::ShapeMisMatch(err) => ShapeError::new_err(err.to_string()),
                 PolarsError::SchemaMisMatch(err) => SchemaError::new_err(err.to_string()),
                 PolarsError::Io(err) => PyIOError::new_err(err.to_string()),
-                PolarsError::ArrowError(err) => ArrowErrorException::new_err(format!("{:?}", err)),
+                PolarsError::ArrowError(err) => ArrowErrorException::new_err(format!("{err}")),
                 PolarsError::Duplicate(err) => DuplicateError::new_err(err.to_string()),
                 PolarsError::InvalidOperation(err) => {
                     InvalidOperationError::new_err(err.to_string())
                 }
             },
             SerdeJson(err) => SerdeJsonError::new_err(format!(
-                "Couldn't (de)serialise input. Check format. {}",
-                err
+                "Couldn't (de)serialise input. Check format. {err}"
             )),
             Other(_str) => OtherError::new_err(_str.to_string()),
         }
@@ -55,9 +54,9 @@ impl Debug for PyUltimaErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         use PyUltimaErr::*;
         match self {
-            Polars(err) => write!(f, "{:?}", err),
-            SerdeJson(err) => write!(f, "Couldn't serialize string. Check format. {:?}", err),
-            Other(err) => write!(f, "BindingsError: {:?}", err),
+            Polars(err) => write!(f, "{err}"),
+            SerdeJson(err) => write!(f, "Couldn't serialize string. Check format. {err}"),
+            Other(err) => write!(f, "BindingsError: {err}"),
         }
     }
 }

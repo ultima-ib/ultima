@@ -53,16 +53,16 @@ fn main() -> anyhow::Result<()> {
 
     // From here we do not panic
     for request in requests {
-        let rqst_str = serde_json::to_string(&request);
-        info!("{:?}", rqst_str);
+        //let rqst_str = serde_json::to_string(&request);
+        info!("{:?}", request);
         let now = Instant::now();
-        match base_engine::execute_aggregation(
-            &request,
+        match base_engine::exec_agg_base(
+            request,
             &*Arc::clone(&arc_data),
             cfg!(feature = "streaming"),
         ) {
             Err(e) => {
-                error!("On request: {:?}, Application error: {:#?}", rqst_str, e);
+                error!("Application error: {:#?}", e);
                 continue;
             }
 

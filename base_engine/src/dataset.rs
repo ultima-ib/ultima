@@ -3,7 +3,10 @@ use std::collections::BTreeMap;
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::{CalcParameter, DataSourceConfig, MeasuresMap};
+use crate::cache::{CacheableDataSet, Cache};
+use crate::{CalcParameter, DataSourceConfig, MeasuresMap, ComputeRequest};
+use crate::execute;
+
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -14,7 +17,10 @@ pub struct DataSetBase {
     /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
     /// build_params are passed into .prepare()
+    /// TODO remove and pass to .prepare() directly
     pub build_params: BTreeMap<String, String>,
+    /// Cache
+    pub cache: Cache
 }
 
 /// The main Trait
@@ -26,14 +32,16 @@ pub trait DataSet: Send + Sync {
     /// This method gets the main LazyFrame of the Dataset
     fn get_lazyframe(&self) -> &LazyFrame;
 
-    /// Set LazyFrame of your DataSet
-    fn set_lazyframe(self, lf: LazyFrame) -> Self
-    where
-        Self: Sized;
+    //// Set LazyFrame of your DataSet
+    //// TODO try make prepare 
+    //fn set_lazyframe(self, lf: LazyFrame) -> Self
+    //where
+    //    Self: Sized;
 
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
 
+    /// Get all measures associated with the DataSet
     fn get_measures(&self) -> &MeasuresMap;
 
     /// Cannot be defined since returns Self which is a Struct.
@@ -64,11 +72,14 @@ pub trait DataSet: Send + Sync {
     where
         Self: Sized;
 
-    fn collect(self) -> PolarsResult<Self>
+    /// Collects the (main) LazyFrame of the DataSet
+    fn collect(&mut self) -> PolarsResult<()>
     where
         Self: Sized,
     {
-        Ok(self)
+        let lf = self.get_lazyframe().clone().collect()?.lazy();
+        self.set_lazyframe_inplace(lf);
+        Ok(())
     }
 
     // These methods could be overwritten.
@@ -80,12 +91,14 @@ pub trait DataSet: Send + Sync {
 
     /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
     /// Any pre-computations which are common to all queries could go in here.
-    fn prepare(self) -> PolarsResult<Self>
+    /// Calls [DataSet::prepare_frame] insternally
+    fn prepare(&mut self) -> PolarsResult<()>
     where
         Self: Sized,
     {
         let new_frame = self.prepare_frame(None)?;
-        Ok(self.set_lazyframe(new_frame))
+        self.set_lazyframe_inplace(new_frame);
+        Ok(())
     }
 
     /// By returning a Frame this method can be used on a
@@ -106,6 +119,8 @@ pub trait DataSet: Send + Sync {
         vec![]
     }
 
+    /// Limits overridable columns which you can override in
+    /// See [AggregationRequest::overrides]
     fn overridable_columns(&self) -> Vec<String> {
         self.get_lazyframe()
             .schema()
@@ -118,7 +133,38 @@ pub trait DataSet: Send + Sync {
     fn validate_frame(&self, _: Option<&LazyFrame>, _: ValidateSet) -> PolarsResult<()> {
         Ok(())
     }
+
+    /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame 
+    /// into memory. See: https://www.rhosignal.com/posts/polars-dont-fear-streaming/
+    fn compute(&self, r: ComputeRequest, streaming: bool) -> PolarsResult<DataFrame> {
+        execute(self, r, streaming)
+    }
+
+    /// Indicates if your DataSet has a cache or not
+    /// It is recommended that you implement CacheableDataSet
+    /// make sure to return Some(&self)
+    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet>{None}
 }
+
+/*
+pub trait ExecutableDataSet: DataSet {
+    /// Compute Request on your dataset
+    /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame 
+    /// into memory. If streaming, then .prepare() will be called for each request. Otherwise 
+    fn compute(&self, r: ComputeRequest, streaming: bool) -> PolarsResult<DataFrame> {
+        
+        match r {
+            Aggregation(ar) => {
+                exec_agg_base(ar, self, streaming)
+            }
+            _ => unimplemented!()
+        }
+        
+    }
+}
+
+impl ExecutableDataSet for DataSetBase{}
+*/
 
 impl DataSet for DataSetBase {
     /// Polars DataFrame clone is cheap:
@@ -130,9 +176,6 @@ impl DataSet for DataSetBase {
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
         self.frame = lf;
     }
-    fn set_lazyframe(self, lf: LazyFrame) -> Self {
-        Self::new(lf, self.measures, self.build_params)
-    }
 
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
@@ -143,12 +186,13 @@ impl DataSet for DataSetBase {
             frame,
             measures: mm,
             build_params,
+            ..Default::default()
         }
     }
-    fn collect(self) -> PolarsResult<Self> {
-        let lf = self.frame.collect()?.lazy();
-        Ok(Self { frame: lf, ..self })
-    }
+    //fn collect(self) -> PolarsResult<Self> {
+    //    let lf = self.frame.collect()?.lazy();
+    //    Ok(Self { frame: lf, ..self })
+    //}
 
     //    /// Validate Dataset contains columns
     //    /// files_join_attributes and attributes_join_hierarchy

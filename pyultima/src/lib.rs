@@ -1,6 +1,6 @@
 use base_engine::polars::prelude::Series;
 use base_engine::{
-    self, derive_basic_measures_vec, execute_aggregation, numeric_columns, read_toml2,
+    self, derive_basic_measures_vec, exec_agg_base, numeric_columns, read_toml2,
     AggregationRequest, DataFrame, DataSet, DataSetBase, DataSourceConfig, IntoLazy, MeasuresMap,
     ValidateSet,
 };
@@ -202,7 +202,7 @@ fn exec_agg(
     prepared_dataset: &DataSetWrapper,
     streaming: bool,
 ) -> PyResult<Vec<PyObject>> {
-    let dataframe = execute_aggregation(&request.ar, prepared_dataset.dataset.as_ref(), streaming)
+    let dataframe = exec_agg_base(request.ar, prepared_dataset.dataset.as_ref(), streaming)
         .map_err(errors::PyUltimaErr::Polars)?;
 
     dataframe.iter().map(rust_series_to_py_series).collect()

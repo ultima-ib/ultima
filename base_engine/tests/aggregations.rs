@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use base_engine::{execute_aggregation, AggregationRequest};
+use base_engine::{exec_agg_base, AggregationRequest};
 
 mod common;
 
@@ -15,7 +15,7 @@ fn simple_fltr_grpby_sum() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = execute_aggregation(&data_req, &*Arc::clone(&*common::TEST_DASET), false)
+    let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
         .expect("Calculation failed");
 
     let res_sum = res
@@ -38,8 +38,8 @@ fn non_existent_measure() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _ = dbg!(execute_aggregation(
-        &data_req,
+    let _ = dbg!(exec_agg_base(
+        data_req,
         &*Arc::clone(&*common::TEST_DASET),
         false
     ))
@@ -58,8 +58,8 @@ fn non_existent_action() {
     }"#;
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _ = dbg!(execute_aggregation(
-        &data_req,
+    let _ = dbg!(exec_agg_base(
+        data_req,
         &*Arc::clone(&*common::TEST_DASET),
         false
     ))

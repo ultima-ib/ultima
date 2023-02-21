@@ -1,19 +1,28 @@
 use polars::prelude::DataFrame;
 
-use crate::AggregationRequest;
+use crate::{DataSetBase, DataSet, ComputeRequest};
 
-pub type Cache = dashmap::DashMap<AggregationRequest, DataFrame>;
+pub type Cache = dashmap::DashMap<ComputeRequest, DataFrame>;
 
 /// Represents a DataSet (Struct) with cache
-/// 
-pub trait Cacheable {
+/// We recommend implementing Cacheable for your DataSet
+/// note that you must also set as_cacheable of DataSet.
+pub trait CacheableDataSet: DataSet + Send + Sync {
     /// Gets the cache
     fn get_cache(&self) -> &Cache;
-    /// Get mutable cache
-    fn get_cache_mut(&mut self) -> &mut Cache;
+    
     /// Cleans cache
-    fn clean_cache(&mut self) {
+    fn clean_cache(&self) {
         self.get_cache().clear()
     }
-
 }
+
+impl CacheableDataSet for DataSetBase{
+    /// Gets the cache
+    fn get_cache(&self) -> &Cache{
+        &self.cache
+    }
+}
+
+
+

@@ -22,7 +22,7 @@ pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
     // If cfg is streaming then we can't collect, otherwise collect to check errors
     if !cfg!(feature = "streaming") {
         let now = Instant::now();
-        data = data.collect().expect("Failed to read frame");
+        data.collect().expect("Failed to read frame");
         let elapsed = now.elapsed();
         println!("Time to Read/Aggregate DF: {:.6?}", elapsed);
     }
@@ -35,9 +35,9 @@ pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
     // Pre build some columns, which you wish to store in memory alongside the original data
     // Note if streaming then .prepare() should happen post filtering
     if !cfg!(feature = "streaming") {
-        data = data.prepare().expect("Failed to Prepare Frame");
+        data.prepare().expect("Failed to Prepare Frame");
         let now = Instant::now();
-        data = data.collect().expect("Failed to Prepare Frame");
+        data.collect().expect("Failed to Prepare Frame");
         let elapsed = now.elapsed();
         println!("Time to Prepare DF: {:.6?}", elapsed);
     }

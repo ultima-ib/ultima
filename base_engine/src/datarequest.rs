@@ -14,10 +14,10 @@ pub type CPM = BTreeMap<String, String>;
 /// i) Aggregation: apply the same procedure to every group and get a single number
 ///
 /// Otherwise, ii) Apply the same procedure to every group and get multiple numbers (ie a Breakdown)
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum DataRequestE {
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ComputeRequest {
     /// Measures will be called in GroupBy-Aggregate context
-    Aggregation(Box<AggregationRequest>),
+    Aggregation(AggregationRequest),
     /// TODO Measures will be called in groupby-Apply Context
     Breakdown,
 }

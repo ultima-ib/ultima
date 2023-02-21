@@ -1,7 +1,7 @@
 mod common;
 
 mod tests {
-    use base_engine::{execute_aggregation, AggregationRequest};
+    use base_engine::{exec_agg_base, AggregationRequest};
     use std::sync::Arc;
 
     use crate::common;
@@ -13,7 +13,7 @@ mod tests {
                             "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Balance": "10"}]}}"#;
         let data_req =
             serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-        let res = execute_aggregation(&data_req, &*Arc::clone(&*common::TEST_DASET), false)
+        let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
             .expect("Calculation failed");
 
         let res_sum = dbg!(res)
@@ -33,7 +33,7 @@ mod tests {
                             "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Age": "29"}]}}"#;
         let data_req =
             serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-        let res = execute_aggregation(&data_req, &*Arc::clone(&*common::TEST_DASET), false)
+        let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
             .expect("Calculation failed");
 
         let res_sum = dbg!(res)

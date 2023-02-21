@@ -122,15 +122,15 @@ async fn execute(
         // Work in progress
         if cfg!(cache) {
             #[cfg(feature = "cache")]
-            return base_engine::execution_with_cache::execute_with_cache(
+            return base_engine::execute_agg_with_cache::execute_with_cache(
                 &r,
                 &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
             );
             Err(PolarsError::NoData("Cache must be enabled.".into()))
         } else {
-            base_engine::execute_aggregation(
-                &r,
+            base_engine::exec_agg_base(
+                r,
                 &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
             )
@@ -223,7 +223,6 @@ pub fn run_server(
             .service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
             .app_data(ds.clone())
             .app_data(_templates.clone())
-        // .app_data(cache.clone())
     })
     .listen(listener)?
     .run();

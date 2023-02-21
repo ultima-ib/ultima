@@ -1,6 +1,6 @@
 //! Main testing module for the DataSet and measures
 
-use base_engine::{AggregationRequest, execute_aggregation};
+use base_engine::{AggregationRequest, exec_agg_base};
 mod common;
 
 //mod agg_req_tests {
@@ -24,7 +24,7 @@ fn simple_fltr_grpby_sum() {
     let data_req =
         serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
     let a = (*common::TEST_DASET).as_ref();
-    let res = execute_aggregation(&data_req, a, false).expect("Calculation failed");
+    let res = exec_agg_base(data_req, a, false).expect("Calculation failed");
 
         let res_sum = res
             .column("Balance_sum")

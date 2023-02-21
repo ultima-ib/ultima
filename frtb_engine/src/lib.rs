@@ -54,16 +54,16 @@ impl DataSet for FRTBDataSet {
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
         self.frame = lf;
     }
-    fn set_lazyframe(self, lf: LazyFrame) -> Self
-    where
-        Self: Sized,
-    {
-        Self {
-            frame: lf,
-            measures: self.measures,
-            build_params: self.build_params,
-        }
-    }
+    //fn set_lazyframe(self, lf: LazyFrame) -> Self
+    //where
+    //    Self: Sized,
+    //{
+    //    Self {
+    //        frame: lf,
+    //        measures: self.measures,
+    //        build_params: self.build_params,
+    //    }
+    //}
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
     }
@@ -81,10 +81,10 @@ impl DataSet for FRTBDataSet {
         res
     }
 
-    fn collect(self) -> PolarsResult<Self> {
-        let lf = self.frame.collect()?.lazy();
-        Ok(Self { frame: lf, ..self })
-    }
+    //fn collect(self) -> PolarsResult<Self> {
+    //    let lf = self.frame.collect()?.lazy();
+    //    Ok(Self { frame: lf, ..self })
+    //}
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
     fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {

@@ -71,10 +71,11 @@ pub struct DependantMeasure {
     /// parameters which will go into calculator
     // pub calc_params: Vec<String>,
 
-    /// this field is to restrict aggregation option to certain type only
-    /// for example where it makes sence to aggregate with "first" and not "sum"
-    /// must be one of BASE_CALCS
-    pub aggregation: Option<&'static str>,
+    // this field is to restrict aggregation option to certain type only
+    // for example where it makes sence to aggregate with "first" and not "sum"
+    // must be one of BASE_CALCS
+    // Currently every dep measure is "scalar", see [Measure::aggregation]
+    // pub aggregation: Option<&'static str>,
 
     /// Vec<(Depends Upon Measure Name, Aggregation type)>
     /// eg vec![(FXDeltaCharge, scalar), (Sensitivity, mean)]
@@ -108,8 +109,8 @@ impl FromIterator<Measure> for BTreeMap<MeasureName, Measure> {
 impl Measure {
     pub fn aggregation(&self) -> &Option<&'static str> {
         match self {
-            Measure::Base(BaseMeasure { aggregation, .. })
-            | Measure::Dependant(DependantMeasure { aggregation, .. }) => aggregation,
+            Measure::Base(BaseMeasure { aggregation, .. }) => aggregation,
+            Measure::Dependant(DependantMeasure) => &Some("scalar")
         }
     }
 
@@ -119,26 +120,12 @@ impl Measure {
             | Measure::Dependant(DependantMeasure { name, .. }) => name,
         }
     }
-    /*
-    pub fn calc_params(&self) -> &Vec<String>{
-        match self {
-            Measure::Base(BaseMeasure{calc_params,..})|
-            Measure::Dependant(DependantMeasure{calc_params,..}) => calc_params,
-        }
-    }
     pub fn calculator(&self) -> &Calculator {
         match self {
             Measure::Base(BaseMeasure{calculator,..})|
             Measure::Dependant(DependantMeasure{calculator,..}) => calculator,
         }
     }
-    pub fn precomputefilter(&self) -> &Option<Expr> {
-        match self {
-            Measure::Base(BaseMeasure{precomputefilter,..}) => precomputefilter,
-            Measure::Dependant(_) => &None,
-        }
-    }
-    */
 }
 
 impl Default for BaseMeasure {
@@ -167,7 +154,8 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
         .collect::<Vec<Measure>>()
 }
 
-/// Convert requested measure into [ProcessedMeasure] measure by looking up from all_availiable_measures.
+/// Convert requested [Measure] into [ProcessedMeasure] measure by looking up from all_availiable_measures
+/// and calling the calculator return an Expr
 ///
 /// NOTE: if a measure, which was looked up from all_availiable_measures has a predefined AggExpression
 /// then we override requested measure.
@@ -177,7 +165,8 @@ pub(crate) fn base_measure_lookup(
     requested_measures: &[(MeasureName, AggregationMethod)],
     all_availiable_measures: &MeasuresMap,
     op: &CPM,
-) -> PolarsResult<Vec<ProcessedMeasure>> {
+) -> PolarsResult<Vec<ProcessedBaseMeasure>> {
+
     let res = requested_measures.iter()
         .map(|(requested_measure, requested_action)| {
 
@@ -201,11 +190,6 @@ pub(crate) fn base_measure_lookup(
                 crate::aggregations::BASE_CALCS.keys()).into()))
             };
 
-            //let params: CPM = m.calc_params
-            //    .iter()
-            //    .map(|param|(param, op.get(param).cloned()))
-            //    .collect::<BTreeMap<String, String>>();
-
             // apply action
             let (calculator, name) = act(
                     (m.calculator)(op)?, // Calling Calculator with Parameters, returns an Expr
@@ -213,7 +197,7 @@ pub(crate) fn base_measure_lookup(
                 );
 
             Ok(
-                ProcessedMeasure {
+                ProcessedBaseMeasure {
                     name,
                     calculator,
                     precomputefilter: m.precomputefilter.clone(),
@@ -221,18 +205,95 @@ pub(crate) fn base_measure_lookup(
             )
             }
         )
-        .collect::<PolarsResult<Vec<ProcessedMeasure>>>();
+        .collect::<PolarsResult<Vec<ProcessedBaseMeasure>>>();
 
     res
 }
 
-/// Unlike main Measure struct, this structure holds final name, extended Expr(with aggregation)
-/// and the precompute filter.
-///
-/// This is basically a "processed" measure
-pub(crate) struct ProcessedMeasure {
+
+/// This is the main [Measure] processed, ie it holds the final name, final Expr(with aggregation)
+/// And the precompute filter for BasicMeasure
+pub enum ProcessedMeasure {
+    /// A typical measure
+    /// execute_aggregation .groupby().agg(X)
+    Base(ProcessedBaseMeasure),
+    // DependantMeasure depends on BaseMeasure
+    // Executed within .with_columns() context
+    Dependant(ProcessedDependantMeasure),
+}
+
+pub(crate) struct ProcessedBaseMeasure {
     pub name: String,
     pub calculator: Expr,
     pub precomputefilter: Option<Expr>,
-    // TODO: potentially use as key for cache + ID for dataset
+}
+
+pub(crate) struct ProcessedDependantMeasure {
+    pub name: String,
+    pub calculator: Expr,
+}
+
+/// Convert requested [Measure] into [ProcessedMeasure] measure by looking up from all_availiable_measures
+/// and calling the calculator return an Expr
+///
+/// NOTE: if a measure, which was looked up from all_availiable_measures has a predefined AggExpression
+/// then we override requested measure.
+///
+/// by mapping requested String to a map of all availiable measures
+pub(crate) fn measure_lookup_to_expr(
+    requested_measures: &[(MeasureName, AggregationMethod)],
+    all_availiable_measures: &MeasuresMap,
+    op: &CPM,
+) -> PolarsResult<Vec<ProcessedMeasure>> {
+
+    let res = requested_measures.iter()
+        .map(|(requested_measure, requested_action)| {
+
+            // Lookup requested measure from all_availiable_measures by name
+            let Some(looked_up_measure) = all_availiable_measures.get(requested_measure as &str) else {
+                return Err(PolarsError::ComputeError(format!("No measure {requested_measure} exists for the dataset. Availiable measures are: {:?}",
+                    all_availiable_measures.keys()).into()))
+            };
+
+            // If measure has predefined aggregation, check that requested aggregation matches it          
+            if let Some(default_action) = looked_up_measure.aggregation() {
+                if default_action != requested_action {
+                    return Err(PolarsError::ComputeError(format!("Measure {requested_measure} supports only {default_action} aggregation,
+                    but {requested_action} requested").into()))
+                }
+            }
+
+            // Lookup action from the list of supported actions
+            let Some(act) = crate::aggregations::BASE_CALCS.get(requested_action.as_str()) else {
+                return Err(PolarsError::ComputeError(format!("No action {requested_action} supported. Supported actions are: {:?}",
+                crate::aggregations::BASE_CALCS.keys()).into()))
+            };
+
+            // apply action
+            let (calculator, name) = act(
+                    (looked_up_measure.calculator())(op)?, // Calling Calculator with Parameters, returns an Expr
+                    requested_measure
+                );
+
+            
+            match looked_up_measure {
+                Measure::Base(m) => Ok(
+                    ProcessedMeasure::Base(ProcessedBaseMeasure {
+                        name,
+                        calculator,
+                        precomputefilter: m.precomputefilter.clone(),
+                    })
+                ),
+                Measure::Dependant(_) => Ok(
+                    ProcessedMeasure::Dependant(ProcessedDependantMeasure{
+                        name,
+                        calculator
+                    })
+                )
+            }
+        }
+        )
+        .collect::<PolarsResult<Vec<ProcessedMeasure>>>();
+
+    res
 }

@@ -7,9 +7,10 @@ use polars::prelude::{Expr, QuantileInterpolOptions};
 
 /// To represent availiable agg types living in [BASE_CALCS]
 pub type AggregationMethod = String;
+pub type AggregationFunction = fn(Expr, &str) -> (Expr, String);
 
 /// The list of supported aggregations will be changing ofter, hence keep it as HashMap
-pub static BASE_CALCS: Lazy<HashMap<&'static str, fn(Expr, &str) -> (Expr, String)>> =
+pub static BASE_CALCS: Lazy<HashMap<&'static str, AggregationFunction>> =
     Lazy::new(|| {
         HashMap::from([
             //Numeric
@@ -74,3 +75,40 @@ fn count_unique(c: Expr, newname: &str) -> (Expr, String) {
 fn scalar(c: Expr, newname: &str) -> (Expr, String) {
     (c.alias(newname), newname.to_string())
 }
+
+pub static _BASE_CALCS: Lazy<HashMap<&'static str, AggregationNamed>> =
+    Lazy::new(|| {
+        HashMap::from([
+            //Numeric
+            ("sum", AggregationNamed{name_suffix: "sum".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.sum() )}),
+            ("min", AggregationNamed{name_suffix: "min".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.min() )}),
+            ("max", AggregationNamed{name_suffix: "max".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.max() )}),
+            ("mean", AggregationNamed{name_suffix: "mean".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.mean() )}),
+            ("var", AggregationNamed{name_suffix: "var".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.var(1) )}),
+            ("quantile95low", AggregationNamed{name_suffix: "quantile_95_lower".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.quantile(0.95, QuantileInterpolOptions::Lower) )}),
+            ("first", AggregationNamed{name_suffix: "first".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.first() )}),
+            ("count", AggregationNamed{name_suffix: "count".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.count() )}),
+            ("n_unique", AggregationNamed{name_suffix: "n_unique".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.n_unique() )}),
+            ("scalar", AggregationNamed{name_suffix: "scalar".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e )} 
+        )
+        ])
+});
+
+type AggregationExecutor = Box<dyn Fn(Expr) -> Expr + Send + Sync>;
+
+pub struct AggregationNamed {
+    pub name_suffix: String,
+    pub aggregated_expr_fn: AggregationExecutor
+}
+
+impl AggregationNamed {
+    pub fn new_name(&self, name_buffer: &str) -> String {
+        format!("{}_{}", name_buffer, self.name_suffix)
+    }
+    pub fn aggregate(&self, calc: Expr, name_buffer: &str) -> Expr {
+        let alias = self.new_name(name_buffer);
+        let aggregated_expr = (self.aggregated_expr_fn)(calc);
+        aggregated_expr.alias(&alias)
+    }
+}
+

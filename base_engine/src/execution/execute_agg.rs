@@ -1,5 +1,7 @@
 //! Main logic of execution in aggregate context
 
+use std::collections::HashSet;
+
 use polars::prelude::PolarsError;
 pub use polars::{
     functions::diag_concat_df,
@@ -8,7 +10,9 @@ pub use polars::{
 
 use crate::{
     add_row::df_from_maps_and_schema, filters::fltr_chain,
-    measure::base_measure_lookup, AggregationRequest, DataSet, ValidateSet, prelude::helpers::diag_concat_lf, execute_agg_with_cache::_exec_agg_with_cache, measure_lookup_to_expr, ProcessedBaseMeasure, ProcessedDependantMeasure, ProcessedMeasure,
+    measure::base_measure_lookup, AggregationRequest, DataSet, 
+    ValidateSet, prelude::helpers::diag_concat_lf, execute_agg_with_cache::_exec_agg_with_cache,
+     measure_lookup_to_expr, ProcessedBaseMeasure, ProcessedMeasure, agg_measure_lookup, unique_agg_measure, agg_measure_to_expr, aggregations::_BASE_CALCS,
 };
 
 /// Looks up measures and calls calculator on those returning an Expr
@@ -32,39 +36,61 @@ pub(crate) fn exec_agg<DS: DataSet + ?Sized>(
     let op = req.calc_params(); //Optional params of the request
 
     let dataset_measure_map = data.get_measures();
-    let prepared_measures = measure_lookup_to_expr(m, dataset_measure_map, op)?;
 
-    
-    // Step 1 break down measures into dependant and basic
+    // Step 1.0 Lookup requested measures in the DataSet
+    let looked_up_measures = agg_measure_lookup(m,dataset_measure_map)?;
 
-    let mut base_measures = Vec::with_capacity(prepared_measures.len());
-    let mut dependant_measures = Vec::with_capacity(prepared_measures.len());
+    // Remove duplicates
+    let looked_up_measures_unique = unique_agg_measure(looked_up_measures);
 
-    for m in prepared_measures {
+    // Step 1.1 Process(build expr) Looked up measures
+    let expressed_measures = agg_measure_to_expr(looked_up_measures_unique, op)?;
+
+    // Step 1.2 Keep New Names for later use
+    // Hint use:
+    let new_names: Vec<String> = m.iter()
+        .map(|(measure_name, agg)|{
+            let agg = _BASE_CALCS.get(agg as &str).unwrap(); //we have checked
+            agg.new_name(measure_name as &str)
+        } 
+    ).collect();  
+
+    // 1.3 break down measures into dependant and basic
+    let mut base_measures = Vec::with_capacity(expressed_measures.len());
+    let mut dependant_measures = Vec::with_capacity(expressed_measures.len());
+
+    for m in expressed_measures {
         match m {
             ProcessedMeasure::Base(pbm) => base_measures.push(pbm),
-            ProcessedMeasure::Dependant(pdm) => dependant_measures.push(pdm)
+            ProcessedMeasure::Dependant(pdm) => {
+                dependant_measures.push(pdm);
+            }
         }
     }
 
-    // Step 2 execute basics
+    // Step 2 Compute basics
     let basics_res = match data.as_cacheable() {
-        Some(cacheable) => _exec_agg_with_cache(cacheable, req),
+        Some(cacheable) => _exec_agg_with_cache(cacheable, req, base_measures, streaming),
         _ => _exec_agg_base(data, req, base_measures, streaming),
     }?;
 
     // Step 3 compute dependants 
-    // TODO get rid of AggType for Depedants - they are always scalar
     let res =  basics_res.lazy().with_columns(
         dependant_measures.into_iter().map(|pdm|pdm.calculator).collect::<Vec<Expr>>()
     )
+    .select(new_names.into_iter().map(|m|col(&m)).collect::<Vec<Expr>>())
     .collect()?;
+
+    // Step 4 Hide Zeros and other cosmetic parameters
+
+      
 
     Ok(res)
 }
 
 /// main function which returns a Result of the calculation
 /// Executes base measures on your DataSet
+#[deprecated(since="0.2.0", note="please use use DataSet .comute() method")]
 pub fn exec_agg_base<DS: DataSet + ?Sized>(
     req: AggregationRequest,
     data: &DS,
@@ -237,7 +263,7 @@ pub fn exec_agg_base<DS: DataSet + ?Sized>(
 
 /// main function which returns a Result of the calculation
 /// Executes base measures on your DataSet
-pub fn _exec_agg_base<DS: DataSet + ?Sized>(
+fn _exec_agg_base<DS: DataSet + ?Sized>(
     data: &DS,
     req: AggregationRequest,
     processed_base_measures: Vec<ProcessedBaseMeasure>,

@@ -103,7 +103,12 @@ pub struct AggregationNamed {
 
 impl AggregationNamed {
     pub fn new_name(&self, name_buffer: &str) -> String {
-        format!("{}_{}", name_buffer, self.name_suffix)
+        // scalar is special case
+        if self.name_suffix != "scalar" {
+            format!("{}_{}", name_buffer, self.name_suffix)
+        } else {
+            name_buffer.to_owned()
+        }
     }
     pub fn aggregate(&self, calc: Expr, name_buffer: &str) -> Expr {
         let alias = self.new_name(name_buffer);

@@ -146,26 +146,6 @@ pub trait DataSet: Send + Sync {
     fn as_cacheable(&self) -> Option<&dyn CacheableDataSet>{None}
 }
 
-/*
-pub trait ExecutableDataSet: DataSet {
-    /// Compute Request on your dataset
-    /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame 
-    /// into memory. If streaming, then .prepare() will be called for each request. Otherwise 
-    fn compute(&self, r: ComputeRequest, streaming: bool) -> PolarsResult<DataFrame> {
-        
-        match r {
-            Aggregation(ar) => {
-                exec_agg_base(ar, self, streaming)
-            }
-            _ => unimplemented!()
-        }
-        
-    }
-}
-
-impl ExecutableDataSet for DataSetBase{}
-*/
-
 impl DataSet for DataSetBase {
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
@@ -202,6 +182,8 @@ impl DataSet for DataSetBase {
     //    /// see how to validate dtype:
     //    /// https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust
     //    fn validate(&self) {}
+
+    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet>{Some(self)}
 }
 
 // TODO return Result

@@ -1,8 +1,8 @@
 use polars::prelude::DataFrame;
 
-use crate::{DataSetBase, DataSet, ComputeRequest};
+use crate::{DataSetBase, DataSet, CacheableComputeRequest};
 
-pub type Cache = dashmap::DashMap<ComputeRequest, DataFrame>;
+pub type Cache = dashmap::DashMap<CacheableComputeRequest, DataFrame>;
 
 /// Represents a DataSet (Struct) with cache
 /// We recommend implementing Cacheable for your DataSet

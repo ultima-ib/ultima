@@ -69,3 +69,54 @@ impl AggregationRequest {
         &self.overrides
     }
 }
+
+/// This is used for 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum CacheableComputeRequest {
+    /// Measures will be called in GroupBy-Aggregate context
+    Aggregation(CacheableAggregationRequest),
+    /// TODO Measures will be called in groupby-Apply Context
+    Breakdown,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(tag = "type")]
+pub struct CacheableAggregationRequest {
+    // general fields
+    #[serde(default)]
+    pub name: Option<String>,
+    /// Measure: (Name, Action) where Name will be looked up in
+    /// MeasuresMap of the DataSet
+    pub measure: (MeasureName, AggregationMethod),
+    pub groupby: Vec<String>,
+    #[serde(default)]
+    pub filters: AndOrFltrChain,
+    #[serde(default)]
+    pub overrides: Vec<Override>,
+    #[serde(default, alias = "additionalRows")]
+    pub add_row: AdditionalRows,
+    #[serde(default)]
+    pub calc_params: CPM,
+    /// TODO potentially to move out
+    #[serde(default)]
+    pub totals: bool,
+}
+
+impl From<&AggregationRequest> for Vec<CacheableAggregationRequest> {
+    fn from(item: &AggregationRequest) -> Self {
+        item.measures().iter()
+            .map(|measure|{
+            CacheableAggregationRequest {
+                measure: measure.clone(),
+                name: item.name.clone(),
+                groupby:item.groupby.clone(),
+                filters:item.filters.clone(),
+                overrides:item.overrides.clone(),
+                add_row:item.add_row.clone(),
+                calc_params:item.calc_params.clone(),
+                totals:item.totals,
+            }
+            })
+            .collect::<Vec<CacheableAggregationRequest>>()
+    }
+}

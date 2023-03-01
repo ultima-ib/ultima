@@ -18,6 +18,7 @@ mod risk_weights_crr2;
 pub mod statics;
 mod validate;
 
+use base_engine::cache::{CacheableDataSet, Cache};
 //use crate::drc::drc_weights;
 use base_engine::polars::prelude::{when, AnyValue, LazyFrame, LiteralValue, NamedFrom, Series};
 use base_engine::prelude::*;
@@ -33,7 +34,7 @@ pub struct FRTBDataSet {
     pub frame: LazyFrame,
     pub measures: MeasuresMap,
     pub build_params: BTreeMap<String, String>,
-    //pub calc_params: Vec<CalcParameter>
+    pub cache: Cache
 }
 impl FRTBDataSet {
     /// Helper function which appends bespoke measures to self.measures
@@ -47,6 +48,8 @@ impl FRTBDataSet {
 }
 
 impl DataSet for FRTBDataSet {
+    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet>{Some(self)}
+
     fn get_lazyframe(&self) -> &LazyFrame {
         &self.frame
     }
@@ -54,16 +57,6 @@ impl DataSet for FRTBDataSet {
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
         self.frame = lf;
     }
-    //fn set_lazyframe(self, lf: LazyFrame) -> Self
-    //where
-    //    Self: Sized,
-    //{
-    //    Self {
-    //        frame: lf,
-    //        measures: self.measures,
-    //        build_params: self.build_params,
-    //    }
-    //}
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
     }
@@ -76,15 +69,12 @@ impl DataSet for FRTBDataSet {
             frame,
             measures: mm,
             build_params,
+            cache: Cache::default(),
         };
         res.with_measures(frtb_measure_vec());
         res
     }
 
-    //fn collect(self) -> PolarsResult<Self> {
-    //    let lf = self.frame.collect()?.lazy();
-    //    Ok(Self { frame: lf, ..self })
-    //}
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
     fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
@@ -209,7 +199,6 @@ impl DataSet for FRTBDataSet {
                 self.build_params.get("DateFormat"),
             )
             .alias("ScaleFactor"),
-            //drc_seniority().alias("SeniorityRank"),
         ]);
 
         // DRC Seniority
@@ -250,5 +239,11 @@ impl DataSet for FRTBDataSet {
         } else {
             validate::validate_frame(self.get_lazyframe(), csrnonsec_covered_bond_15, v)
         }
+    }
+}
+
+impl CacheableDataSet for FRTBDataSet {
+    fn get_cache(&self) -> &Cache{
+        &self.cache
     }
 }

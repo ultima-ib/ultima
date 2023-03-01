@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 
-use polars::prelude::PolarsError;
+use polars::prelude::{PolarsError, DataType};
 pub use polars::{
     functions::diag_concat_df,
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
@@ -46,14 +46,15 @@ pub(crate) fn exec_agg<DS: DataSet + ?Sized>(
     // Step 1.1 Process(build expr) Looked up measures
     let expressed_measures = agg_measure_to_expr(looked_up_measures_unique, op)?;
 
-    // Step 1.2 Keep New Names for later use
-    // Hint use:
-    let new_names: Vec<String> = m.iter()
+    // Step 1.2 Keep New Names for later use:
+    let newnames: Vec<String> = m.iter()
         .map(|(measure_name, agg)|{
-            let agg = _BASE_CALCS.get(agg as &str).unwrap(); //we have checked
+            let agg = _BASE_CALCS.get(agg as &str).expect("Failed ot look up agg"); //we have checked in agg_measure_lookup
             agg.new_name(measure_name as &str)
         } 
-    ).collect();  
+    ).collect();
+    // Step 1.3 Keep cosmetic arguments for later use:
+    let hide_zeros = req.hide_zeros;
 
     // 1.3 break down measures into dependant and basic
     let mut base_measures = Vec::with_capacity(expressed_measures.len());
@@ -75,15 +76,18 @@ pub(crate) fn exec_agg<DS: DataSet + ?Sized>(
     }?;
 
     // Step 3 compute dependants 
-    let res =  basics_res.lazy().with_columns(
+    let mut res =  basics_res.lazy().with_columns(
         dependant_measures.into_iter().map(|pdm|pdm.calculator).collect::<Vec<Expr>>()
     )
-    .select(new_names.into_iter().map(|m|col(&m)).collect::<Vec<Expr>>())
+    .select(newnames.iter().map(|m|col(m)).collect::<Vec<Expr>>())
     .collect()?;
 
-    // Step 4 Hide Zeros and other cosmetic parameters
-
-      
+    // Step 4 - cosmetics
+    // Hide Zeros
+    //if hide_zeros {
+    //    let all_numerics = Expr::DtypeColumn(vec![DataType::Float64]);
+    //    res = res.lazy().filter(all_numerics.clone().neq(lit::<f64>(0.)).and(all_numerics.neq(NULL.lit()))).collect()?;
+    //};
 
     Ok(res)
 }
@@ -263,7 +267,7 @@ pub fn exec_agg_base<DS: DataSet + ?Sized>(
 
 /// main function which returns a Result of the calculation
 /// Executes base measures on your DataSet
-fn _exec_agg_base<DS: DataSet + ?Sized>(
+pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     data: &DS,
     req: AggregationRequest,
     processed_base_measures: Vec<ProcessedBaseMeasure>,
@@ -280,7 +284,7 @@ fn _exec_agg_base<DS: DataSet + ?Sized>(
 
     // Step 2.1
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
-    let (newnames, (aggregateions, fltrs)): (Vec<String>, (Vec<Expr>, Vec<Option<Expr>>)) =
+    let (_, (aggregateions, fltrs)): (Vec<String>, (Vec<Expr>, Vec<Option<Expr>>)) =
         processed_base_measures
             .into_iter()
             .map(|m| (m.name, (m.calculator, m.precomputefilter)))
@@ -399,23 +403,5 @@ fn _exec_agg_base<DS: DataSet + ?Sized>(
             .collect()?;
     }
 
-    let mut res = aggregated_df.lazy();
-
-    // POSTPROCESSING
-    // Remove zeros, optional
-    // TODO Note: Comparing with 0. doesn't work with list columns
-    // TODO Need to check column type and based on that compare against 0. or not
-    if req.hide_zeros {
-        let mut it = newnames.iter();
-        if let Some(c) = it.next() {
-            // Filter where col is Not Eq 0 AND Not Eq Null
-            let mut predicate = col(c).neq(lit::<f64>(0.)).and(col(c).neq(NULL.lit()));
-            for c in it {
-                predicate = predicate.or(col(c).neq(lit::<f64>(0.)).and(col(c).neq(NULL.lit())))
-            }
-            res = res.filter(predicate);
-        }
-    };
-
-    res.collect()
+    Ok(aggregated_df)
 }

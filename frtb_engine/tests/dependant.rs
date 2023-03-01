@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use base_engine::{exec_agg_base, AggregationRequest};
+use base_engine::{exec_agg_base, AggregationRequest, DataSet, ComputeRequest};
 mod common;
 use common::LAZY_DASET;
 
@@ -43,10 +43,10 @@ fn dependant_sbm() {
         .expect("Could not parse request");
 
     let a = &*LAZY_DASET;
-    let res1 = exec_agg_base(req_basic, &*Arc::clone(a), false)
+    let res1 = a.compute(ComputeRequest::Aggregation(req_basic), false)
         .expect("Error while calculating results");
-    let res2 = exec_agg_base(req_dep, &*Arc::clone(a), false)
-        .expect("Error while calculating results");
+    let res2 = a.compute(ComputeRequest::Aggregation(req_dep), false)
+    .expect("Error while calculating results");
     assert_eq!(res1, res2);
 
     // ALso test performance! res2 must be much faster!

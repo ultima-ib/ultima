@@ -3,7 +3,7 @@ use base_engine::{
     polars::prelude::{
         apply_multiple, col, df, lit, max_exprs, when, DataType, GetOutput, PolarsError,
     },
-    CPM,
+    CPM, IntoLazy, BaseMeasure,
 };
 
 //use polars::lazy::dsl::{apply_multiple, col, lit, when};

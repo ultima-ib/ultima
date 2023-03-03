@@ -1,6 +1,7 @@
 use crate::helpers::{get_optional_parameter, get_optional_parameter_array, ReturnMetric};
 use crate::prelude::*;
 use crate::sbm::common::{across_bucket_agg, rc_rcat_sens, total_vega_curv_sens, SBMChargeType};
+use base_engine::{IntoLazy, BaseMeasure};
 use base_engine::{
     polars::prelude::{apply_multiple, df, max_exprs, DataType, Float64Type, GetOutput},
     CPM,

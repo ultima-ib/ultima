@@ -1,7 +1,7 @@
 use crate::prelude::*;
-use base_engine::polars::prelude::{
+use base_engine::{polars::prelude::{
     apply_multiple, df, ChunkApply, DataType, GetOutput, IntoSeries, NamedFromOwned,
-};
+}, CPM, IntoLazy, BaseMeasure};
 
 //use polars::{lazy::dsl::apply_multiple, prelude::NamedFromOwned};
 //use polars::prelude::ChunkApply;

@@ -1,7 +1,7 @@
 //! CSR Sec CTP Delta Calculations
 
 use crate::helpers::*;
-use base_engine::polars::prelude::max_exprs;
+use base_engine::{polars::prelude::max_exprs, CPM, BaseMeasure};
 use sbm::csr_nonsec::delta::csr_nonsec_delta_charge;
 
 use crate::prelude::*;

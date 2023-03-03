@@ -1,5 +1,5 @@
 use crate::{prelude::*, sbm::equity::curvature::eq_curvature_charge};
-use base_engine::prelude::CPM;
+use base_engine::{prelude::CPM, BaseMeasure};
 use polars::prelude::*;
 
 pub fn com_curv_delta(_: &CPM) -> PolarsResult<Expr> {

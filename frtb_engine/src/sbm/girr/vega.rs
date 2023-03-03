@@ -4,6 +4,7 @@ use crate::sbm::common::{
     across_bucket_agg, option_maturity_rho, rc_rcat_sens, rc_tenor_weighted_sens,
     total_vega_curv_sens, SBMChargeType,
 };
+use base_engine::{IntoLazy, DataFrame, BaseMeasure};
 use base_engine::{
     polars::prelude::{
         apply_multiple, col, df, lit, max_exprs, ChunkCompare, DataType, Float64Type, GetOutput,

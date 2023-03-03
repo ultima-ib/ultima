@@ -3,9 +3,9 @@ use derivative::Derivative;
 use polars::prelude::{col, Expr, PolarsError, PolarsResult};
 use serde::Serialize;
 //use serde::Serialize;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
-use crate::{CPM, aggregations::{AggregationName, AggregationFunction, Aggregation}};
+use crate::{CPM, aggregations::{AggregationName, Aggregation}};
 
 //pub type OCPM = BTreeMap<String, String>;
 
@@ -156,64 +156,6 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
         })
         .collect::<Vec<Measure>>()
 }
-
-/// Convert requested [Measure] into [ProcessedMeasure] measure by looking up from all_availiable_measures
-/// and calling the calculator return an Expr
-///
-/// NOTE: if a measure, which was looked up from all_availiable_measures has a predefined AggExpression
-/// then we override requested measure.
-///
-/// by mapping requested String to a map of all availiable measures
-#[deprecated(since="0.2.0", note="please use use DataSet .comute() method")]
-pub(crate) fn base_measure_lookup(
-    requested_measures: &[(MeasureName, AggregationName)],
-    all_availiable_measures: &MeasuresMap,
-    op: &CPM,
-) -> PolarsResult<Vec<ProcessedBaseMeasure>> {
-
-    let res = requested_measures.iter()
-        .map(|(requested_measure, requested_action)| {
-
-            // Lookup requested measure from all_availiable_measures by name
-            let Some(Measure::Base(m)) = all_availiable_measures.get(requested_measure as &str) else {
-                return Err(PolarsError::ComputeError(format!("No measure {requested_measure} exists for the dataset. Availiable measures are: {:?}",
-                    all_availiable_measures.keys()).into()))
-            };
-
-            // If measure has predefined aggregation, check that requested aggregation matches it          
-            if let Some(default_action) = m.aggregation {
-                if default_action != requested_action {
-                    return Err(PolarsError::ComputeError(format!("Measure {requested_measure} supports only {default_action} aggregation,
-                    but {requested_action} requested").into()))
-                }
-            }
-
-            // Lookup action from the list of supported actions
-            let Some(act) = crate::aggregations::BASE_CALCS.get(requested_action.as_str()) else {
-                return Err(PolarsError::ComputeError(format!("No action {requested_action} supported. Supported actions are: {:?}",
-                crate::aggregations::BASE_CALCS.keys()).into()))
-            };
-
-            // apply action
-            let (calculator, name) = act(
-                    (m.calculator)(op)?, // Calling Calculator with Parameters, returns an Expr
-                    requested_measure
-                );
-
-            Ok(
-                ProcessedBaseMeasure {
-                    name,
-                    calculator,
-                    precomputefilter: m.precomputefilter.clone(),
-                }
-            )
-            }
-        )
-        .collect::<PolarsResult<Vec<ProcessedBaseMeasure>>>();
-
-    res
-}
-
 
 /// This is the main [Measure] processed, ie it holds the final name, final Expr(with aggregation)
 /// And the precompute filter for BasicMeasure

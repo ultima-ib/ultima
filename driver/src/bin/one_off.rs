@@ -56,9 +56,9 @@ fn main() -> anyhow::Result<()> {
         //let rqst_str = serde_json::to_string(&request);
         info!("{:?}", request);
         let now = Instant::now();
-        match base_engine::exec_agg_base(
-            request,
+        match base_engine::exec_agg(
             &*Arc::clone(&arc_data),
+            request,
             cfg!(feature = "streaming"),
         ) {
             Err(e) => {

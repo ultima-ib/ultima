@@ -129,9 +129,9 @@ async fn execute(
             );
             Err(PolarsError::NoData("Cache must be enabled.".into()))
         } else {
-            base_engine::exec_agg_base(
-                r,
+            base_engine::exec_agg(
                 &*Arc::clone(data.get_ref()),
+                r,
                 cfg!(feature = "streaming"),
             )
         }
@@ -229,7 +229,7 @@ pub fn run_server(
     Ok(server)
 }
 
-fn workspace_dir() -> PathBuf {
+fn _workspace_dir() -> PathBuf {
     let output = std::process::Command::new(env!("CARGO"))
         .arg("locate-project")
         .arg("--workspace")

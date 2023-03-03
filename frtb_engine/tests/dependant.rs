@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
-use base_engine::{exec_agg_base, AggregationRequest, DataSet, ComputeRequest};
+use base_engine::{ AggregationRequest, DataSet, ComputeRequest};
 mod common;
 use common::LAZY_DASET;
 use polars::prelude::Float64Type;
 
 #[test]
-fn single_level_dependant_sbm() {
+fn dependant_sbm() {
     let request_basic = r#"
     {"measures": [
         ["SBM Charge High", "scalar"],

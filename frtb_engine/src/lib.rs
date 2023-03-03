@@ -18,7 +18,7 @@ mod risk_weights_crr2;
 pub mod statics;
 mod validate;
 
-use base_engine::cache::{CacheableDataSet, Cache};
+use base_engine::cache::{Cache, CacheableDataSet};
 //use crate::drc::drc_weights;
 use base_engine::polars::prelude::{when, AnyValue, LazyFrame, LiteralValue, NamedFrom, Series};
 use base_engine::prelude::*;
@@ -34,7 +34,7 @@ pub struct FRTBDataSet {
     pub frame: LazyFrame,
     pub measures: MeasuresMap,
     pub build_params: BTreeMap<String, String>,
-    pub cache: Cache
+    pub cache: Cache,
 }
 impl FRTBDataSet {
     /// Helper function which appends bespoke measures to self.measures
@@ -48,7 +48,9 @@ impl FRTBDataSet {
 }
 
 impl DataSet for FRTBDataSet {
-    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet>{Some(self)}
+    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet> {
+        Some(self)
+    }
 
     fn get_lazyframe(&self) -> &LazyFrame {
         &self.frame
@@ -192,14 +194,11 @@ impl DataSet for FRTBDataSet {
         //    .collect()
         //    .expect("Failed to unwrap tmp_frame while .prepare()");
         //lf1 = tmp_frame.lazy()
-        lf1 = lf1.with_columns(&[
-            drc_scalinng(
-                self.build_params
-                    .get("DayCountConvention"),
-                self.build_params.get("DateFormat"),
-            )
-            .alias("ScaleFactor"),
-        ]);
+        lf1 = lf1.with_columns(&[drc_scalinng(
+            self.build_params.get("DayCountConvention"),
+            self.build_params.get("DateFormat"),
+        )
+        .alias("ScaleFactor")]);
 
         // DRC Seniority
         lf1 = drc::drc_weights::with_drc_seniority(lf1);
@@ -243,7 +242,7 @@ impl DataSet for FRTBDataSet {
 }
 
 impl CacheableDataSet for FRTBDataSet {
-    fn get_cache(&self) -> &Cache{
+    fn get_cache(&self) -> &Cache {
         &self.cache
     }
 }

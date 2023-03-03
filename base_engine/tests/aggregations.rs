@@ -11,10 +11,11 @@ fn simple_fltr_grpby_sum() {
     "groupby": ["State"],
     "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]]         
     }"#;
-    let data_req =
-        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+    let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    let res = common::TEST_DASET.as_ref().compute(data_req, false)
+    let res = common::TEST_DASET
+        .as_ref()
+        .compute(data_req, false)
         .unwrap();
 
     let res_sum = res
@@ -36,10 +37,11 @@ fn non_existent_measure() {
     "filters": []         
     }"#;
 
-    let data_req =
-        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+    let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    common::TEST_DASET.as_ref().compute(data_req, false)
+    common::TEST_DASET
+        .as_ref()
+        .compute(data_req, false)
         .unwrap();
 }
 
@@ -54,9 +56,10 @@ fn non_existent_action() {
     "filters": []         
     }"#;
 
-    let data_req =
-        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+    let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    common::TEST_DASET.as_ref().compute(data_req, false)
+    common::TEST_DASET
+        .as_ref()
+        .compute(data_req, false)
         .unwrap();
 }

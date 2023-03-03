@@ -12,22 +12,21 @@ pub type FinalColumnName = String;
 pub type AggregationFunction = fn(Expr, &str) -> (Expr, String);
 
 /// The list of supported aggregations will be changing ofter, hence keep it as HashMap
-pub static BASE_CALCS: Lazy<HashMap<&'static str, AggregationFunction>> =
-    Lazy::new(|| {
-        HashMap::from([
-            //Numeric
-            ("sum", sum as fn(Expr, &str) -> (Expr, String)),
-            ("min", min),
-            ("max", max),
-            ("mean", mean),
-            ("var", var),
-            ("quantile95low", quantile_95_lower),
-            ("first", first),
-            ("count", count),
-            ("count_unique", count_unique),
-            ("scalar", scalar),
-        ])
-    });
+pub static BASE_CALCS: Lazy<HashMap<&'static str, AggregationFunction>> = Lazy::new(|| {
+    HashMap::from([
+        //Numeric
+        ("sum", sum as fn(Expr, &str) -> (Expr, String)),
+        ("min", min),
+        ("max", max),
+        ("mean", mean),
+        ("var", var),
+        ("quantile95low", quantile_95_lower),
+        ("first", first),
+        ("count", count),
+        ("count_unique", count_unique),
+        ("scalar", scalar),
+    ])
+});
 
 fn sum(c: Expr, newname: &str) -> (Expr, String) {
     let alias = format!("{newname}_sum");
@@ -78,22 +77,82 @@ fn scalar(c: Expr, newname: &str) -> (Expr, String) {
     (c.alias(newname), newname.to_string())
 }
 
-pub static _BASE_CALCS: Lazy<HashMap<&'static str, Aggregation>> =
-    Lazy::new(|| {
-        HashMap::from([
-            //Numeric
-            ("sum", Aggregation{name_suffix: "sum".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.sum() )}),
-            ("min", Aggregation{name_suffix: "min".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.min() )}),
-            ("max", Aggregation{name_suffix: "max".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.max() )}),
-            ("mean", Aggregation{name_suffix: "mean".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.mean() )}),
-            ("var", Aggregation{name_suffix: "var".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.var(1) )}),
-            ("quantile95low", Aggregation{name_suffix: "quantile_95_lower".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.quantile(0.95, QuantileInterpolOptions::Lower) )}),
-            ("first", Aggregation{name_suffix: "first".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.first() )}),
-            ("count", Aggregation{name_suffix: "count".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.count() )}),
-            ("n_unique", Aggregation{name_suffix: "n_unique".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e.n_unique() )}),
-            ("scalar", Aggregation{name_suffix: "scalar".to_string(), aggregated_expr_fn: Box::new(|e: Expr| e )} 
-        )
-        ])
+pub static _BASE_CALCS: Lazy<HashMap<&'static str, Aggregation>> = Lazy::new(|| {
+    HashMap::from([
+        //Numeric
+        (
+            "sum",
+            Aggregation {
+                name_suffix: "sum".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.sum()),
+            },
+        ),
+        (
+            "min",
+            Aggregation {
+                name_suffix: "min".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.min()),
+            },
+        ),
+        (
+            "max",
+            Aggregation {
+                name_suffix: "max".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.max()),
+            },
+        ),
+        (
+            "mean",
+            Aggregation {
+                name_suffix: "mean".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.mean()),
+            },
+        ),
+        (
+            "var",
+            Aggregation {
+                name_suffix: "var".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.var(1)),
+            },
+        ),
+        (
+            "quantile95low",
+            Aggregation {
+                name_suffix: "quantile_95_lower".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| {
+                    e.quantile(0.95, QuantileInterpolOptions::Lower)
+                }),
+            },
+        ),
+        (
+            "first",
+            Aggregation {
+                name_suffix: "first".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.first()),
+            },
+        ),
+        (
+            "count",
+            Aggregation {
+                name_suffix: "count".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.count()),
+            },
+        ),
+        (
+            "n_unique",
+            Aggregation {
+                name_suffix: "n_unique".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e.n_unique()),
+            },
+        ),
+        (
+            "scalar",
+            Aggregation {
+                name_suffix: "scalar".to_string(),
+                aggregated_expr_fn: Box::new(|e: Expr| e),
+            },
+        ),
+    ])
 });
 
 type AggregationExecutor = Box<dyn Fn(Expr) -> Expr + Send + Sync>;
@@ -102,8 +161,8 @@ type AggregationExecutor = Box<dyn Fn(Expr) -> Expr + Send + Sync>;
 #[derivative(Debug)]
 pub struct Aggregation {
     pub name_suffix: String,
-    #[derivative(Debug="ignore")]
-    pub aggregated_expr_fn: AggregationExecutor
+    #[derivative(Debug = "ignore")]
+    pub aggregated_expr_fn: AggregationExecutor,
 }
 
 impl Aggregation {
@@ -121,4 +180,3 @@ impl Aggregation {
         aggregated_expr.alias(&alias)
     }
 }
-

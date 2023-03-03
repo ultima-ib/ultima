@@ -2,11 +2,11 @@
 //! https://www.eba.europa.eu/regulation-and-policy/single-rulebook/interactive-single-rulebook/108255 325ae onward
 use std::collections::BTreeMap;
 
-use base_engine::prelude::helpers::diag_concat_lf;
 use base_engine::polars::prelude::{
     col, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsResult,
     Series, Utf8NameSpaceImpl,
 };
+use base_engine::prelude::helpers::diag_concat_lf;
 use once_cell::sync::OnceCell;
 
 use crate::{

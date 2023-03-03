@@ -3,7 +3,7 @@ use polars::prelude::*;
 
 use base_engine::{
     prelude::{read_toml2, DataSet, DataSourceConfig},
-    ValidateSet, ComputeRequest,
+    ComputeRequest, ValidateSet,
 };
 use frtb_engine::prelude::FRTBDataSet;
 
@@ -22,14 +22,16 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
 #[allow(dead_code)]
 pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let ep = if let Some(e) = epsilon { e } else { 1e-5 };
-    let data_req =
-        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+    let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
     let excl = if let ComputeRequest::Aggregation(agg_req) = data_req.clone() {
         agg_req.groupby().clone()
-    } else {unreachable!()};
+    } else {
+        unreachable!()
+    };
     //let excl = data_req.groupby().clone();
     let a = LAZY_DASET.as_ref();
-    let res = a.compute(data_req, false)
+    let res = a
+        .compute(data_req, false)
         .expect("Error while calculating results");
     let res_numeric = res
         .lazy()

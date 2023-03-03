@@ -5,7 +5,10 @@ use serde::Serialize;
 //use serde::Serialize;
 use std::collections::BTreeMap;
 
-use crate::{CPM, aggregations::{AggregationName, Aggregation}};
+use crate::{
+    aggregations::{Aggregation, AggregationName},
+    CPM,
+};
 
 //pub type OCPM = BTreeMap<String, String>;
 
@@ -68,7 +71,7 @@ pub struct DependantMeasure {
     pub name: MeasureName,
 
     /// executed within .with_columns() context
-    #[derivative(Debug="ignore")]
+    #[derivative(Debug = "ignore")]
     pub calculator: Calculator, // MAX, SUM...
 
     /// parameters which will go into calculator
@@ -113,7 +116,7 @@ impl Measure {
     pub fn aggregation(&self) -> &Option<&'static str> {
         match self {
             Measure::Base(BaseMeasure { aggregation, .. }) => aggregation,
-            Measure::Dependant(_) => &Some("scalar")
+            Measure::Dependant(_) => &Some("scalar"),
         }
     }
 
@@ -125,8 +128,8 @@ impl Measure {
     }
     pub fn calculator(&self) -> &Calculator {
         match self {
-            Measure::Base(BaseMeasure{calculator,..})|
-            Measure::Dependant(DependantMeasure{calculator,..}) => calculator,
+            Measure::Base(BaseMeasure { calculator, .. })
+            | Measure::Dependant(DependantMeasure { calculator, .. }) => calculator,
         }
     }
 }
@@ -185,8 +188,12 @@ pub(crate) struct ProcessedDependantMeasure {
 pub(crate) fn agg_measure_lookup<'b, 'a: 'b>(
     requested_measures: &'b [(MeasureName, AggregationName)],
     all_availiable_measures: &'a MeasuresMap,
-) -> PolarsResult<Vec<((&'b MeasureName, &'b AggregationName), (&'a Measure, &'a Aggregation))>> {
-
+) -> PolarsResult<
+    Vec<(
+        (&'b MeasureName, &'b AggregationName),
+        (&'a Measure, &'a Aggregation),
+    )>,
+> {
     let res = requested_measures.iter()
         .map(|(requested_measure, requested_action)| {
 
@@ -209,7 +216,7 @@ pub(crate) fn agg_measure_lookup<'b, 'a: 'b>(
                 return Err(PolarsError::ComputeError(format!("No action {requested_action} supported. Supported actions are: {:?}",
                 crate::aggregations::BASE_CALCS.keys()).into()))
             };
-            
+
             match looked_up_measure {
                 Measure::Base(_) => Ok(vec![(
                     (requested_measure, requested_action), (looked_up_measure, a))]
@@ -218,7 +225,7 @@ pub(crate) fn agg_measure_lookup<'b, 'a: 'b>(
                     // TODO 
                     let children = &dm.depends_upon;
                     // get children
-                    let children_lookup = 
+                    let children_lookup =
                         agg_measure_lookup(children, all_availiable_measures)?;
                     // Not adding self because dependant measures to be expressed separately
                     //children_lookup.push(((requested_measure, requested_action), (looked_up_measure, a)));
@@ -231,7 +238,7 @@ pub(crate) fn agg_measure_lookup<'b, 'a: 'b>(
         )
         .collect::<PolarsResult<Vec<Vec<((&'b MeasureName, &'b AggregationName), (&'a Measure, &'a Aggregation))>>>>()?;
 
-    Ok( res.into_iter().flatten().collect() )
+    Ok(res.into_iter().flatten().collect())
 }
 
 /// Looks up [Measure] from all_availiable_measures
@@ -242,60 +249,57 @@ pub(crate) fn lookup_dependants_with_depth<'b, 'a: 'b>(
     requested_measures: &'b [(MeasureName, AggregationName)],
     all_availiable_measures: &'a MeasuresMap,
 ) -> Vec<Vec<(&'a DependantMeasure, &'a Aggregation)>> {
-
     let mut this_level_dependants = vec![];
-    let mut this_level_children = vec![]; 
+    let mut this_level_children = vec![];
 
-    for (requested_measure, agg_name) in requested_measures.iter()  {
+    for (requested_measure, agg_name) in requested_measures.iter() {
+        // TODO potentially break loop here instead of panic
+        let looked_up_measure = all_availiable_measures
+            .get(requested_measure as &str)
+            .unwrap();
+        let agg = crate::aggregations::_BASE_CALCS
+            .get(agg_name.as_str())
+            .unwrap();
 
-            // TODO potentially break loop here instead of panic
-            let looked_up_measure = all_availiable_measures.get(requested_measure as &str).unwrap();
-            let agg = crate::aggregations::_BASE_CALCS.get(agg_name.as_str()).unwrap();
-
-            if let Measure::Dependant(dm) = looked_up_measure {
-                this_level_dependants.push((dm, agg));
-                this_level_children.push(&dm.depends_upon);
-            }
-    };
+        if let Measure::Dependant(dm) = looked_up_measure {
+            this_level_dependants.push((dm, agg));
+            this_level_children.push(&dm.depends_upon);
+        }
+    }
 
     if !this_level_children.is_empty() {
-        let this_level_children_flat: Vec<(String, String)> = this_level_children.into_iter().flatten().cloned().collect();
-        let mut next_level_dependants = lookup_dependants_with_depth(&this_level_children_flat, all_availiable_measures);
+        let this_level_children_flat: Vec<(String, String)> =
+            this_level_children.into_iter().flatten().cloned().collect();
+        let mut next_level_dependants =
+            lookup_dependants_with_depth(&this_level_children_flat, all_availiable_measures);
         next_level_dependants.extend(vec![this_level_dependants]);
         next_level_dependants
     } else {
         vec![this_level_dependants]
-    }        
+    }
 }
 
+pub(crate) fn agg_measure_to_expr(
+    measure: &Measure,
+    agg: &Aggregation,
+    op: &CPM,
+) -> PolarsResult<ProcessedMeasure> {
+    let calculator = agg.aggregate(
+        (measure.calculator())(op)?, // Calling Calculator with Parameters, returns an Expr
+        measure.name(),
+    );
 
-pub(crate) fn agg_measure_to_expr(measure: &Measure, agg: &Aggregation, op: &CPM,) 
--> PolarsResult<ProcessedMeasure>
-{
-    
-        let calculator = agg.aggregate(
-            (measure.calculator())(op)?, // Calling Calculator with Parameters, returns an Expr
-            measure.name()
-        );
+    let new_name = agg.new_name(measure.name());
 
-        let new_name = agg.new_name(measure.name());
-
-        match measure {
-            Measure::Base(m) => Ok(
-                ProcessedMeasure::Base(ProcessedBaseMeasure {
-                    name: new_name,
-                    calculator,
-                    precomputefilter: m.precomputefilter.clone(),
-                })
-            ),
-            Measure::Dependant(_) =>{
-                Ok(
-                ProcessedMeasure::Dependant(ProcessedDependantMeasure{
-                    _name: new_name,
-                    _calculator: calculator
-                })
-                )
-            }
-        }
-        
+    match measure {
+        Measure::Base(m) => Ok(ProcessedMeasure::Base(ProcessedBaseMeasure {
+            name: new_name,
+            calculator,
+            precomputefilter: m.precomputefilter.clone(),
+        })),
+        Measure::Dependant(_) => Ok(ProcessedMeasure::Dependant(ProcessedDependantMeasure {
+            _name: new_name,
+            _calculator: calculator,
+        })),
+    }
 }

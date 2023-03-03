@@ -3,10 +3,9 @@ use std::collections::BTreeMap;
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use crate::cache::{CacheableDataSet, Cache};
-use crate::{CalcParameter, DataSourceConfig, MeasuresMap, ComputeRequest};
+use crate::cache::{Cache, CacheableDataSet};
 use crate::execute;
-
+use crate::{CalcParameter, ComputeRequest, DataSourceConfig, MeasuresMap};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -20,7 +19,7 @@ pub struct DataSetBase {
     /// TODO remove and pass to .prepare() directly
     pub build_params: BTreeMap<String, String>,
     /// Cache
-    pub cache: Cache
+    pub cache: Cache,
 }
 
 /// The main Trait
@@ -33,7 +32,7 @@ pub trait DataSet: Send + Sync {
     fn get_lazyframe(&self) -> &LazyFrame;
 
     //// Set LazyFrame of your DataSet
-    //// TODO try make prepare 
+    //// TODO try make prepare
     //fn set_lazyframe(self, lf: LazyFrame) -> Self
     //where
     //    Self: Sized;
@@ -134,7 +133,7 @@ pub trait DataSet: Send + Sync {
         Ok(())
     }
 
-    /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame 
+    /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame
     /// into memory. See: https://www.rhosignal.com/posts/polars-dont-fear-streaming/
     fn compute(&self, r: ComputeRequest, streaming: bool) -> PolarsResult<DataFrame> {
         execute(self, r, streaming)
@@ -143,7 +142,9 @@ pub trait DataSet: Send + Sync {
     /// Indicates if your DataSet has a cache or not
     /// It is recommended that you implement CacheableDataSet
     /// make sure to return Some(&self)
-    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet>{None}
+    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet> {
+        None
+    }
 }
 
 impl DataSet for DataSetBase {
@@ -183,7 +184,9 @@ impl DataSet for DataSetBase {
     //    /// https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust
     //    fn validate(&self) {}
 
-    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet>{Some(self)}
+    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet> {
+        Some(self)
+    }
 }
 
 // TODO return Result

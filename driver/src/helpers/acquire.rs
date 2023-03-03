@@ -8,7 +8,7 @@ use log::info;
 /// Then calls .validate()
 ///
 /// Then .prepare()
-#[allow(clippy::uninlined_format_args)] 
+#[allow(clippy::uninlined_format_args)]
 pub fn data<DS: DataSet>(config_path: &str) -> impl DataSet {
     // Read Config
     let conf = read_toml2::<DataSourceConfig>(config_path)

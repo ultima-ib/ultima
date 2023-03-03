@@ -145,10 +145,22 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                 ("FX TotalCharge Medium".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge Medium".to_string(), "scalar".to_string()),
                 ("EQ TotalCharge Medium".to_string(), "scalar".to_string()),
-                ("CSR Sec nonCTP TotalCharge Medium".to_string(), "scalar".to_string()),
-                ("CSR nonSec TotalCharge Medium".to_string(), "scalar".to_string()),
-                ("CSR secCTP TotalCharge Medium".to_string(), "scalar".to_string()),
-                ("Commodity TotalCharge Medium".to_string(), "scalar".to_string()),
+                (
+                    "CSR Sec nonCTP TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR nonSec TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR secCTP TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "Commodity TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
             ],
         }),
         Measure::Dependant(DependantMeasure {
@@ -158,10 +170,22 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                 ("FX TotalCharge Low".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge Low".to_string(), "scalar".to_string()),
                 ("EQ TotalCharge Low".to_string(), "scalar".to_string()),
-                ("CSR Sec nonCTP TotalCharge Low".to_string(), "scalar".to_string()),
-                ("CSR nonSec TotalCharge Low".to_string(), "scalar".to_string()),
-                ("CSR secCTP TotalCharge Low".to_string(), "scalar".to_string()),
-                ("Commodity TotalCharge Low".to_string(), "scalar".to_string()),
+                (
+                    "CSR Sec nonCTP TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR nonSec TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR secCTP TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "Commodity TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
             ],
         }),
         Measure::Dependant(DependantMeasure {
@@ -171,19 +195,40 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                 ("FX TotalCharge High".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge High".to_string(), "scalar".to_string()),
                 ("EQ TotalCharge High".to_string(), "scalar".to_string()),
-                ("CSR Sec nonCTP TotalCharge High".to_string(), "scalar".to_string()),
-                ("CSR nonSec TotalCharge High".to_string(), "scalar".to_string()),
-                ("CSR secCTP TotalCharge High".to_string(), "scalar".to_string()),
-                ("Commodity TotalCharge High".to_string(), "scalar".to_string()),
+                (
+                    "CSR Sec nonCTP TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR nonSec TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR secCTP TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "Commodity TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
             ],
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge Dependant Test".to_string(),
             calculator: Box::new(sbm_charge_test),
             depends_upon: vec![
-                ("SBM Charge Low Dependant Test".to_string(), "scalar".to_string()),
-                ("SBM Charge Medium Dependant Test".to_string(), "scalar".to_string()),
-                ("SBM Charge High Dependant Test".to_string(), "scalar".to_string()),
+                (
+                    "SBM Charge Low Dependant Test".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "SBM Charge Medium Dependant Test".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "SBM Charge High Dependant Test".to_string(),
+                    "scalar".to_string(),
+                ),
             ],
         }),
     ]

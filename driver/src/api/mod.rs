@@ -22,7 +22,11 @@ use actix_web::{
 use actix_web_httpauth::{extractors::basic::BasicAuth, middleware::HttpAuthentication};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
-use std::{net::TcpListener, sync::Arc, path::{PathBuf, Path}};
+use std::{
+    net::TcpListener,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use tokio::task;
 
 use base_engine::{
@@ -129,11 +133,7 @@ async fn execute(
             );
             Err(PolarsError::NoData("Cache must be enabled.".into()))
         } else {
-            base_engine::exec_agg(
-                &*Arc::clone(data.get_ref()),
-                r,
-                cfg!(feature = "streaming"),
-            )
+            base_engine::exec_agg(&*Arc::clone(data.get_ref()), r, cfg!(feature = "streaming"))
         }
     })
     .await
@@ -196,7 +196,6 @@ pub fn run_server(
     //let test = include_str!("../frontend/dist/index.html");
     //let a = env!("CARGO_MANIFEST_DIR");
     //static SETTINGS_STR: &str = include_str!("index.html");
-
 
     let server = HttpServer::new(move || {
         let auth = HttpAuthentication::basic(validator);

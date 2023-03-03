@@ -1,4 +1,4 @@
-use base_engine::{ AggregationRequest, DataSet, ComputeRequest};
+use base_engine::{AggregationRequest, ComputeRequest, DataSet};
 mod common;
 use common::LAZY_DASET;
 use polars::prelude::Float64Type;
@@ -41,12 +41,20 @@ fn dependant_sbm() {
         .expect("Could not parse request");
 
     let a = &*LAZY_DASET;
-    let res1 = a.compute(ComputeRequest::Aggregation(req_basic), false)
+    let res1 = a
+        .compute(ComputeRequest::Aggregation(req_basic), false)
         .expect("Error while calculating standard results");
-    let res2 = a.compute(ComputeRequest::Aggregation(req_dep), false)
-    .expect("Error while calculating results with dependants");
-    let sum1 = res1.to_ndarray::<Float64Type>().expect("Couldn't convert result 1 to ndarray").sum();
-    let sum2 = res2.to_ndarray::<Float64Type>().expect("Couldn't convert result 2 to ndarray").sum();
+    let res2 = a
+        .compute(ComputeRequest::Aggregation(req_dep), false)
+        .expect("Error while calculating results with dependants");
+    let sum1 = res1
+        .to_ndarray::<Float64Type>()
+        .expect("Couldn't convert result 1 to ndarray")
+        .sum();
+    let sum2 = res2
+        .to_ndarray::<Float64Type>()
+        .expect("Couldn't convert result 2 to ndarray")
+        .sum();
     assert!((sum1 - sum2).abs() < 1e-5);
 
     // ALso test performance! res2 must be much faster!

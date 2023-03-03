@@ -1,7 +1,7 @@
 mod common;
 
 mod tests {
-    use base_engine::{DataSet, ComputeRequest};
+    use base_engine::{ComputeRequest, DataSet};
 
     use crate::common;
     #[test]
@@ -12,7 +12,9 @@ mod tests {
                             "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Balance": "10"}]}}"#;
         let data_req =
             serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
-        let res =common::TEST_DASET.as_ref().compute(data_req, false)
+        let res = common::TEST_DASET
+            .as_ref()
+            .compute(data_req, false)
             .expect("Calculation failed");
 
         let res_sum = dbg!(res)
@@ -33,10 +35,11 @@ mod tests {
                             "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Age": "29"}]}}"#;
         let data_req =
             serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
- 
-        let res =common::TEST_DASET.as_ref().compute(data_req, false)
-            .expect("Calculation failed");
 
+        let res = common::TEST_DASET
+            .as_ref()
+            .compute(data_req, false)
+            .expect("Calculation failed");
 
         let res_sum = dbg!(res)
             .column("Balance_sum")

@@ -1,6 +1,6 @@
 use polars::prelude::DataFrame;
 
-use crate::{DataSetBase, DataSet, CacheableComputeRequest};
+use crate::{CacheableComputeRequest, DataSet, DataSetBase};
 
 pub type Cache = dashmap::DashMap<CacheableComputeRequest, DataFrame>;
 
@@ -10,19 +10,16 @@ pub type Cache = dashmap::DashMap<CacheableComputeRequest, DataFrame>;
 pub trait CacheableDataSet: DataSet + Send + Sync {
     /// Gets the cache
     fn get_cache(&self) -> &Cache;
-    
+
     /// Cleans cache
     fn clean_cache(&self) {
         self.get_cache().clear()
     }
 }
 
-impl CacheableDataSet for DataSetBase{
+impl CacheableDataSet for DataSetBase {
     /// Gets the cache
-    fn get_cache(&self) -> &Cache{
+    fn get_cache(&self) -> &Cache {
         &self.cache
     }
 }
-
-
-

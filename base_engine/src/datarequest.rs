@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
-use crate::MeasureName;
 use crate::aggregations::AggregationName;
 use crate::overrides::Override;
+use crate::MeasureName;
 use crate::{add_row::AdditionalRows, filters::AndOrFltrChain};
 
 use serde::{Deserialize, Serialize};
@@ -71,7 +71,7 @@ impl AggregationRequest {
     }
 }
 
-/// This is used for 
+/// This is used for
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum CacheableComputeRequest {
     /// Measures will be called in GroupBy-Aggregate context
@@ -105,18 +105,17 @@ pub struct CacheableAggregationRequest {
 
 impl From<&AggregationRequest> for Vec<CacheableAggregationRequest> {
     fn from(item: &AggregationRequest) -> Self {
-        item.measures().iter()
-            .map(|measure|{
-            CacheableAggregationRequest {
+        item.measures()
+            .iter()
+            .map(|measure| CacheableAggregationRequest {
                 measure: measure.clone(),
                 name: item.name.clone(),
-                groupby:item.groupby.clone(),
-                filters:item.filters.clone(),
-                overrides:item.overrides.clone(),
-                add_row:item.add_row.clone(),
-                calc_params:item.calc_params.clone(),
-                totals:item.totals,
-            }
+                groupby: item.groupby.clone(),
+                filters: item.filters.clone(),
+                overrides: item.overrides.clone(),
+                add_row: item.add_row.clone(),
+                calc_params: item.calc_params.clone(),
+                totals: item.totals,
             })
             .collect::<Vec<CacheableAggregationRequest>>()
     }

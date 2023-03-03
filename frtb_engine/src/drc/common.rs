@@ -11,7 +11,7 @@ use yearfrac::DayCountConvention;
 pub fn drc_scalinng(dc: Option<&String>, format: Option<&String>) -> Expr {
     let dc_int = dc.and_then(|x| x.parse::<u8>().ok()).unwrap_or(2);
     let dc = DayCountConvention::from_int(dc_int).expect("Couldn't parse Day count convention");
-    //Not sure why compiler doesn't like this 
+    //Not sure why compiler doesn't like this
     //let format = format.map(|x| &**x);
     let format = format.map(|x| x.to_owned());
     apply_multiple(

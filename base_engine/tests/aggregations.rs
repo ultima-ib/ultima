@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use base_engine::{exec_agg_base, AggregationRequest};
+use base_engine::{ComputeRequest, DataSet};
 
 mod common;
 
@@ -14,9 +12,10 @@ fn simple_fltr_grpby_sum() {
     "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]]         
     }"#;
     let data_req =
-        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
-        .expect("Calculation failed");
+        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+
+    let res = common::TEST_DASET.as_ref().compute(data_req, false)
+        .unwrap();
 
     let res_sum = res
         .column("Balance_sum")
@@ -36,14 +35,12 @@ fn non_existent_measure() {
     "groupby": ["State"],
     "filters": []         
     }"#;
+
     let data_req =
-        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _ = dbg!(exec_agg_base(
-        data_req,
-        &*Arc::clone(&*common::TEST_DASET),
-        false
-    ))
-    .unwrap();
+        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+
+    common::TEST_DASET.as_ref().compute(data_req, false)
+        .unwrap();
 }
 
 #[test]
@@ -56,12 +53,10 @@ fn non_existent_action() {
     "groupby": ["State"],
     "filters": []         
     }"#;
+
     let data_req =
-        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let _ = dbg!(exec_agg_base(
-        data_req,
-        &*Arc::clone(&*common::TEST_DASET),
-        false
-    ))
-    .unwrap();
+        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+
+    common::TEST_DASET.as_ref().compute(data_req, false)
+        .unwrap();
 }

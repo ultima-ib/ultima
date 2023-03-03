@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::MeasureName;
-use crate::aggregations::AggregationMethod;
+use crate::aggregations::AggregationName;
 use crate::overrides::Override;
 use crate::{add_row::AdditionalRows, filters::AndOrFltrChain};
 
@@ -15,6 +15,7 @@ pub type CPM = BTreeMap<String, String>;
 ///
 /// Otherwise, ii) Apply the same procedure to every group and get multiple numbers (ie a Breakdown)
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(untagged)]
 pub enum ComputeRequest {
     /// Measures will be called in GroupBy-Aggregate context
     Aggregation(AggregationRequest),
@@ -30,7 +31,7 @@ pub struct AggregationRequest {
     pub name: Option<String>,
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
-    pub measures: Vec<(MeasureName, AggregationMethod)>,
+    pub measures: Vec<(MeasureName, AggregationName)>,
     pub groupby: Vec<String>,
     #[serde(default)]
     pub filters: AndOrFltrChain,
@@ -87,7 +88,7 @@ pub struct CacheableAggregationRequest {
     pub name: Option<String>,
     /// Measure: (Name, Action) where Name will be looked up in
     /// MeasuresMap of the DataSet
-    pub measure: (MeasureName, AggregationMethod),
+    pub measure: (MeasureName, AggregationName),
     pub groupby: Vec<String>,
     #[serde(default)]
     pub filters: AndOrFltrChain,

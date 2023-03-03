@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use base_engine::{exec_agg_base, AggregationRequest};
+use base_engine::{ComputeRequest, DataSet};
 
 mod common;
 
@@ -13,10 +11,12 @@ fn fltr_in_and_eq() {
     "groupby": ["State"],
     "filters": [[{"op": "In", "field": "City", "value": ["NY", "New York", "Forks"]}], [{"op": "Eq","field": "State", "value": "Washington"}]]            
     }"#;
+
     let data_req =
-        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
-        .expect("Calculation failed");
+        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+
+    let res = common::TEST_DASET.as_ref().compute(data_req, false)
+        .unwrap();
 
     let res_sum = res
         .column("Balance_sum")
@@ -35,10 +35,12 @@ fn fltr_eq_or_eq() {
     "groupby": ["State"],
     "filters": [[{"op": "Eq", "field": "City", "value": "Sun Diego"}, {"op": "Eq", "field": "State", "value": "Washington"}], [{"op": "Eq", "field": "Sex", "value": "female"}]]            
     }"#;
+    
     let data_req =
-        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-    let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
-        .expect("Calculation failed");
+        serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+
+    let res = common::TEST_DASET.as_ref().compute(data_req, false)
+        .unwrap();
 
     let res_sum = res
         .column("Balance_mean")

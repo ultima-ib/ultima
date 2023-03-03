@@ -1,18 +1,19 @@
 //! Main logic of execution in aggregate context
 
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
-use polars::prelude::{PolarsError, DataType};
+use polars::prelude::PolarsError;
 pub use polars::{
     functions::diag_concat_df,
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
 };
 
 use crate::{
-    add_row::df_from_maps_and_schema, filters::fltr_chain,
+    add_row::{df_from_maps_and_schema, AdditionalRows}, filters::{fltr_chain, AndOrFltrChain},
     measure::base_measure_lookup, AggregationRequest, DataSet, 
     ValidateSet, prelude::helpers::diag_concat_lf, execute_agg_with_cache::_exec_agg_with_cache,
-     measure_lookup_to_expr, ProcessedBaseMeasure, ProcessedMeasure, agg_measure_lookup, unique_agg_measure, agg_measure_to_expr, aggregations::_BASE_CALCS,
+     ProcessedBaseMeasure, ProcessedMeasure, agg_measure_lookup, agg_measure_to_expr, 
+     aggregations::{_BASE_CALCS, Aggregation, AggregationName}, Measure, MeasureName, lookup_dependants_with_depth, overrides::Override,
 };
 
 /// Looks up measures and calls calculator on those returning an Expr
@@ -26,68 +27,114 @@ pub(crate) fn exec_agg<DS: DataSet + ?Sized>(
 ) -> PolarsResult<DataFrame> {
 
     // Step 0: Lookup and return Expr
-    let m = req.measures();
-    if m.is_empty() {
+    let all_requested_measures = req.measures();
+    if all_requested_measures.is_empty() {
         return Err(PolarsError::InvalidOperation(
             "Select measures. What do you want to aggregate?".into(),
         ));
     }
     
-    let op = req.calc_params(); //Optional params of the request
+    let op = req.calc_params(); // Optional params of the request
 
-    let dataset_measure_map = data.get_measures();
+    let dataset_measure_map = data.get_measures(); // all availiable measures
 
     // Step 1.0 Lookup requested measures in the DataSet
-    let looked_up_measures = agg_measure_lookup(m,dataset_measure_map)?;
+    let looked_up_measures = agg_measure_lookup(all_requested_measures,dataset_measure_map)?;
+
+    // Step 1.1 For dependants we need to keep track of their "depth"
+    let dependants_with_depth = lookup_dependants_with_depth(all_requested_measures, dataset_measure_map);
+
+    // Step 1.2 Express dependants now
+    let mut processed_dependants = Vec::with_capacity(dependants_with_depth.len());
+    let mut storage = HashSet::new();
+
+    for i in dependants_with_depth {
+        let mut inner = vec![];
+        for (dm, agg) in i {
+            // Check that dependant hasn't previously been invoked
+            if storage.insert(&dm.name){
+                let calculator: Expr = agg.aggregate((dm.calculator)(op)?, &dm.name);
+                inner.push(calculator)
+            }
+        }
+        processed_dependants.push(inner);
+    }
 
     // Remove duplicates
-    let looked_up_measures_unique = unique_agg_measure(looked_up_measures);
+    let looked_up_measures_unique: HashMap<(&MeasureName, &AggregationName), (&Measure, &Aggregation)> = HashMap::from_iter(looked_up_measures);
 
-    // Step 1.1 Process(build expr) Looked up measures
-    let expressed_measures = agg_measure_to_expr(looked_up_measures_unique, op)?;
+    let expressed_measures = looked_up_measures_unique.into_iter()
+        .map(|((measure_name, aggregation_name), (measure, aggregation))|{
+            let expressed_measure = agg_measure_to_expr(measure, aggregation, op);
+            match expressed_measure {
+                Ok(pm) => Ok((measure_name, aggregation_name, pm)),
+                Err(err) => Err(err)
+            }
+        })
+        .collect::<PolarsResult<Vec<(&MeasureName, &AggregationName, ProcessedMeasure)>>>()?;
 
-    // Step 1.2 Keep New Names for later use:
-    let newnames: Vec<String> = m.iter()
+
+    // Keep all REQUESTED Names for later use:
+    let new_requested_names: Vec<String> = all_requested_measures.iter()
         .map(|(measure_name, agg)|{
-            let agg = _BASE_CALCS.get(agg as &str).expect("Failed ot look up agg"); //we have checked in agg_measure_lookup
+            let agg = _BASE_CALCS.get(agg as &str).expect("Failed to look up agg"); //we have checked in agg_measure_lookup
             agg.new_name(measure_name as &str)
         } 
     ).collect();
-    // Step 1.3 Keep cosmetic arguments for later use:
+    // Keep cosmetic arguments for later use:
     let hide_zeros = req.hide_zeros;
 
-    // 1.3 break down measures into dependant and basic
+    //  break down measures into dependant and basic
     let mut base_measures = Vec::with_capacity(expressed_measures.len());
-    let mut dependant_measures = Vec::with_capacity(expressed_measures.len());
 
     for m in expressed_measures {
-        match m {
-            ProcessedMeasure::Base(pbm) => base_measures.push(pbm),
-            ProcessedMeasure::Dependant(pdm) => {
-                dependant_measures.push(pdm);
-            }
-        }
+        if let (measure_name, aggregation_name, ProcessedMeasure::Base(pbm)) = m { base_measures.push((measure_name, aggregation_name, pbm)) }
     }
 
+
     // Step 2 Compute basics
-    let basics_res = match data.as_cacheable() {
-        Some(cacheable) => _exec_agg_with_cache(cacheable, req, base_measures, streaming),
-        _ => _exec_agg_base(data, req, base_measures, streaming),
+    let mut res = match data.as_cacheable() {
+        Some(cacheable) => _exec_agg_with_cache(cacheable, req.clone(), base_measures, streaming),
+        _ => _exec_agg_base(data,
+             req.filters(),
+             &req.add_row,
+             &req.overrides,
+             &req.groupby,
+             req.totals,
+             base_measures.into_iter().map(|(_, _, pbm)|pbm).collect(), streaming),
     }?;
 
-    // Step 3 compute dependants 
-    let mut res =  basics_res.lazy().with_columns(
-        dependant_measures.into_iter().map(|pdm|pdm.calculator).collect::<Vec<Expr>>()
-    )
-    .select(newnames.iter().map(|m|col(m)).collect::<Vec<Expr>>())
-    .collect()?;
 
-    // Step 4 - cosmetics
+    // Step 3 compute dependants 
+    for i in processed_dependants.into_iter() {
+        res = res.lazy().with_columns(i).collect()?
+    }
+    res =  res.lazy().select(new_requested_names.iter().map(|m|col(m)).collect::<Vec<Expr>>()).collect()?;
+
+
+    // TODO Step 4 - cosmetics
     // Hide Zeros
-    //if hide_zeros {
-    //    let all_numerics = Expr::DtypeColumn(vec![DataType::Float64]);
-    //    res = res.lazy().filter(all_numerics.clone().neq(lit::<f64>(0.)).and(all_numerics.neq(NULL.lit()))).collect()?;
-    //};
+    if hide_zeros {
+        let is_numerc_col = res.columns(&new_requested_names)?
+            .into_iter()
+            .map(|c|c._dtype().is_numeric())
+            .collect::<Vec<bool>>();
+
+        let mut it = new_requested_names.into_iter()
+            .zip(is_numerc_col.into_iter())
+            .filter(|(_, y)|*y);
+
+        if let Some((c, _)) = it.next() {
+            // Filter where col is Not Eq 0 AND Not Eq Null
+            let mut predicate = col(&c).neq(lit::<f64>(0.)).and(col(&c).neq(NULL.lit()));
+            for (c, _) in it {
+                predicate = predicate.or(col(&c).neq(lit::<f64>(0.)).and(col(&c).neq(NULL.lit())))
+            }
+            res = res.lazy().filter(predicate).collect()?;
+        }
+        //let all_numerics = Expr::DtypeColumn(vec![DataType::Float64]);
+        //res = res.lazy().filter(all_numerics.clone().neq(lit::<f64>(0.)).and(all_numerics.neq(NULL.lit()))).collect()?;
+    };
 
     Ok(res)
 }
@@ -269,7 +316,12 @@ pub fn exec_agg_base<DS: DataSet + ?Sized>(
 /// Executes base measures on your DataSet
 pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     data: &DS,
-    req: AggregationRequest,
+    //req: AggregationRequest,
+    filters: &AndOrFltrChain,
+    add_rows: &AdditionalRows,
+    overrides: &[Override],
+    groupby: &[String],
+    totals: bool,
     processed_base_measures: Vec<ProcessedBaseMeasure>,
     streaming: bool,
 ) -> PolarsResult<DataFrame> {
@@ -278,7 +330,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
     // Step 1.0 Applying FILTERS:
     // TODO check if column is present in DF - (is this "second line of defence" even needed?)
-    if let Some(f) = fltr_chain(req.filters()) {
+    if let Some(f) = fltr_chain(filters) {
         f1 = f1.filter(f)
     }
 
@@ -320,16 +372,16 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     }
 
     // Step 2.4 Applying Overwrites
-    for ow in req.overrides() {
+    for ow in overrides {
         f1 = ow.lf_with_overwrite(f1)?
     }
 
     // Step 2.5 Add Row
-    if !req.add_row.rows.is_empty() {
+    if !add_rows.rows.is_empty() {
         let current_schema = f1.schema()?;
-        let mut extra_frame = df_from_maps_and_schema(&req.add_row.rows, current_schema)?.lazy();
+        let mut extra_frame = df_from_maps_and_schema(&add_rows.rows, current_schema)?.lazy();
 
-        if req.add_row.prepare {
+        if add_rows.prepare {
             // Validating only a subset required for prepare()
             data.validate_frame(Some(&extra_frame), ValidateSet::SUBSET1)?;
             extra_frame = data.prepare_frame(Some(extra_frame))?;
@@ -341,7 +393,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     //dbg!(f1.clone().select([col("*")]).collect());
 
     // Step 3.1 Build GROUPBY
-    let groups: Vec<Expr> = req.groupby.iter().map(|x| col(x)).collect();
+    let groups: Vec<Expr> = groupby.iter().map(|x| col(x)).collect();
     // fill nulls with a "null" - needed for better totals views
     let groups_fill_nulls: Vec<Expr> = groups
         .clone()
@@ -361,7 +413,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
         .with_columns(&groups_fill_nulls)
         .collect()?;
 
-    if req.totals & (groups.len() > 1) {
+    if totals & (groups.len() > 1) {
         let ordered_cols = aggregated_df.get_column_names_owned();
         let mut total_frames = vec![];
         //let mut with_cols = vec![];

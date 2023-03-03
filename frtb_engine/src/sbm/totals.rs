@@ -68,7 +68,6 @@ pub(crate) fn sbm_charge(op: &CPM) -> PolarsResult<Expr> {
 }
 
 // Testing Dependant Measures
-
 fn sbm_charge_low_dep_test(_: &CPM) -> PolarsResult<Expr> {
     Ok(col("FX TotalCharge Low")
         + col("GIRR TotalCharge Low")
@@ -100,9 +99,9 @@ fn sbm_charge_high_dep_test(_: &CPM) -> PolarsResult<Expr> {
 
 pub(crate) fn sbm_charge_test(_: &CPM) -> PolarsResult<Expr> {
     Ok(max_exprs(&[
-        col("SBM Charge High"),
-        col("SBM Charge Medium"),
-        col("SBM Charge Low"),
+        col("SBM Charge High Dependant Test"),
+        col("SBM Charge Medium Dependant Test"),
+        col("SBM Charge Low Dependant Test"),
     ]))
 }
 
@@ -141,7 +140,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
         // Testing dependency
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge Medium Dependant Test".to_string(),
-            calculator: Box::new(sbm_charge_low_dep_test),
+            calculator: Box::new(sbm_charge_medium_dep_test),
             depends_upon: vec![
                 ("FX TotalCharge Medium".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge Medium".to_string(), "scalar".to_string()),
@@ -154,7 +153,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge Low Dependant Test".to_string(),
-            calculator: Box::new(sbm_charge_medium_dep_test),
+            calculator: Box::new(sbm_charge_low_dep_test),
             depends_upon: vec![
                 ("FX TotalCharge Low".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge Low".to_string(), "scalar".to_string()),

@@ -1,8 +1,7 @@
 mod common;
 
 mod tests {
-    use base_engine::{exec_agg_base, AggregationRequest};
-    use std::sync::Arc;
+    use base_engine::{DataSet, ComputeRequest};
 
     use crate::common;
     #[test]
@@ -12,8 +11,8 @@ mod tests {
                             "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]],
                             "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Balance": "10"}]}}"#;
         let data_req =
-            serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-        let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
+            serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+        let res =common::TEST_DASET.as_ref().compute(data_req, false)
             .expect("Calculation failed");
 
         let res_sum = dbg!(res)
@@ -27,14 +26,17 @@ mod tests {
     #[test]
     /// Combining different schemas
     fn add_row2() {
-        let req = r#"{"measures": [["Balance", "sum"]],
+        let req = r#"{"type": "AggregationRequest",
+                            "measures": [["Balance", "sum"]],
                             "groupby": ["State"],
                             "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]],
                             "add_row": {"prepare": true, "rows": [{"State": "NY", "Balance": "10"}, {"State": "NY", "Age": "29"}]}}"#;
         let data_req =
-            serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
-        let res = exec_agg_base(data_req, &*Arc::clone(&*common::TEST_DASET), false)
+            serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
+ 
+        let res =common::TEST_DASET.as_ref().compute(data_req, false)
             .expect("Calculation failed");
+
 
         let res_sum = dbg!(res)
             .column("Balance_sum")

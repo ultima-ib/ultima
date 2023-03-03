@@ -43,8 +43,6 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
         match data.get_cache().get(&cacheable_compute_request) {
             // If found - store result
             Some(rf) => {
-                dbg!("FOUND IN CACHE: ");
-                dbg!(&cacheable_compute_request);
                 cached_results.push(rf.value().clone());
             }
             // if not push to those which will have to be calculated

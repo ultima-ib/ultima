@@ -1,7 +1,10 @@
 //! CSR Sec non-CTP Delta Calculations
 
 use crate::prelude::*;
-use base_engine::{polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs}, CPM, IntoLazy, BaseMeasure};
+use base_engine::{
+    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs},
+    BaseMeasure, IntoLazy, CPM,
+};
 
 use ndarray::Array2;
 

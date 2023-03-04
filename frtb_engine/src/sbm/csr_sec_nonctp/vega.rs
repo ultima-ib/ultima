@@ -1,5 +1,5 @@
 use crate::{prelude::*, sbm::equity::vega::equity_vega_charge};
-use base_engine::{polars::prelude::max_exprs, CPM, BaseMeasure};
+use base_engine::{polars::prelude::max_exprs, BaseMeasure, CPM};
 
 pub fn total_csr_sec_nonctp_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     Ok(rc_rcat_sens(

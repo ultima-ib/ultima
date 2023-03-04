@@ -1,8 +1,11 @@
 use crate::prelude::*;
-use base_engine::{polars::prelude::{
-    apply_multiple, df, max_exprs, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
-    GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
-}, IntoLazy, CPM, BaseMeasure};
+use base_engine::{
+    polars::prelude::{
+        apply_multiple, df, max_exprs, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
+        GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
+    },
+    BaseMeasure, IntoLazy, CPM,
+};
 use ndarray::{Array1, Array2};
 
 use super::delta::ccy_regex;

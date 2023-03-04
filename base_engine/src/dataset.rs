@@ -4,7 +4,7 @@ use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
-use crate::execute;
+use crate::{derive_basic_measures_vec, execute, Measure, CPM};
 use crate::{CalcParameter, ComputeRequest, DataSourceConfig, MeasuresMap};
 
 /// This is the default struct which implements Dataset
@@ -15,8 +15,8 @@ pub struct DataSetBase {
     pub frame: LazyFrame,
     /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
-    /// build_params are passed into .prepare()
-    /// TODO remove and pass to .prepare() directly
+    /// build_params are passed into .prepare() - if streaming or add_row
+    ///  this happens during the execution. Hence we can't remove and pass to .prepare() directly
     pub build_params: BTreeMap<String, String>,
     /// Cache
     pub cache: Cache,
@@ -43,33 +43,65 @@ pub trait DataSet: Send + Sync {
     /// Get all measures associated with the DataSet
     fn get_measures(&self) -> &MeasuresMap;
 
+    //fn from_config(conf: DataSourceConfig) -> Self
+    //where
+    //    Self: Sized,
+    //{
+    //    let (frame, measure_cols, build_params) = conf.build();
+    //    let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
+    //    Self::new(frame, mm, build_params)
+    //}
+
     /// Cannot be defined since returns Self which is a Struct.
     /// Not possible to call [DataSet::new] either since it's not on self
-    /// TODO create a From Trait
     fn from_config(conf: DataSourceConfig) -> Self
     where
         Self: Sized,
     {
-        let (frame, measure_cols, build_params) = conf.build();
+        let (frame, measure_cols, bp) = conf.build();
         let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
-        Self::new(frame, mm, build_params)
+        Self::new(frame, mm, bp)
     }
 
     /// TODO remove this, this is not good for production
-    fn from_config_for_tests(mut conf: DataSourceConfig, path_to_file_location: &str) -> Self
+    //fn from_config_for_tests(mut conf: DataSourceConfig, path_to_file_location: &str) -> Self
+    //where
+    //    Self: Sized,
+    //{
+    //    conf.change_path_on_abs_if_not_exist(path_to_file_location);
+    //    let (frame, measure_cols, build_params) = conf.build();
+    //    let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
+    //    Self::new(frame, mm, build_params)
+    //}
+
+    /// See [DataSetBase] and [CalcParameter] for description of the parameters
+    fn new(frame: LazyFrame, mm: MeasuresMap, params: CPM) -> Self
+    where
+        Self: Sized;
+
+    /// See [DataSetBase] and [CalcParameter] for description of the parameters
+    fn from_vec(
+        frame: LazyFrame,
+        mut ms: Vec<Measure>,
+        include_numeric_cols_as_measures: bool,
+        params: CPM,
+    ) -> Self
     where
         Self: Sized,
     {
-        conf.change_path_on_abs_if_not_exist(path_to_file_location);
-        let (frame, measure_cols, build_params) = conf.build();
-        let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
-        Self::new(frame, mm, build_params)
-    }
+        if include_numeric_cols_as_measures {
+            let num_cols = frame
+                .schema()
+                .map(numeric_columns)
+                .expect("Failed to obtain numeric columns");
 
-    /// See [DataSetBase] and [CalcParameter] for description of the parameters
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self
-    where
-        Self: Sized;
+            let numeric_cols_as_measures = derive_basic_measures_vec(num_cols);
+            ms.extend(numeric_cols_as_measures);
+        }
+
+        let mm: MeasuresMap = MeasuresMap::from_iter(ms);
+        Self::new(frame, mm, params)
+    }
 
     /// Collects the (main) LazyFrame of the DataSet
     fn collect(&mut self) -> PolarsResult<()>
@@ -112,9 +144,6 @@ pub trait DataSet: Send + Sync {
 
     /// Calc params are used for the UI and hence are totally optional
     fn calc_params(&self) -> Vec<CalcParameter> {
-        //self.get_measures()
-        //    .iter()
-        //    .map(|(name, measure)| measure.calc_params)
         vec![]
     }
 
@@ -162,7 +191,16 @@ impl DataSet for DataSetBase {
         &self.measures
     }
 
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {
+    //fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {
+    //    Self {
+    //        frame,
+    //        measures: mm,
+    //        build_params,
+    //        ..Default::default()
+    //    }
+    //}
+
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {
         Self {
             frame,
             measures: mm,
@@ -170,6 +208,7 @@ impl DataSet for DataSetBase {
             ..Default::default()
         }
     }
+
     //fn collect(self) -> PolarsResult<Self> {
     //    let lf = self.frame.collect()?.lazy();
     //    Ok(Self { frame: lf, ..self })

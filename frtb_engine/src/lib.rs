@@ -18,10 +18,13 @@ mod risk_weights_crr2;
 pub mod statics;
 mod validate;
 
-use base_engine::{DataSet, Measure, MeasuresMap, CalcParameter, ValidateSet};
 use base_engine::cache::{Cache, CacheableDataSet};
+use base_engine::{CalcParameter, DataSet, Measure, MeasuresMap, ValidateSet, CPM};
 //use crate::drc::drc_weights;
-use base_engine::polars::prelude::{when, AnyValue, LazyFrame, LiteralValue, NamedFrom, Series, PolarsResult, lit, col, Expr, NULL, Literal};
+use base_engine::polars::prelude::{
+    col, lit, when, AnyValue, Expr, LazyFrame, Literal, LiteralValue, NamedFrom, PolarsResult,
+    Series, NULL,
+};
 use prelude::calc_params::FRTB_CALC_PARAMS;
 //use polars:: series::Series, lazy::dsl::when};
 use prelude::{drc::common::drc_scalinng, frtb_measure_vec};
@@ -66,7 +69,7 @@ impl DataSet for FRTBDataSet {
         FRTB_CALC_PARAMS.clone()
     }
 
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {
         let mut res = Self {
             frame,
             measures: mm,

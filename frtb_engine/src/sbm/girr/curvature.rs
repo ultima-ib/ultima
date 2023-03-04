@@ -4,7 +4,7 @@ use crate::{
 };
 use base_engine::{
     polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput},
-    CPM, IntoLazy, BaseMeasure,
+    BaseMeasure, IntoLazy, CPM,
 };
 use ndarray::{Array1, Array2};
 

@@ -2,7 +2,10 @@
 //! TODO Commodity RiskFactor should be of the form ...CCY (same as FX, where CCY is the reporting CCY)
 
 use crate::prelude::*;
-use base_engine::{polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs}, CPM, DataFrame, BaseMeasure, IntoLazy};
+use base_engine::{
+    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs},
+    BaseMeasure, DataFrame, IntoLazy, CPM,
+};
 
 use ndarray::Array2;
 

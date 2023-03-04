@@ -3,7 +3,10 @@ use std::{env, path::PathBuf};
 use once_cell::sync::Lazy;
 use polars::prelude::*;
 
-use base_engine::prelude::{read_toml2, DataSet, DataSetBase, DataSourceConfig};
+use base_engine::{
+    prelude::{read_toml2, DataSet, DataSetBase, DataSourceConfig},
+    DependantMeasure, Measure, CPM,
+};
 
 pub static TEST_DASET: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
     let path: PathBuf = [
@@ -17,31 +20,29 @@ pub static TEST_DASET: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
     let conf = read_toml2::<DataSourceConfig>(path.to_str().unwrap())
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
 
-    let mut data: DataSetBase = DataSet::from_config_for_tests(conf, path.to_str().unwrap());
+    let mut data: DataSetBase = DataSet::from_config(conf);
     data.prepare().unwrap();
     Arc::new(data)
 });
 
 pub static TEST_DASET_WITH_DEPENDANTS: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
-    let path: PathBuf = [
-        env!("CARGO_MANIFEST_DIR"),
-        "tests",
-        "data",
-        "testset.csv",
-    ]
-    .iter()
-    .collect();
-
-    let conf = read_toml2::<DataSourceConfig>(path.to_str().unwrap())
-        .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
+    let path: PathBuf = [env!("CARGO_MANIFEST_DIR"), "tests", "data", "testset.csv"]
+        .iter()
+        .collect();
 
     let df = LazyCsvReader::new(path).finish().unwrap();
-    // TODO build pattern
-    // TODO build_params should be passed to .prepare() as an arg
-    
-    //let mut data: DataSetBase = DataSet::new();
 
-    let mut data: DataSetBase = DataSet::from_config_for_tests(conf, path.to_str().unwrap());
+    let measures = vec![Measure::Dependant(DependantMeasure {
+        name: "DivAge".to_string(),
+        calculator: Box::new(|op: &CPM| {
+            let n = op.get("count").unwrap().parse::<f64>().unwrap();
+            Ok(col("Age_sum") / n.into())
+        }),
+        depends_upon: vec![("Age".to_string(), "sum".to_string())],
+    })];
+
+    let mut data: DataSetBase = DataSet::from_vec(df, measures, true, Default::default());
+
     data.prepare().unwrap();
     Arc::new(data)
 });

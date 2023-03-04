@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use crate::prelude::*;
-use base_engine::{prelude::CPM, IntoLazy, BaseMeasure};
+use base_engine::{prelude::CPM, BaseMeasure, IntoLazy};
 use ndarray::Array2;
 //use polars::lazy::dsl::apply_multiple;
 use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};

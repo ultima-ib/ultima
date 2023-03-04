@@ -13,7 +13,7 @@ use base_engine::{
         apply_multiple, df, max_exprs, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
         PolarsError, Utf8NameSpaceImpl,
     },
-    CPM, IntoLazy, BaseMeasure,
+    BaseMeasure, IntoLazy, CPM,
 };
 
 /// This works for cases like GBP reporting with BCBS params

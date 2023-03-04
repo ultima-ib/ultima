@@ -1,9 +1,9 @@
 #![allow(clippy::type_complexity)]
 
 use crate::prelude::*;
-use base_engine::{IntoLazy, BaseMeasure};
 use base_engine::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
 use base_engine::prelude::CPM;
+use base_engine::{BaseMeasure, IntoLazy};
 use ndarray::Array2;
 
 pub fn eq_curv_delta(_: &CPM) -> PolarsResult<Expr> {

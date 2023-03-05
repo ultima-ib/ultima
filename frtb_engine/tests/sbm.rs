@@ -617,7 +617,7 @@ fn add_rows_prepare_no_bucket() {
 
 #[test]
 /// User sets prepare to true but none of the required columns matches weights assignments
-fn add_rows_nothing_to_math_prepare() {
+fn add_rows_nothing_to_match_prepare() {
     let expected_res = arr1(&[-250.0]);
     let request = r#"
     {"measures": [

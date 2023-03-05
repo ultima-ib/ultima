@@ -3,14 +3,18 @@ mod common;
 use common::LAZY_DASET;
 use polars::prelude::Float64Type;
 
+/// Note in later(post 25.1) versions of polars cannot call max_expr on 
+/// an aggregated Expr. See this:
+/// https://github.com/pola-rs/polars/issues/6115
+/// Hence if fails it's ok to drop this test
 #[test]
 fn dependant_sbm() {
     let request_basic = r#"
     {"measures": [
-        ["SBM Charge High", "scalar"],
-        ["SBM Charge Low", "scalar"],
-        ["SBM Charge Medium", "scalar"],
-        ["SBM Charge", "scalar"]
+        ["SBM Charge High Test", "scalar"],
+        ["SBM Charge Low Test", "scalar"],
+        ["SBM Charge Medium Test", "scalar"],
+        ["SBM Charge Test", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [],
@@ -22,10 +26,10 @@ fn dependant_sbm() {
 
     let request_dependant = r#"
     {"measures": [
-        ["SBM Charge High Dependant Test", "scalar"],
-        ["SBM Charge Low Dependant Test", "scalar"],
-        ["SBM Charge Medium Dependant Test", "scalar"],
-        ["SBM Charge Dependant Test", "scalar"]
+        ["SBM Charge High", "scalar"],
+        ["SBM Charge Low", "scalar"],
+        ["SBM Charge Medium", "scalar"],
+        ["SBM Charge", "scalar"]
             ],
     "groupby": ["Desk"],
     "filters": [],

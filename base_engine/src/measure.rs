@@ -101,6 +101,18 @@ pub enum Measure {
     Dependant(DependantMeasure),
 }
 
+impl From<BaseMeasure> for Measure {
+    fn from(item: BaseMeasure) -> Self {
+        Measure::Base(item)
+    }
+}
+
+impl From<DependantMeasure> for Measure {
+    fn from(item: DependantMeasure) -> Self {
+        Measure::Dependant(item)
+    }
+}
+
 impl FromIterator<Measure> for BTreeMap<MeasureName, Measure> {
     fn from_iter<I>(v: I) -> Self
     where

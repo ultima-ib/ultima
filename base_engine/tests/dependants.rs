@@ -88,3 +88,25 @@ fn dependant_is_scalar() {
         .expect("Couldn't sum");
     assert_eq!(res_sum, 3.1);
 }
+
+#[test]
+#[should_panic(expected = "No measure NoSuchMeasure exists for the dataset")]
+fn child_not_found() {
+    let req = r#"
+    {"measures": [
+        ["NoSuchMeasureTest", "scalar"]
+            ],
+    "groupby": ["State"],
+    "filters": [[{"op": "Eq", "field": "State", "value": "NY"}]],
+    "calc_params": {"count": "10"}      
+    }"#;
+
+    let data_req =
+        serde_json::from_str::<AggregationRequest>(req).expect("Could not parse request");
+    let compute_req = ComputeRequest::Aggregation(data_req);
+
+    let _ = common::TEST_DASET_WITH_DEPENDANTS
+        .as_ref()
+        .compute(compute_req, false)
+        .unwrap();
+}

@@ -1,4 +1,5 @@
 mod common;
+use base_engine::DataSet;
 use common::*;
 use ndarray::arr1;
 
@@ -111,7 +112,7 @@ fn drc_nonsec_crr2() {
 /// This is just testing overwrite functionality
 /// Drc BCBS with this overwrite is equal to Drc CRR2
 #[test]
-fn overrides() {
+fn drc_bcbs_with_overrides_eq_crr2() {
     let expected_res = arr1(&[3814.762221]);
 
     let request = r#"
@@ -140,4 +141,32 @@ fn overrides() {
         }}
 "#;
     assert_results(request, expected_res.sum(), None)
+}
+
+#[test]
+fn drc_charge() {
+    use base_engine::{AggregationRequest, ComputeRequest};
+
+    let request = r#"
+    {"measures": [
+        ["DRC Charge", "scalar"]
+            ],
+    "groupby": ["Desk"],
+    "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+    "type": "AggregationRequest",
+    
+    "calc_params": {"jurisdiction": "BCBS"}
+            
+    }"#;
+    let data_req =
+    serde_json::from_str::<AggregationRequest>(request).expect("Could not parse request");
+
+    let compute_req = ComputeRequest::Aggregation(data_req);
+
+    let res = common::LAZY_DASET
+        .as_ref()
+        .compute(compute_req, false)
+        .unwrap();
+
+    assert!(dbg!(res.column("DRC Charge")).is_ok());
 }

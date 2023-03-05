@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::Measure;
 pub mod helpers;
+pub mod acquire;
 use helpers::{empty_frame, finish, path_to_lf};
 
 use self::helpers::diag_concat_lf;

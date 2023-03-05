@@ -49,7 +49,8 @@ class DataSet:
         self.calc_params: "list[dict[str, str|None]]" = self._ds.calc_params()
 
     @classmethod
-    def from_config_path(cls: Type[DS], path: str) -> DS:
+    def from_config_path(cls: Type[DS], path: str, 
+                         collect = True, prepare = False) -> DS:
         """
         Reads path to <config>.toml
         Converts into DataSourceConfig
@@ -57,11 +58,13 @@ class DataSet:
 
         Args:
             path (str): path to <config>.toml
+            collect (str): non-lazy evaluation
+            prepare (str): calls prepare
 
         Returns:
             T: Self
         """
-        return cls(DataSetWrapper.from_config_path(path), False)
+        return cls(DataSetWrapper.from_config_path(path, collect, prepare), prepare)
 
     @classmethod
     def from_frame(
@@ -89,15 +92,18 @@ class DataSet:
         """
         return cls(DataSetWrapper.from_frame(df, measures, build_params), prepared)
 
-    def prepare(self) -> None:
+    def prepare(self, collect = True) -> None:
         """Does nothing unless overriden. To be used for one of computations.
             eg Weights Assignments
+
+        Args:
+            collect (cool): non-lazy mode. Evaluates.
 
         Raises:
             OtherError: Calling prepare on an already prepared dataset
         """
         if not self.prepared:
-            self._ds.prepare()
+            self._ds.prepare(collect)
             self.prepared = True
         else:
             raise uli.OtherError("Calling prepare on an already prepared dataset")
@@ -138,8 +144,10 @@ class FRTBDataSet(DataSet):
     """FRTB flavour of DataSet"""
 
     @classmethod
-    def from_config_path(cls: Type[DS], path: str) -> DS:
-        return cls(DataSetWrapper.frtb_from_config_path(path), False)
+    def from_config_path(cls: Type[DS], path: str,
+                         collect = True, prepare = False) -> DS:
+        return cls(DataSetWrapper.frtb_from_config_path(path, collect, prepare), 
+                   prepare)
 
     @classmethod
     def from_frame(
@@ -149,4 +157,5 @@ class FRTBDataSet(DataSet):
         build_params: "dict[str, str] | None" = None,
         prepared: bool = False,
     ) -> DS:
-        return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)
+        return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), 
+                   prepared)

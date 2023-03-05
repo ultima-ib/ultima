@@ -1,7 +1,9 @@
+#![allow(clippy::unnecessary_lazy_evaluations)]
+
 use base_engine::polars::prelude::Series;
 use base_engine::{
-    self, derive_basic_measures_vec, numeric_columns, read_toml2, AggregationRequest, DataFrame,
-    DataSet, DataSetBase, DataSourceConfig, IntoLazy, MeasuresMap, ValidateSet,
+    self, derive_basic_measures_vec, numeric_columns, AggregationRequest, DataFrame,
+    DataSet, DataSetBase, IntoLazy, MeasuresMap, ValidateSet,
 };
 use conversion::{py_series_to_rust_series, rust_series_to_py_series};
 use errors::{
@@ -9,10 +11,10 @@ use errors::{
     NotFoundError, OtherError, PyUltimaErr, SchemaError, SerdeJsonError, ShapeError,
 };
 use frtb_engine::FRTBDataSet;
-use pyo3::{exceptions::*, prelude::*, types::PyType, PyTypeInfo};
+use pyo3::{prelude::*, types::PyType, PyTypeInfo};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::{collections::BTreeMap, path::Path};
+use std::collections::BTreeMap;
 
 mod conversion;
 mod errors;
@@ -22,16 +24,19 @@ struct DataSetWrapper {
     dataset: Box<dyn DataSet>,
 }
 
-fn from_conf<T: DataSet + 'static>(conf_path: String) -> PyResult<DataSetWrapper> {
-    if !Path::new(&conf_path).exists() {
-        return Err(PyFileNotFoundError::new_err("file doesn't exist"));
-    }
+fn from_conf<T: DataSet + 'static>(conf_path: String, collect: bool, prepare: bool) -> PyResult<DataSetWrapper> {
+    // This is now done in build_validate_prepare
+    // TODO build_validate_prepare to return result and errors to be mapped
+    //if !Path::new(&conf_path).exists() {
+    //    return Err(PyFileNotFoundError::new_err("file doesn't exist"));
+    //}
+//
+    //let Ok(conf) = read_toml2::<DataSourceConfig>(&conf_path) else {
+    //    return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));
+    //};
 
-    let Ok(conf) = read_toml2::<DataSourceConfig>(&conf_path) else {
-        return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));
-    };
-
-    let dataset: Box<T> = Box::new(DataSet::from_config(conf));
+    let ds = base_engine::acquire::build_validate_prepare::<T>(conf_path.as_str(), collect, prepare);
+    let dataset = Box::new(ds);
     Ok(DataSetWrapper { dataset })
 }
 
@@ -51,7 +56,7 @@ fn from_frame<T: DataSet + 'static>(
 
     let schema = df.schema();
     let arc_schema = Arc::new(schema);
-    // If measures is None - assume all numeric column
+    // TODO function arg should be add_numeric_columns_as_measures, defaulted to true
     let measures = measures.unwrap_or_else(|| numeric_columns(arc_schema));
     let mv = derive_basic_measures_vec(measures);
     let mm: MeasuresMap = MeasuresMap::from_iter(mv);
@@ -74,13 +79,17 @@ impl DataSetWrapper {
     }
 
     #[classmethod]
-    fn from_config_path(_: &PyType, conf_path: String) -> PyResult<Self> {
-        from_conf::<DataSetBase>(conf_path)
+    fn from_config_path(_: &PyType, conf_path: String, collect: Option<bool>, prepare: Option<bool>) -> PyResult<Self> {
+        let collect = collect.unwrap_or_else(|| true );
+        let prepare = prepare.unwrap_or_else(|| false );
+        from_conf::<DataSetBase>(conf_path, collect, prepare)
     }
 
     #[classmethod]
-    fn frtb_from_config_path(_: &PyType, conf_path: String) -> PyResult<Self> {
-        from_conf::<FRTBDataSet>(conf_path)
+    fn frtb_from_config_path(_: &PyType, conf_path: String, collect: Option<bool>, prepare: Option<bool>) -> PyResult<Self> {
+        let collect = collect.unwrap_or_else(|| true );
+        let prepare = prepare.unwrap_or_else(|| false );
+        from_conf::<FRTBDataSet>(conf_path, collect, prepare)
     }
 
     #[classmethod]
@@ -105,13 +114,20 @@ impl DataSetWrapper {
         from_frame::<FRTBDataSet>(py, seriess, measures, build_params)
     }
 
-    pub fn prepare(&mut self) -> PyResult<()> {
+    pub fn prepare(&mut self, collect: Option<bool>) -> PyResult<()> {
         let lf = self.dataset.get_lazyframe().clone();
+        let collect = collect.unwrap_or_else(|| true );
 
-        let new_frame = self
+        let mut new_frame = self
             .dataset
             .prepare_frame(Some(lf))
             .map_err(PyUltimaErr::Polars)?;
+
+        if collect {
+            new_frame = new_frame.collect()
+            .map_err(PyUltimaErr::Polars)?
+            .lazy() 
+        }
 
         self.dataset.set_lazyframe_inplace(new_frame);
         Ok(())

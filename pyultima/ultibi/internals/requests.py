@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..rust_module.ultima_pyengine import ComputeRequestWrapper, AggregationRequestWrapper, agg_ops
+from ..rust_module.ultima_pyengine import (ComputeRequestWrapper,
+    AggregationRequestWrapper, agg_ops)
 
 
 def aggregation_ops() -> list[str]:
@@ -95,7 +96,8 @@ class ComputeRequest:
 
         else:
             raise ValueError(
-                f"ComputeRequest constructor called with unsupported type; got {type(data)}"
+                f"ComputeRequest constructor \
+                    called with unsupported type; got {type(data)}"
             )
 
     def __str__(self) -> str:

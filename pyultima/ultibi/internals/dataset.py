@@ -121,7 +121,7 @@ class DataSet:
         vec_srs = self._ds.frame()
         return pl.DataFrame(vec_srs)
 
-    def execute(self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: "None|bool" = False) -> pl.DataFrame:
+    def compute(self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False) -> pl.DataFrame:
         """Make sure that requested groupby and filters exist in self.columns,
         Make sure that requested measures exist in self.measures
         Make sure that aggregation type for a measure is selected properly
@@ -143,6 +143,11 @@ class DataSet:
         vec_srs = self._ds.compute(req._ar, streaming)
 
         return pl.DataFrame(vec_srs)
+    
+    def execute(self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False) -> pl.DataFrame:
+        from warnings import warn
+        warn("use .compute() instead")
+        return self.compute(req, streaming)
 
 
 class FRTBDataSet(DataSet):

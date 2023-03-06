@@ -1,4 +1,6 @@
 use base_engine::{ComputeRequest, DataSet};
+use polars::df;
+use polars::prelude::NamedFrom;
 
 mod common;
 
@@ -18,12 +20,12 @@ fn simple_fltr_grpby_sum() {
         .compute(data_req, false)
         .unwrap();
 
-    let res_sum = res
-        .column("Balance_sum")
-        .expect("Couldn't get column Dalance_sum")
-        .sum::<f64>()
-        .expect("Couldn't sum");
-    assert_eq!(res_sum, 25.0)
+    let expected = df!(
+        "State" => ["NY"],
+        "Balance_sum" => [25.0]
+    ).unwrap();
+
+    assert_eq!(res, expected);
 }
 
 #[test]

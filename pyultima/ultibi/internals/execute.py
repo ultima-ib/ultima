@@ -21,5 +21,7 @@ def execute_agg(req: AggRequest, ds: DS, streaming: bool = False) -> pl.DataFram
     Returns:
         pl.DataFrame: Result of type Polars DataFrame
     """
+    from warnings import warn
+    warn("use DataSet.compute() instead")
     vec_srs = exec_agg(req._ar, ds._ds, streaming)
     return pl.DataFrame(vec_srs)

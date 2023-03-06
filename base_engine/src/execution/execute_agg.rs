@@ -84,14 +84,16 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
         )
         .collect::<PolarsResult<Vec<(&MeasureName, &AggregationName, ProcessedMeasure)>>>()?;
 
-    // Keep all REQUESTED Names for later use:
-    let new_requested_names: Vec<String> = all_requested_measures
+    // Keep all REQUESTED Column Names for later use:
+    let mut all_requested_columns_names = req.groupby().clone(); 
+    all_requested_columns_names.extend(
+         all_requested_measures
         .iter()
         .map(|(measure_name, agg)| {
             let agg = _BASE_CALCS.get(agg as &str).expect("Failed to look up agg"); //we have checked in agg_measure_lookup
             agg.new_name(measure_name as &str)
         })
-        .collect();
+    );
     // Keep cosmetic arguments for later use:
     let hide_zeros = req.hide_zeros;
 
@@ -126,7 +128,7 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     res = res
         .lazy()
         .select(
-            new_requested_names
+            all_requested_columns_names
                 .iter()
                 .map(|m| col(m))
                 .collect::<Vec<Expr>>(),
@@ -137,12 +139,12 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     // Hide Zeros
     if hide_zeros {
         let is_numerc_col = res
-            .columns(&new_requested_names)?
+            .columns(&all_requested_columns_names)?
             .into_iter()
             .map(|c| c._dtype().is_numeric())
             .collect::<Vec<bool>>();
 
-        let mut it = new_requested_names
+        let mut it = all_requested_columns_names
             .into_iter()
             .zip(is_numerc_col.into_iter())
             .filter(|(_, y)| *y);

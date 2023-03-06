@@ -8,6 +8,7 @@ use base_engine::{
     DependantMeasure, Measure, CPM,
 };
 
+#[allow(dead_code)] // Not dead code actually, but clippy complains
 pub static TEST_DASET: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
     let path: PathBuf = [
         env!("CARGO_MANIFEST_DIR"),
@@ -25,6 +26,7 @@ pub static TEST_DASET: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
     Arc::new(data)
 });
 
+#[allow(dead_code)] // Not dead code actually, but clippy complains
 pub static TEST_DASET_WITH_DEPENDANTS: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
     let path: PathBuf = [env!("CARGO_MANIFEST_DIR"), "tests", "data", "testset.csv"]
         .iter()

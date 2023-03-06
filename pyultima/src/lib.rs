@@ -2,7 +2,7 @@
 
 use base_engine::polars::prelude::Series;
 use base_engine::{
-    self, derive_basic_measures_vec, numeric_columns, AggregationRequest, DataFrame,
+    self, derive_basic_measures_vec, numeric_columns, DataFrame,
     DataSet, DataSetBase, IntoLazy, MeasuresMap, ValidateSet,
 };
 use conversion::{py_series_to_rust_series, rust_series_to_py_series};
@@ -18,6 +18,7 @@ use std::collections::BTreeMap;
 
 mod conversion;
 mod errors;
+mod requests;
 
 #[pyclass]
 struct DataSetWrapper {
@@ -133,6 +134,15 @@ impl DataSetWrapper {
         Ok(())
     }
 
+    pub fn compute(&self, request: requests::ComputeRequestWrapper, streaming: bool) -> PyResult<Vec<PyObject>> {
+        self.dataset
+            .compute(request.ar, streaming)
+            .map_err(PyUltimaErr::Polars)?
+            .iter()
+            .map(rust_series_to_py_series)
+            .collect()
+    }
+
     pub fn measures(&self) -> BTreeMap<String, Option<&str>> {
         self.dataset
             .get_measures()
@@ -187,33 +197,12 @@ impl DataSetWrapper {
     }
 }
 
-#[pyclass]
-#[derive(Clone)]
-pub struct AggregationRequestWrapper {
-    #[allow(dead_code)]
-    pub ar: AggregationRequest,
-}
-#[pymethods]
-impl AggregationRequestWrapper {
-    #[classmethod]
-    /// Converts str into AggregationRequest
-    pub fn from_str(_: &PyType, json_str: &str) -> PyResult<Self> {
-        match serde_json::from_str::<AggregationRequest>(json_str) {
-            Ok(ar) => Ok(Self { ar }),
-            Err(err) => Err(errors::PyUltimaErr::from(err).into()),
-        }
-    }
 
-    /// Format `AggregationRequest` as String
-    pub fn as_str(&self) -> String {
-        format!("{:?}", self.ar)
-    }
-}
 
 /// Function to execute request on prepared data
 #[pyfunction]
 fn exec_agg(
-    request: AggregationRequestWrapper,
+    request: requests::AggregationRequestWrapper,
     prepared_dataset: &DataSetWrapper,
     streaming: bool,
 ) -> PyResult<Vec<PyObject>> {
@@ -237,7 +226,8 @@ fn agg_ops() -> Vec<&'static str> {
 fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(agg_ops, m)?)?;
     m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
-    m.add_class::<AggregationRequestWrapper>()?;
+    m.add_class::<requests::AggregationRequestWrapper>()?;
+    m.add_class::<requests::ComputeRequestWrapper>()?;
     m.add_class::<DataSetWrapper>()?;
 
     m.add("NotFoundError", _py.get_type::<NotFoundError>())

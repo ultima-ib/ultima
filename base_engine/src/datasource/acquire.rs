@@ -26,7 +26,7 @@ pub fn build_validate_prepare<DS: DataSet>(config_path: &str, collect: bool, pre
         let now = Instant::now();
         data.collect().expect("Failed to read frame");
         let elapsed = now.elapsed();
-        dbg!("Time to Read/Aggregate DF: {:.6?}", elapsed);
+        println!("Time to Read/Aggregate DF: {:.6?}", elapsed);
     }
 
     // Build DataSet
@@ -44,7 +44,7 @@ pub fn build_validate_prepare<DS: DataSet>(config_path: &str, collect: bool, pre
         let now = Instant::now();
         data.collect().expect("Failed to Prepare Frame");
         let elapsed = now.elapsed();
-        dbg!("Time to Prepare DF: {:.6?}", elapsed);
+        println!("Time to Prepare DF: {:.6?}", elapsed);
     }
 
     data

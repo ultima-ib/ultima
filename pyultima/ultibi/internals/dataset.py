@@ -121,23 +121,28 @@ class DataSet:
         vec_srs = self._ds.frame()
         return pl.DataFrame(vec_srs)
 
-    def execute(self, req: "dict[Any, Any]|uli.AggRequest") -> pl.DataFrame:
+    def execute(self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: "None|bool" = False) -> pl.DataFrame:
         """Make sure that requested groupby and filters exist in self.columns,
         Make sure that requested measures exist in self.measures
         Make sure that aggregation type for a measure is selected properly
 
         Args:
-            req (dict[Any, Any]|uli.AggRequest): Request, to be converted
-            into AggRequest.
+            req (dict[Any, Any]|uli.ComputeRequest): Request, to be converted
+                into AggRequest.
+            streaming (bool): keep it as False unless you know what you are doing.
+                If set to true, execute will try to .prepare() for each request,
+                which will result in an error if Data has already been prepared.
 
         Returns:
             pl.DataFrame: If your request and data were constructed properly.
         """
 
         if isinstance(req, dict):
-            req = uli.AggRequest(req)
+            req = uli.ComputeRequest(req)
+        
+        vec_srs = self._ds.compute(req._ar, streaming)
 
-        return uli.execute_agg(req, self)
+        return pl.DataFrame(vec_srs)
 
 
 class FRTBDataSet(DataSet):

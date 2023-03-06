@@ -1,10 +1,5 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
-use base_engine::polars::prelude::Series;
-use base_engine::{
-    self, derive_basic_measures_vec, numeric_columns, DataFrame,
-    DataSet, DataSetBase, IntoLazy, MeasuresMap, ValidateSet,
-};
 use conversion::{py_series_to_rust_series, rust_series_to_py_series};
 use errors::{
     ArrowErrorException, ComputeError, DuplicateError, InvalidOperationError, NoDataError,
@@ -12,9 +7,14 @@ use errors::{
 };
 use frtb_engine::FRTBDataSet;
 use pyo3::{prelude::*, types::PyType, PyTypeInfo};
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::collections::BTreeMap;
+use ultibi::polars::prelude::Series;
+use ultibi::{
+    self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase, IntoLazy,
+    MeasuresMap, ValidateSet,
+};
 
 mod conversion;
 mod errors;
@@ -25,18 +25,22 @@ struct DataSetWrapper {
     dataset: Box<dyn DataSet>,
 }
 
-fn from_conf<T: DataSet + 'static>(conf_path: String, collect: bool, prepare: bool) -> PyResult<DataSetWrapper> {
+fn from_conf<T: DataSet + 'static>(
+    conf_path: String,
+    collect: bool,
+    prepare: bool,
+) -> PyResult<DataSetWrapper> {
     // This is now done in build_validate_prepare
     // TODO build_validate_prepare to return result and errors to be mapped
     //if !Path::new(&conf_path).exists() {
     //    return Err(PyFileNotFoundError::new_err("file doesn't exist"));
     //}
-//
+    //
     //let Ok(conf) = read_toml2::<DataSourceConfig>(&conf_path) else {
     //    return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));
     //};
 
-    let ds = base_engine::acquire::build_validate_prepare::<T>(conf_path.as_str(), collect, prepare);
+    let ds = ultibi::acquire::build_validate_prepare::<T>(conf_path.as_str(), collect, prepare);
     let dataset = Box::new(ds);
     Ok(DataSetWrapper { dataset })
 }
@@ -80,16 +84,26 @@ impl DataSetWrapper {
     }
 
     #[classmethod]
-    fn from_config_path(_: &PyType, conf_path: String, collect: Option<bool>, prepare: Option<bool>) -> PyResult<Self> {
-        let collect = collect.unwrap_or_else(|| true );
-        let prepare = prepare.unwrap_or_else(|| false );
+    fn from_config_path(
+        _: &PyType,
+        conf_path: String,
+        collect: Option<bool>,
+        prepare: Option<bool>,
+    ) -> PyResult<Self> {
+        let collect = collect.unwrap_or_else(|| true);
+        let prepare = prepare.unwrap_or_else(|| false);
         from_conf::<DataSetBase>(conf_path, collect, prepare)
     }
 
     #[classmethod]
-    fn frtb_from_config_path(_: &PyType, conf_path: String, collect: Option<bool>, prepare: Option<bool>) -> PyResult<Self> {
-        let collect = collect.unwrap_or_else(|| true );
-        let prepare = prepare.unwrap_or_else(|| false );
+    fn frtb_from_config_path(
+        _: &PyType,
+        conf_path: String,
+        collect: Option<bool>,
+        prepare: Option<bool>,
+    ) -> PyResult<Self> {
+        let collect = collect.unwrap_or_else(|| true);
+        let prepare = prepare.unwrap_or_else(|| false);
         from_conf::<FRTBDataSet>(conf_path, collect, prepare)
     }
 
@@ -117,7 +131,7 @@ impl DataSetWrapper {
 
     pub fn prepare(&mut self, collect: Option<bool>) -> PyResult<()> {
         let lf = self.dataset.get_lazyframe().clone();
-        let collect = collect.unwrap_or_else(|| true );
+        let collect = collect.unwrap_or_else(|| true);
 
         let mut new_frame = self
             .dataset
@@ -125,16 +139,18 @@ impl DataSetWrapper {
             .map_err(PyUltimaErr::Polars)?;
 
         if collect {
-            new_frame = new_frame.collect()
-            .map_err(PyUltimaErr::Polars)?
-            .lazy() 
+            new_frame = new_frame.collect().map_err(PyUltimaErr::Polars)?.lazy()
         }
 
         self.dataset.set_lazyframe_inplace(new_frame);
         Ok(())
     }
 
-    pub fn compute(&self, request: requests::ComputeRequestWrapper, streaming: bool) -> PyResult<Vec<PyObject>> {
+    pub fn compute(
+        &self,
+        request: requests::ComputeRequestWrapper,
+        streaming: bool,
+    ) -> PyResult<Vec<PyObject>> {
         self.dataset
             .compute(request.ar, streaming)
             .map_err(PyUltimaErr::Polars)?
@@ -167,7 +183,7 @@ impl DataSetWrapper {
             .schema()
             .map_err(PyUltimaErr::Polars)?;
 
-        Ok(base_engine::prelude::fields_columns(schema))
+        Ok(ultibi::prelude::fields_columns(schema))
     }
     pub fn calc_params(&self) -> PyResult<Vec<HashMap<&str, Option<String>>>> {
         let name = "name";
@@ -197,8 +213,6 @@ impl DataSetWrapper {
     }
 }
 
-
-
 /// Function to execute request on prepared data
 #[pyfunction]
 fn exec_agg(
@@ -206,7 +220,7 @@ fn exec_agg(
     prepared_dataset: &DataSetWrapper,
     streaming: bool,
 ) -> PyResult<Vec<PyObject>> {
-    let dataframe = base_engine::exec_agg(prepared_dataset.dataset.as_ref(), request.ar, streaming)
+    let dataframe = ultibi::exec_agg(prepared_dataset.dataset.as_ref(), request.ar, streaming)
         .map_err(errors::PyUltimaErr::Polars)?;
 
     dataframe.iter().map(rust_series_to_py_series).collect()
@@ -214,7 +228,7 @@ fn exec_agg(
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {
-    base_engine::aggregations::BASE_CALCS
+    ultibi::aggregations::BASE_CALCS
         .keys()
         .filter(|el| **el != "scalar")
         .copied()

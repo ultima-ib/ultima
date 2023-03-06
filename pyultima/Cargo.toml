@@ -15,7 +15,7 @@ name = "ultibi.rust_module.ultima_pyengine"
 pyo3 = { version = "0.18.1", features = ["extension-module", "abi3-py37"] }
 polars = { version = "0.25.1" }
 polars-arrow = { version = "0.25.1" }
-base_engine = { path = "../base_engine" }
+ultibi = { path = "../ultibi" }
 frtb_engine = { path = "../frtb_engine" }
 serde_json = {workspace = true}
 thiserror = "1.0.38"

@@ -1,6 +1,6 @@
-use base_engine::{ComputeRequest, DataSet};
 use polars::df;
 use polars::prelude::NamedFrom;
+use ultibi::{ComputeRequest, DataSet};
 
 mod common;
 
@@ -23,7 +23,8 @@ fn simple_fltr_grpby_sum() {
     let expected = df!(
         "State" => ["NY"],
         "Balance_sum" => [25.0]
-    ).unwrap();
+    )
+    .unwrap();
 
     assert_eq!(res, expected);
 }

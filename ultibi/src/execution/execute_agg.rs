@@ -23,7 +23,7 @@ use crate::{
 
 /// Looks up measures and calls calculator on those returning an Expr
 /// Breaks down requested measures into Basic and Dependents
-/// Sends Basics to [base_engine::_exec_agg_with_cache] or [base_engine::_exec_agg_base]
+/// Sends Basics to [ultibi::_exec_agg_with_cache] or [ultibi::_exec_agg_base]
 /// Executes Dependents in .with_columns() context
 pub fn exec_agg<DS: DataSet + ?Sized>(
     data: &DS,
@@ -85,15 +85,11 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
         .collect::<PolarsResult<Vec<(&MeasureName, &AggregationName, ProcessedMeasure)>>>()?;
 
     // Keep all REQUESTED Column Names for later use:
-    let mut all_requested_columns_names = req.groupby().clone(); 
-    all_requested_columns_names.extend(
-         all_requested_measures
-        .iter()
-        .map(|(measure_name, agg)| {
-            let agg = _BASE_CALCS.get(agg as &str).expect("Failed to look up agg"); //we have checked in agg_measure_lookup
-            agg.new_name(measure_name as &str)
-        })
-    );
+    let mut all_requested_columns_names = req.groupby().clone();
+    all_requested_columns_names.extend(all_requested_measures.iter().map(|(measure_name, agg)| {
+        let agg = _BASE_CALCS.get(agg as &str).expect("Failed to look up agg"); //we have checked in agg_measure_lookup
+        agg.new_name(measure_name as &str)
+    }));
     // Keep cosmetic arguments for later use:
     let hide_zeros = req.hide_zeros;
 

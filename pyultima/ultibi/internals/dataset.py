@@ -24,7 +24,6 @@ class DataSet:
     prepared: bool
 
     def __init__(self, ds: DataSetWrapper, prepared: bool = False) -> None:
-
         self._ds = ds
         self.prepared = prepared
 
@@ -49,8 +48,9 @@ class DataSet:
         self.calc_params: "list[dict[str, str|None]]" = self._ds.calc_params()
 
     @classmethod
-    def from_config_path(cls: Type[DS], path: str, 
-                         collect = True, prepare = False) -> DS:
+    def from_config_path(
+        cls: Type[DS], path: str, collect: bool = True, prepare: bool = False
+    ) -> DS:
         """
         Reads path to <config>.toml
         Converts into DataSourceConfig
@@ -92,7 +92,7 @@ class DataSet:
         """
         return cls(DataSetWrapper.from_frame(df, measures, build_params), prepared)
 
-    def prepare(self, collect = True) -> None:
+    def prepare(self, collect: bool = True) -> None:
         """Does nothing unless overriden. To be used for one of computations.
             eg Weights Assignments
 
@@ -121,8 +121,9 @@ class DataSet:
         vec_srs = self._ds.frame()
         return pl.DataFrame(vec_srs)
 
-    def compute(self, req: "dict[Any, Any]|uli.ComputeRequest", 
-                streaming: bool = False) -> pl.DataFrame:
+    def compute(
+        self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False
+    ) -> pl.DataFrame:
         """Make sure that requested groupby and filters exist in self.columns,
         Make sure that requested measures exist in self.measures
         Make sure that aggregation type for a measure is selected properly
@@ -140,14 +141,16 @@ class DataSet:
 
         if isinstance(req, dict):
             req = uli.ComputeRequest(req)
-        
+
         vec_srs = self._ds.compute(req._ar, streaming)
 
         return pl.DataFrame(vec_srs)
-    
-    def execute(self, req: "dict[Any, Any]|uli.ComputeRequest", 
-                streaming: bool = False) -> pl.DataFrame:
+
+    def execute(
+        self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False
+    ) -> pl.DataFrame:
         from warnings import warn
+
         warn("use .compute() instead")
         return self.compute(req, streaming)
 
@@ -156,10 +159,12 @@ class FRTBDataSet(DataSet):
     """FRTB flavour of DataSet"""
 
     @classmethod
-    def from_config_path(cls: Type[DS], path: str,
-                         collect = True, prepare = False) -> DS:
-        return cls(DataSetWrapper.frtb_from_config_path(path, collect, prepare), 
-                   prepare)
+    def from_config_path(
+        cls: Type[DS], path: str, collect: bool = True, prepare: bool = False
+    ) -> DS:
+        return cls(
+            DataSetWrapper.frtb_from_config_path(path, collect, prepare), prepare
+        )
 
     @classmethod
     def from_frame(
@@ -169,5 +174,4 @@ class FRTBDataSet(DataSet):
         build_params: "dict[str, str] | None" = None,
         prepared: bool = False,
     ) -> DS:
-        return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), 
-                   prepared)
+        return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)

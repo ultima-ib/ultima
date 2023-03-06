@@ -7,9 +7,9 @@ they all import from each other via this __init__ file using
 """
 
 from ..rust_module.ultima_pyengine import NoDataError, OtherError
-from .requests import AggRequest, aggregation_ops, ComputeRequest
 from .dataset import DS, DataSet, FRTBDataSet
 from .execute import execute_agg
+from .requests import AggRequest, ComputeRequest, aggregation_ops
 
 __all__ = [
     "execute_agg",

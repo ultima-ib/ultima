@@ -1,6 +1,6 @@
 //! Main testing module for the DataSet and measures
 
-use base_engine::{ComputeRequest, DataSet};
+use ultibi::{ComputeRequest, DataSet};
 mod common;
 
 #[test]

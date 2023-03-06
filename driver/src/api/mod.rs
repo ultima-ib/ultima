@@ -29,7 +29,7 @@ use std::{
 };
 use tokio::task;
 
-use base_engine::{
+use ultibi::{
     aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
     AggregationRequest, DataFrame, DataSet,
 };
@@ -75,7 +75,7 @@ async fn column_search(
         let lf = d.get_lazyframe();
         let df = lf.clone().select([col(&column_name)]).collect()?;
         let srs = df.column(&column_name)?;
-        let search = base_engine::helpers::searches::filter_contains_unique(srs, &pat)?;
+        let search = ultibi::helpers::searches::filter_contains_unique(srs, &pat)?;
         let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
@@ -126,14 +126,14 @@ async fn execute(
         // Work in progress
         if cfg!(cache) {
             #[cfg(feature = "cache")]
-            return base_engine::execute_agg_with_cache::execute_with_cache(
+            return ultibi::execute_agg_with_cache::execute_with_cache(
                 &r,
                 &*Arc::clone(data.get_ref()),
                 cfg!(feature = "streaming"),
             );
             Err(PolarsError::NoData("Cache must be enabled.".into()))
         } else {
-            base_engine::exec_agg(&*Arc::clone(data.get_ref()), r, cfg!(feature = "streaming"))
+            ultibi::exec_agg(&*Arc::clone(data.get_ref()), r, cfg!(feature = "streaming"))
         }
     })
     .await

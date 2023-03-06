@@ -1,7 +1,7 @@
 //! Totals across different Risk Classes
 
-use base_engine::polars::lazy::dsl::{col, max_exprs, Expr};
-use base_engine::{BaseMeasure, DependantMeasure, Measure, PolarsResult, CPM};
+use ultibi::polars::lazy::dsl::{col, max_exprs, Expr};
+use ultibi::{BaseMeasure, DependantMeasure, Measure, PolarsResult, CPM};
 
 use super::commodity::totals::*;
 use super::csr_nonsec::totals::*;
@@ -213,23 +213,13 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                 ),
             ],
         }),
-
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge".to_string(),
             calculator: Box::new(sbm_charge_test),
             depends_upon: vec![
-                (
-                    "SBM Charge Low".to_string(),
-                    "scalar".to_string(),
-                ),
-                (
-                    "SBM Charge Medium".to_string(),
-                    "scalar".to_string(),
-                ),
-                (
-                    "SBM Charge High".to_string(),
-                    "scalar".to_string(),
-                ),
+                ("SBM Charge Low".to_string(), "scalar".to_string()),
+                ("SBM Charge Medium".to_string(), "scalar".to_string()),
+                ("SBM Charge High".to_string(), "scalar".to_string()),
             ],
         }),
     ]

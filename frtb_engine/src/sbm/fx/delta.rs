@@ -8,7 +8,7 @@ use crate::{
     prelude::*,
     sbm::common::{across_bucket_agg, SBMChargeType},
 };
-use base_engine::{
+use ultibi::{
     polars::prelude::{
         apply_multiple, df, max_exprs, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
         PolarsError, Utf8NameSpaceImpl,

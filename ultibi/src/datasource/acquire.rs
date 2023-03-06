@@ -7,12 +7,16 @@ use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 /// TODO: calls .validate()
 ///
 /// Then .prepare()
-/// 
+///
 /// If streaming is False - also collects
-/// 
+///
 /// *`collect` - indicates if DF should be collected
 #[allow(clippy::uninlined_format_args)]
-pub fn build_validate_prepare<DS: DataSet>(config_path: &str, collect: bool, prepare: bool) -> impl DataSet {
+pub fn build_validate_prepare<DS: DataSet>(
+    config_path: &str,
+    collect: bool,
+    prepare: bool,
+) -> impl DataSet {
     // Read Config
     let conf = read_toml2::<DataSourceConfig>(config_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
@@ -39,7 +43,7 @@ pub fn build_validate_prepare<DS: DataSet>(config_path: &str, collect: bool, pre
     if prepare {
         data.prepare().expect("Failed to Prepare Frame");
     }
-    
+
     if collect {
         let now = Instant::now();
         data.collect().expect("Failed to Prepare Frame");

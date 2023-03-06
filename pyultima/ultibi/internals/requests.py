@@ -3,8 +3,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..rust_module.ultima_pyengine import (ComputeRequestWrapper,
-    AggregationRequestWrapper, agg_ops)
+from ..rust_module.ultima_pyengine import (
+    AggregationRequestWrapper,
+    ComputeRequestWrapper,
+    agg_ops,
+)
 
 
 def aggregation_ops() -> list[str]:
@@ -41,7 +44,6 @@ class AggRequest:
         self,
         data: "dict[Any, Any] | str",
     ) -> None:
-
         if isinstance(data, dict):
             jason_str = json.dumps(data)
             self._ar = AggregationRequestWrapper.from_str(jason_str)
@@ -59,6 +61,7 @@ class AggRequest:
 
     def __repr__(self) -> str:
         return self.__str__()
+
 
 class ComputeRequest:
     """
@@ -80,13 +83,13 @@ class ComputeRequest:
     >>> ar = ul.ComputeRequest(request_as_dict)
 
     """
+
     cr: ComputeRequestWrapper
 
     def __init__(
         self,
         data: "dict[Any, Any] | str",
     ) -> None:
-
         if isinstance(data, dict):
             json_str = json.dumps(data)
             self._ar = ComputeRequestWrapper.from_str(json_str)

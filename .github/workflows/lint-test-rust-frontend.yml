@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - 'base_engine/**'
+      - 'ultibi/**'
       - 'frtb_engine/**'
       - 'frontend/**'
       - '.github/workflows/lint-test-rust-frontend.yaml'  

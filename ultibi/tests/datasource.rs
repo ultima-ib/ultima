@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use base_engine::{read_toml2, DataSet, DataSetBase, DataSourceConfig};
+use ultibi::{read_toml2, DataSet, DataSetBase, DataSourceConfig};
 
 #[test]
 fn toml2config() {

@@ -5,7 +5,7 @@ on:
   pull_request:
     paths:
       - 'pyultima/**'
-      - 'base_engine/**'
+      - 'ultibi/**'
       - 'frtb_engine/**'
       - '.github/workflows/test-python.yaml'
 #  push:

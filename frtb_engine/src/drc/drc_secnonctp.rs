@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use base_engine::{
+use ultibi::{
     polars::prelude::{apply_multiple, df, ChunkApply, DataType, GetOutput, IntoSeries},
     BaseMeasure, IntoLazy, CPM,
 };

@@ -1,10 +1,10 @@
 mod common;
 
-use base_engine::DataSet;
+use ultibi::DataSet;
 
 #[test]
 fn sa_charge() {
-    use base_engine::{AggregationRequest, ComputeRequest};
+    use ultibi::{AggregationRequest, ComputeRequest};
 
     let request = r#"
     {"measures": [
@@ -18,7 +18,7 @@ fn sa_charge() {
             
     }"#;
     let data_req =
-    serde_json::from_str::<AggregationRequest>(request).expect("Could not parse request");
+        serde_json::from_str::<AggregationRequest>(request).expect("Could not parse request");
 
     let compute_req = ComputeRequest::Aggregation(data_req);
 

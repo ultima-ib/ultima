@@ -5,8 +5,6 @@
 use crate::helpers::first_appearance;
 use crate::prelude::get_optional_parameter;
 use crate::statics::MEDIUM_CORR_SCENARIO;
-use base_engine::{col, CPM};
-use base_engine::{BaseMeasure, Measure, PolarsResult};
 use polars::lazy::dsl::apply_multiple;
 use polars::{
     df,
@@ -16,6 +14,8 @@ use polars::{
     },
     series::Series,
 };
+use ultibi::{col, CPM};
+use ultibi::{BaseMeasure, Measure, PolarsResult};
 
 pub(crate) fn exotic_notional(_: &CPM) -> PolarsResult<Expr> {
     Ok(rrao_weighted_notional(None, "EXOTIC_RRAO"))

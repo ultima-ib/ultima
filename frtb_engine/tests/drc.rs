@@ -1,7 +1,7 @@
 mod common;
-use base_engine::DataSet;
 use common::*;
 use ndarray::arr1;
+use ultibi::DataSet;
 
 #[test]
 fn drc_nonsec() {
@@ -145,7 +145,7 @@ fn drc_bcbs_with_overrides_eq_crr2() {
 
 #[test]
 fn drc_charge() {
-    use base_engine::{AggregationRequest, ComputeRequest};
+    use ultibi::{AggregationRequest, ComputeRequest};
 
     let request = r#"
     {"measures": [
@@ -159,7 +159,7 @@ fn drc_charge() {
             
     }"#;
     let data_req =
-    serde_json::from_str::<AggregationRequest>(request).expect("Could not parse request");
+        serde_json::from_str::<AggregationRequest>(request).expect("Could not parse request");
 
     let compute_req = ComputeRequest::Aggregation(data_req);
 

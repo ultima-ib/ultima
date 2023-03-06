@@ -1,8 +1,8 @@
 //! Server side entry point
 //! This to be conversted into server
 
-use base_engine::AggregationRequest;
 use clap::Parser;
+use ultibi::AggregationRequest;
 //use base_engine::prelude::*;
 use driver::helpers::{acquire, cli::CliOnce};
 
@@ -27,7 +27,7 @@ static ALLOC: MiMalloc = MiMalloc;
 #[cfg(feature = "FRTB")]
 pub type DataSetType = frtb_engine::FRTBDataSet;
 #[cfg(not(feature = "FRTB"))]
-pub type DataSetType = base_engine::DataSetBase;
+pub type DataSetType = ultibi::DataSetBase;
 
 #[allow(clippy::uninlined_format_args)]
 fn main() -> anyhow::Result<()> {
@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
         //let rqst_str = serde_json::to_string(&request);
         info!("{:?}", request);
         let now = Instant::now();
-        match base_engine::exec_agg(
+        match ultibi::exec_agg(
             &*Arc::clone(&arc_data),
             request,
             cfg!(feature = "streaming"),

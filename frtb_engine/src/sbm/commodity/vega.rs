@@ -1,5 +1,5 @@
 use crate::{prelude::*, sbm::equity::vega::equity_vega_charge};
-use base_engine::{polars::prelude::max_exprs, BaseMeasure, CPM};
+use ultibi::{polars::prelude::max_exprs, BaseMeasure, CPM};
 
 pub fn total_com_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     Ok(rc_rcat_sens("Vega", "Commodity", total_vega_curv_sens()))

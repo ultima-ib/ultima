@@ -1,9 +1,9 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
-use base_engine::{PolarsResult, CPM};
 use ndarray::Array2;
 use polars::prelude::{BooleanType, ChunkedArray, PolarsError, Utf8Type};
 use serde::{Deserialize, Serialize};
+use ultibi::{PolarsResult, CPM};
 
 use crate::prelude::Jurisdiction;
 

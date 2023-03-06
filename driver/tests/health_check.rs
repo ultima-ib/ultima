@@ -9,7 +9,7 @@
 
 use std::{net::TcpListener, sync::Arc};
 
-use base_engine::DataSetBase;
+use ultibi::DataSetBase;
 
 #[tokio::test]
 async fn health_check_works() {

@@ -1,14 +1,14 @@
 use std::time::Instant;
 
-use base_engine::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 use log::info;
+use ultibi::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 
 /// Reads initial DataSet from Source
 ///
 /// TODO: calls .validate()
 ///
 /// Then .prepare()
-/// 
+///
 /// If streaming is False - also collects
 #[allow(clippy::uninlined_format_args)]
 pub fn data<DS: DataSet>(config_path: &str, streaming: bool) -> impl DataSet {

@@ -1,7 +1,7 @@
 //! Totals across different Risk Classes
 
-use base_engine::polars::lazy::dsl::{col, max_exprs, Expr};
-use base_engine::{BaseMeasure, DependantMeasure, Measure, PolarsResult, CPM};
+use ultibi::polars::lazy::dsl::{col, max_exprs, Expr};
+use ultibi::{BaseMeasure, DependantMeasure, Measure, PolarsResult, CPM};
 
 use super::commodity::totals::*;
 use super::csr_nonsec::totals::*;
@@ -68,7 +68,6 @@ pub(crate) fn sbm_charge(op: &CPM) -> PolarsResult<Expr> {
 }
 
 // Testing Dependant Measures
-
 fn sbm_charge_low_dep_test(_: &CPM) -> PolarsResult<Expr> {
     Ok(col("FX TotalCharge Low")
         + col("GIRR TotalCharge Low")
@@ -108,21 +107,21 @@ pub(crate) fn sbm_charge_test(_: &CPM) -> PolarsResult<Expr> {
 
 pub(crate) fn sbm_total_measures() -> Vec<Measure> {
     let sbm_charge_low = Measure::Base(BaseMeasure {
-        name: "SBM Charge Low".to_string(),
+        name: "SBM Charge Low Test".to_string(),
         calculator: Box::new(sbm_charge_low),
         aggregation: Some("scalar"),
         precomputefilter: None,
     });
 
     let sbm_charge_medium = Measure::Base(BaseMeasure {
-        name: "SBM Charge Medium".to_string(),
+        name: "SBM Charge Medium Test".to_string(),
         calculator: Box::new(sbm_charge_medium),
         aggregation: Some("scalar"),
         precomputefilter: None,
     });
 
     let sbm_charge_high = Measure::Base(BaseMeasure {
-        name: "SBM Charge High".to_string(),
+        name: "SBM Charge High Test".to_string(),
         calculator: Box::new(sbm_charge_high),
         aggregation: Some("scalar"),
         precomputefilter: None,
@@ -133,63 +132,95 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
         sbm_charge_medium,
         sbm_charge_high,
         Measure::Base(BaseMeasure {
-            name: "SBM Charge".to_string(),
+            name: "SBM Charge Test".to_string(),
             calculator: Box::new(sbm_charge),
             aggregation: Some("scalar"),
             precomputefilter: None,
         }),
         // Testing dependency
         Measure::Dependant(DependantMeasure {
-            name: "SBM Charge Medium Dependant Test".to_string(),
-            calculator: Box::new(sbm_charge_low_dep_test),
-            depends_upon: vec![
-                ("FX TotalCharge Medium", "scalar"),
-                ("GIRR TotalCharge Medium", "scalar"),
-                ("EQ TotalCharge Medium", "scalar"),
-                ("CSR Sec nonCTP TotalCharge Medium", "scalar"),
-                ("CSR nonSec TotalCharge Medium", "scalar"),
-                ("CSR secCTP TotalCharge Medium", "scalar"),
-                ("Commodity TotalCharge Medium", "scalar"),
-            ],
-            aggregation: Some("scalar"),
-        }),
-        Measure::Dependant(DependantMeasure {
-            name: "SBM Charge Low Dependant Test".to_string(),
+            name: "SBM Charge Medium".to_string(),
             calculator: Box::new(sbm_charge_medium_dep_test),
             depends_upon: vec![
-                ("FX TotalCharge Low", "scalar"),
-                ("GIRR TotalCharge Low", "scalar"),
-                ("EQ TotalCharge Low", "scalar"),
-                ("CSR Sec nonCTP TotalCharge Low", "scalar"),
-                ("CSR nonSec TotalCharge Low", "scalar"),
-                ("CSR secCTP TotalCharge Low", "scalar"),
-                ("Commodity TotalCharge Low", "scalar"),
+                ("FX TotalCharge Medium".to_string(), "scalar".to_string()),
+                ("GIRR TotalCharge Medium".to_string(), "scalar".to_string()),
+                ("EQ TotalCharge Medium".to_string(), "scalar".to_string()),
+                (
+                    "CSR Sec nonCTP TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR nonSec TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR secCTP TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "Commodity TotalCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
             ],
-            aggregation: Some("scalar"),
         }),
         Measure::Dependant(DependantMeasure {
-            name: "SBM Charge High Dependant Test".to_string(),
+            name: "SBM Charge Low".to_string(),
+            calculator: Box::new(sbm_charge_low_dep_test),
+            depends_upon: vec![
+                ("FX TotalCharge Low".to_string(), "scalar".to_string()),
+                ("GIRR TotalCharge Low".to_string(), "scalar".to_string()),
+                ("EQ TotalCharge Low".to_string(), "scalar".to_string()),
+                (
+                    "CSR Sec nonCTP TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR nonSec TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR secCTP TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "Commodity TotalCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+            ],
+        }),
+        Measure::Dependant(DependantMeasure {
+            name: "SBM Charge High".to_string(),
             calculator: Box::new(sbm_charge_high_dep_test),
             depends_upon: vec![
-                ("FX TotalCharge High", "scalar"),
-                ("GIRR TotalCharge High", "scalar"),
-                ("EQ TotalCharge High", "scalar"),
-                ("CSR Sec nonCTP TotalCharge High", "scalar"),
-                ("CSR nonSec TotalCharge High", "scalar"),
-                ("CSR secCTP TotalCharge High", "scalar"),
-                ("Commodity TotalCharge High", "scalar"),
+                ("FX TotalCharge High".to_string(), "scalar".to_string()),
+                ("GIRR TotalCharge High".to_string(), "scalar".to_string()),
+                ("EQ TotalCharge High".to_string(), "scalar".to_string()),
+                (
+                    "CSR Sec nonCTP TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR nonSec TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR secCTP TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "Commodity TotalCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
             ],
-            aggregation: Some("scalar"),
         }),
         Measure::Dependant(DependantMeasure {
-            name: "SBM Charge Dependant Test".to_string(),
+            name: "SBM Charge".to_string(),
             calculator: Box::new(sbm_charge_test),
             depends_upon: vec![
-                ("SBM Charge Low Dependant Test", "scalar"),
-                ("SBM Charge Medium Dependant Test", "scalar"),
-                ("SBM Charge High Dependant Test", "scalar"),
+                ("SBM Charge Low".to_string(), "scalar".to_string()),
+                ("SBM Charge Medium".to_string(), "scalar".to_string()),
+                ("SBM Charge High".to_string(), "scalar".to_string()),
             ],
-            aggregation: Some("scalar"),
         }),
     ]
 }

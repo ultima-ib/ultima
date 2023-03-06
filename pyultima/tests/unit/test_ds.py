@@ -7,7 +7,6 @@ import ultibi as ul
 
 class TestCreation(unittest.TestCase):
     def test_frtbds_from_config(self) -> None:
-
         dataset = ul.FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
 
         frame = dataset.frame()

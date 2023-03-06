@@ -1,11 +1,12 @@
 use crate::helpers::{get_optional_parameter, get_optional_parameter_array, ReturnMetric};
 use crate::prelude::*;
 use crate::sbm::common::{across_bucket_agg, rc_rcat_sens, total_vega_curv_sens, SBMChargeType};
-use base_engine::{
+use ndarray::{Array1, Array2, Axis};
+use ultibi::{
     polars::prelude::{apply_multiple, df, max_exprs, DataType, Float64Type, GetOutput},
     CPM,
 };
-use ndarray::{Array1, Array2, Axis};
+use ultibi::{BaseMeasure, IntoLazy};
 
 pub fn total_fx_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     Ok(rc_rcat_sens("Vega", "FX", total_vega_curv_sens()))

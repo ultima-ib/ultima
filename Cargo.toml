@@ -1,9 +1,9 @@
 [workspace]
-members = ['driver', 'base_engine', 'frtb_engine', 'pyultima']
+members = ['driver', 'ultibi', 'frtb_engine', 'pyultima']
 # temporarily exclude pyultima
 # https://github.com/PyO3/maturin/issues/1374
 # Otherwise cargo chief picks it up for compilation and it fails
-default-members = ['driver', 'base_engine', 'frtb_engine']
+default-members = ['driver', 'ultibi', 'frtb_engine']
 
 [workspace.package]
 version = "0.1.0"
@@ -15,6 +15,7 @@ documentation = "https://example.com/"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 polars = { version = "0.25.1", features = [
+    "performant",
     "strings",
     "ndarray",
     "lazy",
@@ -24,6 +25,6 @@ polars = { version = "0.25.1", features = [
     "csv-file",
     "diagonal_concat",
 ] }
-toml = "0.5"
+toml = "0.7.2"
 once_cell = "1.12"
-schnellru = "0.1.1"
+dashmap = "5.4.0"

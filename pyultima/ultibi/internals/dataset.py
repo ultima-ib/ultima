@@ -24,7 +24,6 @@ class DataSet:
     prepared: bool
 
     def __init__(self, ds: DataSetWrapper, prepared: bool = False) -> None:
-
         self._ds = ds
         self.prepared = prepared
 
@@ -49,7 +48,9 @@ class DataSet:
         self.calc_params: "list[dict[str, str|None]]" = self._ds.calc_params()
 
     @classmethod
-    def from_config_path(cls: Type[DS], path: str) -> DS:
+    def from_config_path(
+        cls: Type[DS], path: str, collect: bool = True, prepare: bool = False
+    ) -> DS:
         """
         Reads path to <config>.toml
         Converts into DataSourceConfig
@@ -57,11 +58,13 @@ class DataSet:
 
         Args:
             path (str): path to <config>.toml
+            collect (str): non-lazy evaluation
+            prepare (str): calls prepare
 
         Returns:
             T: Self
         """
-        return cls(DataSetWrapper.from_config_path(path), False)
+        return cls(DataSetWrapper.from_config_path(path, collect, prepare), prepare)
 
     @classmethod
     def from_frame(
@@ -89,15 +92,18 @@ class DataSet:
         """
         return cls(DataSetWrapper.from_frame(df, measures, build_params), prepared)
 
-    def prepare(self) -> None:
+    def prepare(self, collect: bool = True) -> None:
         """Does nothing unless overriden. To be used for one of computations.
             eg Weights Assignments
+
+        Args:
+            collect (cool): non-lazy mode. Evaluates.
 
         Raises:
             OtherError: Calling prepare on an already prepared dataset
         """
         if not self.prepared:
-            self._ds.prepare()
+            self._ds.prepare(collect)
             self.prepared = True
         else:
             raise uli.OtherError("Calling prepare on an already prepared dataset")
@@ -115,31 +121,50 @@ class DataSet:
         vec_srs = self._ds.frame()
         return pl.DataFrame(vec_srs)
 
-    def execute(self, req: "dict[Any, Any]|uli.AggRequest") -> pl.DataFrame:
+    def compute(
+        self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False
+    ) -> pl.DataFrame:
         """Make sure that requested groupby and filters exist in self.columns,
         Make sure that requested measures exist in self.measures
         Make sure that aggregation type for a measure is selected properly
 
         Args:
-            req (dict[Any, Any]|uli.AggRequest): Request, to be converted
-            into AggRequest.
+            req (dict[Any, Any]|uli.ComputeRequest): Request, to be converted
+                into AggRequest.
+            streaming (bool): keep it as False unless you know what you are doing.
+                If set to true, execute will try to .prepare() for each request,
+                which will result in an error if Data has already been prepared.
 
         Returns:
             pl.DataFrame: If your request and data were constructed properly.
         """
 
         if isinstance(req, dict):
-            req = uli.AggRequest(req)
+            req = uli.ComputeRequest(req)
 
-        return uli.execute_agg(req, self)
+        vec_srs = self._ds.compute(req._ar, streaming)
+
+        return pl.DataFrame(vec_srs)
+
+    def execute(
+        self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False
+    ) -> pl.DataFrame:
+        from warnings import warn
+
+        warn("use .compute() instead")
+        return self.compute(req, streaming)
 
 
 class FRTBDataSet(DataSet):
     """FRTB flavour of DataSet"""
 
     @classmethod
-    def from_config_path(cls: Type[DS], path: str) -> DS:
-        return cls(DataSetWrapper.frtb_from_config_path(path), False)
+    def from_config_path(
+        cls: Type[DS], path: str, collect: bool = True, prepare: bool = False
+    ) -> DS:
+        return cls(
+            DataSetWrapper.frtb_from_config_path(path, collect, prepare), prepare
+        )
 
     @classmethod
     def from_frame(

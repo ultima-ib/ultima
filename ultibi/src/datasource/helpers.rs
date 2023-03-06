@@ -94,7 +94,7 @@ pub fn finish(
         let num_cols = concatinated_frame
             .schema()
             .map(numeric_columns)
-            .unwrap_or_default();
+            .expect("Check numeric columns in the config");
         derive_basic_measures_vec(num_cols)
     };
 

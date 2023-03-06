@@ -1,8 +1,8 @@
 //! Server side entry point
 //! This to be conversted into server
 
-use base_engine::AggregationRequest;
 use clap::Parser;
+use ultibi::AggregationRequest;
 //use base_engine::prelude::*;
 use driver::helpers::{acquire, cli::CliOnce};
 
@@ -27,8 +27,9 @@ static ALLOC: MiMalloc = MiMalloc;
 #[cfg(feature = "FRTB")]
 pub type DataSetType = frtb_engine::FRTBDataSet;
 #[cfg(not(feature = "FRTB"))]
-pub type DataSetType = base_engine::DataSetBase;
+pub type DataSetType = ultibi::DataSetBase;
 
+#[allow(clippy::uninlined_format_args)]
 fn main() -> anyhow::Result<()> {
     // Read .env
     // TODO in production use env variables, not .env
@@ -41,7 +42,7 @@ fn main() -> anyhow::Result<()> {
     let requests_path = cli.requests;
 
     // Build Data
-    let data = acquire::data::<DataSetType>(setup_path.as_str());
+    let data = acquire::data::<DataSetType>(setup_path.as_str(), cfg!(feature = "streaming"));
 
     let arc_data = Arc::new(data);
 
@@ -52,22 +53,22 @@ fn main() -> anyhow::Result<()> {
 
     // From here we do not panic
     for request in requests {
-        let rqst_str = serde_json::to_string(&request);
-        info!("{:?}", rqst_str);
+        //let rqst_str = serde_json::to_string(&request);
+        info!("{:?}", request);
         let now = Instant::now();
-        match base_engine::execute_aggregation(
-            &request,
+        match ultibi::exec_agg(
             &*Arc::clone(&arc_data),
+            request,
             cfg!(feature = "streaming"),
         ) {
             Err(e) => {
-                error!("On request: {:?}, Application error: {:#?}", rqst_str, e);
+                error!("Application error: {:#?}", e);
                 continue;
             }
 
             Ok(df) => {
                 let elapsed = now.elapsed();
-                println!("result: {:?}", df);
+                println!("result: {df}");
                 println!("Time to Compute: {:.6?}", elapsed);
             }
         }

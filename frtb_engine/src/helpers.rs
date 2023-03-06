@@ -1,9 +1,9 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
-use base_engine::{PolarsResult, CPM};
 use ndarray::Array2;
 use polars::prelude::{BooleanType, ChunkedArray, PolarsError, Utf8Type};
 use serde::{Deserialize, Serialize};
+use ultibi::{PolarsResult, CPM};
 
 use crate::prelude::Jurisdiction;
 
@@ -66,8 +66,8 @@ where
 }
 
 /// we need to assert arr shape, so we have a separate func for arrs
-pub(crate) fn get_optional_parameter_array<'a>(
-    op: &'a CPM,
+pub(crate) fn get_optional_parameter_array(
+    op: &CPM,
     param: &str,
     default: &Array2<f64>,
 ) -> PolarsResult<Array2<f64>> {

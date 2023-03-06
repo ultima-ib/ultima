@@ -1,6 +1,6 @@
 import polars as pl
 
-from ultibi.internals.agg_request import AggRequest
+from pyultima.ultibi.internals.requests import AggRequest  # type: ignore[import]
 from ultibi.internals.dataset import DataSet, FRTBDataSet
 from ultibi.internals.execute import execute_agg
 

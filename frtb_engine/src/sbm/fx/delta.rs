@@ -8,12 +8,12 @@ use crate::{
     prelude::*,
     sbm::common::{across_bucket_agg, SBMChargeType},
 };
-use base_engine::{
+use ultibi::{
     polars::prelude::{
         apply_multiple, df, max_exprs, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
         PolarsError, Utf8NameSpaceImpl,
     },
-    CPM,
+    BaseMeasure, IntoLazy, CPM,
 };
 
 /// This works for cases like GBP reporting with BCBS params

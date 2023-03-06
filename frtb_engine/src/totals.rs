@@ -1,20 +1,20 @@
-use base_engine::polars::prelude::Expr;
-use base_engine::{BaseMeasure, Measure, PolarsResult, CPM};
+use ultibi::polars::lazy::dsl::col;
+use ultibi::polars::prelude::Expr;
+use ultibi::{DependantMeasure, Measure, PolarsResult, CPM};
 
-use crate::drc::totals::drc_charge;
-use crate::rrao::rrao_charge;
-use crate::sbm::totals::sbm_charge;
-
-// TODO add DRC Sec CTP
-fn sa_charge(op: &CPM) -> PolarsResult<Expr> {
-    Ok(sbm_charge(op)? + drc_charge(op)? + rrao_charge(op)?)
+// TODO NOTE: add DRC Sec CTP - currently missing
+fn sa_charge(_: &CPM) -> PolarsResult<Expr> {
+    Ok(col("SBM Charge") + col("DRC Charge") + col("RRAO Charge"))
 }
 
 pub(crate) fn sa_total_measures() -> Vec<Measure> {
-    vec![Measure::Base(BaseMeasure {
+    vec![Measure::Dependant(DependantMeasure {
         name: "SA Charge".to_string(),
         calculator: Box::new(sa_charge),
-        aggregation: Some("scalar"),
-        precomputefilter: None,
+        depends_upon: vec![
+            ("SBM Charge".to_string(), "scalar".to_string()),
+            ("DRC Charge".to_string(), "scalar".to_string()),
+            ("RRAO Charge".to_string(), "scalar".to_string()),
+        ],
     })]
 }

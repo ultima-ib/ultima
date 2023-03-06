@@ -3,11 +3,15 @@
 #![doc(html_no_source)]
 
 pub mod add_row;
-pub mod api;
+pub mod aggregations;
+pub mod cache;
 mod datarequest;
 pub mod dataset;
 mod datasource;
+pub mod errors;
+pub mod execution;
 mod filters;
+pub mod helpers;
 mod measure;
 pub mod overrides;
 pub mod prelude;

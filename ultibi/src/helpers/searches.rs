@@ -3,6 +3,9 @@ use polars::{
     series::Series,
 };
 
+/// Helper function - used for search within a column
+/// Filters Series by `pat`
+/// Returns unique values
 pub fn filter_contains_unique(srs: &Series, pat: &str) -> PolarsResult<Series> {
     let mask = srs
         .utf8()?

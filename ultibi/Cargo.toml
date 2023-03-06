@@ -1,5 +1,5 @@
 [package]
-name = "base_engine"
+name = "ultibi"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 polars = { workspace = true, features = [
+    "performant",
     "strings",
     "ndarray",
     "lazy",
@@ -28,9 +29,10 @@ aws-sdk-s3 = { version = "0.19.0", optional = true }
 tokio = { version = "1.21.2", features = ["rt-multi-thread"], optional = true }
 futures = { version = "0.3", optional = true }
 #Cache
-schnellru = { workspace = true, optional = true }
+#May be make optional
+dashmap = { workspace = true }
 
 [features]
 default = []
 aws_s3 = ["dep:aws-config", "dep:aws-sdk-s3", "dep:tokio", "dep:futures"]
-cache = ["dep:schnellru"]
+# cache = ["dep:dashmap"]

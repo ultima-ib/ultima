@@ -5,12 +5,12 @@ use crate::drc::drc_weights;
 use crate::prelude::sbm::{common::option_maturity_rho, girr::vega::girr_vega_rho};
 use crate::sbm::girr::delta::girr_corr_matrix;
 
-use base_engine::polars::export::num::Float;
-use base_engine::polars::prelude::DataFrame;
 use ndarray::{s, Array1, Array2, Axis};
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use strum::EnumString;
+use ultibi::polars::export::num::Float;
+use ultibi::polars::prelude::DataFrame;
 
 pub static MEDIUM_CORR_SCENARIO: Lazy<ScenarioConfig> = Lazy::new(|| {
     let girr_delta_rho_same_curve = girr_corr_matrix();

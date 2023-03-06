@@ -2,10 +2,10 @@ use std::net::SocketAddr;
 use std::{env, fs};
 use std::{net::TcpListener, sync::Arc};
 
-use base_engine::AggregationRequest;
 use clap::Parser;
 use driver::api::run_server;
 use driver::helpers::{acquire, cli::CliServer};
+use ultibi::AggregationRequest;
 //use log::info;
 
 #[cfg(target_os = "linux")]
@@ -24,7 +24,7 @@ static ALLOC: MiMalloc = MiMalloc;
 #[cfg(feature = "FRTB")]
 pub type DataSetType = frtb_engine::FRTBDataSet;
 #[cfg(not(feature = "FRTB"))]
-pub type DataSetType = base_engine::DataSetBase;
+pub type DataSetType = ultibi::DataSetBase;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -49,7 +49,7 @@ async fn main() -> std::io::Result<()> {
         .or_else(|| Some(([127, 0, 0, 1], 8080).into())) // Finaly, this default
         .expect("can't parse ADDRES variable");
 
-    let data = acquire::data::<DataSetType>(setup_path.as_str());
+    let data = acquire::data::<DataSetType>(setup_path.as_str(), cfg!(feature = "streaming"));
 
     let listener = TcpListener::bind(addr).expect("Failed to bind random port");
 

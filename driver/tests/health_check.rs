@@ -9,7 +9,7 @@
 
 use std::{net::TcpListener, sync::Arc};
 
-use base_engine::DataSetBase;
+use ultibi::DataSetBase;
 
 #[tokio::test]
 async fn health_check_works() {
@@ -30,6 +30,7 @@ async fn health_check_works() {
 }
 
 // Launch our application in the background(via tokio::spawn)
+#[allow(clippy::let_underscore_future)]
 fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     // We retrieve the port assigned to us by the OS
@@ -38,5 +39,5 @@ fn spawn_app() -> String {
     let server = driver::api::run_server(listener, ds, vec![]).expect("Failed to bind address");
     let _ = tokio::spawn(server);
     // We return the application address to the caller!
-    format!("http://127.0.0.1:{}", port)
+    format!("http://127.0.0.1:{port}")
 }

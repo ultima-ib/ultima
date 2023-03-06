@@ -4,13 +4,14 @@ use crate::sbm::common::{
     across_bucket_agg, option_maturity_rho, rc_rcat_sens, rc_tenor_weighted_sens,
     total_vega_curv_sens, SBMChargeType,
 };
-use base_engine::{
+use ultibi::{
     polars::prelude::{
         apply_multiple, col, df, lit, max_exprs, ChunkCompare, DataType, Float64Type, GetOutput,
         TakeRandom,
     },
     CPM,
 };
+use ultibi::{BaseMeasure, DataFrame, IntoLazy};
 
 #[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;

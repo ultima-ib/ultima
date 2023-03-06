@@ -18,10 +18,14 @@ mod risk_weights_crr2;
 pub mod statics;
 mod validate;
 
+use ultibi::cache::{Cache, CacheableDataSet};
+use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, ValidateSet, CPM};
 //use crate::drc::drc_weights;
-use base_engine::polars::prelude::{when, AnyValue, LazyFrame, LiteralValue, NamedFrom, Series};
-use base_engine::prelude::*;
 use prelude::calc_params::FRTB_CALC_PARAMS;
+use ultibi::polars::prelude::{
+    col, lit, when, AnyValue, Expr, LazyFrame, Literal, LiteralValue, NamedFrom, PolarsResult,
+    Series, NULL,
+};
 //use polars:: series::Series, lazy::dsl::when};
 use prelude::{drc::common::drc_scalinng, frtb_measure_vec};
 use risk_weights::*;
@@ -33,7 +37,7 @@ pub struct FRTBDataSet {
     pub frame: LazyFrame,
     pub measures: MeasuresMap,
     pub build_params: BTreeMap<String, String>,
-    //pub calc_params: Vec<CalcParameter>
+    pub cache: Cache,
 }
 impl FRTBDataSet {
     /// Helper function which appends bespoke measures to self.measures
@@ -47,50 +51,35 @@ impl FRTBDataSet {
 }
 
 impl DataSet for FRTBDataSet {
+    fn as_cacheable(&self) -> Option<&dyn CacheableDataSet> {
+        Some(self)
+    }
+
     fn get_lazyframe(&self) -> &LazyFrame {
         &self.frame
-    }
-    fn get_lazyframe_owned(self) -> LazyFrame {
-        self.frame
     }
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
         self.frame = lf;
     }
-    fn set_lazyframe(self, lf: LazyFrame) -> Self
-    where
-        Self: Sized,
-    {
-        Self {
-            frame: lf,
-            measures: self.measures,
-            build_params: self.build_params,
-        }
-    }
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
-    }
-    fn get_measures_owned(self) -> MeasuresMap {
-        self.measures
     }
     fn calc_params(&self) -> Vec<CalcParameter> {
         FRTB_CALC_PARAMS.clone()
     }
 
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {
+    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {
         let mut res = Self {
             frame,
             measures: mm,
             build_params,
+            cache: Cache::default(),
         };
         res.with_measures(frtb_measure_vec());
         res
     }
 
-    fn collect(self) -> PolarsResult<Self> {
-        let lf = self.frame.collect()?.lazy();
-        Ok(Self { frame: lf, ..self })
-    }
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
     fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
@@ -208,15 +197,11 @@ impl DataSet for FRTBDataSet {
         //    .collect()
         //    .expect("Failed to unwrap tmp_frame while .prepare()");
         //lf1 = tmp_frame.lazy()
-        lf1 = lf1.with_columns(&[
-            drc_scalinng(
-                self.build_params
-                    .get("DayCountConvention"),
-                self.build_params.get("DateFormat"),
-            )
-            .alias("ScaleFactor"),
-            //drc_seniority().alias("SeniorityRank"),
-        ]);
+        lf1 = lf1.with_columns(&[drc_scalinng(
+            self.build_params.get("DayCountConvention"),
+            self.build_params.get("DateFormat"),
+        )
+        .alias("ScaleFactor")]);
 
         // DRC Seniority
         lf1 = drc::drc_weights::with_drc_seniority(lf1);
@@ -256,5 +241,11 @@ impl DataSet for FRTBDataSet {
         } else {
             validate::validate_frame(self.get_lazyframe(), csrnonsec_covered_bond_15, v)
         }
+    }
+}
+
+impl CacheableDataSet for FRTBDataSet {
+    fn get_cache(&self) -> &Cache {
+        &self.cache
     }
 }

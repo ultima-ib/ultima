@@ -1,9 +1,12 @@
 use crate::prelude::*;
-use base_engine::polars::prelude::{
-    apply_multiple, df, max_exprs, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
-    GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
-};
 use ndarray::{Array1, Array2};
+use ultibi::{
+    polars::prelude::{
+        apply_multiple, df, max_exprs, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
+        GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
+    },
+    BaseMeasure, IntoLazy, CPM,
+};
 
 use super::delta::ccy_regex;
 
@@ -48,7 +51,6 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
         risk
     } else {
         apply_multiple(
-        
             |columns| {
                 let mult: Vec<f64> = vec![1.; columns[0].len()];
                 let mult = Float64Chunked::from_vec("multiplicator", mult);
@@ -58,7 +60,7 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
             },
             &[risk, col("FxCurvDivEligibility")],
             GetOutput::from_type(DataType::Float64),
-            false
+            false,
         )
     }
 }
@@ -168,7 +170,7 @@ fn fx_curvature_charge(
                     fx_cvr_up_down(div, cvr_down_spot()).sum().alias("cvr_down"),
                 ])
                 .collect()?;
-            
+
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {
                 return Ok(Series::new("res", [kb_plus.iter().sum::<f64>()]));

@@ -1,6 +1,6 @@
 //! This file defines all the measures, associated with this library
 
-use base_engine::{BaseMeasure, Measure};
+use ultibi::{BaseMeasure, Measure};
 
 use crate::sbm::common::sens_weights;
 

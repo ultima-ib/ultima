@@ -1,6 +1,6 @@
 use crate::{prelude::*, sbm::csr_nonsec::curvature::csrnonsec_curvature_charge};
-use base_engine::prelude::CPM;
 use polars::prelude::*;
+use ultibi::{prelude::CPM, BaseMeasure};
 
 pub fn csr_sec_nonctp_curv_delta(_: &CPM) -> PolarsResult<Expr> {
     Ok(curv_delta_5("CSR_Sec_nonCTP"))

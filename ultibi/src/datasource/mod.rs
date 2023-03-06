@@ -7,6 +7,7 @@ use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::Measure;
+pub mod acquire;
 pub mod helpers;
 use helpers::{empty_frame, finish, path_to_lf};
 
@@ -209,7 +210,7 @@ impl DataSourceConfig {
                         std::mem::swap(path_str, &mut new_path_str);
 
                         if !PathBuf::from(&path_str).exists() {
-                            panic!("Nonxisted path: {path_str}");
+                            panic!("Non existend path: {path_str}");
                         }
                     }
                 });

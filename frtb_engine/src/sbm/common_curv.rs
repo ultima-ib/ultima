@@ -5,12 +5,12 @@
 
 use std::sync::{Arc, Mutex};
 
-use base_engine::{DataFrame, PolarsResult};
 use ndarray::Array2;
 use polars::lazy::dsl::{apply_multiple, col, lit, Expr, GetOutput};
 use polars::prelude::{AnyValue, ChunkAgg, ChunkSet, DataType, PolarsError};
 use polars::series::{ChunkCompare, IntoSeries, Series};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use ultibi::{DataFrame, PolarsResult};
 
 use crate::prelude::var_covar_sum_single;
 use crate::sbm::common::*;

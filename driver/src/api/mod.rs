@@ -17,7 +17,7 @@ use actix_web::{
     HttpServer,
     Responder,
     //error::InternalError, http::StatusCode,
-    Result,
+    Result, http::header::ContentType,
 };
 use actix_web_httpauth::{extractors::basic::BasicAuth, middleware::HttpAuthentication};
 use anyhow::Context;
@@ -163,7 +163,16 @@ async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
     web::Json(data.overridable_columns())
 }
 
-async fn validator(
+#[get("/")]
+async fn ui() -> impl Responder {
+    let index = include_str!(r"../../../frontend/dist/index.html");
+
+    HttpResponse::Ok()
+      .content_type(ContentType::html())
+      .body(index)
+}
+
+async fn _validator(
     req: ServiceRequest,
     creds: BasicAuth,
 ) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
@@ -193,35 +202,32 @@ pub fn run_server(
         std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
-    //let test = include_str!("../frontend/dist/index.html");
-    //let a = env!("CARGO_MANIFEST_DIR");
-    //static SETTINGS_STR: &str = include_str!("index.html");
-
     let server = HttpServer::new(move || {
-        let auth = HttpAuthentication::basic(validator);
+    //let auth = HttpAuthentication::basic(validator);
 
-        App::new()
-            .wrap(Logger::default())
-            .wrap(auth)
-            .service(
-                web::scope("/api")
-                    .service(health_check)
-                    .service(
-                        web::scope("/FRTB")
-                            .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
-                            .route("", web::post().to(execute))
-                            .service(column_search)
-                            .service(templates)
-                            .service(overridable_columns)
-                            .service(scenarios),
-                    )
-                    .route("/aggtypes", web::get().to(measures))
-                    .route("/describe", web::post().to(describe)),
-            )
-            // must be the last one
-            .service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
-            .app_data(ds.clone())
-            .app_data(_templates.clone())
+    App::new()
+        .wrap(Logger::default())
+        //.wrap(auth)
+        .service(
+            web::scope("/api")
+                .service(health_check)
+                .service(
+                    web::scope("/FRTB")
+                        .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                        .route("", web::post().to(execute))
+                        .service(column_search)
+                        .service(templates)
+                        .service(overridable_columns)
+                        .service(scenarios),
+                )
+                .route("/aggtypes", web::get().to(measures))
+                .route("/describe", web::post().to(describe)),
+        )
+        // must be the last one
+        //.service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
+        .service(ui )
+        .app_data(ds.clone())
+        .app_data(_templates.clone())
     })
     .listen(listener)?
     .run();

@@ -1,9 +1,5 @@
 name: Create Python release
 
-#on:
-#  release:
-#    types: [published]
-
 on:
   push:
       tags: ['py*.*.*'] 

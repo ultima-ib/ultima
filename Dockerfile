@@ -1,3 +1,13 @@
+FROM node:16 as frontend_builder
+WORKDIR /frontend
+RUN apt-get update && apt-get install -y nodejs
+COPY frontend/package.json .
+COPY frontend/package-lock.json .
+RUN npm install
+COPY frontend/ .
+RUN npm run build
+
+
 FROM clux/muslrust:stable AS chef
 USER root
 RUN cargo install cargo-chef
@@ -12,16 +22,6 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release --bin server --features FRTB_CRR2 --target x86_64-unknown-linux-musl
-
-
-FROM node:16 as frontend_builder
-WORKDIR /frontend
-RUN apt-get update && apt-get install -y nodejs
-COPY frontend/package.json .
-COPY frontend/package-lock.json .
-RUN npm install
-COPY frontend/ .
-RUN npm run build
 
 
 FROM alpine AS runtime

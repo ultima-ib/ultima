@@ -141,16 +141,17 @@ async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
 
 #[get("/")]
 async fn ui() -> impl Responder {
-    let index = include_str!(r"../../../frontend/dist/index.html");
+    // TODO find a better way
+    let index = include_str!(r"index.html");
 
     HttpResponse::Ok()
       .content_type(ContentType::html())
       .body(index)
 }
 
-pub fn build_app(
+pub fn build_app<DS: DataSet + 'static>(
     listener: TcpListener,
-    ds: Arc<dyn DataSet>,
+    ds: Arc<DS>,
     _templates: Vec<AggregationRequest>,
 ) -> std::io::Result<Server> {
     // Read .env

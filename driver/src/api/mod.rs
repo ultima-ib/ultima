@@ -162,7 +162,8 @@ async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
 
 #[get("/")]
 async fn ui() -> impl Responder {
-    let index = include_str!(r"../../../frontend/dist/index.html");
+    // This works but not on docker let index = include_str!(r"../../../frontend/dist/index.html");
+    let index = include_str!(r"index.html");
 
     HttpResponse::Ok()
       .content_type(ContentType::html())

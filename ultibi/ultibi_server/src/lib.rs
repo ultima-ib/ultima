@@ -13,7 +13,7 @@ mod visual;
 pub use visual::VisualDataSet;
 
 #[allow(unused_must_use)]
-fn run_server(ds: Arc<dyn DataSet>) {
+fn run_server<DS: DataSet + 'static>(ds: Arc<DS>) {
     let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
 
     //let listener = TcpListener::bind("127.0.0.1:0")

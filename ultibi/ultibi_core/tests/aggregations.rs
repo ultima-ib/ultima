@@ -1,6 +1,6 @@
 use polars::df;
 use polars::prelude::NamedFrom;
-use ultibi::{ComputeRequest, DataSet};
+use ultibi_core::{ComputeRequest, DataSet};
 
 mod common;
 

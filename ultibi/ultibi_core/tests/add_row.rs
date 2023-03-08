@@ -1,7 +1,7 @@
 mod common;
 
 mod tests {
-    use ultibi::{ComputeRequest, DataSet};
+    use ultibi_core::{ComputeRequest, DataSet};
 
     use crate::common;
     #[test]

@@ -1,4 +1,4 @@
-use ultibi::{
+use ultibi_core::{
     cache::CacheableDataSet, AggregationRequest, CacheableAggregationRequest,
     CacheableComputeRequest, ComputeRequest, DataSet,
 };

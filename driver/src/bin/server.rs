@@ -49,9 +49,7 @@ async fn main() -> std::io::Result<()> {
         .or_else(|| Some(([127, 0, 0, 1], 8080).into())) // Finaly, this default
         .expect("can't parse ADDRES variable");
 
-    let data = acquire::data::<DataSetType>(setup_path.as_str(), cfg!(feature = "streaming"));
-
     let listener = TcpListener::bind(addr).expect("Failed to bind random port");
-
+    let data = acquire::data::<DataSetType>(setup_path.as_str(), cfg!(feature = "streaming"));
     run_server(listener, Arc::new(data), _requests)?.await
 }

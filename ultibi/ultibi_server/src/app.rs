@@ -1,10 +1,5 @@
-//! This module builds App and is Server bin specific
-#[cfg(feature = "FRTB")]
-use frtb_engine::statics::MEDIUM_CORR_SCENARIO;
-
 use actix_web::{
     dev::Server,
-    dev::ServiceRequest,
     get,
     middleware::Logger,
     web::{self, Data},
@@ -16,35 +11,19 @@ use actix_web::{
     //error::InternalError, http::StatusCode,
     Result, http::header::ContentType,
 };
-use actix_web_httpauth::extractors::basic::BasicAuth;
+
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::{
     net::TcpListener,
-    path::{Path, PathBuf},
     sync::Arc,
 };
 use tokio::task;
 
-use ultibi::{
+use ultibi_core::{
     aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
     AggregationRequest, DataFrame, DataSet,
 };
-
-// use uuid::Uuid;
-// use tracing::Instrument; //enters the span we pass as argument
-// every time self, the future, is polled; it exits the span every time the future is parked.
-#[get("/scenarios/{scen}")]
-async fn scenarios(path: web::Path<String>) -> Result<HttpResponse> {
-    let scenario = path.into_inner();
-    match &scenario as &str {
-        #[cfg(feature = "FRTB")]
-        "medium" => Ok(HttpResponse::Ok().json(&*MEDIUM_CORR_SCENARIO)),
-        _ => Err(actix_web::error::ErrorBadRequest(
-            "Only medium scenario can be displayed currently",
-        )),
-    }
-}
 
 #[get("/health_check")]
 async fn health_check(_: HttpRequest) -> impl Responder {
@@ -72,7 +51,7 @@ async fn column_search(
         let lf = d.get_lazyframe();
         let df = lf.clone().select([col(&column_name)]).collect()?;
         let srs = df.column(&column_name)?;
-        let search = ultibi::helpers::searches::filter_contains_unique(srs, &pat)?;
+        let search = ultibi_core::helpers::searches::filter_contains_unique(srs, &pat)?;
         let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
@@ -130,7 +109,7 @@ async fn execute(
             );
             Err(PolarsError::NoData("Cache must be enabled.".into()))
         } else {
-            ultibi::exec_agg(&*Arc::clone(data.get_ref()), r, cfg!(feature = "streaming"))
+            ultibi_core::exec_agg(&*Arc::clone(data.get_ref()), r, cfg!(feature = "streaming"))
         }
     })
     .await
@@ -169,22 +148,7 @@ async fn ui() -> impl Responder {
       .body(index)
 }
 
-async fn _validator(
-    req: ServiceRequest,
-    creds: BasicAuth,
-) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
-    let user_id = creds.user_id();
-    let password = creds.password();
-
-    if user_id == "ultima" && password == Some("password123!!!") {
-        return Ok(req);
-    }
-    let error = actix_web::error::ErrorUnauthorized("invalid credentions!");
-    Err((error, req))
-}
-
-// TODO Why can't I use ds: impl DataSet ?
-pub fn run_server(
+pub fn build_app(
     listener: TcpListener,
     ds: Arc<dyn DataSet>,
     _templates: Vec<AggregationRequest>,
@@ -215,7 +179,6 @@ pub fn run_server(
                         .service(column_search)
                         .service(templates)
                         .service(overridable_columns)
-                        .service(scenarios),
                 )
                 .route("/aggtypes", web::get().to(measures))
                 .route("/describe", web::post().to(describe)),
@@ -229,16 +192,4 @@ pub fn run_server(
     .listen(listener)?
     .run();
     Ok(server)
-}
-
-fn _workspace_dir() -> PathBuf {
-    let output = std::process::Command::new(env!("CARGO"))
-        .arg("locate-project")
-        .arg("--workspace")
-        .arg("--message-format=plain")
-        .output()
-        .unwrap()
-        .stdout;
-    let cargo_path = Path::new(std::str::from_utf8(&output).unwrap().trim());
-    cargo_path.parent().unwrap().to_path_buf()
 }

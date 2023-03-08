@@ -1,9 +1,9 @@
 [workspace]
-members = ['driver', 'ultibi', 'frtb_engine', 'pyultima']
+members = ['driver', 'ultibi', 'frtb_engine', 'pyultima', 'ultibi/ultibi_server','ultibi/ultibi_core']
 # temporarily exclude pyultima
 # https://github.com/PyO3/maturin/issues/1374
 # Otherwise cargo chief picks it up for compilation and it fails
-default-members = ['driver', 'ultibi', 'frtb_engine']
+default-members = ['driver', 'ultibi', 'frtb_engine', 'ultibi/ultibi_server', 'ultibi/ultibi_core']
 
 [workspace.package]
 version = "0.1.3"

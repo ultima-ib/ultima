@@ -13,12 +13,12 @@ name = "ultibi.rust_module.ultima_pyengine"
 
 [dependencies]
 pyo3 = { version = "0.18.1", features = ["extension-module", "abi3-py37"] }
-polars = { version = "0.25.1" }
-polars-arrow = { version = "0.25.1" }
-ultibi = { path = "../ultibi" }
-frtb_engine = { path = "../frtb_engine" }
+polars = { workspace = true }
+polars-arrow = { workspace = true }
+ultibi = { path = "../ultibi", features=["ui"] }
+frtb_engine = { path = "../frtb_engine", features=["CRR2"] }
 serde_json = {workspace = true}
 thiserror = "1.0.38"
 
 [features]
-CRR2 = ["frtb_engine/CRR2"]
+CRR2 = [] # TODO remove

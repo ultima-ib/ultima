@@ -154,6 +154,18 @@ class DataSet:
         warn("use .compute() instead")
         return self.compute(req, streaming)
 
+    def ui(self) -> None:
+        """Spins up a localhost.
+        You can control level of logging and the address like this:
+        >>> import os
+        >>> os.environ["RUST_LOG"] = "info"
+        >>> os.environ["ADDRESS"] = "0.0.0.0:8000"
+        """
+        # Streaming mode calls prepare on each request
+        # If already prepared we don't want to call it again
+        streaming = not self.prepared
+        self._ds.ui(streaming)
+
 
 class FRTBDataSet(DataSet):
     """FRTB flavour of DataSet"""

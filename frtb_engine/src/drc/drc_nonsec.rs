@@ -62,6 +62,12 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
                 "w"    => &columns[5],
                 "s"    => &columns[6],
             ]?;
+
+            // Safety Step
+            if df.height() == 0 {
+                return Ok(Series::new("res", [0.]));
+            };
+
             // First, sum over bucket, obligor and seniority
             let mut lf = df
                 .lazy()
@@ -73,6 +79,13 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
                 ]);
 
             let schema = lf.schema()?;
+
+            // Safety step
+            df = lf.collect()?;
+            if df.height() == 0 {
+                return Ok(Series::new("res", [0.]));
+            };
+            lf = df.lazy();
 
             // Do you want to aggregate as per  22.19?
             // Note, the algorithm is O(N), but we loose Negative GrossJTD position changes,

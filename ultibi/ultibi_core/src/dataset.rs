@@ -27,7 +27,7 @@ pub struct DataSetBase {
 /// If you have your own DataSet, implement this
 pub trait DataSet: Send + Sync {
     #[cfg(feature = "ui")]
-    fn ui(&self){
+    fn ui(&self) {
         ultibi_server::run_server(self)
     }
     /// Polars DataFrame clone is cheap:

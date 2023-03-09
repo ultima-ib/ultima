@@ -11,10 +11,8 @@ from .internals import (
     OtherError,
     aggregation_ops,
 )
-from .internals.execute import execute_agg
 
 __all__ = [
-    "execute_agg",
     "AggRequest",
     "ComputeRequest",
     "FRTBDataSet",

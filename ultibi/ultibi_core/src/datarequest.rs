@@ -23,6 +23,12 @@ pub enum ComputeRequest {
     Breakdown,
 }
 
+impl From<AggregationRequest> for ComputeRequest {
+    fn from(item: AggregationRequest) -> Self {
+        ComputeRequest::Aggregation(item)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub struct AggregationRequest {

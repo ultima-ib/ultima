@@ -1,17 +1,19 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use ultibi_core::DataSet;
 
 pub trait VisualDataSet {
     //fn ui(self: Arc<Self>);
-    fn ui(self);
+    fn ui(self, streaming: bool);
 }
 
-impl<T: DataSet + 'static> VisualDataSet for T {
+//<T: DataSet + 'static + ?Sized>
+impl VisualDataSet for Arc<RwLock<dyn DataSet>> {
     //fn ui(self: Arc<Self>){
     //    crate::run_server(self )
     //}
-    fn ui(self){
-        crate::run_server(self.into() )
+    /// Spins up a server on localhost
+    fn ui(self, streaming: bool) {
+        crate::run_server(self, streaming)
     }
 }

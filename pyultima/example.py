@@ -2,7 +2,6 @@ import polars as pl
 
 from pyultima.ultibi.internals.requests import AggRequest  # type: ignore[import]
 from ultibi.internals.dataset import DataSet, FRTBDataSet
-from ultibi.internals.execute import execute_agg
 
 dataset = FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
 
@@ -28,7 +27,7 @@ print(request)
 
 # Execute request
 # All runs in parallel
-result = execute_agg(request, dataset)
+result = dataset.compute(request)
 
 print("Result: ", result)
 print("Type: ", type(result))
@@ -46,6 +45,6 @@ r = dict(
     calc_params={"jurisdiction": "BCBS"},
 )
 rr = AggRequest(r)
-result = execute_agg(rr, ds)
+result = ds.compute(rr)
 
 print(result)

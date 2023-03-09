@@ -254,7 +254,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     // hence use groupby_stable
     let mut aggregated_df = f1
         .clone()
-        .with_streaming(streaming)
+        .with_streaming(true) // Set streaming to True anyway - no performance penalty
         .groupby_stable(&groups)
         .agg(&aggregateions)
         .limit(1_000)
@@ -277,7 +277,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
             let _df = f1
                 .clone()
-                .with_streaming(streaming)
+                .with_streaming(true)
                 .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)

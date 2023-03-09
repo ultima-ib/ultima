@@ -21,4 +21,3 @@ serde_json = {workspace = true}
 thiserror = "1.0.38"
 
 [features]
-CRR2 = [] # TODO remove

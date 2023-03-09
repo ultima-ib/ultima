@@ -3,6 +3,7 @@
 SHELL=/bin/bash
 VENV = venv
 PY39 = C:/Python39/python
+PY311 = C:/Python311/python
 
 ifeq ($(OS),Windows_NT)
 	VENV_BIN=$(VENV)/Scripts
@@ -16,13 +17,17 @@ venv:  ## Set up virtual environment
 	$(VENV_BIN)/pip install -r requirements.txt
 	$(VENV_BIN)/pip install -r requirements-lint.txt
 
+.PHONY: develop
+build: venv  ## Compile and install Polars for development
+	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop
+
 .PHONY: build
 build: venv  ## Compile and install Polars for development
-	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop --features=CRR2
+	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin build -i=$(PY311) --release
 
-.PHONY: build-release
+.PHONY: develop-release
 build-release: venv  ## Compile and install a faster Polars binary
-	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop --release --features=CRR2
+	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop --release
 
 .PHONY: fmt
 fmt: venv  ## Run autoformatting and linting

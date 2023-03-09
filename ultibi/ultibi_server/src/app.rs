@@ -1,6 +1,7 @@
 use actix_web::{
     dev::Server,
     get,
+    http::header::ContentType,
     middleware::Logger,
     web::{self, Data},
     App,
@@ -9,20 +10,19 @@ use actix_web::{
     HttpServer,
     Responder,
     //error::InternalError, http::StatusCode,
-    Result, http::header::ContentType,
+    Result,
 };
 
 use anyhow::Context;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{
     net::TcpListener,
-    sync::Arc,
+    sync::{Arc, RwLock},
 };
 use tokio::task;
 
 use ultibi_core::{
-    aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
-    AggregationRequest, DataFrame, DataSet,
+    aggregations::BASE_CALCS, col, prelude::PolarsResult, AggregationRequest, DataFrame, DataSet,
 };
 
 #[get("/health_check")]
@@ -42,14 +42,17 @@ const PER_PAGE: u16 = 100;
 async fn column_search(
     path: web::Path<String>,
     page: web::Query<Pagination>,
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<RwLock<dyn DataSet>>,
 ) -> Result<HttpResponse> {
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
     let res = task::spawn_blocking(move || {
-        let d = data.get_ref();
-        let lf = d.get_lazyframe();
-        let df = lf.clone().select([col(&column_name)]).collect()?;
+        let lf = data
+            .read()
+            .expect("Poisonned RwLock")
+            .get_lazyframe()
+            .clone();
+        let df = lf.select([col(&column_name)]).collect()?;
         let srs = df.column(&column_name)?;
         let search = ultibi_core::helpers::searches::filter_contains_unique(srs, &pat)?;
         let first = page * PER_PAGE as usize;
@@ -74,8 +77,13 @@ async fn column_search(
 }
 
 //#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
-async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
-    web::Json(ds)
+async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Responder {
+    let a = ds.read().unwrap();
+    let body = serde_json::to_string(&*a).unwrap();
+    //web::Json(&*a)
+    HttpResponse::Ok()
+        .content_type(mime::APPLICATION_JSON)
+        .message_body(body)
 }
 
 #[tracing::instrument(name = "Describe", skip(jdf))]
@@ -91,26 +99,17 @@ async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {
 }
 
 #[tracing::instrument(name = "Request Execution", skip(data))]
-#[allow(clippy::if_same_then_else)]
 async fn execute(
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<RwLock<dyn DataSet>>,
     req: web::Json<AggregationRequest>,
+    streaming: Data<bool>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
-        // Work in progress
-        if cfg!(cache) {
-            #[cfg(feature = "cache")]
-            return ultibi::execute_agg_with_cache::execute_with_cache(
-                &r,
-                &*Arc::clone(data.get_ref()),
-                cfg!(feature = "streaming"),
-            );
-            Err(PolarsError::NoData("Cache must be enabled.".into()))
-        } else {
-            ultibi_core::exec_agg(&*Arc::clone(data.get_ref()), r, cfg!(feature = "streaming"))
-        }
+        data.read()
+            .expect("Poisonned RwLock")
+            .compute(r.into(), **streaming) //TODO streaming mode
     })
     .await
     .context("Failed to spawn blocking task.")
@@ -135,8 +134,8 @@ async fn templates(_: HttpRequest, templates: Data<Vec<AggregationRequest>>) -> 
     web::Json(templates)
 }
 #[get("/overrides")]
-async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
-    web::Json(data.overridable_columns())
+async fn overridable_columns(data: Data<RwLock<dyn DataSet>>) -> impl Responder {
+    web::Json(data.read().expect("Poisonned RwLock").overridable_columns())
 }
 
 #[get("/")]
@@ -145,50 +144,50 @@ async fn ui() -> impl Responder {
     let index = include_str!(r"index.html");
 
     HttpResponse::Ok()
-      .content_type(ContentType::html())
-      .body(index)
+        .content_type(ContentType::html())
+        .body(index)
 }
 
-pub fn build_app<DS: DataSet + 'static>(
+//<DS: DataSet + 'static + ?Sized>
+pub fn build_app(
     listener: TcpListener,
-    ds: Arc<DS>,
+    ds: Arc<RwLock<dyn DataSet>>,
     _templates: Vec<AggregationRequest>,
+    streaming: bool,
 ) -> std::io::Result<Server> {
-    // Read .env
-    dotenv::dotenv().ok();
-    // Allow pretty logs
-    pretty_env_logger::init();
-
-    let ds = Data::new(ds);
+    let ds = Data::from(ds);
+    let streaming = Data::new(streaming);
     //let static_files_dir =
     //    std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
     let server = HttpServer::new(move || {
-    //let auth = HttpAuthentication::basic(validator);
+        //let auth = HttpAuthentication::basic(validator);
 
-    App::new()
-        .wrap(Logger::default())
-        //.wrap(auth)
-        .service(
-            web::scope("/api")
-                .service(health_check)
-                .service(
-                    web::scope("/FRTB")
-                        .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
-                        .route("", web::post().to(execute))
-                        .service(column_search)
-                        .service(templates)
-                        .service(overridable_columns)
-                )
-                .route("/aggtypes", web::get().to(measures))
-                .route("/describe", web::post().to(describe)),
-        )
-        // must be the last one
-        //.service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
-        .service(ui )
-        .app_data(ds.clone())
-        .app_data(_templates.clone())
+        App::new()
+            .wrap(Logger::default())
+            //.wrap(auth)
+            .service(
+                web::scope("/api")
+                    .service(health_check)
+                    .service(
+                        web::scope("/FRTB")
+                            //.route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                            .route("", web::get().to(dataset_info))
+                            .route("", web::post().to(execute))
+                            .service(column_search)
+                            .service(templates)
+                            .service(overridable_columns),
+                    )
+                    .route("/aggtypes", web::get().to(measures))
+                    .route("/describe", web::post().to(describe)),
+            )
+            // must be the last one
+            //.service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
+            .service(ui)
+            .app_data(ds.clone())
+            .app_data(_templates.clone())
+            .app_data(streaming.clone())
     })
     .listen(listener)?
     .run();

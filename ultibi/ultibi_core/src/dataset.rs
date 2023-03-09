@@ -26,6 +26,10 @@ pub struct DataSetBase {
 ///
 /// If you have your own DataSet, implement this
 pub trait DataSet: Send + Sync {
+    #[cfg(feature = "ui")]
+    fn ui(&self) {
+        ultibi_server::run_server(self)
+    }
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
     /// This method gets the main LazyFrame of the Dataset

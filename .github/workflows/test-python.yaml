@@ -66,7 +66,7 @@ jobs:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
         run: |
           source activate
-          maturin develop --features=CRR2
+          maturin develop --all-features
 
       - name: Run tests and report coverage
         run: pytest --cov
@@ -113,7 +113,7 @@ jobs:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
         # we do build and install to better mimic real life
         run: |
-          maturin build --features=CRR2
+          maturin build --all-features
           pip install ../target/wheels/ultibi-*.whl
 
       - name: Run tests

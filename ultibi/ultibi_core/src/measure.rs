@@ -224,7 +224,7 @@ pub(crate) fn agg_measure_lookup<'b, 'a: 'b>(
             }
 
             // Lookup action from the list of supported actions
-            let Some(a) = crate::aggregations::_BASE_CALCS.get(requested_action.as_str()) else {
+            let Some(a) = crate::aggregations::BASE_CALCS.get(requested_action.as_str()) else {
                 return Err(PolarsError::ComputeError(format!("No action {requested_action} supported. Supported actions are: {:?}",
                 crate::aggregations::BASE_CALCS.keys()).into()))
             };
@@ -269,7 +269,7 @@ pub(crate) fn lookup_dependants_with_depth<'b, 'a: 'b>(
         let looked_up_measure = all_availiable_measures
             .get(requested_measure as &str)
             .unwrap();
-        let agg = crate::aggregations::_BASE_CALCS
+        let agg = crate::aggregations::BASE_CALCS
             .get(agg_name.as_str())
             .unwrap();
 

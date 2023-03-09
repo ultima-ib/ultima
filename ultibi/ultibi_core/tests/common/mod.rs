@@ -3,7 +3,7 @@ use std::{env, path::PathBuf};
 use once_cell::sync::Lazy;
 use polars::prelude::*;
 
-use ultibi::{
+use ultibi_core::{
     prelude::{read_toml2, DataSet, DataSetBase, DataSourceConfig},
     DependantMeasure, Measure, CPM,
 };

@@ -1,6 +1,6 @@
 //! Main testing module for the DataSet and measures
 
-use ultibi::{ComputeRequest, DataSet};
+use ultibi_core::{ComputeRequest, DataSet};
 mod common;
 
 #[test]

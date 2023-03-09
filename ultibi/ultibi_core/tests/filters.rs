@@ -1,4 +1,4 @@
-use ultibi::{ComputeRequest, DataSet};
+use ultibi_core::{ComputeRequest, DataSet};
 
 mod common;
 

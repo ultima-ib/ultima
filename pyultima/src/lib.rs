@@ -10,7 +10,10 @@ use pyo3::{prelude::*, types::PyType, PyTypeInfo};
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::sync::Arc;
+//use std::sync::Mutex;
+use std::sync::RwLock;
 use ultibi::polars::prelude::Series;
+use ultibi::VisualDataSet;
 use ultibi::{
     self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase, IntoLazy,
     MeasuresMap, ValidateSet,
@@ -22,7 +25,7 @@ mod requests;
 
 #[pyclass]
 struct DataSetWrapper {
-    dataset: Box<dyn DataSet>,
+    dataset: Arc<RwLock<dyn DataSet>>,
 }
 
 fn from_conf<T: DataSet + 'static>(
@@ -32,6 +35,7 @@ fn from_conf<T: DataSet + 'static>(
 ) -> PyResult<DataSetWrapper> {
     // This is now done in build_validate_prepare
     // TODO build_validate_prepare to return result and errors to be mapped
+    // Like this:
     //if !Path::new(&conf_path).exists() {
     //    return Err(PyFileNotFoundError::new_err("file doesn't exist"));
     //}
@@ -41,8 +45,10 @@ fn from_conf<T: DataSet + 'static>(
     //};
 
     let ds = ultibi::acquire::build_validate_prepare::<T>(conf_path.as_str(), collect, prepare);
-    let dataset = Box::new(ds);
-    Ok(DataSetWrapper { dataset })
+    //let dataset = Box::new(ds);
+    Ok(DataSetWrapper {
+        dataset: Arc::new(RwLock::new(ds)),
+    })
 }
 
 fn from_frame<T: DataSet + 'static>(
@@ -68,10 +74,12 @@ fn from_frame<T: DataSet + 'static>(
 
     let build_params = build_params.unwrap_or_default();
 
-    let dataset: T = DataSet::new(df.lazy(), mm, build_params);
-    let dataset = Box::new(dataset);
+    let ds: T = DataSet::new(df.lazy(), mm, build_params);
+    //let dataset = Box::new(dataset);
 
-    Ok(DataSetWrapper { dataset })
+    Ok(DataSetWrapper {
+        dataset: Arc::new(RwLock::new(ds)),
+    })
 }
 
 #[pymethods]
@@ -129,20 +137,26 @@ impl DataSetWrapper {
         from_frame::<FRTBDataSet>(py, seriess, measures, build_params)
     }
 
+    pub fn ui(&self, streaming: bool) -> PyResult<()> {
+        let a = Arc::clone(&self.dataset);
+        a.ui(streaming);
+        Ok(())
+    }
+
     pub fn prepare(&mut self, collect: Option<bool>) -> PyResult<()> {
-        let lf = self.dataset.get_lazyframe().clone();
+        let ds = self.dataset.read().expect("Poisonned RwLock");
+        let lf = ds.get_lazyframe().clone();
         let collect = collect.unwrap_or_else(|| true);
 
-        let mut new_frame = self
-            .dataset
-            .prepare_frame(Some(lf))
-            .map_err(PyUltimaErr::Polars)?;
+        let mut new_frame = ds.prepare_frame(Some(lf)).map_err(PyUltimaErr::Polars)?;
 
         if collect {
             new_frame = new_frame.collect().map_err(PyUltimaErr::Polars)?.lazy()
         }
+        std::mem::drop(ds);
 
-        self.dataset.set_lazyframe_inplace(new_frame);
+        let mut ds = self.dataset.write().expect("Poisonned RwLock");
+        ds.set_lazyframe_inplace(new_frame);
         Ok(())
     }
 
@@ -152,6 +166,8 @@ impl DataSetWrapper {
         streaming: bool,
     ) -> PyResult<Vec<PyObject>> {
         self.dataset
+            .read()
+            .expect("Poisonned RwLock")
             .compute(request.ar, streaming)
             .map_err(PyUltimaErr::Polars)?
             .iter()
@@ -161,6 +177,8 @@ impl DataSetWrapper {
 
     pub fn measures(&self) -> BTreeMap<String, Option<&str>> {
         self.dataset
+            .read()
+            .expect("Poisonned RwLock")
             .get_measures()
             .iter()
             .map(|(x, m)| (x.to_string(), *m.aggregation()))
@@ -168,6 +186,8 @@ impl DataSetWrapper {
     }
     pub fn frame(&self) -> PyResult<Vec<PyObject>> {
         self.dataset
+            .read()
+            .expect("Poisonned RwLock")
             .get_lazyframe()
             .clone()
             .collect()
@@ -179,6 +199,8 @@ impl DataSetWrapper {
     pub fn fields(&self) -> PyResult<Vec<String>> {
         let schema = self
             .dataset
+            .read()
+            .expect("Poisonned RwLock")
             .get_lazyframe()
             .schema()
             .map_err(PyUltimaErr::Polars)?;
@@ -191,6 +213,8 @@ impl DataSetWrapper {
 
         let res = self
             .dataset
+            .read()
+            .expect("Poisonned RwLock")
             .calc_params()
             .iter()
             .map(|calc_param| {
@@ -206,6 +230,8 @@ impl DataSetWrapper {
 
     pub fn validate(&self) -> PyResult<()> {
         self.dataset
+            .read()
+            .expect("Poisonned RwLock")
             .validate_frame(None, ValidateSet::ALL)
             .map_err(errors::PyUltimaErr::Polars)?;
 
@@ -213,18 +239,18 @@ impl DataSetWrapper {
     }
 }
 
-/// Function to execute request on prepared data
-#[pyfunction]
-fn exec_agg(
-    request: requests::AggregationRequestWrapper,
-    prepared_dataset: &DataSetWrapper,
-    streaming: bool,
-) -> PyResult<Vec<PyObject>> {
-    let dataframe = ultibi::exec_agg(prepared_dataset.dataset.as_ref(), request.ar, streaming)
-        .map_err(errors::PyUltimaErr::Polars)?;
-
-    dataframe.iter().map(rust_series_to_py_series).collect()
-}
+// Function to execute request on prepared data
+//#[pyfunction]
+//fn exec_agg(
+//    request: requests::AggregationRequestWrapper,
+//    prepared_dataset: &DataSetWrapper,
+//    streaming: bool,
+//) -> PyResult<Vec<PyObject>> {
+//    let dataframe = ultibi::exec_agg(prepared_dataset.dataset.as_ref(), request.ar, streaming)
+//        .map_err(errors::PyUltimaErr::Polars)?;
+//
+//    dataframe.iter().map(rust_series_to_py_series).collect()
+//}
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {
@@ -239,7 +265,7 @@ fn agg_ops() -> Vec<&'static str> {
 #[pymodule]
 fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(agg_ops, m)?)?;
-    m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
+    //m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
     m.add_class::<requests::AggregationRequestWrapper>()?;
     m.add_class::<requests::ComputeRequestWrapper>()?;
     m.add_class::<DataSetWrapper>()?;

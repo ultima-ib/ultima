@@ -10,7 +10,7 @@ default-run = "one_off"
 path = "src/lib.rs"
 
 [dependencies]
-ultibi = { path = "../ultibi", version = "*" }
+ultibi = { path = "../ultibi", features = ["ui"]}
 # Business Logic
 frtb_engine = { path = "../frtb_engine", optional = true }
 # JSON

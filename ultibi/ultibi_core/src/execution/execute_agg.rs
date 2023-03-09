@@ -11,7 +11,7 @@ pub use polars::{
 use crate::{
     add_row::{df_from_maps_and_schema, AdditionalRows},
     agg_measure_lookup, agg_measure_to_expr,
-    aggregations::{Aggregation, AggregationName, _BASE_CALCS},
+    aggregations::{Aggregation, AggregationName, BASE_CALCS},
     execute_agg_with_cache::_exec_agg_with_cache,
     filters::{fltr_chain, AndOrFltrChain},
     lookup_dependants_with_depth,
@@ -87,7 +87,7 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     // Keep all REQUESTED Column Names for later use:
     let mut all_requested_columns_names = req.groupby().clone();
     all_requested_columns_names.extend(all_requested_measures.iter().map(|(measure_name, agg)| {
-        let agg = _BASE_CALCS.get(agg as &str).expect("Failed to look up agg"); //we have checked in agg_measure_lookup
+        let agg = BASE_CALCS.get(agg as &str).expect("Failed to look up agg"); //we have checked in agg_measure_lookup
         agg.new_name(measure_name as &str)
     }));
     // Keep cosmetic arguments for later use:
@@ -254,7 +254,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     // hence use groupby_stable
     let mut aggregated_df = f1
         .clone()
-        .with_streaming(streaming)
+        .with_streaming(true) // Set streaming to True anyway - no performance penalty
         .groupby_stable(&groups)
         .agg(&aggregateions)
         .limit(1_000)
@@ -277,7 +277,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
             let _df = f1
                 .clone()
-                .with_streaming(streaming)
+                .with_streaming(true)
                 .groupby_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)

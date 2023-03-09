@@ -1,10 +1,5 @@
-//! This module builds App and is Server bin specific
-#[cfg(feature = "FRTB")]
-use frtb_engine::statics::MEDIUM_CORR_SCENARIO;
-
 use actix_web::{
     dev::Server,
-    dev::ServiceRequest,
     get,
     http::header::ContentType,
     middleware::Logger,
@@ -17,35 +12,18 @@ use actix_web::{
     //error::InternalError, http::StatusCode,
     Result,
 };
-use actix_web_httpauth::extractors::basic::BasicAuth;
+
 use anyhow::Context;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{
     net::TcpListener,
-    path::{Path, PathBuf},
-    sync::Arc,
+    sync::{Arc, RwLock},
 };
 use tokio::task;
 
-use ultibi::{
-    aggregations::BASE_CALCS, col, polars::prelude::PolarsError, prelude::PolarsResult,
-    AggregationRequest, DataFrame, DataSet,
+use ultibi_core::{
+    aggregations::BASE_CALCS, col, prelude::PolarsResult, AggregationRequest, DataFrame, DataSet,
 };
-
-// use uuid::Uuid;
-// use tracing::Instrument; //enters the span we pass as argument
-// every time self, the future, is polled; it exits the span every time the future is parked.
-#[get("/scenarios/{scen}")]
-async fn scenarios(path: web::Path<String>) -> Result<HttpResponse> {
-    let scenario = path.into_inner();
-    match &scenario as &str {
-        #[cfg(feature = "FRTB")]
-        "medium" => Ok(HttpResponse::Ok().json(&*MEDIUM_CORR_SCENARIO)),
-        _ => Err(actix_web::error::ErrorBadRequest(
-            "Only medium scenario can be displayed currently",
-        )),
-    }
-}
 
 #[get("/health_check")]
 async fn health_check(_: HttpRequest) -> impl Responder {
@@ -64,16 +42,19 @@ const PER_PAGE: u16 = 100;
 async fn column_search(
     path: web::Path<String>,
     page: web::Query<Pagination>,
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<RwLock<dyn DataSet>>,
 ) -> Result<HttpResponse> {
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
     let res = task::spawn_blocking(move || {
-        let d = data.get_ref();
-        let lf = d.get_lazyframe();
-        let df = lf.clone().select([col(&column_name)]).collect()?;
+        let lf = data
+            .read()
+            .expect("Poisonned RwLock")
+            .get_lazyframe()
+            .clone();
+        let df = lf.select([col(&column_name)]).collect()?;
         let srs = df.column(&column_name)?;
-        let search = ultibi::helpers::searches::filter_contains_unique(srs, &pat)?;
+        let search = ultibi_core::helpers::searches::filter_contains_unique(srs, &pat)?;
         let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
@@ -96,8 +77,13 @@ async fn column_search(
 }
 
 //#[tracing::instrument(name = "Obtaining DataSet Info", skip(ds))]
-async fn dataset_info<DS: Serialize>(_: HttpRequest, ds: Data<DS>) -> impl Responder {
-    web::Json(ds)
+async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Responder {
+    let a = ds.read().unwrap();
+    let body = serde_json::to_string(&*a).unwrap();
+    //web::Json(&*a)
+    HttpResponse::Ok()
+        .content_type(mime::APPLICATION_JSON)
+        .message_body(body)
 }
 
 #[tracing::instrument(name = "Describe", skip(jdf))]
@@ -113,26 +99,17 @@ async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {
 }
 
 #[tracing::instrument(name = "Request Execution", skip(data))]
-#[allow(clippy::if_same_then_else)]
 async fn execute(
-    data: Data<Arc<dyn DataSet>>,
+    data: Data<RwLock<dyn DataSet>>,
     req: web::Json<AggregationRequest>,
+    streaming: Data<bool>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
-        // Work in progress
-        if cfg!(cache) {
-            #[cfg(feature = "cache")]
-            return ultibi::execute_agg_with_cache::execute_with_cache(
-                &r,
-                &*Arc::clone(data.get_ref()),
-                cfg!(feature = "streaming"),
-            );
-            Err(PolarsError::NoData("Cache must be enabled.".into()))
-        } else {
-            ultibi::exec_agg(&*Arc::clone(data.get_ref()), r, cfg!(feature = "streaming"))
-        }
+        data.read()
+            .expect("Poisonned RwLock")
+            .compute(r.into(), **streaming) //TODO streaming mode
     })
     .await
     .context("Failed to spawn blocking task.")
@@ -157,13 +134,13 @@ async fn templates(_: HttpRequest, templates: Data<Vec<AggregationRequest>>) -> 
     web::Json(templates)
 }
 #[get("/overrides")]
-async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
-    web::Json(data.overridable_columns())
+async fn overridable_columns(data: Data<RwLock<dyn DataSet>>) -> impl Responder {
+    web::Json(data.read().expect("Poisonned RwLock").overridable_columns())
 }
 
 #[get("/")]
 async fn ui() -> impl Responder {
-    // This works but not on docker let index = include_str!(r"../../../frontend/dist/index.html");
+    // TODO find a better way
     let index = include_str!(r"index.html");
 
     HttpResponse::Ok()
@@ -171,32 +148,15 @@ async fn ui() -> impl Responder {
         .body(index)
 }
 
-async fn _validator(
-    req: ServiceRequest,
-    creds: BasicAuth,
-) -> Result<ServiceRequest, (actix_web::Error, ServiceRequest)> {
-    let user_id = creds.user_id();
-    let password = creds.password();
-
-    if user_id == "ultima" && password == Some("password123!!!") {
-        return Ok(req);
-    }
-    let error = actix_web::error::ErrorUnauthorized("invalid credentions!");
-    Err((error, req))
-}
-
-// TODO Why can't I use ds: impl DataSet ?
-pub fn run_server(
+//<DS: DataSet + 'static + ?Sized>
+pub fn build_app(
     listener: TcpListener,
-    ds: Arc<dyn DataSet>,
+    ds: Arc<RwLock<dyn DataSet>>,
     _templates: Vec<AggregationRequest>,
+    streaming: bool,
 ) -> std::io::Result<Server> {
-    // Read .env
-    dotenv::dotenv().ok();
-    // Allow pretty logs
-    pretty_env_logger::init();
-
-    let ds = Data::new(ds);
+    let ds = Data::from(ds);
+    let streaming = Data::new(streaming);
     //let static_files_dir =
     //    std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
@@ -212,12 +172,12 @@ pub fn run_server(
                     .service(health_check)
                     .service(
                         web::scope("/FRTB")
-                            .route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                            //.route("", web::get().to(dataset_info::<Arc<dyn DataSet>>))
+                            .route("", web::get().to(dataset_info))
                             .route("", web::post().to(execute))
                             .service(column_search)
                             .service(templates)
-                            .service(overridable_columns)
-                            .service(scenarios),
+                            .service(overridable_columns),
                     )
                     .route("/aggtypes", web::get().to(measures))
                     .route("/describe", web::post().to(describe)),
@@ -227,20 +187,9 @@ pub fn run_server(
             .service(ui)
             .app_data(ds.clone())
             .app_data(_templates.clone())
+            .app_data(streaming.clone())
     })
     .listen(listener)?
     .run();
     Ok(server)
-}
-
-fn _workspace_dir() -> PathBuf {
-    let output = std::process::Command::new(env!("CARGO"))
-        .arg("locate-project")
-        .arg("--workspace")
-        .arg("--message-format=plain")
-        .output()
-        .unwrap()
-        .stdout;
-    let cargo_path = Path::new(std::str::from_utf8(&output).unwrap().trim());
-    cargo_path.parent().unwrap().to_path_buf()
 }

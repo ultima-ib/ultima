@@ -54,6 +54,12 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
                 "w"    => &columns[6],
                 "s"    => &columns[7],
             ]?;
+
+            // Safety Step
+            if df.height() == 0 {
+                return Ok(Series::new("res", [0.]));
+            };
+
             // First, sum over bucket, obligor and seniority
             let mut lf = df
                 .lazy()
@@ -63,6 +69,13 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
                     (col("jtd") * col("s")).sum().alias("scaled_jtd"),
                     col("w").first(),
                 ]);
+
+            // Safety step
+            df = lf.collect()?;
+            if df.height() == 0 {
+                return Ok(Series::new("res", [0.]));
+            };
+            lf = df.lazy();
 
             // TODO  22.30
 

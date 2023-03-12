@@ -42,9 +42,7 @@ pub(crate) fn sbm_charge_dep(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub(crate) fn sbm_total_measures() -> Vec<Measure> {
-
     vec![
-
         // Testing dependency
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge Medium".to_string(),

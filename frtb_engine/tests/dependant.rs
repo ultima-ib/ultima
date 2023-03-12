@@ -9,7 +9,6 @@ use polars::prelude::Float64Type;
 /// Hence if fails it's ok to drop this test
 #[test]
 fn dependant_sbm() {
-
     let request_as_dependants = r#"
     {"measures": [
         ["SBM Charge High", "scalar"],
@@ -25,8 +24,8 @@ fn dependant_sbm() {
     "calc_params": {"jurisdiction": "BCBS"}
     }"#;
 
-    let req_deps =
-        serde_json::from_str::<AggregationRequest>(request_as_dependants).expect("Could not parse request");
+    let req_deps = serde_json::from_str::<AggregationRequest>(request_as_dependants)
+        .expect("Could not parse request");
 
     let a = &*LAZY_DASET;
     let mut res1 = a
@@ -40,7 +39,7 @@ fn dependant_sbm() {
 
     // This number is not derived from a Spread Sheet
     // Instead it was derived via measures which were derived from a SS
-    let expected = 2267954.452798342; 
+    let expected = 2267954.452798342;
     assert!((sum1 - expected).abs() < 1e-4);
 
     // ALso test performance! res2 must be much faster!

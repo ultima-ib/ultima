@@ -4,24 +4,15 @@ use ultibi::Measure;
 use ultibi::CPM;
 
 pub(crate) fn eq_total_low(_: &CPM) -> PolarsResult<Expr> {
-    Ok(
-        col("EQ DeltaCharge Low")
-        + col("EQ VegaCharge Low")
-        + col("EQ CurvatureCharge Low")
-    )}
+    Ok(col("EQ DeltaCharge Low") + col("EQ VegaCharge Low") + col("EQ CurvatureCharge Low"))
+}
 pub(crate) fn eq_total_medium(_: &CPM) -> PolarsResult<Expr> {
-    Ok(
-        col("EQ DeltaCharge Medium")
+    Ok(col("EQ DeltaCharge Medium")
         + col("EQ VegaCharge Medium")
-        + col("EQ CurvatureCharge Medium")
-    )
+        + col("EQ CurvatureCharge Medium"))
 }
 pub(crate) fn eq_total_high(_: &CPM) -> PolarsResult<Expr> {
-    Ok(
-        col("EQ DeltaCharge High")
-        + col("EQ VegaCharge High")
-        + col("EQ CurvatureCharge High")
-    )
+    Ok(col("EQ DeltaCharge High") + col("EQ VegaCharge High") + col("EQ CurvatureCharge High"))
 }
 
 pub(crate) fn eq_total_measures() -> Vec<Measure> {
@@ -32,7 +23,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
             depends_upon: vec![
                 ("EQ DeltaCharge Low".to_string(), "scalar".to_string()),
                 ("EQ VegaCharge Low".to_string(), "scalar".to_string()),
-                ("EQ CurvatureCharge Low".to_string(), "scalar".to_string())
+                ("EQ CurvatureCharge Low".to_string(), "scalar".to_string()),
             ],
         }),
         Measure::Dependant(DependantMeasure {
@@ -41,7 +32,10 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
             depends_upon: vec![
                 ("EQ DeltaCharge Medium".to_string(), "scalar".to_string()),
                 ("EQ VegaCharge Medium".to_string(), "scalar".to_string()),
-                ("EQ CurvatureCharge Medium".to_string(), "scalar".to_string())
+                (
+                    "EQ CurvatureCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
             ],
         }),
         Measure::Dependant(DependantMeasure {
@@ -50,7 +44,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
             depends_upon: vec![
                 ("EQ DeltaCharge High".to_string(), "scalar".to_string()),
                 ("EQ VegaCharge High".to_string(), "scalar".to_string()),
-                ("EQ CurvatureCharge High".to_string(), "scalar".to_string())
+                ("EQ CurvatureCharge High".to_string(), "scalar".to_string()),
             ],
         }),
     ]

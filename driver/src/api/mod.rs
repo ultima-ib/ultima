@@ -6,7 +6,6 @@ use actix_web::{
     dev::Server,
     dev::ServiceRequest,
     get,
-    http::header::ContentType,
     middleware::Logger,
     web::{self, Data},
     App,
@@ -161,16 +160,6 @@ async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
     web::Json(data.overridable_columns())
 }
 
-#[get("/")]
-async fn ui() -> impl Responder {
-    // This works but not on docker let index = include_str!(r"../../../frontend/dist/index.html");
-    let index = include_str!(r"index.html");
-
-    HttpResponse::Ok()
-        .content_type(ContentType::html())
-        .body(index)
-}
-
 async fn _validator(
     req: ServiceRequest,
     creds: BasicAuth,
@@ -201,12 +190,13 @@ pub fn run_server(
     pretty_env_logger::init();
 
     let ds = Data::new(ds);
-    let static_files_dir =
-        std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
+    //let static_files_dir =
+    //    std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
     let server = HttpServer::new(move || {
         //let auth = HttpAuthentication::basic(validator);
+        let generated = generate();
 
         App::new()
             .wrap(Logger::default())

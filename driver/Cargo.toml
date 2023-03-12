@@ -42,6 +42,9 @@ jemallocator = "0.5.0"
 [dev-dependencies]
 reqwest = "0.11"
 
+[build-dependencies]
+static-files = "0.2.1"
+
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.
 FRTB = [

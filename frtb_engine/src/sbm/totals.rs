@@ -10,7 +10,7 @@ fn sbm_charge_low_dep(_: &CPM) -> PolarsResult<Expr> {
         + col("EQ TotalCharge Low")
         + col("CSR Sec nonCTP TotalCharge Low")
         + col("CSR nonSec TotalCharge Low")
-        + col("CSR secCTP TotalCharge Low")
+        + col("CSR Sec CTP TotalCharge Low")
         + col("Commodity TotalCharge Low"))
 }
 
@@ -20,7 +20,7 @@ fn sbm_charge_medium_dep(_: &CPM) -> PolarsResult<Expr> {
         + col("EQ TotalCharge Medium")
         + col("CSR Sec nonCTP TotalCharge Medium")
         + col("CSR nonSec TotalCharge Medium")
-        + col("CSR secCTP TotalCharge Medium")
+        + col("CSR Sec CTP TotalCharge Medium")
         + col("Commodity TotalCharge Medium"))
 }
 fn sbm_charge_high_dep(_: &CPM) -> PolarsResult<Expr> {
@@ -29,7 +29,7 @@ fn sbm_charge_high_dep(_: &CPM) -> PolarsResult<Expr> {
         + col("EQ TotalCharge High")
         + col("CSR Sec nonCTP TotalCharge High")
         + col("CSR nonSec TotalCharge High")
-        + col("CSR secCTP TotalCharge High")
+        + col("CSR Sec CTP TotalCharge High")
         + col("Commodity TotalCharge High"))
 }
 
@@ -62,7 +62,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
                 (
-                    "CSR secCTP TotalCharge Medium".to_string(),
+                    "CSR Sec CTP TotalCharge Medium".to_string(),
                     "scalar".to_string(),
                 ),
                 (
@@ -87,7 +87,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
                 (
-                    "CSR secCTP TotalCharge Low".to_string(),
+                    "CSR Sec CTP TotalCharge Low".to_string(),
                     "scalar".to_string(),
                 ),
                 (
@@ -112,7 +112,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
                 (
-                    "CSR secCTP TotalCharge High".to_string(),
+                    "CSR Sec CTP TotalCharge High".to_string(),
                     "scalar".to_string(),
                 ),
                 (

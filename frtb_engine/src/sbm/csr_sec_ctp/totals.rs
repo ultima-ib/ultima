@@ -5,53 +5,53 @@ use ultibi::CPM;
 
 pub(crate) fn csrsecctp_total_low(_: &CPM) -> PolarsResult<Expr> {
     Ok(
-        col("CSR secCTP DeltaCharge Low")
-        + col("CSR secCTP VegaCharge Low")
-        + col("CSR secCTP CurvatureCharge Low")
+        col("CSR Sec CTP DeltaCharge Low")
+        + col("CSR Sec CTP VegaCharge Low")
+        + col("CSR Sec CTP CurvatureCharge Low")
     )
 }
 pub(crate) fn csrsecctp_total_medium(_: &CPM) -> PolarsResult<Expr> {
     Ok(
-        col("CSR secCTP DeltaCharge Medium")
-        + col("CSR secCTP VegaCharge Medium")
-        + col("CSR secCTP CurvatureCharge Medium")
+        col("CSR Sec CTP DeltaCharge Medium")
+        + col("CSR Sec CTP VegaCharge Medium")
+        + col("CSR Sec CTP CurvatureCharge Medium")
     )
 }
 pub(crate) fn csrsecctp_total_high(_: &CPM) -> PolarsResult<Expr> {
     Ok(
-        col("CSR secCTP DeltaCharge High")
-        + col("CSR secCTP VegaCharge High")
-        + col("CSR secCTP CurvatureCharge High")
+        col("CSR Sec CTP DeltaCharge High")
+        + col("CSR Sec CTP VegaCharge High")
+        + col("CSR Sec CTP CurvatureCharge High")
     )
 }
 
 pub(crate) fn csrsecctp_total_measures() -> Vec<Measure> {
     vec![
         Measure::Dependant(DependantMeasure {
-            name: "CSR secCTP TotalCharge Low".to_string(),
+            name: "CSR Sec CTP TotalCharge Low".to_string(),
             calculator: Box::new(csrsecctp_total_low),
             depends_upon: vec![
-                ("CSR secCTP DeltaCharge Low".to_string(), "scalar".to_string()),
-                ("CSR secCTP VegaCharge Low".to_string(), "scalar".to_string()),
-                ("CSR secCTP CurvatureCharge Low".to_string(), "scalar".to_string())
+                ("CSR Sec CTP DeltaCharge Low".to_string(), "scalar".to_string()),
+                ("CSR Sec CTP VegaCharge Low".to_string(), "scalar".to_string()),
+                ("CSR Sec CTP CurvatureCharge Low".to_string(), "scalar".to_string())
             ],
         }),
         Measure::Dependant(DependantMeasure {
-            name: "CSR secCTP TotalCharge Medium".to_string(),
+            name: "CSR Sec CTP TotalCharge Medium".to_string(),
             calculator: Box::new(csrsecctp_total_medium),
             depends_upon: vec![
-                ("CSR secCTP DeltaCharge Medium".to_string(), "scalar".to_string()),
-                ("CSR secCTP VegaCharge Medium".to_string(), "scalar".to_string()),
-                ("CSR secCTP CurvatureCharge Medium".to_string(), "scalar".to_string())
+                ("CSR Sec CTP DeltaCharge Medium".to_string(), "scalar".to_string()),
+                ("CSR Sec CTP VegaCharge Medium".to_string(), "scalar".to_string()),
+                ("CSR Sec CTP CurvatureCharge Medium".to_string(), "scalar".to_string())
             ],
         }),
         Measure::Dependant(DependantMeasure {
-            name: "CSR secCTP TotalCharge High".to_string(),
+            name: "CSR Sec CTP TotalCharge High".to_string(),
             calculator: Box::new(csrsecctp_total_high),
             depends_upon: vec![
-                ("CSR secCTP DeltaCharge High".to_string(), "scalar".to_string()),
-                ("CSR secCTP VegaCharge High".to_string(), "scalar".to_string()),
-                ("CSR secCTP CurvatureCharge High".to_string(), "scalar".to_string())
+                ("CSR Sec CTP DeltaCharge High".to_string(), "scalar".to_string()),
+                ("CSR Sec CTP VegaCharge High".to_string(), "scalar".to_string()),
+                ("CSR Sec CTP CurvatureCharge High".to_string(), "scalar".to_string())
             ],
         }),
     ]

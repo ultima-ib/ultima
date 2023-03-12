@@ -1,61 +1,58 @@
 use polars::prelude::*;
-use ultibi::BaseMeasure;
+use ultibi::DependantMeasure;
 use ultibi::Measure;
 use ultibi::CPM;
 
-use super::curvature::*;
-use super::delta::*;
-use super::vega::*;
-
-pub(crate) fn csrsecnonctp_total_low(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_sec_nonctp_delta_charge_low(op)?
-        + csr_sec_nonctp_vega_charge_low(op)?
-        + csr_sec_nonctp_curvature_charge_low(op)?)
+pub(crate) fn csrsecnonctp_total_low(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("CSR Sec nonCTP DeltaCharge Low")
+        + col("CSR Sec nonCTP VegaCharge Low")
+        + col("CSR Sec nonCTP CurvatureCharge Low")
+    )
 }
-pub(crate) fn csrsecnonctp_total_medium(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_sec_nonctp_delta_charge_medium(op)?
-        + csr_sec_nonctp_vega_charge_medium(op)?
-        + csr_sec_nonctp_curvature_charge_medium(op)?)
+pub(crate) fn csrsecnonctp_total_medium(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("CSR Sec nonCTP DeltaCharge Medium")
+        + col("CSR Sec nonCTP VegaCharge Medium")
+        + col("CSR Sec nonCTP CurvatureCharge Medium")
+    )
 }
-pub(crate) fn csrsecnonctp_total_high(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_sec_nonctp_delta_charge_high(op)?
-        + csr_sec_nonctp_vega_charge_high(op)?
-        + csr_sec_nonctp_curvature_charge_high(op)?)
-}
-
-fn csrsecnonctp_total_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
-        csrsecnonctp_total_low(op)?,
-        csrsecnonctp_total_medium(op)?,
-        csrsecnonctp_total_high(op)?,
-    ]))
+pub(crate) fn csrsecnonctp_total_high(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("CSR Sec nonCTP DeltaCharge High")
+        + col("CSR Sec nonCTP VegaCharge High")
+        + col("CSR Sec nonCTP CurvatureCharge High")
+    )
 }
 
 pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
     vec![
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "CSR Sec nonCTP TotalCharge Low".to_string(),
             calculator: Box::new(csrsecnonctp_total_low),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
+            depends_upon: vec![
+                ("CSR Sec nonCTP DeltaCharge Low".to_string(), "scalar".to_string()),
+                ("CSR Sec nonCTP VegaCharge Low".to_string(), "scalar".to_string()),
+                ("CSR Sec nonCTP CurvatureCharge Low".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "CSR Sec nonCTP TotalCharge Medium".to_string(),
             calculator: Box::new(csrsecnonctp_total_medium),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
+            depends_upon: vec![
+                ("CSR Sec nonCTP DeltaCharge Medium".to_string(), "scalar".to_string()),
+                ("CSR Sec nonCTP VegaCharge Medium".to_string(), "scalar".to_string()),
+                ("CSR Sec nonCTP CurvatureCharge Medium".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "CSR Sec nonCTP TotalCharge High".to_string(),
             calculator: Box::new(csrsecnonctp_total_high),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
-        }),
-        Measure::Base(BaseMeasure {
-            name: "CSR Sec nonCTP TotalCharge MAX".to_string(),
-            calculator: Box::new(csrsecnonctp_total_max),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
-        }),
+            depends_upon: vec![
+                ("CSR Sec nonCTP DeltaCharge High".to_string(), "scalar".to_string()),
+                ("CSR Sec nonCTP VegaCharge High".to_string(), "scalar".to_string()),
+                ("CSR Sec nonCTP CurvatureCharge High".to_string(), "scalar".to_string())
+            ],
+        })
     ]
 }

@@ -1,41 +1,58 @@
 use polars::prelude::*;
-use ultibi::BaseMeasure;
+use ultibi::DependantMeasure;
 use ultibi::Measure;
 use ultibi::CPM;
 
-use super::curvature::*;
-use super::delta::*;
-use super::vega::*;
-
-pub(crate) fn fx_total_low(op: &CPM) -> PolarsResult<Expr> {
-    Ok(fx_delta_charge_low(op)? + fx_vega_charge_low(op)? + fx_curvature_charge_low(op)?)
+pub(crate) fn fx_total_low(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("FX DeltaCharge Low")
+        + col("FX VegaCharge Low")
+        + col("FX CurvatureCharge Low")
+    )
 }
-pub(crate) fn fx_total_medium(op: &CPM) -> PolarsResult<Expr> {
-    Ok(fx_delta_charge_medium(op)? + fx_vega_charge_medium(op)? + fx_curvature_charge_medium(op)?)
+pub(crate) fn fx_total_medium(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("FX DeltaCharge Medium")
+        + col("FX VegaCharge Medium")
+        + col("FX CurvatureCharge Medium")
+    )
 }
-pub(crate) fn fx_total_high(op: &CPM) -> PolarsResult<Expr> {
-    Ok(fx_delta_charge_high(op)? + fx_vega_charge_high(op)? + fx_curvature_charge_high(op)?)
+pub(crate) fn fx_total_high(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("FX DeltaCharge High")
+        + col("FX VegaCharge High")
+        + col("FX CurvatureCharge High")
+    )
 }
 
 pub(crate) fn fx_total_measures() -> Vec<Measure> {
     vec![
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge Low".to_string(),
             calculator: Box::new(fx_total_low),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
+            depends_upon: vec![
+                ("FX DeltaCharge Low".to_string(), "scalar".to_string()),
+                ("FX VegaCharge Low".to_string(), "scalar".to_string()),
+                ("FX CurvatureCharge Low".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge Medium".to_string(),
             calculator: Box::new(fx_total_medium),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
+            depends_upon: vec![
+                ("FX DeltaCharge Medium".to_string(), "scalar".to_string()),
+                ("FX VegaCharge Medium".to_string(), "scalar".to_string()),
+                ("FX CurvatureCharge Medium".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge High".to_string(),
             calculator: Box::new(fx_total_high),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("FX"))),
+            depends_upon: vec![
+                ("FX DeltaCharge High".to_string(), "scalar".to_string()),
+                ("FX VegaCharge High".to_string(), "scalar".to_string()),
+                ("FX CurvatureCharge High".to_string(), "scalar".to_string())
+            ],
         }),
     ]
 }

@@ -1,62 +1,76 @@
 use polars::prelude::*;
-use ultibi::BaseMeasure;
+use ultibi::DependantMeasure;
 use ultibi::Measure;
 use ultibi::CPM;
 
-use super::curvature::*;
-use super::delta::*;
-use super::vega::*;
-
-pub(crate) fn csrnonsec_total_low(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_nonsec_delta_charge_low(op)?
-        + csr_nonsec_vega_charge_low(op)?
-        + csrnonsec_curvature_charge_low(op)?)
+pub(crate) fn csrnonsec_total_low(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("CSR nonSec DeltaCharge Low")
+        + col("CSR nonSec VegaCharge Low")
+        + col("CSR nonSec CurvatureCharge Low")
+    )
 }
-pub(crate) fn csrnonsec_total_medium(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_nonsec_delta_charge_medium(op)?
-        + csr_nonsec_vega_charge_medium(op)?
-        + csrnonsec_curvature_charge_medium(op)?)
+pub(crate) fn csrnonsec_total_medium(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("CSR nonSec DeltaCharge Medium")
+        + col("CSR nonSec VegaCharge Medium")
+        + col("CSR nonSec CurvatureCharge Medium")
+    )
 }
-pub(crate) fn csrnonsec_total_high(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_nonsec_delta_charge_high(op)?
-        + csr_nonsec_vega_charge_high(op)?
-        + csrnonsec_curvature_charge_high(op)?)
+pub(crate) fn csrnonsec_total_high(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("CSR nonSec DeltaCharge High")
+        + col("CSR nonSec VegaCharge High")
+        + col("CSR nonSec CurvatureCharge High")
+    )
 }
 
 /// Not a real measure. Used for analysis only
-fn csrnonsec_total_max(op: &CPM) -> PolarsResult<Expr> {
+fn csrnonsec_total_max(_: &CPM) -> PolarsResult<Expr> {
     Ok(max_exprs(&[
-        csrnonsec_total_low(op)?,
-        csrnonsec_total_medium(op)?,
-        csrnonsec_total_high(op)?,
+        col("CSR nonSec TotalCharge Low"),
+        col("CSR nonSec TotalCharge Medium"),
+        col("CSR nonSec TotalCharge High")
     ]))
 }
 
 pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
     vec![
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge Low".to_string(),
             calculator: Box::new(csrnonsec_total_low),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
+            depends_upon: vec![
+                ("CSR nonSec DeltaCharge Low".to_string(), "scalar".to_string()),
+                ("CSR nonSec VegaCharge Low".to_string(), "scalar".to_string()),
+                ("CSR nonSec CurvatureCharge Low".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge Medium".to_string(),
             calculator: Box::new(csrnonsec_total_medium),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
+            depends_upon: vec![
+                ("CSR nonSec DeltaCharge Medium".to_string(), "scalar".to_string()),
+                ("CSR nonSec VegaCharge Medium".to_string(), "scalar".to_string()),
+                ("CSR nonSec CurvatureCharge Medium".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge High".to_string(),
             calculator: Box::new(csrnonsec_total_high),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
+            depends_upon: vec![
+                ("CSR nonSec DeltaCharge High".to_string(), "scalar".to_string()),
+                ("CSR nonSec VegaCharge High".to_string(), "scalar".to_string()),
+                ("CSR nonSec CurvatureCharge High".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge MAX".to_string(),
             calculator: Box::new(csrnonsec_total_max),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_nonSec"))),
+            depends_upon: vec![
+                ("CSR nonSec TotalCharge Low".to_string(), "scalar".to_string()),
+                ("CSR nonSec TotalCharge Medium".to_string(), "scalar".to_string()),
+                ("CSR nonSec TotalCharge High".to_string(), "scalar".to_string())
+            ],
         }),
     ]
 }

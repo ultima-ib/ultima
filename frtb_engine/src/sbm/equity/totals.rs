@@ -1,47 +1,57 @@
 use polars::prelude::*;
-use ultibi::BaseMeasure;
+use ultibi::DependantMeasure;
 use ultibi::Measure;
 use ultibi::CPM;
 
-use super::curvature::*;
-use super::delta::*;
-use super::vega::*;
-
-pub(crate) fn eq_total_low(op: &CPM) -> PolarsResult<Expr> {
-    Ok(equity_delta_charge_low(op)? + equity_vega_charge_low(op)? + eq_curvature_charge_low(op)?)
-}
-pub(crate) fn eq_total_medium(op: &CPM) -> PolarsResult<Expr> {
-    Ok(equity_delta_charge_medium(op)?
-        + equity_vega_charge_medium(op)?
-        + eq_curvature_charge_medium(op)?)
-}
-pub(crate) fn eq_total_high(op: &CPM) -> PolarsResult<Expr> {
+pub(crate) fn eq_total_low(_: &CPM) -> PolarsResult<Expr> {
     Ok(
-        equity_delta_charge_high(op)?
-            + equity_vega_charge_high(op)?
-            + eq_curvature_charge_high(op)?,
+        col("EQ DeltaCharge Low")
+        + col("EQ VegaCharge Low")
+        + col("EQ CurvatureCharge Low")
+    )}
+pub(crate) fn eq_total_medium(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("EQ DeltaCharge Medium")
+        + col("EQ VegaCharge Medium")
+        + col("EQ CurvatureCharge Medium")
+    )
+}
+pub(crate) fn eq_total_high(_: &CPM) -> PolarsResult<Expr> {
+    Ok(
+        col("EQ DeltaCharge High")
+        + col("EQ VegaCharge High")
+        + col("EQ CurvatureCharge High")
     )
 }
 
 pub(crate) fn eq_total_measures() -> Vec<Measure> {
     vec![
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge Low".to_string(),
             calculator: Box::new(eq_total_low),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("Equity"))),
+            depends_upon: vec![
+                ("EQ DeltaCharge Low".to_string(), "scalar".to_string()),
+                ("EQ VegaCharge Low".to_string(), "scalar".to_string()),
+                ("EQ CurvatureCharge Low".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge Medium".to_string(),
             calculator: Box::new(eq_total_medium),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("Equity"))),
+            depends_upon: vec![
+                ("EQ DeltaCharge Medium".to_string(), "scalar".to_string()),
+                ("EQ VegaCharge Medium".to_string(), "scalar".to_string()),
+                ("EQ CurvatureCharge Medium".to_string(), "scalar".to_string())
+            ],
         }),
-        Measure::Base(BaseMeasure {
+        Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge High".to_string(),
             calculator: Box::new(eq_total_high),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("Equity"))),
+            depends_upon: vec![
+                ("EQ DeltaCharge High".to_string(), "scalar".to_string()),
+                ("EQ VegaCharge High".to_string(), "scalar".to_string()),
+                ("EQ CurvatureCharge High".to_string(), "scalar".to_string())
+            ],
         }),
     ]
 }

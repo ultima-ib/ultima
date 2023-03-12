@@ -17,3 +17,8 @@ tracing = { version = "0.1", features = ["log"] }
 pretty_env_logger = "0.4"
 log = "*"
 mime = "*"
+actix-web-static-files = "4.0"
+static-files = "0.2.1"
+
+[build-dependencies]
+static-files = "0.2.1"

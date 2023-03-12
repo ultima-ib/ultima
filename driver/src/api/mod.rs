@@ -185,6 +185,10 @@ async fn _validator(
     Err((error, req))
 }
 
+use actix_web_static_files::ResourceFiles;
+
+include!(concat!(env!("OUT_DIR"), "/generated.rs"));
+
 // TODO Why can't I use ds: impl DataSet ?
 pub fn run_server(
     listener: TcpListener,
@@ -223,8 +227,8 @@ pub fn run_server(
                     .route("/describe", web::post().to(describe)),
             )
             // must be the last one
-            .service(actix_files::Files::new("/", &static_files_dir).index_file("index.html"))
-            //.service(ui)
+            //.service(actix_files::Files::new("/", &static_files_dir).index_file("index.html"))
+            .service(ResourceFiles::new("/", generated))
             .app_data(ds.clone())
             .app_data(_templates.clone())
     })

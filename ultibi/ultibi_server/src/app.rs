@@ -1,7 +1,7 @@
 use actix_web::{
     dev::Server,
     get,
-    http::header::ContentType,
+    //http::header::ContentType,
     middleware::Logger,
     web::{self, Data},
     App,
@@ -138,15 +138,9 @@ async fn overridable_columns(data: Data<RwLock<dyn DataSet>>) -> impl Responder 
     web::Json(data.read().expect("Poisonned RwLock").overridable_columns())
 }
 
-#[get("/")]
-async fn ui() -> impl Responder {
-    // TODO find a better way
-    let index = include_str!(r"index.html");
+use actix_web_static_files::ResourceFiles;
 
-    HttpResponse::Ok()
-        .content_type(ContentType::html())
-        .body(index)
-}
+include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
 //<DS: DataSet + 'static + ?Sized>
 pub fn build_app(
@@ -162,7 +156,7 @@ pub fn build_app(
     let _templates = Data::new(_templates);
 
     let server = HttpServer::new(move || {
-        //let auth = HttpAuthentication::basic(validator);
+        let generated = generate();
 
         App::new()
             .wrap(Logger::default())
@@ -183,8 +177,7 @@ pub fn build_app(
                     .route("/describe", web::post().to(describe)),
             )
             // must be the last one
-            //.service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
-            .service(ui)
+            .service(ResourceFiles::new("/", generated))
             .app_data(ds.clone())
             .app_data(_templates.clone())
             .app_data(streaming.clone())

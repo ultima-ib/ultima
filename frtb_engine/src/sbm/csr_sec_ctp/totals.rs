@@ -1,47 +1,79 @@
 use polars::prelude::*;
-use ultibi::BaseMeasure;
+use ultibi::DependantMeasure;
 use ultibi::Measure;
 use ultibi::CPM;
 
-use super::curvature::*;
-use super::delta::*;
-use super::vega::*;
-
-pub(crate) fn csrsecctp_total_low(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_sec_ctp_delta_charge_low(op)?
-        + csrsecctp_vega_charge_low(op)?
-        + csrsecctp_curvature_charge_low(op)?)
+pub(crate) fn csrsecctp_total_low(_: &CPM) -> PolarsResult<Expr> {
+    Ok(col("CSR Sec CTP DeltaCharge Low")
+        + col("CSR Sec CTP VegaCharge Low")
+        + col("CSR Sec CTP CurvatureCharge Low"))
 }
-pub(crate) fn csrsecctp_total_medium(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_sec_ctp_delta_charge_medium(op)?
-        + csrsecctp_vega_charge_medium(op)?
-        + csrsecctp_curvature_charge_medium(op)?)
+pub(crate) fn csrsecctp_total_medium(_: &CPM) -> PolarsResult<Expr> {
+    Ok(col("CSR Sec CTP DeltaCharge Medium")
+        + col("CSR Sec CTP VegaCharge Medium")
+        + col("CSR Sec CTP CurvatureCharge Medium"))
 }
-pub(crate) fn csrsecctp_total_high(op: &CPM) -> PolarsResult<Expr> {
-    Ok(csr_sec_ctp_delta_charge_high(op)?
-        + csrsecctp_vega_charge_high(op)?
-        + csrsecctp_curvature_charge_high(op)?)
+pub(crate) fn csrsecctp_total_high(_: &CPM) -> PolarsResult<Expr> {
+    Ok(col("CSR Sec CTP DeltaCharge High")
+        + col("CSR Sec CTP VegaCharge High")
+        + col("CSR Sec CTP CurvatureCharge High"))
 }
 
 pub(crate) fn csrsecctp_total_measures() -> Vec<Measure> {
     vec![
-        Measure::Base(BaseMeasure {
-            name: "CSR secCTP TotalCharge Low".to_string(),
+        Measure::Dependant(DependantMeasure {
+            name: "CSR Sec CTP TotalCharge Low".to_string(),
             calculator: Box::new(csrsecctp_total_low),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
+            depends_upon: vec![
+                (
+                    "CSR Sec CTP DeltaCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR Sec CTP VegaCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR Sec CTP CurvatureCharge Low".to_string(),
+                    "scalar".to_string(),
+                ),
+            ],
         }),
-        Measure::Base(BaseMeasure {
-            name: "CSR secCTP TotalCharge Medium".to_string(),
+        Measure::Dependant(DependantMeasure {
+            name: "CSR Sec CTP TotalCharge Medium".to_string(),
             calculator: Box::new(csrsecctp_total_medium),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
+            depends_upon: vec![
+                (
+                    "CSR Sec CTP DeltaCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR Sec CTP VegaCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR Sec CTP CurvatureCharge Medium".to_string(),
+                    "scalar".to_string(),
+                ),
+            ],
         }),
-        Measure::Base(BaseMeasure {
-            name: "CSR secCTP TotalCharge High".to_string(),
+        Measure::Dependant(DependantMeasure {
+            name: "CSR Sec CTP TotalCharge High".to_string(),
             calculator: Box::new(csrsecctp_total_high),
-            aggregation: Some("scalar"),
-            precomputefilter: Some(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
+            depends_upon: vec![
+                (
+                    "CSR Sec CTP DeltaCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR Sec CTP VegaCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+                (
+                    "CSR Sec CTP CurvatureCharge High".to_string(),
+                    "scalar".to_string(),
+                ),
+            ],
         }),
     ]
 }

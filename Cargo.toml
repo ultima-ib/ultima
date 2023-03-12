@@ -6,7 +6,7 @@ members = ['driver', 'ultibi', 'frtb_engine', 'pyultima', 'ultibi/ultibi_server'
 default-members = ['driver', 'ultibi', 'frtb_engine', 'ultibi/ultibi_server', 'ultibi/ultibi_core']
 
 [workspace.package]
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Anatoly Bugakov"]
 description = "Ultima BI"
 documentation = "https://ultimabi.uk/ultibi-frtb-book/"

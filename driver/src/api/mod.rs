@@ -6,7 +6,6 @@ use actix_web::{
     dev::Server,
     dev::ServiceRequest,
     get,
-    http::header::ContentType,
     middleware::Logger,
     web::{self, Data},
     App,
@@ -161,16 +160,6 @@ async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
     web::Json(data.overridable_columns())
 }
 
-#[get("/")]
-async fn ui() -> impl Responder {
-    // This works but not on docker let index = include_str!(r"../../../frontend/dist/index.html");
-    let index = include_str!(r"index.html");
-
-    HttpResponse::Ok()
-        .content_type(ContentType::html())
-        .body(index)
-}
-
 async fn _validator(
     req: ServiceRequest,
     creds: BasicAuth,
@@ -184,6 +173,10 @@ async fn _validator(
     let error = actix_web::error::ErrorUnauthorized("invalid credentions!");
     Err((error, req))
 }
+
+use actix_web_static_files::ResourceFiles;
+
+include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
 // TODO Why can't I use ds: impl DataSet ?
 pub fn run_server(
@@ -203,6 +196,7 @@ pub fn run_server(
 
     let server = HttpServer::new(move || {
         //let auth = HttpAuthentication::basic(validator);
+        let generated = generate();
 
         App::new()
             .wrap(Logger::default())
@@ -223,8 +217,8 @@ pub fn run_server(
                     .route("/describe", web::post().to(describe)),
             )
             // must be the last one
-            //.service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
-            .service(ui)
+            //.service(actix_files::Files::new("/", &static_files_dir).index_file("index.html"))
+            .service(ResourceFiles::new("/", generated))
             .app_data(ds.clone())
             .app_data(_templates.clone())
     })

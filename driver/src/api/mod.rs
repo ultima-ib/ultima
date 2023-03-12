@@ -197,8 +197,8 @@ pub fn run_server(
     pretty_env_logger::init();
 
     let ds = Data::new(ds);
-    //let static_files_dir =
-    //    std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
+    let static_files_dir =
+        std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
     let server = HttpServer::new(move || {
@@ -223,8 +223,8 @@ pub fn run_server(
                     .route("/describe", web::post().to(describe)),
             )
             // must be the last one
-            //.service(fs::Files::new("/", &static_files_dir).index_file("index.html"))
-            .service(ui)
+            .service(actix_files::Files::new("/", &static_files_dir).index_file("index.html"))
+            //.service(ui)
             .app_data(ds.clone())
             .app_data(_templates.clone())
     })

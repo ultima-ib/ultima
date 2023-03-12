@@ -7,7 +7,6 @@ on:
   #  types:
   #    - completed
   push:
-    branches: [master] # potentially remove
     tags: ['demo*.*.*'] 
   
 env:

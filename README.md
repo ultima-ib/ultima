@@ -1,8 +1,36 @@
+
+<br>
+
+<p align="center">
+    <a href="https://ultimabi.uk/" target="_blank">
+    <img width="300" src="/img/logo.png" alt="Ultima Logo">
+    </a>
+    is the ultimate data analytics tool <br> for no code visualisation and collaborative exploration
+</p>
+
+<br>
+
+<h3 align="center">Develop easier. &nbsp; Build faster. &nbsp; Scale quicker.</h3>
+
 # The Ultimate BI tool
-[![Main App](https://github.com/ultima-ib/ultima/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/ultima-ib/ultima/actions/workflows/main.yml)
 
+<br>
 
-# How to build
+<p align="center">
+    <a href="https://frtb.demo.ultimabi.uk/" target="_blank">
+    <img width="300" src="/img/frtb_gif.gif" alt="Ultima Logo">
+    </a>
+</p>
+
+<br>
+
+## Python
+
+## Rust
+
+# Developers guide
+
+## How to build
 from ./ultima/
 ```cargo build``` or ```cargo build --bin server```
 

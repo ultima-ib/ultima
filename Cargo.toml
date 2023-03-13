@@ -1,3 +1,11 @@
+[workspace.package]
+version = "0.1.4"
+authors = ["Anatoly Bugakov"]
+description = "Ultima BI"
+documentation = "https://ultimabi.uk/ultibi-frtb-book/"
+publish = false
+license-file = "LICENSE"
+
 [workspace]
 members = ['driver', 'ultibi', 'frtb_engine', 'pyultima', 'ultibi/ultibi_server','ultibi/ultibi_core']
 # temporarily exclude pyultima
@@ -5,11 +13,6 @@ members = ['driver', 'ultibi', 'frtb_engine', 'pyultima', 'ultibi/ultibi_server'
 # Otherwise cargo chief picks it up for compilation and it fails
 default-members = ['driver', 'ultibi', 'frtb_engine', 'ultibi/ultibi_server', 'ultibi/ultibi_core']
 
-[workspace.package]
-version = "0.1.4"
-authors = ["Anatoly Bugakov"]
-description = "Ultima BI"
-documentation = "https://ultimabi.uk/ultibi-frtb-book/"
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }

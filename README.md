@@ -8,7 +8,7 @@
 </p>
 <br>
 
-<h3 align="center">is the ultimate <b> data analytics </b> tool <br> for <b>no code visualisation</b> and <b>collaborative exploration</b>.</h3>
+<h3 align="center">is the ultimate `data analytics` tool <br> for `no code visualisation` and `collaborative exploration`.</h3>
 
 <h3 align="center">Present easier. &nbsp; Analyse together. &nbsp; </h3>
 
@@ -18,7 +18,7 @@
 
 <p align="center">
     <a href="https://frtb.demo.ultimabi.uk/" target="_blank">
-    <img width="300" src="/img/frtb_gif.gif" alt="Ultima Logo">
+    <img width="600" src="/img/frtb_gif.gif" alt="Ultima Logo">
     </a>
 </p>
 

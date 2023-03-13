@@ -5,12 +5,12 @@
     <a href="https://ultimabi.uk/" target="_blank">
     <img width="900" src="/img/logo.png" alt="Ultima Logo">
     </a>
-    <br>is the ultimate data analytics tool <br> for no code visualisation and collaborative exploration
 </p>
-
 <br>
 
-<h3 align="center">Share across. &nbsp; Collaborate interactively. &nbsp; Explore easier.</h3>
+<h3 align="center">is the ultimate <b> data analytics </b> tool <br> for <b>no code visualisation</b> and <b>collaborative exploration</b>.</h3>
+
+<h3 align="center">Present easier. &nbsp; Analyse together. &nbsp; </h3>
 
 # The Ultimate BI tool
 

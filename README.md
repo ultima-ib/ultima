@@ -18,7 +18,7 @@
 
 <p align="center">
     <a href="https://frtb.demo.ultimabi.uk/" target="_blank">
-    <img width="600" src="/img/frtb_gif.gif" alt="Ultima Logo">
+    <img width="900" src="/img/frtb_gif.gif" alt="Ultima Logo">
     </a>
 </p>
 

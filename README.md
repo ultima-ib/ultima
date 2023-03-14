@@ -69,9 +69,6 @@ fn main() -> anyhow::Result<()> {
     let cli = CliOnce::parse();
     let setup_path = cli.config;
 
-    // Assume non streaming mode
-    // For more information see documentation
-
     // Build Data
     let data = build_validate_prepare::<DataSetType>(setup_path.as_str(),true, true);
     let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(data));

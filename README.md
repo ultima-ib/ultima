@@ -13,7 +13,7 @@
 <h3 align="center">Present easier. &nbsp; Analyse together. &nbsp; </h3>
 
 # The Ultimate BI tool
-Ultibi leverages on Actix, [Polars](https://github.com/pola-rs/polars) and TypeScript for the frontend. 
+Ultibi leverages on [Actix](https://github.com/actix/actix-web), [Polars](https://github.com/pola-rs/polars) and TypeScript for the frontend. 
 <br>
 
 <p align="center">
@@ -46,6 +46,56 @@ ds.ui()
 ```
 
 ## Rust
+```rust
+//! Server side entry point
+//! This to be conversted into server
+
+use clap::Parser;
+//use base_engine::prelude::*;
+use driver::helpers::cli::CliOnce;
+
+use std::sync::{Arc, RwLock};
+
+use ultibi::{DataSet, VisualDataSet};
+use ultibi::acquire::build_validate_prepare;
+
+#[cfg(target_os = "linux")]
+use jemallocator::Jemalloc;
+#[cfg(not(target_os = "linux"))]
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+#[cfg(target_os = "linux")]
+static ALLOC: Jemalloc = Jemalloc;
+#[global_allocator]
+#[cfg(not(target_os = "linux"))]
+static ALLOC: MiMalloc = MiMalloc;
+
+pub type DataSetType = frtb_engine::FRTBDataSet;
+
+#[allow(clippy::uninlined_format_args)]
+fn main() -> anyhow::Result<()> {
+    // Read .env
+    dotenv::dotenv().ok();
+
+    let cli = CliOnce::parse();
+    let setup_path = cli.config;
+
+    // Assume non streaming mode
+    // For more information see documentation
+
+    // Build Data
+    let data = build_validate_prepare::<DataSetType>(setup_path.as_str(),true, true);
+    let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(data));
+    
+    // Assume non streaming mode
+    // For more information see documentation
+    ds.ui(false);
+
+    Ok(())
+}
+```
+```cargo run --release -- --config="frtb_engine/tests/data/datasource_config.toml"```
 
 # Examples
 ## Extending with your own measures

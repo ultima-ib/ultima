@@ -59,18 +59,6 @@ use std::sync::{Arc, RwLock};
 use ultibi::{DataSet, VisualDataSet};
 use ultibi::acquire::build_validate_prepare;
 
-#[cfg(target_os = "linux")]
-use jemallocator::Jemalloc;
-#[cfg(not(target_os = "linux"))]
-use mimalloc::MiMalloc;
-
-#[global_allocator]
-#[cfg(target_os = "linux")]
-static ALLOC: Jemalloc = Jemalloc;
-#[global_allocator]
-#[cfg(not(target_os = "linux"))]
-static ALLOC: MiMalloc = MiMalloc;
-
 pub type DataSetType = frtb_engine::FRTBDataSet;
 
 #[allow(clippy::uninlined_format_args)]

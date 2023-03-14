@@ -3,7 +3,7 @@
 
 <p align="center">
     <a href="https://ultimabi.uk/" target="_blank">
-    <img width="1000" src="/img/logo.png" alt="Ultima Logo">
+    <img width="900" src="/img/logo.png" alt="Ultima Logo">
     </a>
 </p>
 <br>

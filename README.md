@@ -3,7 +3,7 @@
 
 <p align="center">
     <a href="https://ultimabi.uk/" target="_blank">
-    <img width="900" src="/img/logo.png" alt="Ultima Logo">
+    <img width="1000" src="/img/logo.png" alt="Ultima Logo">
     </a>
 </p>
 <br>
@@ -49,9 +49,9 @@ ds.ui()
 
 # Examples
 ## Extending with your own measures
-See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) and python frtb [userguide]https://ultimabi.uk/ultibi-frtb-book/)
+See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) and python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/)
 ## Hosting
-See [driver]() 
+See [driver](https://github.com/ultima-ib/ultima/tree/master/driver) 
 
 # Developers guide
 

@@ -245,7 +245,7 @@ pub fn numeric_columns(schema: Arc<Schema>) -> Vec<String> {
 pub fn fields_columns(schema: Arc<Schema>) -> Vec<String> {
     schema
         .iter_fields()
-        .filter(|field| matches!(field.data_type(), DataType::Utf8))
+        .filter(|field| matches!(field.data_type(), DataType::Utf8|DataType::UInt8|DataType::Int8))
         .map(|field| field.name)
         .collect::<Vec<String>>()
 }

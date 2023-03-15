@@ -10,6 +10,7 @@ use log::info;
 
 mod app;
 mod visual;
+mod helpers;
 
 pub use visual::VisualDataSet;
 

@@ -90,12 +90,18 @@ async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Res
 async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {
     let df = jdf.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
-    let res = task::spawn_blocking(move || df.describe(None))
+    let res = task::spawn_blocking(move || crate::helpers::describe(df, None))
         .await
         .context("Failed to spawn blocking task.")
         .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(res))
+        match res {
+            Ok(df) => Ok(HttpResponse::Ok().json(df)),
+            Err(e) => {
+                tracing::error!("Failed to execute query: {:?}", e);
+                Err(actix_web::error::ErrorExpectationFailed(e))
+            }
+        }
 }
 
 #[tracing::instrument(name = "Request Execution", skip(data))]

@@ -1,4 +1,3 @@
-
 <br>
 
 <p align="center">
@@ -13,7 +12,8 @@
 <h3 align="center">Present easier. &nbsp; Analyse together. &nbsp; </h3>
 
 # The Ultimate BI tool
-Ultibi leverages on [Actix](https://github.com/actix/actix-web), [Polars](https://github.com/pola-rs/polars) and TypeScript for the frontend. 
+
+Ultibi leverages on [Actix](https://github.com/actix/actix-web), [Polars](https://github.com/pola-rs/polars) and TypeScript for the frontend.
 <br>
 
 <p align="center">
@@ -25,6 +25,7 @@ Ultibi leverages on [Actix](https://github.com/actix/actix-web), [Polars](https:
 <br>
 
 ## Python
+
 ```python
 import ultibi as ul
 import polars as pl
@@ -46,6 +47,7 @@ ds.ui()
 ```
 
 ## Rust
+
 ```rust
 //! Server side entry point
 //! This to be conversted into server
@@ -80,39 +82,43 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 ```
-```cargo run --release -- --config="frtb_engine/tests/data/datasource_config.toml"```
+
+`cargo run --release -- --config="frtb_engine/tests/data/datasource_config.toml"`
 
 # Examples
+
 ## Extending with your own measures
+
 See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) and python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/)
+
 ## Hosting
-See [driver](https://github.com/ultima-ib/ultima/tree/master/driver) 
+
+See [driver](https://github.com/ultima-ib/ultima/tree/master/driver)
 
 # Developers guide
 
 ## How to build
 
-```cargo build``` or ```cargo build --bin server```
+`cargo build` or `cargo build --bin server`
 
-Check out ```target/debug/one_off.exe --help``` for optional command line parameters.
+Check out `target/debug/one_off.exe --help` for optional command line parameters.
 
 With UI:
-```cd frontend``` and then ```npm install & npm run build```
-Then go back to ```/ultima```
+`cd frontend` and then `npm install & npm run build`
+Then go back to `/ultima`
 
 The default (run is a shortcult for build and run)
-```cargo run --features FRTB_CRR2 --release```
+`cargo run --features FRTB_CRR2 --release`
 is equivallent to:
-```cargo run --features FRTB_CRR2 --release -- --config="frtb_engine/tests/data/datasource_config.toml" --requests="./driver/src/request.json"```
+`cargo run --features FRTB_CRR2 --release -- --config="frtb_engine/tests/data/datasource_config.toml" --requests="./driver/src/request.json"`
 
 Similarly, for:
-```cargo run --bin server --features FRTB_CRR2```
+`cargo run --bin server --features FRTB_CRR2`
 Although the meaning and usage of --requests is different here.
 
 **NOTE**: frtb_engine/tests/data/datasource_config.toml is used by tests in frtb_engine crate. Therefore, the data paths (**files, attributes etc**) are "local" paths to frtb_engine. Either create your own config or change this one (never push changed to master though)
 
 ## Cli Parameters
+
 Config is a set up for Data Source
 Request is what you want to calculate
-
-

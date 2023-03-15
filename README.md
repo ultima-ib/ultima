@@ -9,11 +9,11 @@
 
 <h3 align="center">the ultimate data analytics tool <br> for no code visualisation and collaborative exploration.</h3>
 
-<h3 align="center">Present easier. &nbsp; Analyse together. &nbsp; </h3>
+<h3 align="center">Present easier. &nbsp; Drill deeper. &nbsp; Review together. &nbsp;</h3>
 
 # The Ultimate BI tool
 
-Ultibi leverages on [Actix](https://github.com/actix/actix-web), [Polars](https://github.com/pola-rs/polars) and TypeScript for the frontend.
+Ultibi leverages on the giants: [Actix](https://github.com/actix/actix-web), [Polars](https://github.com/pola-rs/polars) who make this possible. We use TypeScript for the frontend.
 <br>
 
 <p align="center">
@@ -23,6 +23,8 @@ Ultibi leverages on [Actix](https://github.com/actix/actix-web), [Polars](https:
 </p>
 
 <br>
+
+# Examples
 
 ## Python
 
@@ -85,19 +87,15 @@ fn main() -> anyhow::Result<()> {
 
 `cargo run --release -- --config="frtb_engine/tests/data/datasource_config.toml"`
 
-# Examples
-
-## Extending with your own measures
-
+## Extending with your own data and measures
+Currently possible in `Rust` only.
+Implement `DataSet` or `CacheableDataSet` for your Struct. In particular, implement `get_measures` method.
 See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) and python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/)
 
-## Hosting
-
+## Personalised Hosting
 See [driver](https://github.com/ultima-ib/ultima/tree/master/driver)
 
-# Developers guide
-
-## How to build
+## How to build existing examples
 
 `cargo build` or `cargo build --bin server`
 

@@ -36,6 +36,12 @@ os.environ["RUST_LOG"] = "info" # enable logs
 os.environ["ADDRESS"] = "0.0.0.0:8000" # host on this address
 
 # Read Data
+# There are many many ways to create a Polars Dataframe. For example, you can go from Pandas:
+# https://pola-rs.github.io/polars/py-polars/html/reference/api/polars.from_pandas.html
+# If youdo this consider using pandas' pyarrow backend https://datapythonista.me/blog/pandas-20-and-the-arrow-revolution-part-i
+# For other options have a look at https://pola-rs.github.io/polars-book/user-guide/howcani/io/intro.html
+
+# In this example we simply read a csv
 # for more details: https://pola-rs.github.io/polars/py-polars/html/reference/api/polars.read_csv.html
 df = pl.read_csv("titanic.csv")
 
@@ -73,7 +79,7 @@ fn main() -> anyhow::Result<()> {
     let cli = CliOnce::parse();
     let setup_path = cli.config;
 
-    // Build Data
+    // Build Data - here we build from config
     let data = build_validate_prepare::<DataSetType>(setup_path.as_str(),true, true);
     let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(data));
     
@@ -92,22 +98,23 @@ Currently possible in `Rust` only.
 Implement `DataSet` or `CacheableDataSet` for your Struct. In particular, implement `get_measures` method.
 See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) and python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/)
 
-## Personalised Hosting
-See [driver](https://github.com/ultima-ib/ultima/tree/master/driver)
+## Bespoke Hosting
+You don't have to use `.ui()`. You can write your own sevrer easily based on your needs (for example DB interoperability for authentication)
+See an example [driver](https://github.com/ultima-ib/ultima/tree/master/driver)
 
 ## How to build existing examples
 
 `cargo build` or `cargo build --bin server`
-
+After you've built,
 Check out `target/debug/one_off.exe --help` for optional command line parameters.
 
 With UI:
 `cd frontend` and then `npm install & npm run build`
 Then go back to `/ultima`
 
-The default (run is a shortcult for build and run)
+To run as a one off (run is a shortcut for build and execute):
 `cargo run --features FRTB_CRR2 --release`
-is equivallent to:
+Which is equivallent to:
 `cargo run --features FRTB_CRR2 --release -- --config="frtb_engine/tests/data/datasource_config.toml" --requests="./driver/src/request.json"`
 
 Similarly, for:

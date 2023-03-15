@@ -1,8 +1,13 @@
-use ultibi_core::{DataFrame, polars::{series::Series, prelude::{DataType, Schema, QuantileInterpolOptions, IdxSize, NamedFrom}}, PolarsResult};
+use ultibi_core::{
+    polars::{
+        prelude::{DataType, IdxSize, NamedFrom, QuantileInterpolOptions, Schema},
+        series::Series,
+    },
+    DataFrame, PolarsResult,
+};
 
 /// We override Polars' describe function to better fit our needs
 pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<DataFrame> {
-
     fn describe_cast(df: &DataFrame, original_schema: &Schema) -> PolarsResult<DataFrame> {
         let columns = df
             .get_columns()
@@ -24,7 +29,9 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
     }
 
     fn count(df: &DataFrame) -> DataFrame {
-        let columns = df.get_columns().iter()
+        let columns = df
+            .get_columns()
+            .iter()
             .map(|s| Series::new(s.name(), [s.len() as IdxSize]))
             .collect();
         DataFrame::new_no_checks(columns)

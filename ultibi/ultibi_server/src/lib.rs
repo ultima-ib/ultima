@@ -9,6 +9,7 @@ use ultibi_core::DataSet;
 use log::info;
 
 mod app;
+mod helpers;
 mod visual;
 
 pub use visual::VisualDataSet;

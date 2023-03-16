@@ -12,7 +12,7 @@ on:
       - '.github/workflows/lint-test-rust-frontend.yaml'  
 
 jobs:
-  lint_tests:
+  rust_lint_tests:
     name: Run Clippy & Rustfmt lint tests
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +25,19 @@ jobs:
           components: clippy, rustfmt
 
       - uses: Swatinem/rust-cache@v1
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install Node
+        run: npm install
+        working-directory: frontend
+      
+      - name: Build Node
+        run: npm run build
+        working-directory: frontend
 
       - name: Run fmt
         uses: actions-rs/cargo@v1
@@ -52,6 +65,19 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install Node
+        run: npm install
+        working-directory: frontend
+      
+      - name: Build Node
+        run: npm run build
+        working-directory: frontend
        
       - name: Run tests
         uses: actions-rs/cargo@v1

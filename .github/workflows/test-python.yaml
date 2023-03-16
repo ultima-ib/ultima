@@ -8,8 +8,6 @@ on:
       - 'ultibi/**'
       - 'frtb_engine/**'
       - '.github/workflows/test-python.yaml'
-#  push:
-#    branches: [master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,8 +20,8 @@ defaults:
 jobs:
   python_test_ubuntu:
     runs-on: ubuntu-latest
-    env:
-      STATIC_FILES_DIR: /frontend/dist
+    #env:
+    #  STATIC_FILES_DIR: /frontend/dist
     strategy:
       fail-fast: false
       matrix:

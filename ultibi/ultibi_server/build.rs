@@ -27,5 +27,13 @@ fn main() -> std::io::Result<()> {
             dbg!(format!("{}", path.unwrap().path().display()));
         };
 
+        dbg!("frontend");
+
+        let paths = std::fs::read_dir("../../frontend/").unwrap();
+
+        for path in paths {
+            dbg!(format!("{}", path.unwrap().path().display()));
+        };
+
     resource_dir(path).build()
 }

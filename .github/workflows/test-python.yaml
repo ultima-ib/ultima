@@ -8,8 +8,6 @@ on:
       - 'ultibi/**'
       - 'frtb_engine/**'
       - '.github/workflows/test-python.yaml'
-#  push:
-#    branches: [master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -61,6 +59,19 @@ jobs:
         with:
           workspaces: pyultima
 
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install Node
+        run: npm install
+        working-directory: frontend
+      
+      - name: Build Node
+        run: npm run build
+        working-directory: frontend
+
       - name: Install Ultima
         env:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
@@ -106,6 +117,19 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: pyultima
+        
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install Node
+        run: npm install
+        working-directory: frontend
+      
+      - name: Build Node
+        run: npm run build
+        working-directory: frontend
 
       - name: Install Ultima
         shell: bash

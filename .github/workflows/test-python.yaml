@@ -20,8 +20,6 @@ defaults:
 jobs:
   python_test_ubuntu:
     runs-on: ubuntu-latest
-    #env:
-    #  STATIC_FILES_DIR: /frontend/dist
     strategy:
       fail-fast: false
       matrix:
@@ -119,6 +117,19 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: pyultima
+        
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install Node
+        run: npm install
+        working-directory: frontend
+      
+      - name: Build Node
+        run: npm run build
+        working-directory: frontend
 
       - name: Install Ultima
         shell: bash

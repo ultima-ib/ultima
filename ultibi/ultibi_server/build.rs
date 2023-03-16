@@ -5,13 +5,23 @@ fn main() -> std::io::Result<()> {
         std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "../../frontend/dist".to_string());
         let paths = std::fs::read_dir("./").unwrap();
 
+        dbg!("this level");
+
+        for path in paths {
+            dbg!(format!("{}", path.unwrap().path().display()));
+        };
+
+        dbg!("one level up");
+
+        let paths = std::fs::read_dir("../").unwrap();
+
         for path in paths {
             dbg!(format!("{}", path.unwrap().path().display()));
         };
 
         dbg!("two levels up");
 
-        let paths = std::fs::read_dir("../").unwrap();
+        let paths = std::fs::read_dir("../../").unwrap();
 
         for path in paths {
             dbg!(format!("{}", path.unwrap().path().display()));

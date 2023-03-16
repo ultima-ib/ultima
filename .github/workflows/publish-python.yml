@@ -118,27 +118,28 @@ jobs:
           command: publish
           args: -m pyultima/Cargo.toml  --all-features --no-sdist --skip-existing -o wheels -i python -u anatoly.bugakov
 
-  macos-aarch64:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly-2022-12-20
-
-      - name: Set up Rust targets
-        run: rustup target add aarch64-apple-darwin
-
-      - name: Publish wheel
-        uses: messense/maturin-action@v1
-        env:
-          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
-        with:
-          maturin-version: '0.14.10'
-          command: publish
-          args: -m pyultima/Cargo.toml  --all-features --target aarch64-apple-darwin --no-sdist -o wheels -i python -u anatoly.bugakov
+#  This job fails - understand/check why
+#  macos-aarch64:
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: '3.9'
+#
+#      - name: Set up Rust
+#        uses: dtolnay/rust-toolchain@master
+#        with:
+#          toolchain: nightly-2022-12-20
+#
+#      - name: Set up Rust targets
+#        run: rustup target add aarch64-apple-darwin
+#
+#      - name: Publish wheel
+#        uses: messense/maturin-action@v1
+#        env:
+#          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
+#        with:
+#          maturin-version: '0.14.10'
+#          command: publish
+#          args: -m pyultima/Cargo.toml  --all-features --target aarch64-apple-darwin --no-sdist -o wheels -i python -u anatoly.bugakov

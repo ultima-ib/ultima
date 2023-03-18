@@ -9,7 +9,7 @@
 
 <h3 align="center">the ultimate data analytics tool <br> for no code visualisation and collaborative exploration.</h3>
 
-<h3 align="center">Present easier. &nbsp; Drill deeper. &nbsp; Review together. &nbsp;</h3>
+<h3 align="center">Present easier. &nbsp; Dig deeper. &nbsp; Review together. &nbsp;</h3>
 
 # The Ultimate BI tool
 

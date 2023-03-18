@@ -73,7 +73,6 @@ use ultibi::acquire::build_validate_prepare;
 
 pub type DataSetType = frtb_engine::FRTBDataSet;
 
-#[allow(clippy::uninlined_format_args)]
 fn main() -> anyhow::Result<()> {
     // Read .env
     dotenv::dotenv().ok();

@@ -57,38 +57,41 @@ ds.ui()
 ```
 
 ## Rust
+Note: currently if you want to use inbuild functionality of the .ui() method (instead of using a template like [driver](https://github.com/ultima-ib/ultima/tree/master/driver)) you have to
+1. Build Frontend
+```shell
+cd frontend
+npm run build
+```
+2. Set up env variable **STATIC_FILES_DIR**="{your_path}\frontend\dist"
 
+3. 
 ```rust
-//! Server side entry point
-//! This to be conversted into server
+use std::sync::Arc;
+use std::sync::RwLock;
 
-use clap::Parser;
-//use base_engine::prelude::*;
-use driver::helpers::cli::CliOnce;
+use polars::prelude::LazyCsvReader;
+use ultibi::DataSet;
+use ultibi::DataSetBase;
+use ultibi::VisualDataSet;
+use std::env;
 
-use std::sync::{Arc, RwLock};
+pub fn example() {
+    // See logs
+    env::set_var("RUST_LOG", "info"); 
 
-use ultibi::{DataSet, VisualDataSet};
-use ultibi::acquire::build_validate_prepare;
+    // Read df
+    let df = LazyCsvReader::new("titanic.csv")
+        .finish()
+        .unwrap();
 
-pub type DataSetType = frtb_engine::FRTBDataSet;
+    // Conver df into Arc<RwLock<ultibi::DataSet>>
+    let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(
+        DataSetBase::new(df, Default::default(), Default::default())
+    ));
 
-fn main() -> anyhow::Result<()> {
-    // Read .env
-    dotenv::dotenv().ok();
-
-    let cli = CliOnce::parse();
-    let setup_path = cli.config;
-
-    // Build Data - here we build from config
-    let data = build_validate_prepare::<DataSetType>(setup_path.as_str(),true, true);
-    let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(data));
-    
-    // Assume non streaming mode
-    // For more information see documentation
+    // Visualise
     ds.ui(false);
-
-    Ok(())
 }
 ```
 
@@ -97,11 +100,14 @@ fn main() -> anyhow::Result<()> {
 ## Extending with your own data and measures
 Currently possible in `Rust` only.
 Implement `DataSet` or `CacheableDataSet` for your Struct. In particular, implement `get_measures` method.
+
+### FRTB SA
+[FRTB SA](https://en.wikipedia.org/wiki/Fundamental_Review_of_the_Trading_Book) is a great usecase for `ultibi`. FRTB SA is a set of standardised, computationally intensive rules established by the regulator. High business impact of these rules manifests in need for **analysis** and **visibility** thoroughout an organisation. Note: Ultima is not a certified aggregator. Always benchmark the results against your own interpretation of the rules.
 See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) and python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/)
 
 ## Bespoke Hosting
 You don't have to use `.ui()`. You can write your own sevrer easily based on your needs (for example DB interoperability for authentication)
-See an example [driver](https://github.com/ultima-ib/ultima/tree/master/driver)
+See an example [driver](https://github.com/ultima-ib/ultima/tree/master/driver) bin server.
 
 ## How to build existing examples
 

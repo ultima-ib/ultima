@@ -1,6 +1,5 @@
-driver/src/tmp_rqst.json
-driver/src/bin/server_test.rs
-
+template_drivers/src/tmp_rqst.json
+dist/
 /target
 **/*.rs.bk
 Cargo.lock

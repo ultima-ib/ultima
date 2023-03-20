@@ -1,8 +1,10 @@
 [package]
-name = "driver"
+name = "template_drivers"
 version.workspace = true
 edition = "2021"
 default-run = "one_off"
+publish = false
+description = "Example of a few custom ways to tun ultibi"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

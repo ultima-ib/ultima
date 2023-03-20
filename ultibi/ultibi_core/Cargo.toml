@@ -2,8 +2,9 @@
 name = "ultibi_core"
 version.workspace = true
 edition = "2021"
-publish = false
+publish = true
 license-file.workspace = true
+description.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -2,14 +2,15 @@
 name = "ultibi"
 version.workspace = true
 edition = "2021"
-publish = false
+publish = true
 license-file.workspace = true
+description.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ultibi_core = {path = "ultibi_core"}
-ultibi_server = {path = "ultibi_server", optional = true}
+ultibi_core = {path = "ultibi_core", version = "0.1"}
+ultibi_server = {path = "ultibi_server", version = "0.1", optional = true}
 
 [features]
 default = []

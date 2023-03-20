@@ -95,7 +95,7 @@ pub fn example() {
 }
 ```
 
-`cargo run --release -- --config="frtb_engine/tests/data/datasource_config.toml"`
+`cargo run --release`
 
 ## Extending with your own data and measures
 Currently possible in `Rust` only.

@@ -8,8 +8,8 @@ license-file.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ultibi_core = {path = "ultibi_core"}
-ultibi_server = {path = "ultibi_server", optional = true}
+ultibi_core = {path = "ultibi_core", version = "*"}
+ultibi_server = {path = "ultibi_server", version = "*", optional = true}
 
 [features]
 default = []

@@ -7,11 +7,11 @@ publish = false
 license-file = "LICENSE"
 
 [workspace]
-members = ['driver', 'ultibi', 'frtb_engine', 'pyultima', 'ultibi/ultibi_server','ultibi/ultibi_core']
+members = ['template_drivers', 'ultibi', 'frtb_engine', 'pyultima', 'ultibi/ultibi_server','ultibi/ultibi_core']
 # temporarily exclude pyultima
 # https://github.com/PyO3/maturin/issues/1374
 # Otherwise cargo chief picks it up for compilation and it fails
-default-members = ['driver', 'ultibi', 'frtb_engine', 'ultibi/ultibi_server', 'ultibi/ultibi_core']
+default-members = ['template_drivers', 'ultibi', 'frtb_engine', 'ultibi/ultibi_server', 'ultibi/ultibi_core']
 
 
 [workspace.dependencies]

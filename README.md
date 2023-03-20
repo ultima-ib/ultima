@@ -57,7 +57,7 @@ ds.ui()
 ```
 
 ## Rust
-Note: currently if you want to use inbuild functionality of the .ui() method (instead of using a template like [driver](https://github.com/ultima-ib/ultima/tree/master/driver)) you have to
+Note: currently if you want to use inbuild functionality of the .ui() method (instead of using a template like [template_drivers](https://github.com/ultima-ib/ultima/tree/master/template_drivers)) you have to
 1. Build Frontend
 ```shell
 cd frontend
@@ -107,7 +107,7 @@ See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) a
 
 ## Bespoke Hosting
 You don't have to use `.ui()`. You can write your own sevrer easily based on your needs (for example DB interoperability for authentication)
-See an example [driver](https://github.com/ultima-ib/ultima/tree/master/driver) bin server.
+See an example [template_drivers](https://github.com/ultima-ib/ultima/tree/master/template_drivers) bin server.
 
 ## How to build existing examples
 
@@ -122,7 +122,7 @@ Then go back to `/ultima`
 To run as a one off (run is a shortcut for build and execute):
 `cargo run --features FRTB_CRR2 --release`
 Which is equivallent to:
-`cargo run --features FRTB_CRR2 --release -- --config="frtb_engine/tests/data/datasource_config.toml" --requests="./driver/src/request.json"`
+`cargo run --features FRTB_CRR2 --release -- --config="frtb_engine/tests/data/datasource_config.toml" --requests="./template_drivers/src/request.json"`
 
 Similarly, for:
 `cargo run --bin server --features FRTB_CRR2`

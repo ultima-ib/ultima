@@ -1,4 +1,4 @@
-driver/src/tmp_rqst.json
+template_drivers/src/tmp_rqst.json
 dist/
 /target
 **/*.rs.bk

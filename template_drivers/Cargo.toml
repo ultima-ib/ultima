@@ -1,5 +1,5 @@
 [package]
-name = "driver"
+name = "template_drivers"
 version.workspace = true
 edition = "2021"
 default-run = "one_off"

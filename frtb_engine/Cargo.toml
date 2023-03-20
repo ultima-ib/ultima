@@ -8,7 +8,7 @@ license-file.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ultibi = {path = "../ultibi"}
+ultibi = {path = "../ultibi", version="0.1"}
 polars = {workspace = true, features=["strings", "ndarray", "lazy", "is_in", "dtype-categorical", "performant", "partition_by", "concat_str"]}
 serde = {workspace = true, features=["derive"]}
 serde_json = {workspace = true}

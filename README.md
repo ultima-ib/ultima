@@ -12,8 +12,8 @@
 <h3 align="center">Present easier. &nbsp; Dig deeper. &nbsp; Review together. &nbsp;</h3>
 
 # The Ultimate BI tool
+With `Ultibi` you can turn your `DataFrame` into a pivot table with a UI and share it across organisation. You can also define measures applicable to your `DataFrame`.  This means your colleagues/consumers don't have to write any code to analyse the data.
 
-Ultibi leverages on the giants: [Actix](https://github.com/actix/actix-web), [Polars](https://github.com/pola-rs/polars) who make this possible. We use TypeScript for the frontend.
 <br>
 
 <p align="center">
@@ -23,6 +23,8 @@ Ultibi leverages on the giants: [Actix](https://github.com/actix/actix-web), [Po
 </p>
 
 <br>
+
+Ultibi leverages on the giants: [Actix](https://github.com/actix/actix-web), [Polars](https://github.com/pola-rs/polars) and Rust which make this possible. We use TypeScript for the frontend.
 
 # Examples
 

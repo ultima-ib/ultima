@@ -8,6 +8,7 @@ use ultibi_core::DataSet;
 
 use log::info;
 
+mod api;
 mod app;
 mod helpers;
 mod visual;

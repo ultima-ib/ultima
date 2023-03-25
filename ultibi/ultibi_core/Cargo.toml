@@ -34,8 +34,10 @@ futures = { version = "0.3", optional = true }
 #Cache
 #May be make optional
 dashmap = { workspace = true }
+#utoipa = { version="*", optional = true}
 
 
 [features]
 default = []
 aws_s3 = ["dep:aws-config", "dep:aws-sdk-s3", "dep:tokio", "dep:futures"]
+#openapi = ["dep:utoipa"]

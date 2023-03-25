@@ -1,4 +1,6 @@
 use actix_web::{dev::Server, middleware::Logger, web::Data, App, HttpServer};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 use std::{
     net::TcpListener,
@@ -11,7 +13,7 @@ use actix_web_static_files::ResourceFiles;
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
-use crate::api::routers;
+use crate::api::{open_api::ApiDoc, routers};
 pub fn build_app(
     listener: TcpListener,
     ds: Arc<RwLock<dyn DataSet>>,
@@ -20,6 +22,7 @@ pub fn build_app(
 ) -> std::io::Result<Server> {
     let ds = Data::from(ds);
     let streaming = Data::new(streaming);
+    let openapi = ApiDoc::openapi();
 
     let _templates = Data::new(_templates);
 
@@ -29,6 +32,9 @@ pub fn build_app(
         App::new()
             .wrap(Logger::default())
             .configure(routers::configure())
+            .service(
+                SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-doc/openapi.json", openapi.clone()),
+            )
             .service(ResourceFiles::new("/", generated))
             .app_data(ds.clone())
             .app_data(_templates.clone())

@@ -6,6 +6,7 @@ use polars::{
 /// Helper function - used for search within a column
 /// Filters Series by `pat`
 /// Returns unique values
+/// TODO cache function
 pub fn filter_contains_unique(srs: &Series, pat: &str) -> PolarsResult<Series> {
     let mask = srs
         .utf8()?

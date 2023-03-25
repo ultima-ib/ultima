@@ -28,7 +28,6 @@ impl From<AggregationRequest> for ComputeRequest {
         ComputeRequest::Aggregation(item)
     }
 }
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub struct AggregationRequest {

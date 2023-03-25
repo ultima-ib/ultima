@@ -9,8 +9,8 @@ use anyhow::Context;
 use serde::Deserialize;
 use tokio::task;
 use ultibi_core::{
-    aggregations::BASE_CALCS, polars::lazy::dsl::col, AggregationRequest, DataFrame, DataSet,
-    PolarsResult,
+    aggregations::BASE_CALCS, polars::lazy::dsl::col, AggregationRequest, ComputeRequest,
+    DataFrame, DataSet, PolarsResult,
 };
 
 #[derive(Deserialize)]
@@ -74,11 +74,48 @@ async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Res
         .message_body(body)
 }
 
-#[tracing::instrument(name = "Request Execution", skip(data))]
+#[utoipa::path(
+    post,
+    request_body(content = ComputeRequest, description = "What you want to compute", content_type = "application/json",
+        example = json!(r#"
+        {   "filters": [{"op":"Eq", "field":"Group", "value":"Ultima"}],
+    
+            "groupby": ["RiskClass", "Desk"],
+            
+            "overrides": [{   "field": "SensWeights",
+                              "value": "[0.005]",
+                              "filters": [
+                                        [{"op":"Eq", "field":"RiskClass", "value":"DRC_nonSec"}],
+                                        [{"op":"Eq", "field":"CreditQuality", "value":"AA"}]
+                                        ]
+                        }],
+            
+            "measures": [
+                ["DRC nonSec CapitalCharge", "scalar"]
+                    ],
+            "type": "AggregationRequest",
+            
+            "hide_zeros": true,
+            "calc_params": {
+                "jurisdiction": "BCBS",
+                "apply_fx_curv_div": "true",
+                "drc_offset": "false"
+            }}
+    "#)
+    ),
+    responses(
+        (status = 200, description = "Result of the compute request",body = DataFrame,
+         content_type = "application/json", 
+         example=json!(
+            r#"{"columns":[{"name":"RiskCategory","datatype":"Utf8","values":["DRC","Vega","Delta"]},{"name":"COB","datatype":"Utf8","values":["22/07/2022","22/07/2022","22/07/2022"]},{"name":"SA Charge","datatype":"Float64","values":[12777.688636772913,417064.5099482173,169292.7255377446]}]}"#
+        ))
+    )
+)]
+//#[tracing::instrument(name = "Request Execution", skip(data))]
 #[post("")]
-async fn execute(
+pub(crate) async fn execute(
     data: Data<RwLock<dyn DataSet>>,
-    req: web::Json<AggregationRequest>,
+    req: web::Json<ComputeRequest>,
     streaming: Data<bool>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
@@ -86,7 +123,7 @@ async fn execute(
     let res = task::spawn_blocking(move || {
         data.read()
             .expect("Poisonned RwLock")
-            .compute(r.into(), **streaming) //TODO streaming mode
+            .compute(r, **streaming) //TODO streaming mode
     })
     .await
     .context("Failed to spawn blocking task.")

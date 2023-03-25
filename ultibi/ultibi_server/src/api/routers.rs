@@ -76,7 +76,7 @@ async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Res
 
 #[utoipa::path(
     post,
-    request_body(content = ComputeRequest, description = "What you want to compute", content_type = "application/json",
+    request_body(content = ComputeRequest, description = "AggregationRequest Example", content_type = "application/json",
         example = json!(r#"
         {   "filters": [{"op":"Eq", "field":"Group", "value":"Ultima"}],
     

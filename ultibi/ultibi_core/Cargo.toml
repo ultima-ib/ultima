@@ -34,10 +34,12 @@ futures = { version = "0.3", optional = true }
 #Cache
 #May be make optional
 dashmap = { workspace = true }
-#utoipa = { version="*", optional = true}
+# Open API Swagger
+quote = "1.0.26" # Needs to be specified for utoipa to build
+utoipa = { git ="https://github.com/juhaku/utoipa", optional = true} # TODO change to version
 
 
 [features]
 default = []
 aws_s3 = ["dep:aws-config", "dep:aws-sdk-s3", "dep:tokio", "dep:futures"]
-#openapi = ["dep:utoipa"]
+openapi = ["dep:utoipa"]

@@ -5,6 +5,7 @@
 //use ultibi_core::{DataSet, DataFrame, ComputeRequest};
 //use utoipa::{OpenApi, ToSchema};
 use crate::api::routers;
+use ultibi_core::AggregationRequest;
 use utoipa::OpenApi;
 
 //use super::routers::execute;
@@ -17,9 +18,9 @@ use utoipa::OpenApi;
     paths(
         routers::execute,
     ),
-    //components(
-    //    schemas(ComputeRequestAPI, DataSetAPI, DataFrameAPI)
-    //),
+    components(
+        schemas(AggregationRequest)
+    ),
     tags(
         (name = "Ultima BI", description = "Ultimate Business Intellegence endpoints.")
     ),

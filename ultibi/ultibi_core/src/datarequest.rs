@@ -30,6 +30,7 @@ impl From<AggregationRequest> for ComputeRequest {
 }
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct AggregationRequest {
     // general fields
     #[serde(default)]
@@ -76,7 +77,7 @@ impl AggregationRequest {
     }
 }
 
-/// This is used for
+/// This is used Internally as a key in Cache
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum CacheableComputeRequest {
     /// Measures will be called in GroupBy-Aggregate context

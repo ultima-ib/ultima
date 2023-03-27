@@ -25,6 +25,7 @@ async fn health_check(_: HttpRequest) -> impl Responder {
     HttpResponse::Ok()
 }
 
+#[utoipa::path]
 // /{column_name}?page=2&per_page=30
 #[get("/columns/{column_name}")]
 async fn column_search(
@@ -63,7 +64,7 @@ async fn column_search(
         }
     }
 }
-
+#[utoipa::path(get)]
 #[get("")]
 async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Responder {
     let a = ds.read().unwrap();
@@ -76,7 +77,7 @@ async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Res
 
 #[utoipa::path(
     post,
-    request_body(content = AggregationRequest, description = "AggregationRequest Example", content_type = "application/json",
+    request_body(content = AggregationRequest, description = "What do you want to calculate", content_type = "application/json",
         example = json!(r#"
         {   "filters": [{"op":"Eq", "field":"Group", "value":"Ultima"}],
     
@@ -111,7 +112,7 @@ async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Res
         ))
     )
 )]
-//#[tracing::instrument(name = "Request Execution", skip(data))]
+#[tracing::instrument(name = "Request Execution", skip(data))]
 #[post("")]
 pub(crate) async fn execute(
     data: Data<RwLock<dyn DataSet>>,
@@ -137,11 +138,12 @@ pub(crate) async fn execute(
         }
     }
 }
-
+#[utoipa::path]
 #[get("/templates")]
 async fn templates(_: HttpRequest, templates: Data<Vec<AggregationRequest>>) -> impl Responder {
     web::Json(templates)
 }
+#[utoipa::path(get)]
 #[get("/overrides")]
 async fn overridable_columns(data: Data<RwLock<dyn DataSet>>) -> impl Responder {
     web::Json(data.read().expect("Poisonned RwLock").overridable_columns())
@@ -168,12 +170,14 @@ pub(crate) fn configure() -> impl FnOnce(&mut ServiceConfig) {
 }
 
 // Not Ultibi DataSet Specific
+#[utoipa::path]
 #[get("/aggtypes")]
 async fn aggtypes() -> impl Responder {
     let res = BASE_CALCS.iter().map(|(x, _)| *x).collect::<Vec<&str>>();
     web::Json(res)
 }
 
+#[utoipa::path]
 #[tracing::instrument(name = "Describe", skip(jdf))]
 #[post("/describe")]
 async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {

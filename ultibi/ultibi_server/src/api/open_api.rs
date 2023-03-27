@@ -5,7 +5,7 @@
 //use ultibi_core::{DataSet, DataFrame, ComputeRequest};
 //use utoipa::{OpenApi, ToSchema};
 use crate::api::routers;
-use ultibi_core::AggregationRequest;
+use ultibi_core::{AggregationRequest, filters::FilterE};
 use utoipa::OpenApi;
 
 //use super::routers::execute;
@@ -17,9 +17,15 @@ use utoipa::OpenApi;
     ),
     paths(
         routers::execute,
+        routers::column_search,
+        routers::dataset_info,
+        routers::templates,
+        routers::overridable_columns,
+        routers::aggtypes,
+        routers::describe,
     ),
     components(
-        schemas(AggregationRequest)
+        schemas(AggregationRequest, FilterE)
     ),
     tags(
         (name = "Ultima BI", description = "Ultimate Business Intellegence endpoints.")

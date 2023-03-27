@@ -16,6 +16,7 @@ use crate::filters::{fltr_chain, AndOrFltrChain};
 /// */
 /// ```
 #[derive(Serialize, Deserialize, Debug, Clone, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct Override {
     field: String,
     value: String,

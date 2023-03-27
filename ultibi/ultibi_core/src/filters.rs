@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// This type represents the convention.
 /// Outer elements are AND, innder elements are OR
-pub(crate) type AndOrFltrChain = Vec<Vec<FilterE>>;
+pub type AndOrFltrChain = Vec<Vec<FilterE>>;
 
 /// Inner elements of each Filter are OR
 /// Filters themselves(eg a Vec of Filters) are AND
@@ -14,6 +14,7 @@ pub(crate) type AndOrFltrChain = Vec<Vec<FilterE>>;
 ///
 #[derive(Serialize, Deserialize, Debug, Hash, Clone, Eq, PartialEq)]
 #[serde(tag = "op")]
+#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub enum FilterE {
     /// On Same as In, but better for 1 field only
     Eq {

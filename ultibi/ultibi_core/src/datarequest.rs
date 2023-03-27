@@ -14,6 +14,7 @@ pub type CPM = BTreeMap<String, String>;
 /// i) Aggregation: apply the same procedure to every group and get a single number
 ///
 /// Otherwise, ii) Apply the same procedure to every group and get multiple numbers (ie a Breakdown)
+// TODO #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(untagged)]
 pub enum ComputeRequest {
@@ -33,18 +34,23 @@ impl From<AggregationRequest> for ComputeRequest {
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct AggregationRequest {
     // general fields
+    /// Name of your request
+    /// Usefull when used as a template
     #[serde(default)]
     pub name: Option<String>,
-    /// Measure: (Name, Action) where Name will be looked up in
+    /// Measure: (Name: String, Action: String) where Name will be looked up in
     /// MeasuresMap of the DataSet
     pub measures: Vec<(MeasureName, AggregationName)>,
+    /// Which column do you want to Group By?
     pub groupby: Vec<String>,
+    /// Filter your data (pre compute)
     #[serde(default)]
     pub filters: AndOrFltrChain,
     #[serde(default)]
     pub overrides: Vec<Override>,
     #[serde(default, alias = "additionalRows")]
     pub add_row: AdditionalRows,
+    /// Map/Dict
     #[serde(default)]
     pub calc_params: CPM,
     /// drop rows where all results are NULL or 0

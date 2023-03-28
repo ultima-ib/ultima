@@ -72,7 +72,7 @@ class DataSet:
         df: pl.DataFrame,
         measures: "list[str] | None" = None,
         build_params: "dict[str, str] | None" = None,
-        prepared: bool = False,
+        prepared: bool = True,
     ) -> DS:
         """
         Build DataSet directly from df
@@ -85,7 +85,7 @@ class DataSet:
             build_params (dict | None, optional): Params to be used in prepare. Defaults
              to None.
             prepared (bool, optional): Was your DataFrame already prepared? Defaults
-            to False.
+            to True.
 
         Returns:
             T: Self

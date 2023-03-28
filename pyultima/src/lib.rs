@@ -6,9 +6,11 @@ use errors::{
     NotFoundError, OtherError, PyUltimaErr, SchemaError, SerdeJsonError, ShapeError,
 };
 use frtb_engine::FRTBDataSet;
+use pyo3::exceptions::PyFileNotFoundError;
 use pyo3::{prelude::*, types::PyType, PyTypeInfo};
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Arc;
 //use std::sync::Mutex;
 use std::sync::RwLock;
@@ -36,9 +38,9 @@ fn from_conf<T: DataSet + 'static>(
     // This is now done in build_validate_prepare
     // TODO build_validate_prepare to return result and errors to be mapped
     // Like this:
-    //if !Path::new(&conf_path).exists() {
-    //    return Err(PyFileNotFoundError::new_err("file doesn't exist"));
-    //}
+    if !Path::new(&conf_path).exists() {
+        return Err(PyFileNotFoundError::new_err("Config file doesn't exist"));
+    }
     //
     //let Ok(conf) = read_toml2::<DataSourceConfig>(&conf_path) else {
     //    return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));

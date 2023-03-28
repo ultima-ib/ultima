@@ -48,19 +48,19 @@ clippy:  ## Run clippy
 pre-commit: fmt clippy  ## Run all code quality checks
 
 .PHONY: test
-test: venv build  ## Run fast unittests
+test: venv develop  ## Run fast unittests
 	$(VENV_BIN)/pytest tests/unit/
 
 .PHONY: doctest
-doctest: venv build  ## Run doctests
+doctest: venv develop  ## Run doctests
 	$(VENV_BIN)/python tests/docs/run_doc_examples.py
 
 .PHONY: test-all
-test-all: venv build  ## Run all tests
+test-all: venv develop  ## Run all tests
 	$(VENV_BIN)/pytest
 
 .PHONY: coverage
-coverage: venv build  ## Run tests and report coverage
+coverage: venv develop  ## Run tests and report coverage
 	$(VENV_BIN)/pytest --cov
 
 .PHONY: publish

@@ -43,7 +43,8 @@ pub struct AggregationRequest {
     pub measures: Vec<(MeasureName, AggregationName)>,
     /// Which column do you want to Group By?
     pub groupby: Vec<String>,
-    /// Filter your data (pre compute)
+    /// Filter your data (pre compute),
+    /// Vec<Vec<FilterE>>
     #[serde(default)]
     pub filters: AndOrFltrChain,
     #[serde(default)]

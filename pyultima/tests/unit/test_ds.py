@@ -25,7 +25,6 @@ class TestCreation(unittest.TestCase):
         df = pl.DataFrame(data)
         ds = ul.DataSet.from_frame(df)
         ds.validate()
-        ds.prepare()
 
         expected = pl.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]})
         assert ds.frame().frame_equal(expected)
@@ -36,6 +35,13 @@ class TestCreation(unittest.TestCase):
         df = pl.DataFrame(data)
         ds = ul.FRTBDataSet.from_frame(df)
         self.assertRaises(ul.internals.NoDataError, ds.validate)
+
+    def test_ds_already_prepared(self) -> None:
+        data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "a", "b"]}
+        df = pl.DataFrame(data)
+        ds = ul.DataSet.from_frame(df)
+        ds.validate()
+        self.assertRaises(ul.internals.OtherError, ds.prepare)
 
 
 if __name__ == "__main__":

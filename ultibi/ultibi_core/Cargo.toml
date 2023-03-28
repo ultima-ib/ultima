@@ -36,7 +36,7 @@ futures = { version = "0.3", optional = true }
 dashmap = { workspace = true }
 # Open API Swagger
 quote = "1.0.26" # Needs to be specified for utoipa to build
-utoipa = { git ="https://github.com/juhaku/utoipa", optional = true} # TODO change to version
+utoipa = { git="https://github.com/juhaku/utoipa", optional = true} # TODO change to version
 
 
 [features]

@@ -10,7 +10,7 @@ pub mod dataset;
 mod datasource;
 pub mod errors;
 pub mod execution;
-mod filters;
+pub mod filters;
 pub mod helpers;
 mod measure;
 pub mod overrides;

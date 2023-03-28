@@ -9,7 +9,7 @@ description.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ultibi_core = { path = "../ultibi_core", version="0.1" }
+ultibi_core = { path = "../ultibi_core", features=["openapi"]}
 dotenv = "0.15"
 actix-web = "4"
 anyhow = "1"
@@ -22,6 +22,8 @@ log = "0.4"
 mime = "0.3"
 actix-web-static-files = "4.0"
 static-files = "0.2.1"
+utoipa = { git="https://github.com/juhaku/utoipa", features = ["actix_extras"] }
+utoipa-swagger-ui = { git="https://github.com/juhaku/utoipa", features = ["actix-web"] }
 
 [build-dependencies]
 static-files = "0.2.1"

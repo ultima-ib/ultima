@@ -566,7 +566,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.with_column(
         col("BucketBCBS")
             .map(
-                |s| Ok(s.utf8()?.str_slice(0, Some(3))?.into_series()),
+                |s| Ok(Some(s.utf8()?.str_slice(0, Some(3))?.into_series())),
                 GetOutput::from_type(DataType::Utf8),
             )
             .alias("Bucket"),
@@ -608,7 +608,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         col("RiskClass"),
         col("RiskCategory"),
         col("CreditQuality").map(
-            |s| Ok(s.utf8()?.to_uppercase().into_series()),
+            |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
             GetOutput::from_type(DataType::Utf8),
         ),
     ];
@@ -623,24 +623,24 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         .select([col("*").exclude(["Weights"])]);
 
     //drc_secnonctp_weights
-    let left_on = [
-        col("RiskClass"),
-        col("RiskCategory"),
+    lf1 = lf1.with_column(
         concat_str(
             [
                 col("CreditQuality").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
+                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
                     GetOutput::from_type(DataType::Utf8),
                 ),
                 col("RiskFactorType").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
+                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
                     GetOutput::from_type(DataType::Utf8),
                 ),
             ],
             "_",
         )
         .alias("Key"),
-    ];
+    );
+
+    let left_on = [col("RiskClass"), col("RiskCategory"), col("Key")];
     let right_on = [col("RiskClass"), col("RiskCategory"), col("Key")];
     let mut lf1 = lf1.join(
         weights.drc_secnonctp_weights,
@@ -750,7 +750,7 @@ pub(crate) fn girr_infl_xccy_weights_frame(
     ]
     .unwrap() // We must not fail on default frame
     .lazy()
-    .with_column(concat_lst([col("Weights")]))
+    .with_column(concat_lst([col("Weights")]).unwrap()) // don't expect to fail on default
     .collect()
     .expect("failed on IR Delta weights") // We must not fail on default frame
 }

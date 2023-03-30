@@ -4,7 +4,10 @@ use std::collections::HashMap;
 
 use derivative::Derivative;
 use once_cell::sync::Lazy;
-use polars::prelude::{Expr, QuantileInterpolOptions};
+use polars::{
+    lazy::dsl::lit,
+    prelude::{Expr, QuantileInterpolOptions},
+};
 
 /// To represent availiable agg types living in [BASE_CALCS]
 pub type AggregationName = String;
@@ -55,7 +58,7 @@ pub static BASE_CALCS: Lazy<HashMap<&'static str, Aggregation>> = Lazy::new(|| {
             Aggregation {
                 name_suffix: "quantile_95_lower".to_string(),
                 aggregated_expr_fn: Box::new(|e: Expr| {
-                    e.quantile(0.95, QuantileInterpolOptions::Lower)
+                    e.quantile(lit(0.95), QuantileInterpolOptions::Lower)
                 }),
             },
         ),

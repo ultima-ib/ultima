@@ -142,17 +142,17 @@ fn girr_curvature_charge(
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {
-                return Ok(Series::new("res", [kb_plus.iter().sum::<f64>()]));
+                return Ok(Some(Series::new("res", [kb_plus.iter().sum::<f64>()])));
             }
 
             let kb_minus: Vec<f64> = kb_plus_minus_simple(&df["cvr_down"])?;
             if let ReturnMetric::KbMinus = return_metric {
-                return Ok(Series::new("res", [kb_minus.iter().sum::<f64>()]));
+                return Ok(Some(Series::new("res", [kb_minus.iter().sum::<f64>()])));
             }
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(
@@ -162,8 +162,8 @@ fn girr_curvature_charge(
                 df["cvr_down"].f64()?.into_iter(),
             )?;
             match return_metric {
-                ReturnMetric::Kb => return Ok(Series::new("res", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("res", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("res", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("res", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

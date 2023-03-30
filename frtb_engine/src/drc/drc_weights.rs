@@ -78,7 +78,7 @@ pub(crate) fn _drc_secnonctp_weights_frame() -> DataFrame {
     ]
     .unwrap() // We must not fail on default frame
     .lazy()
-    .with_column(concat_lst([col("RiskWeightDRC")]))
+    .with_column(concat_lst([col("RiskWeightDRC")]).unwrap())
     .collect()
     .unwrap() // we should never fail on default frame
 }

@@ -57,7 +57,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
 
             // Safety Step
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             // First, sum over bucket, obligor and seniority
@@ -73,7 +73,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             // Safety step
             df = lf.collect()?;
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
             lf = df.lazy();
 
@@ -96,7 +96,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
                 .with_column(
                     col("NetShortJTD")
                         .map(
-                            |x| Ok(x.f64()?.apply(|y| y.abs()).into_series()),
+                            |x| Ok(Some(x.f64()?.apply(|y| y.abs()).into_series())),
                             GetOutput::from_type(DataType::Float64),
                         )
                         .alias("NetAbsShortJTD"),
@@ -106,16 +106,16 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
 
             match rtrn {
                 ReturnMetric::NetLongJTD => {
-                    return Ok(Series::new(
+                    return Ok(Some(Series::new(
                         "Res",
                         [df["NetLongJTD"].sum::<f64>().unwrap_or_default()],
-                    ))
+                    )))
                 }
                 ReturnMetric::NetShortJTD => {
-                    return Ok(Series::new(
+                    return Ok(Some(Series::new(
                         "Res",
                         [df["NetShortJTD"].sum::<f64>().unwrap_or_default()],
-                    ))
+                    )))
                 }
                 _ => (),
             };
@@ -147,24 +147,24 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             df = lf.collect()?;
 
             match rtrn {
-                ReturnMetric::Hbr => Ok(Series::new(
+                ReturnMetric::Hbr => Ok(Some(Series::new(
                     "Res",
                     [df["HBR"].sum::<f64>().unwrap_or_default()],
-                )),
-                ReturnMetric::WeightedNetLongJTD => Ok(Series::new(
+                ))),
+                ReturnMetric::WeightedNetLongJTD => Ok(Some(Series::new(
                     "Res",
                     [df["WeightedNetLongJTD"].sum::<f64>().unwrap_or_default()],
-                )),
-                ReturnMetric::WeightedNetAbsShortJTD => Ok(Series::new(
+                ))),
+                ReturnMetric::WeightedNetAbsShortJTD => Ok(Some(Series::new(
                     "Res",
                     [df["WeightedNetAbsShortJTD"]
                         .sum::<f64>()
                         .unwrap_or_default()],
-                )),
-                _ => Ok(Series::new(
+                ))),
+                _ => Ok(Some(Series::new(
                     "Res",
                     [df["DRCBucket"].sum::<f64>().unwrap_or_default()],
-                )),
+                ))),
             }
         },
         &[

@@ -46,7 +46,7 @@ pub(crate) fn fx_delta_sens_repccy(op: &CPM) -> PolarsResult<Expr> {
             let mask1 = columns[0].utf8()?.equal("FX");
 
             // function to take rep_ccy as an argument
-            let mask2 = columns[1].utf8()?.contains(ccy_regex.as_str())?;
+            let mask2 = columns[1].utf8()?.contains(ccy_regex.as_str(), false)?;
 
             // function to take rep_ccy as an argument
             let mask3 = columns[3].utf8()?.equal("Delta");
@@ -54,7 +54,7 @@ pub(crate) fn fx_delta_sens_repccy(op: &CPM) -> PolarsResult<Expr> {
             // Set delta's which don't match mask1 or mask2 to None (ie NaN)
             let delta = columns[2].f64()?.set(&!(mask1 & mask2 & mask3), None)?;
 
-            Ok(delta.into_series())
+            Ok(Some(delta.into_series()))
         },
         &[
             col("RiskClass"),
@@ -131,14 +131,16 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
             ]?;
 
             let ccy_regex = ccy_regex.clone();
-            let df = df
+            let mut df = df
                 .lazy()
                 .filter(
                     col("rc")
                         .eq(lit("FX"))
                         .and(col("rcat").eq(lit("Delta")))
                         .and(col("b").apply(
-                            move |col| Ok(col.utf8()?.contains(&ccy_regex)?.into_series()),
+                            move |col| {
+                                Ok(Some(col.utf8()?.contains(&ccy_regex, false)?.into_series()))
+                            },
                             GetOutput::from_type(DataType::Boolean),
                         )),
                 )
@@ -148,22 +150,25 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
                 .drop_nulls(Some(vec![col("dw_sum")]))
                 .collect()?;
 
+            df.rechunk();
+
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             //21.4.4 |dw_sum| == kb for FX
             //21.4.5.a sb == dw_sum
             let dw_sum = df["dw_sum"].f64()?.to_ndarray()?; //Ok since we have filtered out NULLs above
                                                             // Early return Kb or Sb, ie the required metric
+            dbg!(&dw_sum);
             let res_len = columns[0].len();
             if let ReturnMetric::Sb = rtrn {
-                return Ok(Series::new("res", [dw_sum.sum()]));
+                return Ok(Some(Series::new("res", [dw_sum.sum()])));
             }
 
             let kbs: Array1<f64> = dw_sum.iter().map(|x| x.abs()).collect();
             if let ReturnMetric::Kb = rtrn {
-                return Ok(Series::new("res", [kbs.sum()]));
+                return Ok(Some(Series::new("res", [kbs.sum()])));
             }
 
             let mut gamma = Array::from_elem((dw_sum.len(), dw_sum.len()), gamma);

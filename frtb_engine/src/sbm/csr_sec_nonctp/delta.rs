@@ -201,20 +201,21 @@ where
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let ma = MeltArgs {
-                id_vars: vec!["b".to_string(), "rf".to_string(), "tran".to_string()],
+                id_vars: vec!["b".into(), "rf".into(), "tran".into()],
                 value_vars: vec![
-                    "y05".to_string(),
-                    "y1".to_string(),
-                    "y3".to_string(),
-                    "y5".to_string(),
-                    "y10".to_string(),
+                    "y05".into(),
+                    "y1".into(),
+                    "y3".into(),
+                    "y5".into(),
+                    "y10".into(),
                 ],
-                variable_name: Some("tenor".to_string()),
-                value_name: Some("weighted_sens".to_string()),
+                streamable: false,
+                variable_name: Some("tenor".into()),
+                value_name: Some("weighted_sens".into()),
             };
             let df = df.melt2(ma)?;
             // 21.4.4 - 21.5.a
@@ -235,8 +236,8 @@ where
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
             let res_len = columns[0].len();
             match rtrn {
-                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("kbs", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("sbs", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

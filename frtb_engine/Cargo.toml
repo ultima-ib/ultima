@@ -18,6 +18,7 @@ rayon = "1.5.3"
 strum = {version="0.24", features = ["derive"] }
 log = "0.4"
 yearfrac = "0.1.4"
+smartstring = "*"
 
 [dev-dependencies]
 

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 //use aws_sdk_s3::Region;
 //use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_s3::Client;
@@ -61,7 +63,7 @@ async fn get_frame(client: Client, bucket: &str, key: &str, schema: &Schema) -> 
     let cursor = std::io::Cursor::new(bytes);
 
     let df = CsvReader::new(cursor)
-        .with_dtypes(Some(schema))
+        .with_dtypes(Some(Arc::new(schema.clone())))
         .finish()
         .expect("Failed to read CSV");
 

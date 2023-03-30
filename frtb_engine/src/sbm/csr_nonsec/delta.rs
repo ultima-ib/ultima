@@ -258,6 +258,10 @@ where
                 "w5" =>   &columns[14]
             ]?;
 
+            if df.height() == 0 {
+                return Ok(Some(Series::new("res", [0.])));
+            };
+
             // concat_lst is actually slower than
             let df = df
                 .lazy()
@@ -340,8 +344,8 @@ where
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs.into_iter().unzip();
 
             match rtrn {
-                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("kbs", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("sbs", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

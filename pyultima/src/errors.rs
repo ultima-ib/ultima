@@ -30,11 +30,17 @@ impl std::convert::From<PyUltimaErr> for PyErr {
         use PyUltimaErr::*;
         match &err {
             Polars(err) => match err {
-                PolarsError::NotFound(name) => NotFoundError::new_err(name.to_string()),
+                PolarsError::ColumnNotFound(name) => NotFoundError::new_err(name.to_string()),
                 PolarsError::ComputeError(err) => ComputeError::new_err(err.to_string()),
+                PolarsError::SchemaFieldNotFound(err) => {
+                    SchemaFieldNotFound::new_err(err.to_string())
+                }
+                PolarsError::StructFieldNotFound(err) => {
+                    StructFieldNotFound::new_err(err.to_string())
+                }
                 PolarsError::NoData(err) => NoDataError::new_err(err.to_string()),
-                PolarsError::ShapeMisMatch(err) => ShapeError::new_err(err.to_string()),
-                PolarsError::SchemaMisMatch(err) => SchemaError::new_err(err.to_string()),
+                PolarsError::ShapeMismatch(err) => ShapeError::new_err(err.to_string()),
+                PolarsError::SchemaMismatch(err) => SchemaError::new_err(err.to_string()),
                 PolarsError::Io(err) => PyIOError::new_err(err.to_string()),
                 PolarsError::ArrowError(err) => ArrowErrorException::new_err(format!("{err}")),
                 PolarsError::Duplicate(err) => DuplicateError::new_err(err.to_string()),
@@ -71,3 +77,5 @@ create_exception!(exceptions, DuplicateError, PyException);
 create_exception!(exceptions, InvalidOperationError, PyException);
 create_exception!(exceptions, SerdeJsonError, PyException);
 create_exception!(exceptions, OtherError, PyException);
+create_exception!(exceptions, SchemaFieldNotFound, PyException);
+create_exception!(exceptions, StructFieldNotFound, PyException);

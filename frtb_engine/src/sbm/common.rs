@@ -58,7 +58,7 @@ pub fn rc_rcat_sens(rcat: &'static str, rc: &'static str, risk: Expr) -> Expr {
 
             let risk_filtered = columns[2].f64()?.set(&!(mask & mask1), None)?;
 
-            Ok(risk_filtered.into_series())
+            Ok(Some(risk_filtered.into_series()))
         },
         &[col("RiskClass"), col("RiskCategory"), risk],
         GetOutput::from_type(DataType::Float64),
@@ -75,7 +75,7 @@ pub fn rc_sens(rc: &'static str, risk: Expr) -> Expr {
 
             let risk_filtered = columns[1].f64()?.set(&!mask, None)?;
 
-            Ok(risk_filtered.into_series())
+            Ok(Some(risk_filtered.into_series()))
         },
         &[col("RiskClass"), risk],
         GetOutput::from_type(DataType::Float64),
@@ -102,7 +102,7 @@ pub fn rc_tenor_weighted_sens(
             let delta = columns[1].f64()?.set(&!(mask & mask1), None)?;
 
             let x = delta.multiply(&columns[2])?;
-            Ok(x)
+            Ok(Some(x))
         },
         &[
             col("RiskClass"),
@@ -126,7 +126,7 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(
     gamma: &Array2<f64>,
     _: usize,
     sbm_type: SBMChargeType,
-) -> PolarsResult<Series> {
+) -> PolarsResult<Option<Series>> {
     let kbs_arr = Array1::from_iter(kbs);
     let sbs_arr = Array1::from_iter(sbs);
 
@@ -163,7 +163,7 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(
     // The function is supposed to return a series of same len as the input, hence we broadcast the result
     //let res_arr = Array::from_elem(res_len, res);
     // if option panics on .unwrap() implement match and use .iter() and then Series from iter
-    Ok(Series::new("Res", [res]))
+    Ok(Some(Series::new("Res", [res])))
     // Ok( Series::new("res", res_arr.as_slice().unwrap() ) )
 }
 

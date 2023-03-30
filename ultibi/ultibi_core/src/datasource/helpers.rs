@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use polars::{
     prelude::{
-        col, concat, DataFrame, DataType, Expr, Field, JoinType, LazyCsvReader, LazyFrame, Literal,
-        NamedFrom, PolarsResult, Schema, NULL,
+        col, concat, DataFrame, DataType, Expr, Field, JoinType, LazyCsvReader, LazyFileListReader,
+        LazyFrame, Literal, NamedFrom, PolarsResult, Schema, NULL,
     },
     series::Series,
 };
@@ -36,7 +36,7 @@ pub fn path_to_lf(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
     // unrecoverable. Panic if failed to read file
     let lf = LazyCsvReader::new(path)
         .has_header(true)
-        .with_parse_dates(true)
+        .with_try_parse_dates(true)
         .with_dtype_overwrite(Some(&schema))
         //.with_ignore_parser_errors(ignore)
         .finish()
@@ -77,7 +77,7 @@ pub fn finish(
             .expect("Could not extract Schema");
         let fields = schema
             .iter_fields()
-            .map(|f| f.name)
+            .map(|f| f.name.to_string())
             .collect::<Vec<String>>();
 
         // Checking if each measure is present in DF

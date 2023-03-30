@@ -108,8 +108,9 @@ fn fx_vega_charge(
                 .collect()?;
 
             let res_len = columns[0].len();
+
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let sens = df.to_ndarray::<Float64Type>()?;
@@ -118,7 +119,7 @@ fn fx_vega_charge(
 
             // Early return Kb or Sb, ie the required metric
             if let ReturnMetric::Sb = rtrn {
-                return Ok(Series::new("res", [sbs.sum()]));
+                return Ok(Some(Series::new("res", [sbs.sum()])));
             }
 
             // Interm step
@@ -133,7 +134,7 @@ fn fx_vega_charge(
             });
 
             if let ReturnMetric::Kb = rtrn {
-                return Ok(Series::new("res", [kbs.sum()]));
+                return Ok(Some(Series::new("res", [kbs.sum()])));
             }
 
             let mut gamma = Array2::from_elem((kbs.len(), kbs.len()), fx_vega_gamma);

@@ -124,7 +124,7 @@ where
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
             // Compute present buckets
 
@@ -143,8 +143,8 @@ where
 
             // Early return Kb or Sb is that is the required metric
             match rtrn {
-                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("kbs", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("sbs", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

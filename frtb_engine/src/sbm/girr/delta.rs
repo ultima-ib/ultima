@@ -297,7 +297,7 @@ where
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let part = df.partition_by(["b"])?;
@@ -320,7 +320,7 @@ where
                 .collect();
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let (_buckets, (kbs, sbs)): (Vec<String>, (Vec<f64>, Vec<f64>)) =
@@ -328,8 +328,8 @@ where
 
             // Early return Kb or Sb is that is the required metric
             match return_metric {
-                ReturnMetric::Kb => return Ok(Series::new("res", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("res", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("res", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("res", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
             // Need to differentiate between CRR2 and BCBS

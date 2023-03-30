@@ -622,32 +622,25 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         .with_column(col("SensWeights").fill_null(col("Weights")))
         .select([col("*").exclude(["Weights"])]);
 
-
     //drc_secnonctp_weights
-    lf1 = lf1
-        .with_column(
-            concat_str(
-                [
-                    col("CreditQuality").map(
-                        |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
-                        GetOutput::from_type(DataType::Utf8),
-                    ),
-                    col("RiskFactorType").map(
-                        |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
-                        GetOutput::from_type(DataType::Utf8),
-                    ),
-                ],
-                "_",
-            )
-            .alias("Key")
-        );
+    lf1 = lf1.with_column(
+        concat_str(
+            [
+                col("CreditQuality").map(
+                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
+                    GetOutput::from_type(DataType::Utf8),
+                ),
+                col("RiskFactorType").map(
+                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
+                    GetOutput::from_type(DataType::Utf8),
+                ),
+            ],
+            "_",
+        )
+        .alias("Key"),
+    );
 
-
-    let left_on = [
-        col("RiskClass"),
-        col("RiskCategory"),
-        col("Key"),
-    ];
+    let left_on = [col("RiskClass"), col("RiskCategory"), col("Key")];
     let right_on = [col("RiskClass"), col("RiskCategory"), col("Key")];
     let mut lf1 = lf1.join(
         weights.drc_secnonctp_weights,

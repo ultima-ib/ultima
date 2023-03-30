@@ -32,8 +32,12 @@ impl std::convert::From<PyUltimaErr> for PyErr {
             Polars(err) => match err {
                 PolarsError::ColumnNotFound(name) => NotFoundError::new_err(name.to_string()),
                 PolarsError::ComputeError(err) => ComputeError::new_err(err.to_string()),
-                PolarsError::SchemaFieldNotFound(err) => SchemaFieldNotFound::new_err(err.to_string()),
-                PolarsError::StructFieldNotFound(err) => StructFieldNotFound::new_err(err.to_string()),
+                PolarsError::SchemaFieldNotFound(err) => {
+                    SchemaFieldNotFound::new_err(err.to_string())
+                }
+                PolarsError::StructFieldNotFound(err) => {
+                    StructFieldNotFound::new_err(err.to_string())
+                }
                 PolarsError::NoData(err) => NoDataError::new_err(err.to_string()),
                 PolarsError::ShapeMismatch(err) => ShapeError::new_err(err.to_string()),
                 PolarsError::SchemaMismatch(err) => SchemaError::new_err(err.to_string()),
@@ -75,4 +79,3 @@ create_exception!(exceptions, SerdeJsonError, PyException);
 create_exception!(exceptions, OtherError, PyException);
 create_exception!(exceptions, SchemaFieldNotFound, PyException);
 create_exception!(exceptions, StructFieldNotFound, PyException);
-

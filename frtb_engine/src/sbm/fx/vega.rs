@@ -108,7 +108,7 @@ fn fx_vega_charge(
                 .collect()?;
 
             let res_len = columns[0].len();
-            
+
             if df.height() == 0 {
                 return Ok(Some(Series::new("res", [0.])));
             };

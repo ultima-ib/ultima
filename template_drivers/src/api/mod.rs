@@ -108,13 +108,13 @@ async fn describe(jdf: web::Json<DataFrame>) -> Result<HttpResponse> {
         .context("Failed to spawn blocking task.")
         .map_err(actix_web::error::ErrorInternalServerError)?;
 
-        match res {
-            Ok(df) => Ok(HttpResponse::Ok().json(df)),
-            Err(e) => {
-                tracing::error!("Failed to execute query: {:?}", e);
-                Err(actix_web::error::ErrorExpectationFailed(e))
-            }
+    match res {
+        Ok(df) => Ok(HttpResponse::Ok().json(df)),
+        Err(e) => {
+            tracing::error!("Failed to execute query: {:?}", e);
+            Err(actix_web::error::ErrorExpectationFailed(e))
         }
+    }
 }
 
 #[tracing::instrument(name = "Request Execution", skip(data))]

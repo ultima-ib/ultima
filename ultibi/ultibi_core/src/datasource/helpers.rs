@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use polars::{
     prelude::{
-        col, concat, DataFrame, DataType, Expr, Field, JoinType, LazyCsvReader, LazyFrame, Literal,
-        NamedFrom, PolarsResult, Schema, NULL, LazyFileListReader,
+        col, concat, DataFrame, DataType, Expr, Field, JoinType, LazyCsvReader, LazyFileListReader,
+        LazyFrame, Literal, NamedFrom, PolarsResult, Schema, NULL,
     },
     series::Series,
 };

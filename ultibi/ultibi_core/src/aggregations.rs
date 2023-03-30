@@ -4,7 +4,10 @@ use std::collections::HashMap;
 
 use derivative::Derivative;
 use once_cell::sync::Lazy;
-use polars::{prelude::{Expr, QuantileInterpolOptions}, lazy::dsl::lit};
+use polars::{
+    lazy::dsl::lit,
+    prelude::{Expr, QuantileInterpolOptions},
+};
 
 /// To represent availiable agg types living in [BASE_CALCS]
 pub type AggregationName = String;

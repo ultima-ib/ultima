@@ -151,7 +151,9 @@ fn fx_curvature_charge(
                         .eq(lit("FX"))
                         .and(col("CurvatureRiskWeight").is_not_null())
                         .and(col("b").apply(
-                            move |col| Ok(Some(col.utf8()?.contains(&ccy_regex, false)?.into_series())),
+                            move |col| {
+                                Ok(Some(col.utf8()?.contains(&ccy_regex, false)?.into_series()))
+                            },
                             GetOutput::from_type(DataType::Boolean),
                         )),
                 )

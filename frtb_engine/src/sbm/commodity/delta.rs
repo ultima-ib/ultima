@@ -193,7 +193,7 @@ where
                     (col("y30") * col("w").arr().get(lit(10))).sum(),
                 ])
                 // No need to fill null here
-                .collect()?;            
+                .collect()?;
 
             let mut ma = MeltArgs {
                 streamable: false,
@@ -216,7 +216,6 @@ where
             };
 
             if let Some(rho_ovrd) = &rho_overwrite {
-
                 ma.id_vars.push(rho_ovrd.column.clone().into())
             };
 

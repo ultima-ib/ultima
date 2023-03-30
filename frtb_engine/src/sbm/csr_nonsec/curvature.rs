@@ -190,7 +190,10 @@ pub(crate) fn csrnonsec_curvature_charge(
                     return Ok(Some(Series::new("kb_plus", [kb_plus.iter().sum::<f64>()])))
                 }
                 ReturnMetric::KbMinus => {
-                    return Ok(Some(Series::new("kb_minus", [kb_minus.iter().sum::<f64>()])))
+                    return Ok(Some(Series::new(
+                        "kb_minus",
+                        [kb_minus.iter().sum::<f64>()],
+                    )))
                 }
                 _ => (),
             }

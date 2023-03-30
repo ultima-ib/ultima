@@ -136,7 +136,7 @@ pub(crate) fn eq_curvature_charge(
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
             let (kb_plus_cvr_up, kb_minus_cvr_down): (Vec<(f64, f64)>, Vec<(f64, f64)>) =
                 curvature_kb_plus_minus(df, &eq_curv_rho, special_bucket)?;
@@ -145,10 +145,10 @@ pub(crate) fn eq_curvature_charge(
 
             match return_metric {
                 ReturnMetric::KbPlus => {
-                    return Ok(Series::new("res", [kb_plus.iter().sum::<f64>()]))
+                    return Ok(Some(Series::new("res", [kb_plus.iter().sum::<f64>()])))
                 }
                 ReturnMetric::KbMinus => {
-                    return Ok(Series::new("res", [kb_minus.iter().sum::<f64>()]))
+                    return Ok(Some(Series::new("res", [kb_minus.iter().sum::<f64>()])))
                 }
                 _ => (),
             }
@@ -162,8 +162,8 @@ pub(crate) fn eq_curvature_charge(
                 cvr_down.into_iter().map(a),
             )?;
             match return_metric {
-                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("kbs", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("sbs", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

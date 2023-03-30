@@ -193,30 +193,31 @@ where
                     (col("y30") * col("w").arr().get(lit(10))).sum(),
                 ])
                 // No need to fill null here
-                .collect()?;
+                .collect()?;            
 
-            let mut id_vars = vec!["b".to_string(), "rf".to_string(), "loc".to_string()];
-            if let Some(rho_ovrd) = &rho_overwrite {
-                id_vars.push(rho_ovrd.column.clone())
+            let mut ma = MeltArgs {
+                streamable: false,
+                id_vars: vec!["b".into(), "rf".into(), "loc".into()],
+                value_vars: vec![
+                    "y0".into(),
+                    "y025".into(),
+                    "y05".into(),
+                    "y1".into(),
+                    "y2".into(),
+                    "y3".into(),
+                    "y5".into(),
+                    "y10".into(),
+                    "y15".into(),
+                    "y20".into(),
+                    "y30".into(),
+                ],
+                variable_name: Some("tenor".into()),
+                value_name: Some("weighted_sens".into()),
             };
 
-            let ma = MeltArgs {
-                id_vars,
-                value_vars: vec![
-                    "y0".to_string(),
-                    "y025".to_string(),
-                    "y05".to_string(),
-                    "y1".to_string(),
-                    "y2".to_string(),
-                    "y3".to_string(),
-                    "y5".to_string(),
-                    "y10".to_string(),
-                    "y15".to_string(),
-                    "y20".to_string(),
-                    "y30".to_string(),
-                ],
-                variable_name: Some("tenor".to_string()),
-                value_name: Some("weighted_sens".to_string()),
+            if let Some(rho_ovrd) = &rho_overwrite {
+
+                ma.id_vars.push(rho_ovrd.column.clone().into())
             };
 
             df = df.melt2(ma)?;
@@ -240,8 +241,8 @@ where
             let res_len = columns[0].len();
 
             match rtrn {
-                ReturnMetric::Kb => return Ok(Series::new("Res", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("Res", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("Res", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("Res", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
             across_bucket_agg(kbs, sbs, &com_gamma, res_len, SBMChargeType::DeltaVega)

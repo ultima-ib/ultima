@@ -176,7 +176,7 @@ pub(crate) fn csrnonsec_curvature_charge(
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let res_len = columns[0].len();
@@ -187,10 +187,10 @@ pub(crate) fn csrnonsec_curvature_charge(
 
             match return_metric {
                 ReturnMetric::KbPlus => {
-                    return Ok(Series::new("kb_plus", [kb_plus.iter().sum::<f64>()]))
+                    return Ok(Some(Series::new("kb_plus", [kb_plus.iter().sum::<f64>()])))
                 }
                 ReturnMetric::KbMinus => {
-                    return Ok(Series::new("kb_minus", [kb_minus.iter().sum::<f64>()]))
+                    return Ok(Some(Series::new("kb_minus", [kb_minus.iter().sum::<f64>()])))
                 }
                 _ => (),
             }
@@ -203,8 +203,8 @@ pub(crate) fn csrnonsec_curvature_charge(
                 cvr_down.into_iter().map(a),
             )?;
             match return_metric {
-                ReturnMetric::Kb => return Ok(Series::new("kbs", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("sbs", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("kbs", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("sbs", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

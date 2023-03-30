@@ -56,7 +56,7 @@ pub(crate) fn rrao_weighted_notional(weight: Option<f64>, rrao_type: &'static st
                 notional
             };
 
-            Ok(res.into_series())
+            Ok(Some(res.into_series()))
         },
         &[col("TradeId"), col(rrao_type), col("Notional")],
         GetOutput::from_type(DataType::Float64),
@@ -82,7 +82,7 @@ pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> Expr {
                 "n"    => &columns[3],
             ]?;
 
-            df = df.unique(Some(&["id".to_string()]), UniqueKeepStrategy::First)?;
+            df = df.unique(Some(&["id".to_string()]), UniqueKeepStrategy::First, None)?;
 
             df = df
                 .lazy()
@@ -98,7 +98,7 @@ pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> Expr {
 
             let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
             //Ok(Series::from_vec("rrao", vec![res; columns[0].len()]))
-            Ok(Series::new("res", [res]))
+            Ok(Some(Series::new("res", [res])))
         },
         &[
             col("TradeId"),

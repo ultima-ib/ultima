@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use polars::frame::row::Row;
 use polars::functions::diag_concat_df;
-use polars::prelude::{row::Row, AnyValue, DataFrame, Field, PolarsResult, Schema};
+use polars::prelude::{AnyValue, DataFrame, Field, PolarsResult, Schema};
 use serde::{Deserialize, Serialize};
 
 use crate::overrides::string_to_any;

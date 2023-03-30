@@ -33,7 +33,7 @@ fn curv_delta(rc: &'static str, risk: Expr) -> Expr {
                 .f64()?
                 .set(&!(mask & pnl_up_or_down_is_not_null), None)?;
 
-            Ok(risk_filtered.into_series())
+            Ok(Some(risk_filtered.into_series()))
         },
         &[col("RiskClass"), col("PnL_Up"), col("PnL_Down"), risk],
         GetOutput::from_type(DataType::Float64),

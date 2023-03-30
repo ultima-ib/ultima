@@ -117,22 +117,22 @@ pub(crate) fn string_to_any<'a>(
         // RW column is a list for example
         DataType::List(x) => match **x {
             DataType::Float64 => serde_json::from_str::<Vec<f64>>(value)
-                .map_err(|_| PolarsError::SchemaMisMatch(emsg.into()))
+                .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))
                 .map(|vc| AnyValue::List(Series::from_vec("NewVal", vc))),
-            _ => Err(PolarsError::SchemaMisMatch(
+            _ => Err(PolarsError::SchemaMismatch(
                 "Only List f64 columns can be overwritten".into(),
             )),
         },
         // All Numeric columns are f64
         DataType::Float64 => {
             let f = serde_json::from_str::<f64>(value)
-                .map_err(|_| PolarsError::SchemaMisMatch(emsg.into()))?;
+                .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))?;
             Ok(AnyValue::Float64(f))
         }
         // Boolean column
         DataType::Boolean => Ok(AnyValue::Boolean(
             serde_json::from_str::<bool>(value)
-                .map_err(|_| PolarsError::SchemaMisMatch(emsg.into()))?,
+                .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))?,
         )),
         // All Other columns are
         DataType::Utf8 => Ok(AnyValue::Utf8(value)),

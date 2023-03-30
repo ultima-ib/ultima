@@ -237,7 +237,7 @@ pub fn numeric_columns(schema: Arc<Schema>) -> Vec<String> {
     schema
         .iter_fields()
         .filter(|f| f.data_type().is_numeric())
-        .map(|f| f.name)
+        .map(|f| f.name.to_string())
         .collect::<Vec<String>>()
 }
 
@@ -259,7 +259,7 @@ pub fn fields_columns(schema: Arc<Schema>) -> Vec<String> {
                     | DataType::Int64
             )
         })
-        .map(|field| field.name)
+        .map(|field| field.name.to_string())
         .collect::<Vec<String>>()
 }
 
@@ -274,7 +274,7 @@ pub(crate) fn overrides_columns(schema: Arc<Schema>) -> Vec<String> {
             }
             _ => false,
         })
-        .map(|c| c.name)
+        .map(|c| c.name.to_string())
         .collect::<Vec<String>>()
 }
 

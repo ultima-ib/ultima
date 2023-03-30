@@ -142,7 +142,7 @@ pub fn weight_assign_logic_crr2(
         col("RiskClass"),
         col("RiskCategory"),
         col("CreditQuality").map(
-            |s| Ok(s.utf8()?.to_uppercase().into_series()),
+            |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
             GetOutput::from_type(DataType::Utf8),
         ),
     ];

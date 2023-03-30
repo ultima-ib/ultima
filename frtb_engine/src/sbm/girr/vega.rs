@@ -163,7 +163,7 @@ fn girr_vega_charge(
                 .collect()?;
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let part = df.partition_by(["b"])?;
@@ -179,8 +179,8 @@ fn girr_vega_charge(
 
             // Early return Kb or Sb, ie the required metric
             match return_metric {
-                ReturnMetric::Kb => return Ok(Series::new("res", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("res", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("res", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("res", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

@@ -16,11 +16,11 @@ fn risk_filtered_by_ccy(op: &CPM, risk: Expr) -> PolarsResult<Expr> {
     let ccy_regex = ccy_regex(op)?;
     Ok(risk.apply_many(
         move |columns| {
-            let mask = columns[1].utf8()?.contains(ccy_regex.as_str())?;
+            let mask = columns[1].utf8()?.contains(ccy_regex.as_str(), false)?;
 
             let res = columns[0].f64()?.set(&!mask, None)?;
 
-            Ok(res.into_series())
+            Ok(Some(res.into_series()))
         },
         &[col("BucketBCBS")],
         GetOutput::from_type(DataType::Float64),
@@ -56,7 +56,8 @@ fn fx_cvr_up_down(div: bool, risk: Expr) -> Expr {
                 let mult = Float64Chunked::from_vec("multiplicator", mult);
                 let mask = columns[1].bool()?.fill_null_with_values(false)?;
                 let mult = mult.set(&mask, Some(1.5))?.into_series();
-                columns[0].f64()?.divide(&mult)
+                let div = columns[0].f64()?.divide(&mult)?;
+                Ok(Some(div))
             },
             &[risk, col("FxCurvDivEligibility")],
             GetOutput::from_type(DataType::Float64),
@@ -150,7 +151,7 @@ fn fx_curvature_charge(
                         .eq(lit("FX"))
                         .and(col("CurvatureRiskWeight").is_not_null())
                         .and(col("b").apply(
-                            move |col| Ok(col.utf8()?.contains(&ccy_regex)?.into_series()),
+                            move |col| Ok(Some(col.utf8()?.contains(&ccy_regex, false)?.into_series())),
                             GetOutput::from_type(DataType::Boolean),
                         )),
                 )
@@ -159,7 +160,7 @@ fn fx_curvature_charge(
             let res_len = columns[0].len();
 
             if df.height() == 0 {
-                return Ok(Series::new("res", [0.]));
+                return Ok(Some(Series::new("res", [0.])));
             };
 
             let df = df
@@ -173,12 +174,12 @@ fn fx_curvature_charge(
 
             let kb_plus: Vec<f64> = kb_plus_minus_simple(&df["cvr_up"])?;
             if let ReturnMetric::KbPlus = return_metric {
-                return Ok(Series::new("res", [kb_plus.iter().sum::<f64>()]));
+                return Ok(Some(Series::new("res", [kb_plus.iter().sum::<f64>()])));
             }
 
             let kb_minus: Vec<f64> = kb_plus_minus_simple(&df["cvr_down"])?;
             if let ReturnMetric::KbMinus = return_metric {
-                return Ok(Series::new("res", [kb_minus.iter().sum::<f64>()]));
+                return Ok(Some(Series::new("res", [kb_minus.iter().sum::<f64>()])));
             }
 
             let (kbs, sbs): (Vec<f64>, Vec<f64>) = kbs_sbs_curvature(
@@ -188,8 +189,8 @@ fn fx_curvature_charge(
                 df["cvr_down"].f64()?.into_iter(),
             )?;
             match return_metric {
-                ReturnMetric::Kb => return Ok(Series::new("res", [kbs.iter().sum::<f64>()])),
-                ReturnMetric::Sb => return Ok(Series::new("res", [sbs.iter().sum::<f64>()])),
+                ReturnMetric::Kb => return Ok(Some(Series::new("res", [kbs.iter().sum::<f64>()]))),
+                ReturnMetric::Sb => return Ok(Some(Series::new("res", [sbs.iter().sum::<f64>()]))),
                 _ => (),
             }
 

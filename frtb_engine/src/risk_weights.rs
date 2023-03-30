@@ -566,7 +566,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.with_column(
         col("BucketBCBS")
             .map(
-                |s| Ok(s.utf8()?.str_slice(0, Some(3))?.into_series()),
+                |s| Ok(Some(s.utf8()?.str_slice(0, Some(3))?.into_series())),
                 GetOutput::from_type(DataType::Utf8),
             )
             .alias("Bucket"),
@@ -608,7 +608,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         col("RiskClass"),
         col("RiskCategory"),
         col("CreditQuality").map(
-            |s| Ok(s.utf8()?.to_uppercase().into_series()),
+            |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
             GetOutput::from_type(DataType::Utf8),
         ),
     ];
@@ -629,11 +629,11 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         concat_str(
             [
                 col("CreditQuality").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
+                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
                     GetOutput::from_type(DataType::Utf8),
                 ),
                 col("RiskFactorType").map(
-                    |s| Ok(s.utf8()?.to_uppercase().into_series()),
+                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
                     GetOutput::from_type(DataType::Utf8),
                 ),
             ],
@@ -750,7 +750,7 @@ pub(crate) fn girr_infl_xccy_weights_frame(
     ]
     .unwrap() // We must not fail on default frame
     .lazy()
-    .with_column(concat_lst([col("Weights")]))
+    .with_column(concat_lst([col("Weights")]).unwrap()) // don't expect to fail on default
     .collect()
     .expect("failed on IR Delta weights") // We must not fail on default frame
 }

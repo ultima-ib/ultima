@@ -34,7 +34,7 @@ pub fn drc_scalinng(dc: Option<&String>, format: Option<&String>) -> Expr {
                     }
                 })
                 .collect();
-            Ok(z)
+            Ok(Some(z))
         },
         &[col("COB"), col("MaturityDate")],
         GetOutput::from_type(DataType::Float64),

@@ -12,6 +12,9 @@ from .internals import (
     aggregation_ops,
 )
 
+import polars # reexport
+import pyarrow
+
 __all__ = [
     "AggRequest",
     "ComputeRequest",
@@ -20,4 +23,6 @@ __all__ = [
     "aggregation_ops",
     "OtherError",
     "NoDataError",
+    "polars",
+    "pyarrow"
 ]

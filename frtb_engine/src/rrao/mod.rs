@@ -116,31 +116,31 @@ pub(crate) fn rrao_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "Exotic RRAO Notional".to_string(),
-            calculator: Box::new(exotic_notional),
+            calculator: std::sync::Arc::new(exotic_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Other RRAO Notional".to_string(),
-            calculator: Box::new(other_notional),
+            calculator: std::sync::Arc::new(other_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Exotic RRAO Charge".to_string(),
-            calculator: Box::new(exotic_charge),
+            calculator: std::sync::Arc::new(exotic_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "Other RRAO Charge".to_string(),
-            calculator: Box::new(other_charge),
+            calculator: std::sync::Arc::new(other_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
         Measure::Base(BaseMeasure {
             name: "RRAO Charge".to_string(),
-            calculator: Box::new(rrao_charge),
+            calculator: std::sync::Arc::new(rrao_charge),
             aggregation: Some("scalar"),
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),

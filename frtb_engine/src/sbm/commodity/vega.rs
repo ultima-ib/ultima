@@ -93,7 +93,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "Commodity VegaSens".to_string(),
-            calculator: Box::new(total_com_vega_sens),
+            calculator: std::sync::Arc::new(total_com_vega_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -103,7 +103,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaSens Weighted".to_string(),
-            calculator: Box::new(total_com_vega_sens_weighted),
+            calculator: std::sync::Arc::new(total_com_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -113,7 +113,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaSb".to_string(),
-            calculator: Box::new(com_vega_sb),
+            calculator: std::sync::Arc::new(com_vega_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -123,7 +123,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaKb Low".to_string(),
-            calculator: Box::new(com_vega_kb_low),
+            calculator: std::sync::Arc::new(com_vega_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -133,7 +133,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge Low".to_string(),
-            calculator: Box::new(com_vega_charge_low),
+            calculator: std::sync::Arc::new(com_vega_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -143,7 +143,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaKb Medium".to_string(),
-            calculator: Box::new(com_vega_kb_medium),
+            calculator: std::sync::Arc::new(com_vega_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -153,7 +153,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge Medium".to_string(),
-            calculator: Box::new(com_vega_charge_medium),
+            calculator: std::sync::Arc::new(com_vega_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -163,7 +163,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaKb High".to_string(),
-            calculator: Box::new(com_vega_kb_high),
+            calculator: std::sync::Arc::new(com_vega_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -173,7 +173,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge High".to_string(),
-            calculator: Box::new(com_vega_charge_high),
+            calculator: std::sync::Arc::new(com_vega_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -183,7 +183,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge MAX".to_string(),
-            calculator: Box::new(com_vega_max),
+            calculator: std::sync::Arc::new(com_vega_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

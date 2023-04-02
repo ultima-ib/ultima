@@ -75,13 +75,13 @@ pub fn rust_series_to_py_series(series: &Series) -> PyResult<PyObject> {
 
     Python::with_gil(|py| -> PyResult<PyObject> {
         // import pyarrow
-        let pyarrow = py.import("ultibi.pyarrow").expect("Install pyarrow first");
+        let pyarrow = py.import("pyarrow").expect("Install pyarrow first");
 
         // pyarrow array
         let pyarrow_array = to_py_array(py, pyarrow, array)?;
 
         // import polars
-        let polars = py.import("ultibi.polars").expect("Install polars first");
+        let polars = py.import("polars").expect("Install polars first");
         let out = polars.call_method1("from_arrow", (pyarrow_array,))?;
         // Have to rename now since it doesn't work in to_py_array schema
         out.call_method1("rename", (name, true))?;

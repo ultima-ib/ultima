@@ -14,6 +14,7 @@ use ultibi::{
     MeasuresMap, ValidateSet,
 };
 use crate::errors::{PyUltimaErr};
+use crate::measure::MeasureWrapper;
 use crate::requests;
 use crate::conversions::series::{py_series_to_rust_series, rust_series_to_py_series};
 
@@ -22,10 +23,12 @@ pub struct DataSetWrapper {
     dataset: Arc<RwLock<dyn DataSet>>,
 }
 
+/// Part of config is limit of numeric cols
 fn from_conf<T: DataSet + 'static>(
     conf_path: String,
     collect: bool,
     prepare: bool,
+    bespoke_measures: MeasuresMap
 ) -> PyResult<DataSetWrapper> {
     // This is now done in build_validate_prepare
     // TODO build_validate_prepare to return result and errors to be mapped
@@ -38,7 +41,7 @@ fn from_conf<T: DataSet + 'static>(
     //    return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));
     //};
 
-    let ds = ultibi::acquire::build_validate_prepare::<T>(conf_path.as_str(), collect, prepare);
+    let ds = ultibi::acquire::config_build_validate_prepare::<T>(conf_path.as_str(), collect, prepare, bespoke_measures);
     //let dataset = Box::new(ds);
     Ok(DataSetWrapper {
         dataset: Arc::new(RwLock::new(ds)),
@@ -49,7 +52,8 @@ fn from_frame<T: DataSet + 'static>(
     py: Python,
     seriess: Vec<Py<PyAny>>,
     measures: Option<Vec<String>>,
-    build_params: Option<BTreeMap<String, String>>,
+    build_params: BTreeMap<String, String>,
+    bespoke_measures: MeasuresMap
 ) -> PyResult<DataSetWrapper> {
     let df = DataFrame::new(
         seriess
@@ -64,12 +68,10 @@ fn from_frame<T: DataSet + 'static>(
     // TODO function arg should be add_numeric_columns_as_measures, defaulted to true
     let measures = measures.unwrap_or_else(|| numeric_columns(arc_schema));
     let mv = derive_basic_measures_vec(measures);
-    let mm: MeasuresMap = MeasuresMap::from_iter(mv);
-
-    let build_params = build_params.unwrap_or_default();
+    let mut mm: MeasuresMap = MeasuresMap::from_iter(mv);
+    mm.extend(bespoke_measures);
 
     let ds: T = DataSet::new(df.lazy(), mm, build_params);
-    //let dataset = Box::new(dataset);
 
     Ok(DataSetWrapper {
         dataset: Arc::new(RwLock::new(ds)),
@@ -82,7 +84,7 @@ impl DataSetWrapper {
     fn new(py: Python<'_>) -> Self {
         // get a &PyType corresponding to Self
         let pyself = Self::type_object(py);
-        Self::from_frame(pyself, py, vec![], None, None).unwrap()
+        Self::from_frame(pyself, py, vec![], None, None, None).unwrap()
     }
 
     #[classmethod]
@@ -91,10 +93,19 @@ impl DataSetWrapper {
         conf_path: String,
         collect: Option<bool>,
         prepare: Option<bool>,
+        bespoke_measures: Option<Vec<MeasureWrapper>>,
     ) -> PyResult<Self> {
         let collect = collect.unwrap_or_else(|| true);
         let prepare = prepare.unwrap_or_else(|| false);
-        from_conf::<DataSetBase>(conf_path, collect, prepare)
+        let bespoke_measures = bespoke_measures.unwrap_or_default();
+        let mm = bespoke_measures.into_iter()
+            .map(|x|{
+                let m = x._inner;
+                (m.name().clone(), m)
+
+            })
+            .collect::<MeasuresMap>();
+        from_conf::<DataSetBase>(conf_path, collect, prepare, mm)
     }
 
     #[classmethod]
@@ -106,7 +117,8 @@ impl DataSetWrapper {
     ) -> PyResult<Self> {
         let collect = collect.unwrap_or_else(|| true);
         let prepare = prepare.unwrap_or_else(|| false);
-        from_conf::<FRTBDataSet>(conf_path, collect, prepare)
+        let empty = BTreeMap::default();
+        from_conf::<FRTBDataSet>(conf_path, collect, prepare, empty)
     }
 
     #[classmethod]
@@ -116,19 +128,32 @@ impl DataSetWrapper {
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
-    ) -> PyResult<Self> {
-        from_frame::<DataSetBase>(py, seriess, measures, build_params)
+        bespoke_measures: Option<Vec<MeasureWrapper>>
+        ) -> PyResult<Self> {
+        let build_params = build_params.unwrap_or_default();
+        let mm = bespoke_measures
+            .unwrap_or_default()
+            .into_iter()
+            .map(|x|{
+                let m = x._inner;
+                (m.name().clone(), m)
+
+            })
+            .collect::<MeasuresMap>();
+        from_frame::<DataSetBase>(py, seriess, measures, build_params, mm)
     }
 
     #[classmethod]
     fn frtb_from_frame(
         _: &PyType,
         py: Python,
-        seriess: Vec<Py<PyAny>>,
+        series: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
     ) -> PyResult<Self> {
-        from_frame::<FRTBDataSet>(py, seriess, measures, build_params)
+        let build_params = build_params.unwrap_or_default();
+        let empty = BTreeMap::default();
+        from_frame::<FRTBDataSet>(py, series, measures, build_params, empty)
     }
 
     pub fn ui(&self, streaming: bool) -> PyResult<()> {

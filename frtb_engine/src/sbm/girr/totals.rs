@@ -23,7 +23,7 @@ pub(crate) fn girr_total_measures() -> Vec<Measure> {
     vec![
         Measure::Dependant(DependantMeasure {
             name: "GIRR TotalCharge Low".to_string(),
-            calculator: Box::new(girr_total_low),
+            calculator: std::sync::Arc::new(girr_total_low),
             depends_upon: vec![
                 ("GIRR DeltaCharge Low".to_string(), "scalar".to_string()),
                 ("GIRR VegaCharge Low".to_string(), "scalar".to_string()),
@@ -32,7 +32,7 @@ pub(crate) fn girr_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "GIRR TotalCharge Medium".to_string(),
-            calculator: Box::new(girr_total_medium),
+            calculator: std::sync::Arc::new(girr_total_medium),
             depends_upon: vec![
                 ("GIRR DeltaCharge Medium".to_string(), "scalar".to_string()),
                 ("GIRR VegaCharge Medium".to_string(), "scalar".to_string()),
@@ -44,7 +44,7 @@ pub(crate) fn girr_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "GIRR TotalCharge High".to_string(),
-            calculator: Box::new(girr_total_high),
+            calculator: std::sync::Arc::new(girr_total_high),
             depends_upon: vec![
                 ("GIRR DeltaCharge High".to_string(), "scalar".to_string()),
                 ("GIRR VegaCharge High".to_string(), "scalar".to_string()),

@@ -3,7 +3,7 @@ use pyo3::{ToPyObject, types::{PyModule}, Python, PyObject, FromPyObject, PyAny,
 use ultibi::polars::datatypes::DataType;
 
 pub(crate) static POLARS: Lazy<PyObject> =
-    Lazy::new(|| Python::with_gil(|py| PyModule::import(py, "ultibi.polars").unwrap().to_object(py)));
+    Lazy::new(|| Python::with_gil(|py| PyModule::import(py, "polars").unwrap().to_object(py)));
 
 #[repr(transparent)]
 pub struct Wrap<T>(pub T);

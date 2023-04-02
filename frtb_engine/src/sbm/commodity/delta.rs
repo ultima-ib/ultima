@@ -270,7 +270,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSens".to_string(),
-            calculator: Box::new(total_commodity_delta_sens),
+            calculator: std::sync::Arc::new(total_commodity_delta_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -280,7 +280,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSens Weighted".to_string(),
-            calculator: Box::new(commodity_delta_sens_weighted),
+            calculator: std::sync::Arc::new(commodity_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -290,7 +290,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSb".to_string(),
-            calculator: Box::new(commodity_delta_sb),
+            calculator: std::sync::Arc::new(commodity_delta_sb),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -300,7 +300,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Low".to_string(),
-            calculator: Box::new(commodity_delta_kb_low),
+            calculator: std::sync::Arc::new(commodity_delta_kb_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -310,7 +310,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Medium".to_string(),
-            calculator: Box::new(commodity_delta_kb_medium),
+            calculator: std::sync::Arc::new(commodity_delta_kb_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -320,7 +320,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb High".to_string(),
-            calculator: Box::new(commodity_delta_kb_high),
+            calculator: std::sync::Arc::new(commodity_delta_kb_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -330,7 +330,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Low".to_string(),
-            calculator: Box::new(commodity_delta_charge_low),
+            calculator: std::sync::Arc::new(commodity_delta_charge_low),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -340,7 +340,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Medium".to_string(),
-            calculator: Box::new(commodity_delta_charge_medium),
+            calculator: std::sync::Arc::new(commodity_delta_charge_medium),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -350,7 +350,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge High".to_string(),
-            calculator: Box::new(commodity_delta_charge_high),
+            calculator: std::sync::Arc::new(commodity_delta_charge_high),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")
@@ -360,7 +360,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge MAX".to_string(),
-            calculator: Box::new(com_delta_max),
+            calculator: std::sync::Arc::new(com_delta_max),
             aggregation: Some("scalar"),
             precomputefilter: Some(
                 col("RiskCategory")

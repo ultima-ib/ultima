@@ -37,7 +37,7 @@ pub static TEST_DASET_WITH_DEPENDANTS: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
     let measures = vec![
         Measure::Dependant(DependantMeasure {
             name: "DivAge".to_string(),
-            calculator: Box::new(|op: &CPM| {
+            calculator: Arc::new(|op: &CPM| {
                 let n = op.get("count").unwrap().parse::<f64>().unwrap();
                 Ok(col("Age_sum") / n.into())
             }),
@@ -45,7 +45,7 @@ pub static TEST_DASET_WITH_DEPENDANTS: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
         }),
         DependantMeasure {
             name: "NoSuchMeasureTest".to_string(),
-            calculator: Box::new(|op: &CPM| {
+            calculator: Arc::new(|op: &CPM| {
                 let n = op.get("count").unwrap().parse::<f64>().unwrap();
                 Ok(col("NoSuchMeasure_sum") / n.into())
             }),

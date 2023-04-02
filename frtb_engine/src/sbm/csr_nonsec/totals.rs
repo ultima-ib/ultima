@@ -32,7 +32,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
     vec![
         Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge Low".to_string(),
-            calculator: Box::new(csrnonsec_total_low),
+            calculator: std::sync::Arc::new(csrnonsec_total_low),
             depends_upon: vec![
                 (
                     "CSR nonSec DeltaCharge Low".to_string(),
@@ -50,7 +50,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge Medium".to_string(),
-            calculator: Box::new(csrnonsec_total_medium),
+            calculator: std::sync::Arc::new(csrnonsec_total_medium),
             depends_upon: vec![
                 (
                     "CSR nonSec DeltaCharge Medium".to_string(),
@@ -68,7 +68,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge High".to_string(),
-            calculator: Box::new(csrnonsec_total_high),
+            calculator: std::sync::Arc::new(csrnonsec_total_high),
             depends_upon: vec![
                 (
                     "CSR nonSec DeltaCharge High".to_string(),
@@ -86,7 +86,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge MAX".to_string(),
-            calculator: Box::new(csrnonsec_total_max),
+            calculator: std::sync::Arc::new(csrnonsec_total_max),
             depends_upon: vec![
                 (
                     "CSR nonSec TotalCharge Low".to_string(),

@@ -35,26 +35,16 @@ pub trait DataSet: Send + Sync {
     /// This method gets the main LazyFrame of the Dataset
     fn get_lazyframe(&self) -> &LazyFrame;
 
-    //// Set LazyFrame of your DataSet
-    //// TODO try make prepare
-    //fn set_lazyframe(self, lf: LazyFrame) -> Self
-    //where
-    //    Self: Sized;
-
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
 
     /// Get all measures associated with the DataSet
     fn get_measures(&self) -> &MeasuresMap;
 
-    //fn from_config(conf: DataSourceConfig) -> Self
-    //where
-    //    Self: Sized,
-    //{
-    //    let (frame, measure_cols, build_params) = conf.build();
-    //    let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
-    //    Self::new(frame, mm, build_params)
-    //}
+    /// See [DataSetBase] and [CalcParameter] for description of the parameters
+    fn new(frame: LazyFrame, mm: MeasuresMap, params: CPM) -> Self
+    where
+        Self: Sized;
 
     /// Cannot be defined since returns Self which is a Struct.
     /// Not possible to call [DataSet::new] either since it's not on self
@@ -67,22 +57,9 @@ pub trait DataSet: Send + Sync {
         Self::new(frame, mm, bp)
     }
 
-    /// TODO remove this, this is not good for production
-    //fn from_config_for_tests(mut conf: DataSourceConfig, path_to_file_location: &str) -> Self
-    //where
-    //    Self: Sized,
-    //{
-    //    conf.change_path_on_abs_if_not_exist(path_to_file_location);
-    //    let (frame, measure_cols, build_params) = conf.build();
-    //    let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
-    //    Self::new(frame, mm, build_params)
-    //}
-
-    /// See [DataSetBase] and [CalcParameter] for description of the parameters
-    fn new(frame: LazyFrame, mm: MeasuresMap, params: CPM) -> Self
-    where
-        Self: Sized;
-
+    /// Either place your desired numeric columns and bespokes in
+    /// *ms and set include_numeric_cols_as_measures = False 
+    /// or set your bespokes in *ms and include_numeric_cols_as_measures = True
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
     fn from_vec(
         frame: LazyFrame,

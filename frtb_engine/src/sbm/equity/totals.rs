@@ -19,7 +19,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
     vec![
         Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge Low".to_string(),
-            calculator: Box::new(eq_total_low),
+            calculator: std::sync::Arc::new(eq_total_low),
             depends_upon: vec![
                 ("EQ DeltaCharge Low".to_string(), "scalar".to_string()),
                 ("EQ VegaCharge Low".to_string(), "scalar".to_string()),
@@ -28,7 +28,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge Medium".to_string(),
-            calculator: Box::new(eq_total_medium),
+            calculator: std::sync::Arc::new(eq_total_medium),
             depends_upon: vec![
                 ("EQ DeltaCharge Medium".to_string(), "scalar".to_string()),
                 ("EQ VegaCharge Medium".to_string(), "scalar".to_string()),
@@ -40,7 +40,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge High".to_string(),
-            calculator: Box::new(eq_total_high),
+            calculator: std::sync::Arc::new(eq_total_high),
             depends_upon: vec![
                 ("EQ DeltaCharge High".to_string(), "scalar".to_string()),
                 ("EQ VegaCharge High".to_string(), "scalar".to_string()),

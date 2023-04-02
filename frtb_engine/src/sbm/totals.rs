@@ -46,7 +46,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
         // Testing dependency
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge Medium".to_string(),
-            calculator: Box::new(sbm_charge_medium_dep),
+            calculator: std::sync::Arc::new(sbm_charge_medium_dep),
             depends_upon: vec![
                 ("FX TotalCharge Medium".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge Medium".to_string(), "scalar".to_string()),
@@ -71,7 +71,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge Low".to_string(),
-            calculator: Box::new(sbm_charge_low_dep),
+            calculator: std::sync::Arc::new(sbm_charge_low_dep),
             depends_upon: vec![
                 ("FX TotalCharge Low".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge Low".to_string(), "scalar".to_string()),
@@ -96,7 +96,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge High".to_string(),
-            calculator: Box::new(sbm_charge_high_dep),
+            calculator: std::sync::Arc::new(sbm_charge_high_dep),
             depends_upon: vec![
                 ("FX TotalCharge High".to_string(), "scalar".to_string()),
                 ("GIRR TotalCharge High".to_string(), "scalar".to_string()),
@@ -121,7 +121,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge".to_string(),
-            calculator: Box::new(sbm_charge_dep),
+            calculator: std::sync::Arc::new(sbm_charge_dep),
             depends_upon: vec![
                 ("SBM Charge Low".to_string(), "scalar".to_string()),
                 ("SBM Charge Medium".to_string(), "scalar".to_string()),

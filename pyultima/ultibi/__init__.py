@@ -10,6 +10,10 @@ from .internals import (
     NoDataError,
     OtherError,
     aggregation_ops,
+    BaseMeasure, 
+    DependantMeasure,
+    Filter, 
+    FilterType
 )
 
 import polars # reexport
@@ -24,5 +28,9 @@ __all__ = [
     "OtherError",
     "NoDataError",
     "polars",
-    "pyarrow"
+    "pyarrow",
+    "BaseMeasure", 
+    "DependantMeasure",
+    "Filter", 
+    "FilterType"
 ]

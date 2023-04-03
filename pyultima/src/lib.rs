@@ -11,6 +11,7 @@ mod requests;
 mod dataset;
 mod measure;
 mod conversions;
+mod filter;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {

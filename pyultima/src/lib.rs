@@ -4,14 +4,14 @@ use errors::{
     ArrowErrorException, ComputeError, DuplicateError, InvalidOperationError, NoDataError,
     NotFoundError, OtherError, SchemaError, SerdeJsonError, ShapeError,
 };
-use pyo3::{pyfunction, pymodule, Python, types::PyModule, PyResult, wrap_pyfunction};
+use pyo3::{pyfunction, pymodule, types::PyModule, wrap_pyfunction, PyResult, Python};
 
-mod errors;
-mod requests;
-mod dataset;
-mod measure;
 mod conversions;
+mod dataset;
+mod errors;
 mod filter;
+mod measure;
+mod requests;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {

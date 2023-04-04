@@ -58,7 +58,7 @@ pub trait DataSet: Send + Sync {
     }
 
     /// Either place your desired numeric columns and bespokes in
-    /// *ms and set include_numeric_cols_as_measures = False 
+    /// *ms and set include_numeric_cols_as_measures = False
     /// or set your bespokes in *ms and include_numeric_cols_as_measures = True
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
     fn from_vec(

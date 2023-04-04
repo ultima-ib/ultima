@@ -6,6 +6,10 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 //use std::sync::Mutex;
+use crate::conversions::series::{py_series_to_rust_series, rust_series_to_py_series};
+use crate::errors::PyUltimaErr;
+use crate::measure::MeasureWrapper;
+use crate::requests;
 use std::sync::RwLock;
 use ultibi::polars::prelude::Series;
 use ultibi::VisualDataSet;
@@ -13,10 +17,6 @@ use ultibi::{
     self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase, IntoLazy,
     MeasuresMap, ValidateSet,
 };
-use crate::errors::{PyUltimaErr};
-use crate::measure::MeasureWrapper;
-use crate::requests;
-use crate::conversions::series::{py_series_to_rust_series, rust_series_to_py_series};
 
 #[pyclass]
 pub struct DataSetWrapper {
@@ -28,7 +28,7 @@ fn from_conf<T: DataSet + 'static>(
     conf_path: String,
     collect: bool,
     prepare: bool,
-    bespoke_measures: MeasuresMap
+    bespoke_measures: MeasuresMap,
 ) -> PyResult<DataSetWrapper> {
     // This is now done in build_validate_prepare
     // TODO build_validate_prepare to return result and errors to be mapped
@@ -41,7 +41,12 @@ fn from_conf<T: DataSet + 'static>(
     //    return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));
     //};
 
-    let ds = ultibi::acquire::config_build_validate_prepare::<T>(conf_path.as_str(), collect, prepare, bespoke_measures);
+    let ds = ultibi::acquire::config_build_validate_prepare::<T>(
+        conf_path.as_str(),
+        collect,
+        prepare,
+        bespoke_measures,
+    );
     //let dataset = Box::new(ds);
     Ok(DataSetWrapper {
         dataset: Arc::new(RwLock::new(ds)),
@@ -53,7 +58,7 @@ fn from_frame<T: DataSet + 'static>(
     seriess: Vec<Py<PyAny>>,
     measures: Option<Vec<String>>,
     build_params: BTreeMap<String, String>,
-    bespoke_measures: MeasuresMap
+    bespoke_measures: MeasuresMap,
 ) -> PyResult<DataSetWrapper> {
     let df = DataFrame::new(
         seriess
@@ -98,11 +103,11 @@ impl DataSetWrapper {
         let collect = collect.unwrap_or_else(|| true);
         let prepare = prepare.unwrap_or_else(|| false);
         let bespoke_measures = bespoke_measures.unwrap_or_default();
-        let mm = bespoke_measures.into_iter()
-            .map(|x|{
+        let mm = bespoke_measures
+            .into_iter()
+            .map(|x| {
                 let m = x._inner;
                 (m.name().clone(), m)
-
             })
             .collect::<MeasuresMap>();
         from_conf::<DataSetBase>(conf_path, collect, prepare, mm)
@@ -128,16 +133,15 @@ impl DataSetWrapper {
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
-        bespoke_measures: Option<Vec<MeasureWrapper>>
-        ) -> PyResult<Self> {
+        bespoke_measures: Option<Vec<MeasureWrapper>>,
+    ) -> PyResult<Self> {
         let build_params = build_params.unwrap_or_default();
         let mm = bespoke_measures
             .unwrap_or_default()
             .into_iter()
-            .map(|x|{
+            .map(|x| {
                 let m = x._inner;
                 (m.name().clone(), m)
-
             })
             .collect::<MeasuresMap>();
         from_frame::<DataSetBase>(py, seriess, measures, build_params, mm)

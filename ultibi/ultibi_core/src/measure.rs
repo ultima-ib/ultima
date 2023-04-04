@@ -43,7 +43,6 @@ pub struct BaseMeasure {
     // TODO find a nice way to attach calc_params to a measure
     // parameters which will go into calculator
     // pub calc_params: &'static [CalcParameter],
-
     /// Optional: this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
     pub aggregation: Option<String>,
@@ -82,7 +81,6 @@ pub struct DependantMeasure {
     // must be one of BASE_CALCS
     // Currently every dep measure is "scalar", see [Measure::aggregation]
     // pub aggregation: Option<&'static str>,
-
     /// Vec<(Depends Upon Measure Name, Aggregation type)>
     /// eg vec![(FXDeltaCharge, scalar), (Sensitivity, mean)]
     pub depends_upon: Vec<(String, String)>,
@@ -124,7 +122,7 @@ impl FromIterator<Measure> for BTreeMap<MeasureName, Measure> {
     }
 }
 use once_cell::sync::Lazy;
-pub(crate) static SCALAR: Lazy<Option<String>> = Lazy::new(|| {Some("scalar".into())});
+pub(crate) static SCALAR: Lazy<Option<String>> = Lazy::new(|| Some("scalar".into()));
 
 impl Measure {
     pub fn aggregation(&self) -> &Option<String> {

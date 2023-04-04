@@ -1,5 +1,9 @@
 use once_cell::sync::Lazy;
-use pyo3::{ToPyObject, types::{PyModule}, Python, PyObject, FromPyObject, PyAny, PyResult, exceptions::{PyTypeError, PyValueError}, IntoPy};
+use pyo3::{
+    exceptions::{PyTypeError, PyValueError},
+    types::PyModule,
+    FromPyObject, IntoPy, PyAny, PyObject, PyResult, Python, ToPyObject,
+};
 use ultibi::polars::datatypes::DataType;
 
 pub(crate) static POLARS: Lazy<PyObject> =
@@ -25,8 +29,8 @@ impl ToPyObject for Wrap<DataType> {
             DataType::Float64 => ul.getattr("Float64").unwrap().into(),
             DataType::Boolean => ul.getattr("Boolean").unwrap().into(),
             DataType::Utf8 => ul.getattr("Utf8").unwrap().into(),
-            _ => PyTypeError::new_err("unsupported type").into_py(py)
-         }
+            _ => PyTypeError::new_err("unsupported type").into_py(py),
+        }
     }
 }
 
@@ -58,16 +62,11 @@ impl FromPyObject<'_> for Wrap<DataType> {
                     "List" => DataType::List(Box::new(DataType::Boolean)),
                     "Null" => DataType::Null,
                     "Unknown" => DataType::Unknown,
-                    _ => {
-                        return Err(PyValueError::new_err(
-                            "not a correct polars DataType"))
-                    }
+                    _ => return Err(PyValueError::new_err("not a correct polars DataType")),
                 }
             }
-            
-            _ => {
-                return Err(PyTypeError::new_err("Not supported type"))
-            }
+
+            _ => return Err(PyTypeError::new_err("Not supported type")),
         };
         Ok(Wrap(dtype))
     }

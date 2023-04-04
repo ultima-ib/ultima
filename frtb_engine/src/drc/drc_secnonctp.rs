@@ -199,37 +199,37 @@ pub(crate) fn drc_secnonctp_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "DRC Sec nonCTP CapitalCharge".to_string(),
             calculator: std::sync::Arc::new(drc_secnonctp_charge),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC Sec nonCTP NetLongJTD".to_string(),
             calculator: std::sync::Arc::new(drc_secnonctp_netlongjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC Sec nonCTP NetShortJTD".to_string(),
             calculator: std::sync::Arc::new(drc_secnonctp_netshortjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC Sec nonCTP NetLongJTD Weighted".to_string(),
             calculator: std::sync::Arc::new(drc_secnonctp_weightednetlongjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC Sec nonCTP NetShortJTD Weighted".to_string(),
             calculator: std::sync::Arc::new(drc_secnonctp_weightednetabsshortjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_Sec_nonCTP"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC Sec nonCTP HBR".to_string(),
             calculator: std::sync::Arc::new(drc_secnonctp_hbr),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_SecNonCTP"))),
         }),
     ]

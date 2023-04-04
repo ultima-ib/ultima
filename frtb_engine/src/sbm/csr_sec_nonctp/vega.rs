@@ -119,7 +119,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaSb".to_string(),
             calculator: std::sync::Arc::new(csr_sec_nonctp_vega_sb),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -129,7 +129,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge Low".to_string(),
             calculator: std::sync::Arc::new(csr_sec_nonctp_vega_charge_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -139,7 +139,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaKb Low".to_string(),
             calculator: std::sync::Arc::new(csr_sec_nonctp_vega_kb_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -149,7 +149,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge Medium".to_string(),
             calculator: std::sync::Arc::new(csr_sec_nonctp_vega_charge_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -159,7 +159,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaKb Medium".to_string(),
             calculator: std::sync::Arc::new(csr_sec_nonctp_vega_kb_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -169,7 +169,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge High".to_string(),
             calculator: std::sync::Arc::new(csr_sec_nonctp_vega_charge_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -179,7 +179,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaKb High".to_string(),
             calculator: std::sync::Arc::new(csr_sec_nonctp_vega_kb_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -189,7 +189,7 @@ pub(crate) fn csrsecnonctp_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP VegaCharge MAX".to_string(),
             calculator: std::sync::Arc::new(csrsecnonctp_vega_max),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))

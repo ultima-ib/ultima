@@ -55,7 +55,7 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
     let non_rc_specific = vec![Measure::Base(BaseMeasure {
         name: "RiskWeights".to_string(),
         calculator: std::sync::Arc::new(sens_weights),
-        aggregation: Some("first"),
+        aggregation: Some("first".into()),
         precomputefilter: None,
     })];
 

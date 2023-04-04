@@ -204,7 +204,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus Medium".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_plus_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -214,7 +214,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus Medium".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_minus_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -224,7 +224,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb Medium".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -234,7 +234,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb Medium".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_sb_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -244,7 +244,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge Medium".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_charge_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -254,7 +254,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus Low".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_plus_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -264,7 +264,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus Low".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_minus_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -274,7 +274,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb Low".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -284,7 +284,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb Low".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_sb_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -294,7 +294,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge Low".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_charge_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -304,7 +304,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbPlus High".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_plus_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -314,7 +314,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature KbMinus High".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_minus_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -324,7 +324,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Kb High".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_kb_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -334,7 +334,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP Curvature Sb High".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_sb_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -344,7 +344,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge High".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curvature_charge_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -354,7 +354,7 @@ pub(crate) fn csrsecctp_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP CurvatureCharge MAX".to_string(),
             calculator: std::sync::Arc::new(csrsecctp_curv_max),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

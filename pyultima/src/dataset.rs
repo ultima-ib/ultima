@@ -194,14 +194,14 @@ impl DataSetWrapper {
             .collect()
     }
 
-    pub fn measures(&self) -> BTreeMap<String, Option<&str>> {
+    pub fn measures(&self) -> BTreeMap<String, Option<String>> {
         self.dataset
             .read()
             .expect("Poisonned RwLock")
             .get_measures()
             .iter()
-            .map(|(x, m)| (x.to_string(), *m.aggregation()))
-            .collect::<BTreeMap<String, Option<&str>>>()
+            .map(|(x, m)| (x.to_string(), m.aggregation().clone()))
+            .collect::<BTreeMap<String, Option<String>>>()
     }
     pub fn frame(&self) -> PyResult<Vec<PyObject>> {
         self.dataset

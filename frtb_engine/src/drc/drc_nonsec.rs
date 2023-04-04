@@ -247,38 +247,38 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "DRC nonSec CapitalCharge".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_charge),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_netlongjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetShortJTD".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_netshortjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD Weighted".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_weightednetlongjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetAbsShortJTD Weighted".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_weightednetabsshortjtd),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
         // HBR Only makes sence at Bucket level
         Measure::Base(BaseMeasure {
             name: "DRC nonSec HBR".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_hbr),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
         }),
     ]

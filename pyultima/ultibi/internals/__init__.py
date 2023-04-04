@@ -10,7 +10,7 @@ from ..rust_module.ultima_pyengine import NoDataError, OtherError
 from .dataset import DS, DataSet, FRTBDataSet
 from .requests import AggRequest, ComputeRequest, aggregation_ops
 from .measure import BaseMeasure, DependantMeasure
-from .filters import EqFilter, NeqFilter, InFilter, NotInFilter
+from .filters import EqFilter, NeqFilter, InFilter, NotInFilter, Filter
 
 __all__ = [
     "AggRequest",
@@ -26,5 +26,6 @@ __all__ = [
     "EqFilter",
     "NeqFilter",
     "InFilter",
-    "NotInFilter"
+    "NotInFilter",
+    "Filter"
 ]

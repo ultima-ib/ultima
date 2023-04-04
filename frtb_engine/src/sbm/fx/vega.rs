@@ -198,7 +198,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaSb".to_string(),
             calculator: std::sync::Arc::new(fx_vega_sb),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -208,7 +208,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaKb Low".to_string(),
             calculator: std::sync::Arc::new(fx_vega_kb_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -218,7 +218,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaKb Medium".to_string(),
             calculator: std::sync::Arc::new(fx_vega_kb_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -228,7 +228,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaKb High".to_string(),
             calculator: std::sync::Arc::new(fx_vega_kb_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -238,7 +238,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge Low".to_string(),
             calculator: std::sync::Arc::new(fx_vega_charge_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -248,7 +248,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge Medium".to_string(),
             calculator: std::sync::Arc::new(fx_vega_charge_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -258,7 +258,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge High".to_string(),
             calculator: std::sync::Arc::new(fx_vega_charge_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
@@ -268,7 +268,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge MAX".to_string(),
             calculator: std::sync::Arc::new(fx_vega_max),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))

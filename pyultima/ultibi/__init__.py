@@ -12,8 +12,10 @@ from .internals import (
     aggregation_ops,
     BaseMeasure, 
     DependantMeasure,
-    Filter, 
-    FilterType
+    EqFilter, 
+    NeqFilter,
+    InFilter, 
+    NotInFilter
 )
 
 import polars # reexport
@@ -32,5 +34,9 @@ __all__ = [
     "BaseMeasure", 
     "DependantMeasure",
     "Filter", 
-    "FilterType"
+    "FilterType",
+    "EqFilter", 
+    "NeqFilter",
+    "InFilter", 
+    "NotInFilter"
 ]

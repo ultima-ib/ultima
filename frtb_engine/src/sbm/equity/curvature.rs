@@ -265,7 +265,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus Medium".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_plus_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -275,7 +275,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus Medium".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_minus_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -285,7 +285,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb Medium".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -295,7 +295,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb Medium".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_sb_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -305,7 +305,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge Medium".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_charge_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -315,7 +315,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus Low".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_plus_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -325,7 +325,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus Low".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_minus_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -335,7 +335,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb Low".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -345,7 +345,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb Low".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_sb_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -355,7 +355,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge Low".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_charge_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -365,7 +365,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbPlus High".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_plus_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -375,7 +375,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature KbMinus High".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_minus_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -385,7 +385,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Kb High".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_kb_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -395,7 +395,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ Curvature Sb High".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_sb_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -405,7 +405,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge High".to_string(),
             calculator: std::sync::Arc::new(eq_curvature_charge_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -415,7 +415,7 @@ pub(crate) fn eq_curv_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "EQ CurvatureCharge MAX".to_string(),
             calculator: std::sync::Arc::new(eq_curv_max),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

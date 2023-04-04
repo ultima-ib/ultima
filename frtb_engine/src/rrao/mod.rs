@@ -141,7 +141,7 @@ pub(crate) fn rrao_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "RRAO Charge".to_string(),
             calculator: std::sync::Arc::new(rrao_charge),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
         }),
     ]

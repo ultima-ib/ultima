@@ -263,8 +263,8 @@ impl Serialize for dyn DataSet {
         let measures = self
             .get_measures()
             .iter()
-            .map(|(x, m)| (x, *m.aggregation()))
-            .collect::<BTreeMap<&String, Option<&str>>>();
+            .map(|(x, m)| (x, m.aggregation()))
+            .collect::<BTreeMap<&String, &Option<String>>>();
 
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
         let utf8_cols = self

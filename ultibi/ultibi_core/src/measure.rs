@@ -46,7 +46,7 @@ pub struct BaseMeasure {
 
     /// Optional: this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
-    pub aggregation: Option<&'static str>,
+    pub aggregation: Option<String>,
 
     /// Optional
     /// Say you want to compute CSR Delta by Bucket
@@ -123,12 +123,14 @@ impl FromIterator<Measure> for BTreeMap<MeasureName, Measure> {
             .collect()
     }
 }
+use once_cell::sync::Lazy;
+pub(crate) static SCALAR: Lazy<Option<String>> = Lazy::new(|| {Some("scalar".into())});
 
 impl Measure {
-    pub fn aggregation(&self) -> &Option<&'static str> {
+    pub fn aggregation(&self) -> &Option<String> {
         match self {
             Measure::Base(BaseMeasure { aggregation, .. }) => aggregation,
-            Measure::Dependant(_) => &Some("scalar"),
+            Measure::Dependant(_) => &SCALAR,
         }
     }
 

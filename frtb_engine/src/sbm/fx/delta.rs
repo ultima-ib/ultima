@@ -240,7 +240,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX DeltaSb".to_string(),
             calculator: std::sync::Arc::new(fx_delta_sb),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -251,7 +251,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX DeltaKb".to_string(),
             calculator: std::sync::Arc::new(fx_delta_kb),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -262,7 +262,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Low".to_string(),
             calculator: std::sync::Arc::new(fx_delta_charge_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -273,7 +273,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Medium".to_string(),
             calculator: std::sync::Arc::new(fx_delta_charge_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -284,7 +284,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge High".to_string(),
             calculator: std::sync::Arc::new(fx_delta_charge_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -295,7 +295,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge MAX".to_string(),
             calculator: std::sync::Arc::new(fx_delta_max),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

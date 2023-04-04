@@ -291,7 +291,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSb".to_string(),
             calculator: std::sync::Arc::new(commodity_delta_sb),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -301,7 +301,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Low".to_string(),
             calculator: std::sync::Arc::new(commodity_delta_kb_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -311,7 +311,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Medium".to_string(),
             calculator: std::sync::Arc::new(commodity_delta_kb_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -321,7 +321,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb High".to_string(),
             calculator: std::sync::Arc::new(commodity_delta_kb_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -331,7 +331,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Low".to_string(),
             calculator: std::sync::Arc::new(commodity_delta_charge_low),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -341,7 +341,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Medium".to_string(),
             calculator: std::sync::Arc::new(commodity_delta_charge_medium),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -351,7 +351,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge High".to_string(),
             calculator: std::sync::Arc::new(commodity_delta_charge_high),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
@@ -361,7 +361,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge MAX".to_string(),
             calculator: std::sync::Arc::new(com_delta_max),
-            aggregation: Some("scalar"),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))

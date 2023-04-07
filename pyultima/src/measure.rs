@@ -1,3 +1,6 @@
+//! Note Measure is not ready for release. Blocked due to
+//! https://github.com/pola-rs/polars/issues/8039
+
 use std::sync::Arc;
 
 use polars::lazy::dsl::apply_multiple;
@@ -45,25 +48,6 @@ impl MeasureWrapper {
 
         let output = GetOutput::from_type(output_type.0);
 
-        // This to go inside apply_multiple
-        //let function = move |s: &mut [Series]| {
-        //    let l = lambda.clone();
-        //    //let pp = POLARS.clone();
-        //    Python::with_gil(move |py| {
-        //        // this is a python Series
-        //
-        //        let out = call_lambda_with_series_slice(py, s, &l);
-        //
-        //        // we return an error, because that will become a null value polars lazy apply list
-        //        //if apply_groups && out.is_none(py) {
-        //        //    return Ok(None);
-        //        //}
-        //        let srs = py_series_to_rust_series(out.as_ref(py)).ok(); // convert Res to Option
-        //
-        //        Ok(srs)
-        //    })
-        //};
-
         // Convert function into Expr
         let calculator = move |op: &CPM| {
             let l = lambda.clone();
@@ -75,6 +59,7 @@ impl MeasureWrapper {
                     let args = params.clone();
 
                     Python::with_gil(move |py| {
+                        
                         // this is a python Series
                         let out = call_lambda_with_args_and_series_slice(py, &args, s, &ll);
 
@@ -133,15 +118,20 @@ impl MeasureWrapper {
 
         // Convert function into Expr
         let calculator = move |op: &CPM| {
+
             let l = lambda.clone();
             let params = op.clone();
 
             Ok(apply_multiple(
                 move |s: &mut [Series]| {
-                    let ll = l.clone();
-                    let args = params.clone();
 
-                    Python::with_gil(move |py| {
+                let ll = l.clone();
+                let args = params.clone();
+
+                    Python::with_gil(
+
+                        move |py| {
+                        
                         // this is a python Series
                         let out = call_lambda_with_args_and_series_slice(py, &args, s, &ll);
 
@@ -185,9 +175,10 @@ pub(crate) fn call_lambda_with_args_and_series_slice(
     // create a PySeries struct/object for Python
     let iter = s.iter().map(|s| rust_series_to_py_series(s).unwrap());
     let wrapped_s = PyList::new(py, iter);
+    dbg!("HERE");
 
     // call the lambda and get a python side Series wrapper
-    match lambda.call(py, (wrapped_s,), Some(kwargs.into_py_dict(py))) {
+    match lambda.call(py, (wrapped_s, kwargs.into_py_dict(py)), None) {
         Ok(pyobj) => pyobj,
         Err(e) => panic!("python apply failed: {}", e.value(py)),
     }

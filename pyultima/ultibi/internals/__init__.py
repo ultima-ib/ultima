@@ -9,7 +9,6 @@ they all import from each other via this __init__ file using
 from ..rust_module.ultima_pyengine import NoDataError, OtherError
 from .dataset import DS, DataSet, FRTBDataSet
 from .requests import AggRequest, ComputeRequest, aggregation_ops
-from .measure import BaseMeasure, DependantMeasure
 from .filters import EqFilter, NeqFilter, InFilter, NotInFilter, Filter
 
 __all__ = [
@@ -19,10 +18,10 @@ __all__ = [
     "FRTBDataSet",
     "DataSet",
     "DS",
+    
     "NoDataError",
     "OtherError",
-    "BaseMeasure",
-    "DependantMeasure",
+
     "EqFilter",
     "NeqFilter",
     "InFilter",

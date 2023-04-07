@@ -31,6 +31,7 @@ fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<requests::ComputeRequestWrapper>()?;
     m.add_class::<dataset::DataSetWrapper>()?;
     m.add_class::<measure::MeasureWrapper>()?;
+    m.add_class::<filter::FilterWrapper>()?;
 
     m.add("NotFoundError", _py.get_type::<NotFoundError>())
         .unwrap();

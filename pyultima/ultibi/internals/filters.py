@@ -38,10 +38,10 @@ class Filter:
         
         if isinstance(data, dict):
             json_str = json.dumps(data)
-            self._ar = FilterWrapper.from_str(json_str)
+            self.inner = FilterWrapper.from_str(json_str)
 
         elif isinstance(data, str):
-            self._ar = FilterWrapper.from_str(data)
+            self.inner = FilterWrapper.from_str(data)
 
         else:
             raise ValueError(

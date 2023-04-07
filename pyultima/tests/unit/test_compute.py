@@ -20,5 +20,6 @@ class TestCreation(unittest.TestCase):
 
         self.assertTrue(result.frame_equal(expected))
 
+
 if __name__ == "__main__":
     unittest.main()

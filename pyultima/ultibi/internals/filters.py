@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
 import json
+from typing import Any
 
 from ..rust_module.ultima_pyengine import FilterWrapper
+
 
 class Filter:
     """
@@ -13,19 +14,11 @@ class Filter:
     --------
     Constructing a Filter from a dictionary:
 
-    >>> import ultibi.internals.filter.Filter
-    >>> filter = dict(
-    ...     op="Eq",
-    ...     field="Desk",
-    ...     value="FXOptions"
-    ... )
-    >>> f = Filter(request_as_dict)
-    >>> filter = dict(
-    ...     op=ul.FilterType.In,
-    ...     field="Desk",
-    ...     value=["FXOptions", "Rates"]
-    ... )
-    >>> f = Filter(request_as_dict)
+    >>> from ultibi.internals.filters import Filter
+    >>> filter = dict(op="Eq", field="Desk", value="FXOptions")
+    >>> f = Filter(filter)
+    >>> filter = dict(op="In", field="Desk", value=["FXOptions", "Rates"])
+    >>> f = Filter(filter)
 
     """
 
@@ -35,7 +28,6 @@ class Filter:
         self,
         data: "dict[Any, Any] | str",
     ) -> None:
-        
         if isinstance(data, dict):
             json_str = json.dumps(data)
             self.inner = FilterWrapper.from_str(json_str)
@@ -66,7 +58,9 @@ class EqFilter(Filter):
     >>> import ultibi as ul
     >>> f = ul.EqFilter(field="Desk", value="FXOptions")
     """
+
     op = "Eq"
+
     def __init__(self, field: str, value: str) -> None:
         """
 
@@ -88,7 +82,9 @@ class NeqFilter(Filter):
     >>> import ultibi as ul
     >>> f = ul.NeqFilter(field="Desk", value="FXOptions")
     """
+
     op = "Neq"
+
     def __init__(self, field: str, value: str) -> None:
         """
 
@@ -110,7 +106,9 @@ class InFilter(Filter):
     >>> import ultibi as ul
     >>> f = ul.InFilter(field="Sex", value=["Male", "Female"])
     """
+
     op = "In"
+
     def __init__(self, field: str, value: list[str]) -> None:
         """
 
@@ -120,6 +118,7 @@ class InFilter(Filter):
         """
         data = dict(op=self.op, field=field, value=value)
         super().__init__(data)
+
 
 class NotInFilter(Filter):
     """Field Value is not one of list/series/vec
@@ -131,7 +130,9 @@ class NotInFilter(Filter):
     >>> import ultibi as ul
     >>> f = ul.NotInFilter(field="Sex", value=["Male", "Female"])
     """
+
     op = "NotIn"
+
     def __init__(self, field: str, value: list[str]) -> None:
         """
 

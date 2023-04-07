@@ -185,9 +185,11 @@ impl DataSetWrapper {
 
     pub fn compute(
         &self,
+        py: Python,
         request: requests::ComputeRequestWrapper,
         streaming: bool,
     ) -> PyResult<Vec<PyObject>> {
+        py.allow_threads(||{
         self.dataset
             .read()
             .expect("Poisonned RwLock")
@@ -196,6 +198,7 @@ impl DataSetWrapper {
             .iter()
             .map(rust_series_to_py_series)
             .collect()
+        })
     }
 
     pub fn measures(&self) -> BTreeMap<String, Option<String>> {

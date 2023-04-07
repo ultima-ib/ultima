@@ -9,6 +9,9 @@ from ultibi.internals.measure import Measure
 
 from ..rust_module.ultima_pyengine import DataSetWrapper
 
+TMeasure = TypeVar("TMeasure", bound=Measure)
+
+
 # Create a generic variable that can be 'Parent', or any subclass.
 DS = TypeVar("DS", bound="DataSet")
 
@@ -69,8 +72,7 @@ class DataSet:
         Returns:
             T: Self
         """
-        return cls(
-            DataSetWrapper.from_config_path(path, collect, prepare), prepare)
+        return cls(DataSetWrapper.from_config_path(path, collect, prepare), prepare)
 
     @classmethod
     def from_frame(
@@ -79,7 +81,7 @@ class DataSet:
         measures: "list[str] | None" = None,
         build_params: "dict[str, str] | None" = None,
         prepared: bool = True,
-        bespoke_measures: "list[Type[Measure]] | None" = None
+        bespoke_measures: "list[TMeasure] | None" = None,
     ) -> DS:
         """
         Build DataSet directly from df
@@ -98,11 +100,13 @@ class DataSet:
         Returns:
             T: Self
         """
-        bespoke_measures =( [m.inner for m in bespoke_measures] 
-                           if bespoke_measures else None )
+        bespoke_measures = (
+            [m.inner for m in bespoke_measures] if bespoke_measures else None
+        )
         return cls(
             DataSetWrapper.from_frame(df, measures, build_params, bespoke_measures),
-             prepared)
+            prepared,
+        )
 
     def prepare(self, collect: bool = True) -> None:
         """Does nothing unless overriden. To be used for one of computations.
@@ -186,7 +190,7 @@ class FRTBDataSet(DataSet):
     def from_config_path(
         cls: Type[DS], path: str, collect: bool = True, prepare: bool = False
     ) -> DS:
-        return cls.__init__(
+        return cls(
             DataSetWrapper.frtb_from_config_path(path, collect, prepare), prepare
         )
 
@@ -197,6 +201,6 @@ class FRTBDataSet(DataSet):
         measures: "list[str] | None" = None,
         build_params: "dict[str, str] | None" = None,
         prepared: bool = False,
+        bespoke_measures: "list[TMeasure] | None" = None,
     ) -> DS:
-        return cls.__init__(
-            DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)
+        return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)

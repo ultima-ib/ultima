@@ -59,7 +59,6 @@ impl MeasureWrapper {
                     let args = params.clone();
 
                     Python::with_gil(move |py| {
-                        
                         // this is a python Series
                         let out = call_lambda_with_args_and_series_slice(py, &args, s, &ll);
 
@@ -118,20 +117,15 @@ impl MeasureWrapper {
 
         // Convert function into Expr
         let calculator = move |op: &CPM| {
-
             let l = lambda.clone();
             let params = op.clone();
 
             Ok(apply_multiple(
                 move |s: &mut [Series]| {
+                    let ll = l.clone();
+                    let args = params.clone();
 
-                let ll = l.clone();
-                let args = params.clone();
-
-                    Python::with_gil(
-
-                        move |py| {
-                        
+                    Python::with_gil(move |py| {
                         // this is a python Series
                         let out = call_lambda_with_args_and_series_slice(py, &args, s, &ll);
 

@@ -8,8 +8,8 @@ they all import from each other via this __init__ file using
 
 from ..rust_module.ultima_pyengine import NoDataError, OtherError
 from .dataset import DS, DataSet, FRTBDataSet
+from .filters import EqFilter, Filter, InFilter, NeqFilter, NotInFilter
 from .requests import AggRequest, ComputeRequest, aggregation_ops
-from .filters import EqFilter, NeqFilter, InFilter, NotInFilter, Filter
 
 __all__ = [
     "AggRequest",
@@ -18,13 +18,11 @@ __all__ = [
     "FRTBDataSet",
     "DataSet",
     "DS",
-    
     "NoDataError",
     "OtherError",
-
     "EqFilter",
     "NeqFilter",
     "InFilter",
     "NotInFilter",
-    "Filter"
+    "Filter",
 ]

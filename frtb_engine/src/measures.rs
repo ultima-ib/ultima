@@ -57,6 +57,7 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
         calculator: std::sync::Arc::new(sens_weights),
         aggregation: Some("first".into()),
         precomputefilter: None,
+        calc_params: vec![],
     })];
 
     let mut res = vec![];

@@ -7,7 +7,21 @@ from polars import DataType, Expr, Series
 
 from ultibi.internals.filters import Filter
 
-from ..rust_module.ultima_pyengine import CalculatorWrapper, MeasureWrapper
+from ..rust_module.ultima_pyengine import (
+    CalcParamWrapper,
+    CalculatorWrapper,
+    MeasureWrapper,
+)
+
+
+class CalcParam:
+    inner = CalcParamWrapper
+
+    def __init__(
+        self, name: str, default: str | None = None, type_hint: str | None = None
+    ):
+        self.inner = CalcParamWrapper(name, default, type_hint)
+
 
 TFilter = TypeVar("TFilter", bound=Filter)
 
@@ -81,17 +95,21 @@ class BaseMeasure(Measure):
         self,
         measure_name: str,
         calc: TCalculator,
-        # calc_output: Type[DataType],
-        # input_cols: list[str],
-        # returns_scalar: bool,
         precompute_filter: list[list[TFilter]],
         aggregation_restriction: str | None = None,
+        calc_params: list[CalcParam] | None = None,
     ) -> None:
+        if calc_params:
+            calc_params_inner = [calc_param.inner for calc_param in calc_params]
+        else:
+            calc_params_inner = None
+
         measure_wrapper = MeasureWrapper.new_basic(
             measure_name,
             calc.inner,
             [[y.inner for y in x] for x in precompute_filter],
             aggregation_restriction,
+            calc_params_inner,
         )
         super().__init__(measure_wrapper)
 
@@ -106,8 +124,17 @@ class DependantMeasure(Measure):
         measure_name: str,
         calc: TCalculator,
         depends_upon: list[tuple[str, str]],
+        calc_params: list[CalcParam] | None = None,
     ) -> None:
+        if calc_params:
+            calc_params_inner = [calc_param.inner for calc_param in calc_params]
+        else:
+            calc_params_inner = None
+
         measure_wrapper = MeasureWrapper.new_dependant(
-            measure_name, calc.inner, depends_upon
+            measure_name,
+            calc.inner,
+            depends_upon,
+            calc_params_inner,
         )
         super().__init__(measure_wrapper)

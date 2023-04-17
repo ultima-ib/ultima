@@ -25,6 +25,7 @@ pub(crate) fn fx_total_measures() -> Vec<Measure> {
                 ("FX VegaCharge Low".to_string(), "scalar".to_string()),
                 ("FX CurvatureCharge Low".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge Medium".to_string(),
@@ -37,6 +38,7 @@ pub(crate) fn fx_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge High".to_string(),
@@ -46,6 +48,7 @@ pub(crate) fn fx_total_measures() -> Vec<Measure> {
                 ("FX VegaCharge High".to_string(), "scalar".to_string()),
                 ("FX CurvatureCharge High".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
     ]
 }

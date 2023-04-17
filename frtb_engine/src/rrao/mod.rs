@@ -119,30 +119,35 @@ pub(crate) fn rrao_measures() -> Vec<Measure> {
             calculator: std::sync::Arc::new(exotic_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Other RRAO Notional".to_string(),
             calculator: std::sync::Arc::new(other_notional),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Exotic RRAO Charge".to_string(),
             calculator: std::sync::Arc::new(exotic_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Other RRAO Charge".to_string(),
             calculator: std::sync::Arc::new(other_charge),
             aggregation: None,
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "RRAO Charge".to_string(),
             calculator: std::sync::Arc::new(rrao_charge),
             aggregation: Some("scalar".into()),
             precomputefilter: Some(col("EXOTIC_RRAO").or(col("OTHER_RRAO"))),
+            calc_params: vec![],
         }),
     ]
 }

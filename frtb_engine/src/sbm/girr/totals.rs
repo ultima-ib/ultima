@@ -29,6 +29,7 @@ pub(crate) fn girr_total_measures() -> Vec<Measure> {
                 ("GIRR VegaCharge Low".to_string(), "scalar".to_string()),
                 ("GIRR CurvatureCharge Low".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "GIRR TotalCharge Medium".to_string(),
@@ -41,6 +42,7 @@ pub(crate) fn girr_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "GIRR TotalCharge High".to_string(),
@@ -53,6 +55,7 @@ pub(crate) fn girr_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
     ]
 }

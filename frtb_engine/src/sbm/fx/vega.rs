@@ -184,6 +184,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaSens Weighted".to_string(),
@@ -194,6 +195,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaSb".to_string(),
@@ -204,6 +206,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaKb Low".to_string(),
@@ -214,6 +217,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaKb Medium".to_string(),
@@ -224,6 +228,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaKb High".to_string(),
@@ -234,6 +239,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge Low".to_string(),
@@ -244,6 +250,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge Medium".to_string(),
@@ -254,6 +261,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge High".to_string(),
@@ -264,6 +272,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX VegaCharge MAX".to_string(),
@@ -274,6 +283,7 @@ pub(crate) fn fx_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

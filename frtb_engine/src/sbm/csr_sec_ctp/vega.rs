@@ -131,6 +131,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaSens Weighted".to_string(),
@@ -141,6 +142,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaSb".to_string(),
@@ -151,6 +153,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge Low".to_string(),
@@ -161,6 +164,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb Low".to_string(),
@@ -171,6 +175,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge Medium".to_string(),
@@ -181,6 +186,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb Medium".to_string(),
@@ -191,6 +197,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge High".to_string(),
@@ -201,6 +208,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb High".to_string(),
@@ -211,6 +219,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge MAX".to_string(),
@@ -221,6 +230,7 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

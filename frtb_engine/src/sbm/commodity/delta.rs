@@ -277,6 +277,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSens Weighted".to_string(),
@@ -287,6 +288,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaSb".to_string(),
@@ -297,6 +299,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Low".to_string(),
@@ -307,6 +310,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb Medium".to_string(),
@@ -317,6 +321,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaKb High".to_string(),
@@ -327,6 +332,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Low".to_string(),
@@ -337,6 +343,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge Medium".to_string(),
@@ -347,6 +354,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge High".to_string(),
@@ -357,6 +365,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity DeltaCharge MAX".to_string(),
@@ -367,6 +376,7 @@ pub(crate) fn com_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

@@ -47,6 +47,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge Medium".to_string(),
@@ -65,6 +66,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge High".to_string(),
@@ -83,6 +85,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR nonSec TotalCharge MAX".to_string(),
@@ -101,6 +104,7 @@ pub(crate) fn csrnonsec_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
     ]
 }

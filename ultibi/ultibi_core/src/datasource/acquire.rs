@@ -12,7 +12,7 @@ use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 ///
 /// *`collect` - indicates if DF should be collected
 /// *`prepare` - indicates if DF should be prepared
-/// *`bespoke_measures` - indicates if DF should be collected
+/// *`bespoke_measures` - bespoke measures
 
 #[allow(clippy::uninlined_format_args)]
 pub fn config_build_validate_prepare<DS: DataSet>(

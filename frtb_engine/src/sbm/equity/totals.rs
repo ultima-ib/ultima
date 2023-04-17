@@ -25,6 +25,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
                 ("EQ VegaCharge Low".to_string(), "scalar".to_string()),
                 ("EQ CurvatureCharge Low".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge Medium".to_string(),
@@ -37,6 +38,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "EQ TotalCharge High".to_string(),
@@ -46,6 +48,7 @@ pub(crate) fn eq_total_measures() -> Vec<Measure> {
                 ("EQ VegaCharge High".to_string(), "scalar".to_string()),
                 ("EQ CurvatureCharge High".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
     ]
 }

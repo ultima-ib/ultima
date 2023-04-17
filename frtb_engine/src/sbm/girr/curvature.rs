@@ -241,6 +241,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR PnLup".to_string(),
@@ -251,6 +252,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR PnLdown".to_string(),
@@ -261,6 +263,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureDelta Weighted".to_string(),
@@ -271,6 +274,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CVRup".to_string(),
@@ -281,6 +285,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CVRdown".to_string(),
@@ -291,6 +296,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature KbPlus".to_string(),
@@ -301,6 +307,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature KbMinus".to_string(),
@@ -311,6 +318,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature Kb".to_string(),
@@ -321,6 +329,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature Sb".to_string(),
@@ -331,6 +340,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge Low".to_string(),
@@ -341,6 +351,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge Medium".to_string(),
@@ -351,6 +362,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge High".to_string(),
@@ -361,6 +373,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge MAX".to_string(),
@@ -371,6 +384,7 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

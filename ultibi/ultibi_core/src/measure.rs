@@ -25,11 +25,11 @@ pub type Calculator = Arc<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
 /// This struct is purely for DataSet descriptive purposes(for now).
 /// Recall measure may take parameters in form of HashMap<paramName, paramValue>
 /// This struct returns all possible paramNames for the given Dataset (for UI purposes only)
-#[derive(Debug, Default, Clone, Copy, Serialize)]
+#[derive(Debug, Default, Clone, Serialize)]
 pub struct CalcParameter {
-    pub name: &'static str,
-    pub default: Option<&'static str>,
-    pub type_hint: Option<&'static str>,
+    pub name: String,
+    pub default: Option<String>,
+    pub type_hint: Option<String>,
 }
 
 /// Measure is the essentially a Struct of a calculator and a name
@@ -55,6 +55,10 @@ pub struct BaseMeasure {
     ///
     /// This field is an optional filter on DataFrame, placed PRIOR to the computation
     pub precomputefilter: Option<Expr>,
+
+    /// Calc params
+    /// Will determine the list of Params in the UI
+    pub calc_params: Vec<CalcParameter>,
 }
 
 /// Dependant Measure cannot be computed directly. Instead it is broken down into it's parents
@@ -84,6 +88,10 @@ pub struct DependantMeasure {
     /// Vec<(Depends Upon Measure Name, Aggregation type)>
     /// eg vec![(FXDeltaCharge, scalar), (Sensitivity, mean)]
     pub depends_upon: Vec<(String, String)>,
+
+    /// Calc params
+    /// Will determine the list of Params in the UI
+    pub calc_params: Vec<CalcParameter>,
 }
 
 /// AggRequest --> execute -->  split DependantMeasure into BaseMeasure's (BaseMeasure leave as they are) --> execute_aggregation --> combine back into original request
@@ -138,6 +146,12 @@ impl Measure {
             | Measure::Dependant(DependantMeasure { name, .. }) => name,
         }
     }
+    pub fn calc_params(&self) -> &Vec<CalcParameter> {
+        match self {
+            Measure::Base(BaseMeasure { calc_params, .. })
+            | Measure::Dependant(DependantMeasure { calc_params, .. }) => calc_params,
+        }
+    }
     pub fn calculator(&self) -> &Calculator {
         match self {
             Measure::Base(BaseMeasure { calculator, .. })
@@ -151,7 +165,7 @@ impl Default for BaseMeasure {
         BaseMeasure {
             name: "Default".into(),
             calculator: Arc::new(|_: &CPM| Ok(col("*"))),
-            //calc_params: &[],
+            calc_params: vec![],
             aggregation: None,
             precomputefilter: None,
         }

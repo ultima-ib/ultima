@@ -68,6 +68,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge Low".to_string(),
@@ -93,6 +94,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge High".to_string(),
@@ -118,6 +120,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "SBM Charge".to_string(),
@@ -127,6 +130,7 @@ pub(crate) fn sbm_total_measures() -> Vec<Measure> {
                 ("SBM Charge Medium".to_string(), "scalar".to_string()),
                 ("SBM Charge High".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
     ]
 }

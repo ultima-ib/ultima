@@ -21,6 +21,7 @@ from .internals import (
     OtherError,
     StandardCalculator,
     aggregation_ops,
+    CalcParam
 )
 
 __all__ = [
@@ -45,4 +46,5 @@ __all__ = [
     "Calculator",
     "CustomCalculator",
     "StandardCalculator",
+    "CalcParam"
 ]

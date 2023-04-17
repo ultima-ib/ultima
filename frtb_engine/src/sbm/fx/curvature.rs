@@ -245,6 +245,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureDelta Weighted".to_string(),
@@ -255,6 +256,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX PnLup".to_string(),
@@ -265,6 +267,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX PnLdown".to_string(),
@@ -275,6 +278,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX CVRup".to_string(),
@@ -285,6 +289,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX CVRdown".to_string(),
@@ -295,6 +300,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature KbPlus".to_string(),
@@ -305,6 +311,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature KbMinus".to_string(),
@@ -315,6 +322,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature Kb".to_string(),
@@ -325,6 +333,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX Curvature Sb".to_string(),
@@ -335,6 +344,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge Low".to_string(),
@@ -345,6 +355,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge Medium".to_string(),
@@ -355,6 +366,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge High".to_string(),
@@ -365,6 +377,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX CurvatureCharge MAX".to_string(),
@@ -375,6 +388,7 @@ pub(crate) fn fx_curv_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

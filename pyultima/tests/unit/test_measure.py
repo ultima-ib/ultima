@@ -33,6 +33,7 @@ class TestCreation(unittest.TestCase):
                     custom_calculator, res_type, inputs, returns_scalar
                 ),
                 [[precompute_filter]],
+                calc_params=[ul.CalcParam("mltplr", "1", "float")]
             ),
             BaseMeasure(
                 "TestMeasure1",
@@ -40,6 +41,7 @@ class TestCreation(unittest.TestCase):
                     custom_calculator, res_type, inputs, returns_scalar
                 ),
                 [[precompute_filter]],
+                calc_params=[ul.CalcParam("mltplr", "1", "float")]
             ),
             DependantMeasure(
                 "Dependant",
@@ -50,9 +52,13 @@ class TestCreation(unittest.TestCase):
 
         ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 
+        expected = dict(name="mltplr", hint = "float")
+
         assert "TestMeasure" in ds.measures
         assert "TestMeasure1" in ds.measures
         assert "Dependant" in ds.measures
+        assert expected in ds.calc_params
+
 
         request = dict(
             measures=[["TestMeasure", "sum"]],

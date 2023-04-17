@@ -100,6 +100,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaSens Weighted".to_string(),
@@ -110,6 +111,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaSb".to_string(),
@@ -120,6 +122,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaKb Low".to_string(),
@@ -130,6 +133,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge Low".to_string(),
@@ -140,6 +144,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaKb Medium".to_string(),
@@ -150,6 +155,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge Medium".to_string(),
@@ -160,6 +166,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaKb High".to_string(),
@@ -170,6 +177,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge High".to_string(),
@@ -180,6 +188,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity VegaCharge MAX".to_string(),
@@ -190,6 +199,7 @@ pub(crate) fn com_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

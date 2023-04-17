@@ -16,6 +16,7 @@ from .measure import (
     DependantMeasure,
     Measure,
     StandardCalculator,
+    CalcParam
 )
 from .requests import AggRequest, ComputeRequest, aggregation_ops
 
@@ -39,4 +40,5 @@ __all__ = [
     "Calculator",
     "CustomCalculator",
     "StandardCalculator",
+    "CalcParam"
 ]

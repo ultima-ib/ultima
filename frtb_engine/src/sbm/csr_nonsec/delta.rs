@@ -397,6 +397,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaSens Weighted".to_string(),
@@ -407,6 +408,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaSb".to_string(),
@@ -417,6 +419,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaKb Low".to_string(),
@@ -427,6 +430,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaKb Medium".to_string(),
@@ -437,6 +441,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaKb High".to_string(),
@@ -447,6 +452,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaCharge Low".to_string(),
@@ -457,6 +463,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaCharge Medium".to_string(),
@@ -467,6 +474,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaCharge High".to_string(),
@@ -477,6 +485,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec DeltaCharge MAX".to_string(),
@@ -487,6 +496,7 @@ pub(crate) fn csrnonsec_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

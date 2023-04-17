@@ -16,5 +16,6 @@ pub(crate) fn sa_total_measures() -> Vec<Measure> {
             ("DRC Charge".to_string(), "scalar".to_string()),
             ("RRAO Charge".to_string(), "scalar".to_string()),
         ],
+        calc_params: vec![],
     })]
 }

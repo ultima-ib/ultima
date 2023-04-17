@@ -231,6 +231,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaSens Weighted".to_string(),
@@ -241,6 +242,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaSb".to_string(),
@@ -251,6 +253,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaCharge Low".to_string(),
@@ -261,6 +264,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaKb Low".to_string(),
@@ -271,6 +275,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaCharge Medium".to_string(),
@@ -281,6 +286,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaKb Medium".to_string(),
@@ -291,6 +297,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaCharge High".to_string(),
@@ -301,6 +308,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaKb High".to_string(),
@@ -311,6 +319,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR nonSec VegaCharge MAX".to_string(),
@@ -321,6 +330,7 @@ pub(crate) fn csrnonsec_vega_measures() -> Vec<Measure> {
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_nonSec"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

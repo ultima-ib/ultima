@@ -38,6 +38,7 @@ pub(crate) fn csrsecctp_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR Sec CTP TotalCharge Medium".to_string(),
@@ -56,6 +57,7 @@ pub(crate) fn csrsecctp_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR Sec CTP TotalCharge High".to_string(),
@@ -74,6 +76,7 @@ pub(crate) fn csrsecctp_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
     ]
 }

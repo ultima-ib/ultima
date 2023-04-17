@@ -43,6 +43,7 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "Commodity TotalCharge Medium".to_string(),
@@ -61,6 +62,7 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "Commodity TotalCharge High".to_string(),
@@ -79,6 +81,7 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "Commodity TotalCharge MAX".to_string(),
@@ -97,6 +100,7 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
     ]
 }

@@ -224,7 +224,8 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            //calc_params: &[*reporting_ccy, *jurisdiction]
+
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaSens Weighted".to_string(),
@@ -236,6 +237,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaSb".to_string(),
@@ -247,6 +249,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaKb".to_string(),
@@ -258,6 +261,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Low".to_string(),
@@ -269,6 +273,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Medium".to_string(),
@@ -280,6 +285,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge High".to_string(),
@@ -291,6 +297,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge MAX".to_string(),
@@ -302,6 +309,7 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
     ]
 }

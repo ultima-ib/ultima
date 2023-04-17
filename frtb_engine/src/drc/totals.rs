@@ -18,6 +18,7 @@ pub(crate) fn drc_total_measures() -> Vec<Measure> {
                 "scalar".to_string(),
             ),
         ],
+        calc_params: vec![],
     }
     .into()]
 }

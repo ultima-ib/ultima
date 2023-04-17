@@ -36,10 +36,6 @@ fn from_conf<T: DataSet + 'static>(
     if !Path::new(&conf_path).exists() {
         return Err(PyFileNotFoundError::new_err("Config file doesn't exist"));
     }
-    //
-    //let Ok(conf) = read_toml2::<DataSourceConfig>(&conf_path) else {
-    //    return Err(pyo3::exceptions::PyException::new_err("Can not proceed without valid Data Set Up"));
-    //};
 
     let ds = ultibi::acquire::config_build_validate_prepare::<T>(
         conf_path.as_str(),
@@ -246,7 +242,7 @@ impl DataSetWrapper {
             .map(|calc_param| {
                 HashMap::from([
                     (name, Some(calc_param.name.to_string())),
-                    (hint, calc_param.type_hint.map(str::to_string)),
+                    (hint, calc_param.type_hint.clone()),
                 ])
             })
             .collect::<Vec<HashMap<&str, Option<String>>>>();

@@ -237,42 +237,49 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
             calculator: std::sync::Arc::new(drc_nonsec_grossjtd),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec GrossJTD Scaled".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_grossjtd_scaled),
             aggregation: None,
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec CapitalCharge".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_charge),
             aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_netlongjtd),
             aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetShortJTD".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_netshortjtd),
             aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetLongJTD Weighted".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_weightednetlongjtd),
             aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "DRC nonSec NetAbsShortJTD Weighted".to_string(),
             calculator: std::sync::Arc::new(drc_nonsec_weightednetabsshortjtd),
             aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
         // HBR Only makes sence at Bucket level
         Measure::Base(BaseMeasure {
@@ -280,6 +287,7 @@ pub(crate) fn drc_nonsec_measures() -> Vec<Measure> {
             calculator: std::sync::Arc::new(drc_nonsec_hbr),
             aggregation: Some("scalar".into()),
             precomputefilter: Some(col("RiskClass").eq(lit("DRC_nonSec"))),
+            calc_params: vec![],
         }),
     ]
 }

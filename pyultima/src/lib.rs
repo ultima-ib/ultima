@@ -34,6 +34,7 @@ fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<measure::MeasureWrapper>()?;
     m.add_class::<filter::FilterWrapper>()?;
     m.add_class::<calculator::CalculatorWrapper>()?;
+    m.add_class::<measure::CalcParamWrapper>()?;
 
     m.add("NotFoundError", _py.get_type::<NotFoundError>())
         .unwrap();

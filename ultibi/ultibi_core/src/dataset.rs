@@ -125,7 +125,13 @@ pub trait DataSet: Send + Sync {
 
     /// Calc params are used for the UI and hence are totally optional
     fn calc_params(&self) -> Vec<CalcParameter> {
-        vec![]
+        let mut res = vec![];
+
+        for measure in self.get_measures().values() {
+            res.extend_from_slice(measure.calc_params())
+        }
+
+        res
     }
 
     /// Limits overridable columns which you can override in

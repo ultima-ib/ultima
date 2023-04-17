@@ -66,7 +66,15 @@ impl DataSet for FRTBDataSet {
         &self.measures
     }
     fn calc_params(&self) -> Vec<CalcParameter> {
-        FRTB_CALC_PARAMS.clone()
+        let mut res = vec![];
+
+        for measure in self.get_measures().values() {
+            res.extend_from_slice(measure.calc_params())
+        }
+
+        res.extend_from_slice(FRTB_CALC_PARAMS.as_ref());
+
+        res
     }
 
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {

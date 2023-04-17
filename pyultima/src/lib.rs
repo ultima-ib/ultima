@@ -12,6 +12,7 @@ mod errors;
 mod filter;
 mod measure;
 mod requests;
+mod calculator;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {
@@ -32,6 +33,7 @@ fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<dataset::DataSetWrapper>()?;
     m.add_class::<measure::MeasureWrapper>()?;
     m.add_class::<filter::FilterWrapper>()?;
+    m.add_class::<calculator::CalculatorWrapper>()?;
 
     m.add("NotFoundError", _py.get_type::<NotFoundError>())
         .unwrap();

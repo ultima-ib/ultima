@@ -7,8 +7,11 @@ import pyarrow
 
 from .internals import (
     AggRequest,
+    BaseMeasure,
     ComputeRequest,
+    CustomCalculator,
     DataSet,
+    DependantMeasure,
     EqFilter,
     FRTBDataSet,
     InFilter,
@@ -16,11 +19,8 @@ from .internals import (
     NoDataError,
     NotInFilter,
     OtherError,
+    StandardCalculator,
     aggregation_ops,
-    BaseMeasure,
-    DependantMeasure,
-    CustomCalculator,
-    StandardCalculator
 )
 
 __all__ = [

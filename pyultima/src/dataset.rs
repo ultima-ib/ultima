@@ -189,15 +189,15 @@ impl DataSetWrapper {
         request: requests::ComputeRequestWrapper,
         streaming: bool,
     ) -> PyResult<Vec<PyObject>> {
-        py.allow_threads(||{
-        self.dataset
-            .read()
-            .expect("Poisonned RwLock")
-            .compute(request.ar, streaming)
-            .map_err(PyUltimaErr::Polars)?
-            .iter()
-            .map(rust_series_to_py_series)
-            .collect()
+        py.allow_threads(|| {
+            self.dataset
+                .read()
+                .expect("Poisonned RwLock")
+                .compute(request.ar, streaming)
+                .map_err(PyUltimaErr::Polars)?
+                .iter()
+                .map(rust_series_to_py_series)
+                .collect()
         })
     }
 

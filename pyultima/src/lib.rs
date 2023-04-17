@@ -6,13 +6,13 @@ use errors::{
 };
 use pyo3::{pyfunction, pymodule, types::PyModule, wrap_pyfunction, PyResult, Python};
 
+mod calculator;
 mod conversions;
 mod dataset;
 mod errors;
 mod filter;
 mod measure;
 mod requests;
-mod calculator;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {

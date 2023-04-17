@@ -1,11 +1,11 @@
+use crate::calculator::CalculatorWrapper;
+use crate::filter::FilterWrapper;
 use pyo3::types::PyType;
+use pyo3::{pyclass, pymethods};
 use ultibi::filters::fltr_chain;
 use ultibi::filters::FilterE;
 use ultibi::BaseMeasure;
 use ultibi::DependantMeasure;
-use crate::calculator::CalculatorWrapper;
-use crate::filter::FilterWrapper;
-use pyo3::{pyclass, pymethods};
 use ultibi::Measure;
 
 #[pyclass]
@@ -28,41 +28,41 @@ impl MeasureWrapper {
         precompute_filter: Vec<Vec<FilterWrapper>>,
         aggregation_restriction: Option<String>,
     ) -> Self {
-/*         let exprs = inputs.iter().map(|name| col(name)).collect::<Vec<_>>();
+        /*         let exprs = inputs.iter().map(|name| col(name)).collect::<Vec<_>>();
 
-        let output = GetOutput::from_type(output_type.0);
+               let output = GetOutput::from_type(output_type.0);
 
-        // Convert function into Expr
-        let calculator = move |op: &CPM| {
-            let l = lambda.clone();
-            let params = op.clone();
+               // Convert function into Expr
+               let calculator = move |op: &CPM| {
+                   let l = lambda.clone();
+                   let params = op.clone();
 
-            Ok(apply_multiple(
-                move |s: &mut [Series]| {
-                    let ll = l.clone();
-                    let args = params.clone();
+                   Ok(apply_multiple(
+                       move |s: &mut [Series]| {
+                           let ll = l.clone();
+                           let args = params.clone();
 
-                    Python::with_gil(move |py| {
-                        // this is a python Series
-                        let out = call_lambda_with_args_and_series_slice(py, &args, s, &ll);
+                           Python::with_gil(move |py| {
+                               // this is a python Series
+                               let out = call_lambda_with_args_and_series_slice(py, &args, s, &ll);
 
-                        // we return an error, because that will become a null value polars lazy apply list
-                        if out.is_none(py) {
-                            return Ok(None);
-                        }
-                        let srs = py_series_to_rust_series(out.as_ref(py)).ok(); // convert Res to Option
+                               // we return an error, because that will become a null value polars lazy apply list
+                               if out.is_none(py) {
+                                   return Ok(None);
+                               }
+                               let srs = py_series_to_rust_series(out.as_ref(py)).ok(); // convert Res to Option
 
-                        Ok(srs)
-                    })
-                },
-                exprs.clone(),
-                output.clone(),
-                returns_scalar,
-            ))
-        };
+                               Ok(srs)
+                           })
+                       },
+                       exprs.clone(),
+                       output.clone(),
+                       returns_scalar,
+                   ))
+               };
 
-        let calculator = Arc::new(calculator);
- */
+               let calculator = Arc::new(calculator);
+        */
         let precompute_filters = precompute_filter
             .into_iter()
             .map(|or| {
@@ -92,7 +92,6 @@ impl MeasureWrapper {
         calc: CalculatorWrapper,
         depends_upon: Vec<(String, String)>,
     ) -> Self {
-        
         let inner: Measure = DependantMeasure {
             name,
             calculator: calc.inner,

@@ -156,9 +156,11 @@ impl DataSetWrapper {
         from_frame::<FRTBDataSet>(py, series, measures, build_params, empty)
     }
 
-    pub fn ui(&self, streaming: bool) -> PyResult<()> {
+    pub fn ui(&self, py: Python, streaming: bool) -> PyResult<()> {
         let a = Arc::clone(&self.dataset);
-        a.ui(streaming);
+        py.allow_threads(|| {
+            a.ui(streaming)
+        });
         Ok(())
     }
 

@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
+
 use arrow::ffi;
 use polars::prelude::*;
 use polars_arrow::export::arrow;
@@ -7,6 +9,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::ffi::Py_uintptr_t;
 use pyo3::prelude::*;
 use pyo3::{PyAny, PyObject, PyResult};
+use pyo3::types::IntoPyDict;
 
 /// Take an arrow array from python and convert it to a rust arrow array.
 /// This operation does not copy data.
@@ -84,7 +87,8 @@ pub fn rust_series_to_py_series(series: &Series) -> PyResult<PyObject> {
         let polars = py.import("polars").expect("Install polars first");
         let out = polars.call_method1("from_arrow", (pyarrow_array,))?;
         // Have to rename now since it doesn't work in to_py_array schema
-        out.call_method1("rename", (name, true))?;
+        let kwargs = HashMap::from([("in_place", true)]);
+        out.call_method("rename", (name,), Some(kwargs.into_py_dict(py)))?;
 
         Ok(out.to_object(py))
     })

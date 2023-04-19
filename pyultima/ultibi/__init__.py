@@ -8,6 +8,7 @@ import pyarrow
 from .internals import (
     AggRequest,
     BaseMeasure,
+    CalcParam,
     ComputeRequest,
     CustomCalculator,
     DataSet,
@@ -21,7 +22,6 @@ from .internals import (
     OtherError,
     StandardCalculator,
     aggregation_ops,
-    CalcParam
 )
 
 __all__ = [
@@ -46,5 +46,5 @@ __all__ = [
     "Calculator",
     "CustomCalculator",
     "StandardCalculator",
-    "CalcParam"
+    "CalcParam",
 ]

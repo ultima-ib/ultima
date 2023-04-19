@@ -53,7 +53,9 @@ class DataSet:
             list[dict[str, str|None]]: List of {"name": parameter name to be
             passed to the request, "hint": type hint of the param}
         """
-        self.calc_params: "list[dict[str, str|None]]" = self.inner.calc_params()
+        self.calc_params: "list[tuple[str, str|None, str|None]]" = (
+            self.inner.calc_params()
+        )
 
     @classmethod
     def from_config_path(

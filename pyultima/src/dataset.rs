@@ -157,9 +157,7 @@ impl DataSetWrapper {
 
     pub fn ui(&self, py: Python, streaming: bool) -> PyResult<()> {
         let a = Arc::clone(&self.dataset);
-        py.allow_threads(|| {
-            a.ui(streaming)
-        });
+        py.allow_threads(|| a.ui(streaming));
         Ok(())
     }
 
@@ -231,19 +229,14 @@ impl DataSetWrapper {
         Ok(ultibi::prelude::fields_columns(schema))
     }
     pub fn calc_params(&self) -> Vec<(String, Option<String>, Option<String>)> {
-
-        self
-            .dataset
+        self.dataset
             .read()
             .expect("Poisonned RwLock")
             .calc_params()
             .iter()
             .cloned()
-            .map(|calc_param| {
-                (calc_param.name, calc_param.type_hint, calc_param.default)
-            })
+            .map(|calc_param| (calc_param.name, calc_param.type_hint, calc_param.default))
             .collect()
-
     }
 
     pub fn validate(&self) -> PyResult<()> {

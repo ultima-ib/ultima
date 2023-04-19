@@ -11,12 +11,12 @@ from .dataset import DS, DataSet, FRTBDataSet
 from .filters import EqFilter, Filter, InFilter, NeqFilter, NotInFilter
 from .measure import (
     BaseMeasure,
+    CalcParam,
     Calculator,
     CustomCalculator,
     DependantMeasure,
     Measure,
     StandardCalculator,
-    CalcParam
 )
 from .requests import AggRequest, ComputeRequest, aggregation_ops
 
@@ -40,5 +40,5 @@ __all__ = [
     "Calculator",
     "CustomCalculator",
     "StandardCalculator",
-    "CalcParam"
+    "CalcParam",
 ]

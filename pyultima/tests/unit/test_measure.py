@@ -33,7 +33,7 @@ class TestCreation(unittest.TestCase):
                     custom_calculator, res_type, inputs, returns_scalar
                 ),
                 [[precompute_filter]],
-                calc_params=[ul.CalcParam("mltplr", "1", "float")]
+                calc_params=[ul.CalcParam("mltplr", "1", "float")],
             ),
             BaseMeasure(
                 "TestMeasure1",
@@ -41,7 +41,7 @@ class TestCreation(unittest.TestCase):
                     custom_calculator, res_type, inputs, returns_scalar
                 ),
                 [[precompute_filter]],
-                calc_params=[ul.CalcParam("mltplr", "1", "float")]
+                calc_params=[ul.CalcParam("mltplr", "1", "float")],
             ),
             DependantMeasure(
                 "Dependant",
@@ -52,7 +52,7 @@ class TestCreation(unittest.TestCase):
 
         ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 
-        expected = [('mltplr', 'float', '1')]
+        expected = [("mltplr", "float", "1")]
 
         assert "TestMeasure" in ds.measures
         assert "TestMeasure1" in ds.measures
@@ -65,8 +65,8 @@ class TestCreation(unittest.TestCase):
             calc_params=dict(multiplier="2"),
         )
         res = ds.compute(request)
-        expected = pl.DataFrame({"c": ["a", "d"], "TestMeasure_sum": [2, 64]})
-        self.assertTrue(res.frame_equal(expected))
+        expected1 = pl.DataFrame({"c": ["a", "d"], "TestMeasure_sum": [2, 64]})
+        self.assertTrue(res.frame_equal(expected1))
 
         request = dict(
             measures=[["Dependant", "scalar"]],
@@ -74,8 +74,8 @@ class TestCreation(unittest.TestCase):
             calc_params=dict(multiplier="2"),
         )
         res = ds.compute(request)
-        expected = pl.DataFrame({"c": ["a", "d"], "Dependant": [4, 128]})
-        self.assertTrue(res.frame_equal(expected))
+        expected2 = pl.DataFrame({"c": ["a", "d"], "Dependant": [4, 128]})
+        self.assertTrue(res.frame_equal(expected2))
 
     def test_dependant(self) -> None:
         pass

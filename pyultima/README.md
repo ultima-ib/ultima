@@ -2,7 +2,7 @@
 
 <p align="center">
     <a href="https://ultimabi.uk/" target="_blank">
-    <img width="900" src="/img/logo.png" alt="Ultima Logo">
+    <img width="900" src="https://ultima-bi.s3.eu-west-2.amazonaws.com/imgs/logo.png" alt="Ultima Logo">
     </a>
 </p>
 <br>
@@ -18,7 +18,7 @@ With `Ultibi` you can turn your `DataFrame` into a pivot table with a UI and sha
 
 <p align="center">
     <a href="https://frtb.demo.ultimabi.uk/" target="_blank">
-    <img width="900" src="/img/titanic_gif.gif" alt="Ultima Logo">
+    <img width="900" src="https://ultima-bi.s3.eu-west-2.amazonaws.com/imgs/titanic_gif.gif" alt="Ultima Logo">
     </a>
 </p>
 

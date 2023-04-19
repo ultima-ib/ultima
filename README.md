@@ -99,13 +99,9 @@ pub fn example() {
 
 `cargo run --release`
 
-## Extending with your own data and measures
-Currently possible in `Rust` only.
-Implement `DataSet` or `CacheableDataSet` for your Struct. In particular, implement `get_measures` method.
-
 ### FRTB SA
 [FRTB SA](https://en.wikipedia.org/wiki/Fundamental_Review_of_the_Trading_Book) is a great usecase for `ultibi`. FRTB SA is a set of standardised, computationally intensive rules established by the regulator. High business impact of these rules manifests in need for **analysis** and **visibility** thoroughout an organisation. Note: Ultima is not a certified aggregator. Always benchmark the results against your own interpretation of the rules.
-See [frtb_engine](https://github.com/ultima-ib/ultima/tree/master/frtb_engine) and python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/)
+See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 
 ## Bespoke Hosting
 You don't have to use `.ui()`. You can write your own sevrer easily based on your needs (for example DB interoperability for authentication)

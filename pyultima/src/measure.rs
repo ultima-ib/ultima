@@ -39,11 +39,12 @@ impl MeasureWrapper {
         _: &PyType,
         name: String,
         calc: CalculatorWrapper,
-        precompute_filter: Vec<Vec<FilterWrapper>>,
+        precompute_filter: Option<Vec<Vec<FilterWrapper>>>,
         aggregation_restriction: Option<String>,
         calc_params: Option<Vec<CalcParamWrapper>>,
     ) -> Self {
         let precompute_filters = precompute_filter
+            .unwrap_or_default()
             .into_iter()
             .map(|or| {
                 or.into_iter()

@@ -108,14 +108,14 @@ class Measure:
 
 class BaseMeasure(Measure):
     """
-    Executed in .groupby() .agg() context
+    Executed in .filter(precompute_filter) .groupby() .agg() context
     """
 
     def __init__(
         self,
         measure_name: str,
         calc: TCalculator,
-        precompute_filter: list[list[TFilter]],
+        precompute_filter: "list[list[TFilter]]|None",
         aggregation_restriction: "str|None" = None,
         calc_params: "list[CalcParam]|None" = None,
     ) -> None:
@@ -125,12 +125,21 @@ class BaseMeasure(Measure):
             measure_name (str): Name of your measure
             calc (TCalculator): _description_
             precompute_filter (list[list[TFilter]]): Automatically
-                filters every time measure is calclated
+                filters every time measure is calclated.
+                !!! Inner elements are joined as OR, outer elements are joined as AND
+                !!! If your request consist of several measures with different
+                    precomupte filters, they will be joined as OR,
+                !!! Not to be confused with ComputeRequest filter
             aggregation_restriction (str | None, optional):
                 eg. if your measure should only be aggregated as "scalar" or "sum"
             calc_params (list[CalcParam] | None, optional):
                 Allows user to set calc_params (which are passed to calculators) via UI
         """
+
+        if precompute_filter:
+            precompute_filter_inner = [[y.inner for y in x] for x in precompute_filter]
+        else:
+            precompute_filter_inner = None
         if calc_params:
             calc_params_inner = [calc_param.inner for calc_param in calc_params]
         else:
@@ -139,7 +148,7 @@ class BaseMeasure(Measure):
         measure_wrapper = MeasureWrapper.new_basic(
             measure_name,
             calc.inner,
-            [[y.inner for y in x] for x in precompute_filter],
+            precompute_filter_inner,
             aggregation_restriction,
             calc_params_inner,
         )

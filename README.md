@@ -111,6 +111,8 @@ ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 ds.ui()
 ```
 
+Then navigate to `http://localhost:8000` or checkout `http://localhost:8000/swagger-ui` for the OpenAPI documentation.
+
 ## Rust
 Note: currently if you want to use inbuild functionality of the .ui() method (instead of using a template like [template_drivers](https://github.com/ultima-ib/ultima/tree/master/template_drivers)) you have to
 1. Build Frontend

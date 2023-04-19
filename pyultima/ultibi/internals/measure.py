@@ -52,8 +52,9 @@ class CustomCalculator(Calculator):
     """
     Use StandardCalculator if you can.
 
-    Since CustomCalculator locks GIL, therefore killing parallisation. 
+    Since CustomCalculator locks GIL, therefore killing parallisation.
     """
+
     def __init__(
         self,
         calc: CustomCalculatorType,
@@ -77,9 +78,10 @@ class StandardCalculator(Calculator):
     Expression then Serialised into Rust code and therefore can be executed
     on multiple cores.
     Not every Expression can be serialised. AnonymousFunction for example cannot be
-       
+
     If your expression can't be serialised - use CustomCalculator(locks GIL)
     """
+
     def __init__(self, calc: StandardCalculatorType) -> None:
         calc_wrapper = CalculatorWrapper.standard(
             calc,
@@ -91,9 +93,10 @@ TCalculator = TypeVar("TCalculator", bound=Calculator)
 
 
 class Measure:
-    '''
+    """
     Do not initialise directly. Use BaseMeasure or DependantMeasure instead
-    '''
+    """
+
     inner: MeasureWrapper
 
     def __init__(self, measure_wrapper: MeasureWrapper) -> None:
@@ -121,12 +124,12 @@ class BaseMeasure(Measure):
         Args:
             measure_name (str): Name of your measure
             calc (TCalculator): _description_
-            precompute_filter (list[list[TFilter]]): Automatically 
+            precompute_filter (list[list[TFilter]]): Automatically
                 filters every time measure is calclated
-            aggregation_restriction (str | None, optional): 
+            aggregation_restriction (str | None, optional):
                 eg. if your measure should only be aggregated as "scalar" or "sum"
-            calc_params (list[CalcParam] | None, optional): 
-                Allows user to set calc_params (which are passed to calculators) via UI 
+            calc_params (list[CalcParam] | None, optional):
+                Allows user to set calc_params (which are passed to calculators) via UI
         """
         if calc_params:
             calc_params_inner = [calc_param.inner for calc_param in calc_params]

@@ -28,7 +28,7 @@ polars = { version = "0.28.0", features = [
     "serde",
     "csv-file",
     "diagonal_concat",
-    "serde-lazy"
+    "serde-lazy" 
 ] }
 polars-arrow = "0.28.0"
 toml = "0.7.2"

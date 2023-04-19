@@ -54,9 +54,10 @@ use crate::totals::sa_total_measures;
 pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
     let non_rc_specific = vec![Measure::Base(BaseMeasure {
         name: "RiskWeights".to_string(),
-        calculator: Box::new(sens_weights),
-        aggregation: Some("first"),
+        calculator: std::sync::Arc::new(sens_weights),
+        aggregation: Some("first".into()),
         precomputefilter: None,
+        calc_params: vec![],
     })];
 
     let mut res = vec![];

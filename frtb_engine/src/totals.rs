@@ -10,11 +10,12 @@ fn sa_charge(_: &CPM) -> PolarsResult<Expr> {
 pub(crate) fn sa_total_measures() -> Vec<Measure> {
     vec![Measure::Dependant(DependantMeasure {
         name: "SA Charge".to_string(),
-        calculator: Box::new(sa_charge),
+        calculator: std::sync::Arc::new(sa_charge),
         depends_upon: vec![
             ("SBM Charge".to_string(), "scalar".to_string()),
             ("DRC Charge".to_string(), "scalar".to_string()),
             ("RRAO Charge".to_string(), "scalar".to_string()),
         ],
+        calc_params: vec![],
     })]
 }

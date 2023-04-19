@@ -19,16 +19,17 @@ pub(crate) fn fx_total_measures() -> Vec<Measure> {
     vec![
         Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge Low".to_string(),
-            calculator: Box::new(fx_total_low),
+            calculator: std::sync::Arc::new(fx_total_low),
             depends_upon: vec![
                 ("FX DeltaCharge Low".to_string(), "scalar".to_string()),
                 ("FX VegaCharge Low".to_string(), "scalar".to_string()),
                 ("FX CurvatureCharge Low".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge Medium".to_string(),
-            calculator: Box::new(fx_total_medium),
+            calculator: std::sync::Arc::new(fx_total_medium),
             depends_upon: vec![
                 ("FX DeltaCharge Medium".to_string(), "scalar".to_string()),
                 ("FX VegaCharge Medium".to_string(), "scalar".to_string()),
@@ -37,15 +38,17 @@ pub(crate) fn fx_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "FX TotalCharge High".to_string(),
-            calculator: Box::new(fx_total_high),
+            calculator: std::sync::Arc::new(fx_total_high),
             depends_upon: vec![
                 ("FX DeltaCharge High".to_string(), "scalar".to_string()),
                 ("FX VegaCharge High".to_string(), "scalar".to_string()),
                 ("FX CurvatureCharge High".to_string(), "scalar".to_string()),
             ],
+            calc_params: vec![],
         }),
     ]
 }

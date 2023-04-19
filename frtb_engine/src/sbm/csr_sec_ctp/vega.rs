@@ -124,103 +124,113 @@ pub(crate) fn csrsecctp_vega_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaSens".to_string(),
-            calculator: Box::new(total_csrsecctp_vega_sens),
+            calculator: std::sync::Arc::new(total_csrsecctp_vega_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaSens Weighted".to_string(),
-            calculator: Box::new(total_csrsecctp_vega_sens_weighted),
+            calculator: std::sync::Arc::new(total_csrsecctp_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaSb".to_string(),
-            calculator: Box::new(csrsecctp_vega_sb),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_sb),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge Low".to_string(),
-            calculator: Box::new(csrsecctp_vega_charge_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_charge_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb Low".to_string(),
-            calculator: Box::new(csrsecctp_vega_kb_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_kb_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge Medium".to_string(),
-            calculator: Box::new(csrsecctp_vega_charge_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_charge_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb Medium".to_string(),
-            calculator: Box::new(csrsecctp_vega_kb_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_kb_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge High".to_string(),
-            calculator: Box::new(csrsecctp_vega_charge_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_charge_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaKb High".to_string(),
-            calculator: Box::new(csrsecctp_vega_kb_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_kb_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec CTP VegaCharge MAX".to_string(),
-            calculator: Box::new(csrsecctp_vega_max),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecctp_vega_max),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_CTP"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

@@ -217,18 +217,19 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "FX DeltaSens".to_string(),
-            calculator: Box::new(fx_delta_sens_repccy),
+            calculator: std::sync::Arc::new(fx_delta_sens_repccy),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
-            //calc_params: &[*reporting_ccy, *jurisdiction]
+
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaSens Weighted".to_string(),
-            calculator: Box::new(fx_delta_sens_weighted),
+            calculator: std::sync::Arc::new(fx_delta_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
@@ -236,72 +237,79 @@ pub(crate) fn fx_delta_measures() -> Vec<Measure> {
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaSb".to_string(),
-            calculator: Box::new(fx_delta_sb),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(fx_delta_sb),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaKb".to_string(),
-            calculator: Box::new(fx_delta_kb),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(fx_delta_kb),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Low".to_string(),
-            calculator: Box::new(fx_delta_charge_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(fx_delta_charge_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge Medium".to_string(),
-            calculator: Box::new(fx_delta_charge_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(fx_delta_charge_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge High".to_string(),
-            calculator: Box::new(fx_delta_charge_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(fx_delta_charge_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "FX DeltaCharge MAX".to_string(),
-            calculator: Box::new(fx_delta_max),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(fx_delta_max),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("FX"))),
             ),
             //calc_params: &[*reporting_ccy, *jurisdiction, *fx_delta_gamma_low, *fx_delta_gamma_medium, *fx_delta_gamma_high]
+            calc_params: vec![],
         }),
     ]
 }

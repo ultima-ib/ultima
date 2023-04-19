@@ -22,7 +22,7 @@ build: venv  ## Compile and install Polars for development
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop
 
 .PHONY: build
-build: venv  ## Compile and install Polars for development
+build: venv  ## Build whl
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin build -i=$(PY311) --release
 
 .PHONY: develop-release

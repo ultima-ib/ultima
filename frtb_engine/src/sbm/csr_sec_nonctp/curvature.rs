@@ -124,223 +124,245 @@ pub(crate) fn csrsecnonctp_curv_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CurvatureDelta".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curv_delta),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curv_delta),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CurvatureDelta Weighted".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curv_delta_weighted),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP PnLup".to_string(),
-            calculator: Box::new(csr_sec_nonctp_pnl_up),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_pnl_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP PnLdown".to_string(),
-            calculator: Box::new(csr_sec_nonctp_pnl_down),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_pnl_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CVRup".to_string(),
-            calculator: Box::new(csr_sec_nonctp_cvr_up),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_cvr_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CVRdown".to_string(),
-            calculator: Box::new(csr_sec_nonctp_cvr_down),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_cvr_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature KbPlus Medium".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_plus_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature KbMinus Medium".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_minus_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature Kb Medium".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature Sb Medium".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_sb_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_sb_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CurvatureCharge Medium".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_charge_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_charge_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature KbPlus Low".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_plus_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature KbMinus Low".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_minus_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature Kb Low".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature Sb Low".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_sb_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_sb_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CurvatureCharge Low".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_charge_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_charge_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature KbPlus High".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_plus_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_plus_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature KbMinus High".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_minus_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_minus_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature Kb High".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_kb_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_kb_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP Curvature Sb High".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_sb_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_sb_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CurvatureCharge High".to_string(),
-            calculator: Box::new(csr_sec_nonctp_curvature_charge_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csr_sec_nonctp_curvature_charge_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "CSR Sec nonCTP CurvatureCharge MAX".to_string(),
-            calculator: Box::new(csrsecnonctp_curv_max),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(csrsecnonctp_curv_max),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("CSR_Sec_nonCTP"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

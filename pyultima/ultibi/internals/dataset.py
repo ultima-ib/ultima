@@ -5,8 +5,12 @@ from typing import Any, Type, TypeVar
 import polars as pl
 
 import ultibi.internals as uli
+from ultibi.internals.measure import Measure
 
 from ..rust_module.ultima_pyengine import DataSetWrapper
+
+TMeasure = TypeVar("TMeasure", bound=Measure)
+
 
 # Create a generic variable that can be 'Parent', or any subclass.
 DS = TypeVar("DS", bound="DataSet")
@@ -20,24 +24,28 @@ class DataSet:
      and finally executes request.
     """
 
-    ds: DataSetWrapper
+    inner: DataSetWrapper
     prepared: bool
 
     def __init__(self, ds: DataSetWrapper, prepared: bool = False) -> None:
-        self._ds = ds
+        """
+        Class constructor - not to br called directly.
+        call .from_frame() or .from_config()
+        """
+        self.inner = ds
         self.prepared = prepared
 
         """All column which you can group by. Currently those are string 
             and bool columns
         """
-        self.fields: list[str] = self._ds.fields()
+        self.fields: list[str] = self.inner.fields()
 
         """{measureName: "aggtype restriction(if any, otherwise
             None)"}. If none, then you can use any of the availiable agg operations.
             Check :func:`~ultima.internals.aggregation_ops` for supported aggregation
              operations
         """
-        self.measures: "dict[str, str | None]" = self._ds.measures()
+        self.measures: "dict[str, str | None]" = self.inner.measures()
 
         """parameters which you can pass to the Request for the given DataSet
 
@@ -45,7 +53,9 @@ class DataSet:
             list[dict[str, str|None]]: List of {"name": parameter name to be
             passed to the request, "hint": type hint of the param}
         """
-        self.calc_params: "list[dict[str, str|None]]" = self._ds.calc_params()
+        self.calc_params: "list[tuple[str, str|None, str|None]]" = (
+            self.inner.calc_params()
+        )
 
     @classmethod
     def from_config_path(
@@ -73,6 +83,7 @@ class DataSet:
         measures: "list[str] | None" = None,
         build_params: "dict[str, str] | None" = None,
         prepared: bool = True,
+        bespoke_measures: "list[TMeasure] | None" = None,
     ) -> DS:
         """
         Build DataSet directly from df
@@ -80,7 +91,8 @@ class DataSet:
         Args:
             cls (Type[T]): _description_
             df (polars.DataFrame): _description_
-            measures (list[str], optional): Used as a constrained on measures.
+            measures (list[str], optional): Used as a constrained on which columns are
+                measures.
                 Defaults to all numeric columns in the dataframe.
             build_params (dict | None, optional): Params to be used in prepare. Defaults
              to None.
@@ -90,7 +102,13 @@ class DataSet:
         Returns:
             T: Self
         """
-        return cls(DataSetWrapper.from_frame(df, measures, build_params), prepared)
+        bespoke_measures = (
+            [m.inner for m in bespoke_measures] if bespoke_measures else None
+        )
+        return cls(
+            DataSetWrapper.from_frame(df, measures, build_params, bespoke_measures),
+            prepared,
+        )
 
     def prepare(self, collect: bool = True) -> None:
         """Does nothing unless overriden. To be used for one of computations.
@@ -103,7 +121,7 @@ class DataSet:
             OtherError: Calling prepare on an already prepared dataset
         """
         if not self.prepared:
-            self._ds.prepare(collect)
+            self.inner.prepare(collect)
             self.prepared = True
         else:
             raise uli.OtherError("Calling prepare on an already prepared dataset")
@@ -115,10 +133,10 @@ class DataSet:
         Note: If you can guarantee your particular calculation would not require
         the missing columns you can proceed at your own risk!
         """
-        self._ds.validate()
+        self.inner.validate()
 
     def frame(self) -> pl.DataFrame:
-        vec_srs = self._ds.frame()
+        vec_srs = self.inner.frame()
         return pl.DataFrame(vec_srs)
 
     def compute(
@@ -142,7 +160,7 @@ class DataSet:
         if isinstance(req, dict):
             req = uli.ComputeRequest(req)
 
-        vec_srs = self._ds.compute(req._ar, streaming)
+        vec_srs = self.inner.compute(req._ar, streaming)
 
         return pl.DataFrame(vec_srs)
 
@@ -164,7 +182,7 @@ class DataSet:
         # Streaming mode calls prepare on each request
         # If already prepared we don't want to call it again
         streaming = not self.prepared
-        self._ds.ui(streaming)
+        self.inner.ui(streaming)
 
 
 class FRTBDataSet(DataSet):
@@ -185,5 +203,6 @@ class FRTBDataSet(DataSet):
         measures: "list[str] | None" = None,
         build_params: "dict[str, str] | None" = None,
         prepared: bool = False,
+        bespoke_measures: "list[TMeasure] | None" = None,
     ) -> DS:
         return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)

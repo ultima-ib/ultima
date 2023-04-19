@@ -11,11 +11,15 @@ use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 /// If streaming is False - also collects
 ///
 /// *`collect` - indicates if DF should be collected
+/// *`prepare` - indicates if DF should be prepared
+/// *`bespoke_measures` - bespoke measures
+
 #[allow(clippy::uninlined_format_args)]
-pub fn build_validate_prepare<DS: DataSet>(
+pub fn config_build_validate_prepare<DS: DataSet>(
     config_path: &str,
     collect: bool,
     prepare: bool,
+    bespoke_measures: MeasuresMap,
 ) -> impl DataSet {
     // Read Config
     let conf = read_toml2::<DataSourceConfig>(config_path)
@@ -23,7 +27,10 @@ pub fn build_validate_prepare<DS: DataSet>(
 
     let (lf, measure_vec, build_params) = conf.build();
 
-    let mut data = DS::new(lf, MeasuresMap::from_iter(measure_vec), build_params);
+    let mut mm = MeasuresMap::from_iter(measure_vec);
+    mm.extend(bespoke_measures);
+
+    let mut data = DS::new(lf, mm, build_params);
 
     // If cfg is streaming then we can't collect, otherwise collect to check errors
     if collect {

@@ -3,7 +3,7 @@ use derivative::Derivative;
 use polars::prelude::{col, Expr, PolarsError, PolarsResult};
 use serde::Serialize;
 //use serde::Serialize;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     aggregations::{Aggregation, AggregationName},
@@ -20,20 +20,20 @@ pub type MeasureName = String;
 pub type MeasuresMap = BTreeMap<MeasureName, Measure>;
 
 //type Calculator = Box<dyn Fn(&OCP) -> Expr + Send + Sync>;
-type Calculator = Box<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
+pub type Calculator = Arc<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
 
 /// This struct is purely for DataSet descriptive purposes(for now).
 /// Recall measure may take parameters in form of HashMap<paramName, paramValue>
 /// This struct returns all possible paramNames for the given Dataset (for UI purposes only)
-#[derive(Debug, Default, Clone, Copy, Serialize)]
+#[derive(Debug, Default, Clone, Serialize, Hash, PartialEq, Eq)]
 pub struct CalcParameter {
-    pub name: &'static str,
-    pub default: Option<&'static str>,
-    pub type_hint: Option<&'static str>,
+    pub name: String,
+    pub default: Option<String>,
+    pub type_hint: Option<String>,
 }
 
 /// Measure is the essentially a Struct of a calculator and a name
-//#[derive(Clone)]
+#[derive(Clone)]
 pub struct BaseMeasure {
     pub name: MeasureName,
     /// Main function which performs the calculation
@@ -42,10 +42,10 @@ pub struct BaseMeasure {
 
     // TODO find a nice way to attach calc_params to a measure
     // parameters which will go into calculator
-    //pub calc_params: &'static [CalcParameter],
+    // pub calc_params: &'static [CalcParameter],
     /// Optional: this field is to restrict aggregation option to certain type only
     /// for example where it makes sence to aggregate with "first" and not "sum"
-    pub aggregation: Option<&'static str>,
+    pub aggregation: Option<String>,
 
     /// Optional
     /// Say you want to compute CSR Delta by Bucket
@@ -55,10 +55,12 @@ pub struct BaseMeasure {
     ///
     /// This field is an optional filter on DataFrame, placed PRIOR to the computation
     pub precomputefilter: Option<Expr>,
+
+    /// Calc params
+    /// Will determine the list of Params in the UI
+    pub calc_params: Vec<CalcParameter>,
 }
 
-//
-//BaseMeasure (EXPR)
 /// Dependant Measure cannot be computed directly. Instead it is broken down into it's parents
 /// parents get executed, and then used to compute the DependantMeasure.
 ///
@@ -67,6 +69,7 @@ pub struct BaseMeasure {
 /// No precomputefilter - it is inherited from parents
 #[derive(Derivative)]
 #[derivative(Debug)]
+#[derive(Clone)]
 pub struct DependantMeasure {
     pub name: MeasureName,
 
@@ -74,7 +77,7 @@ pub struct DependantMeasure {
     #[derivative(Debug = "ignore")]
     pub calculator: Calculator, // MAX, SUM...
 
-    /// parameters which will go into calculator
+    // parameters which will go into calculator
     // pub calc_params: Vec<String>,
 
     // this field is to restrict aggregation option to certain type only
@@ -82,16 +85,19 @@ pub struct DependantMeasure {
     // must be one of BASE_CALCS
     // Currently every dep measure is "scalar", see [Measure::aggregation]
     // pub aggregation: Option<&'static str>,
-
     /// Vec<(Depends Upon Measure Name, Aggregation type)>
     /// eg vec![(FXDeltaCharge, scalar), (Sensitivity, mean)]
     pub depends_upon: Vec<(String, String)>,
+
+    /// Calc params
+    /// Will determine the list of Params in the UI
+    pub calc_params: Vec<CalcParameter>,
 }
 
 /// AggRequest --> execute -->  split DependantMeasure into BaseMeasure's (BaseMeasure leave as they are) --> execute_aggregation --> combine back into original request
 /// make cahce default (ie not a feature)
 /// do not change the OUTPUT of any existing .get_measures() - because user/client does not/should not care about what kind of measure they are calling
-//#[derive(Clone)]
+#[derive(Clone)]
 pub enum Measure {
     /// A typical measure
     /// execute_aggregation .groupby().agg(X)
@@ -123,12 +129,14 @@ impl FromIterator<Measure> for BTreeMap<MeasureName, Measure> {
             .collect()
     }
 }
+use once_cell::sync::Lazy;
+pub(crate) static SCALAR: Lazy<Option<String>> = Lazy::new(|| Some("scalar".into()));
 
 impl Measure {
-    pub fn aggregation(&self) -> &Option<&'static str> {
+    pub fn aggregation(&self) -> &Option<String> {
         match self {
             Measure::Base(BaseMeasure { aggregation, .. }) => aggregation,
-            Measure::Dependant(_) => &Some("scalar"),
+            Measure::Dependant(_) => &SCALAR,
         }
     }
 
@@ -136,6 +144,12 @@ impl Measure {
         match self {
             Measure::Base(BaseMeasure { name, .. })
             | Measure::Dependant(DependantMeasure { name, .. }) => name,
+        }
+    }
+    pub fn calc_params(&self) -> &Vec<CalcParameter> {
+        match self {
+            Measure::Base(BaseMeasure { calc_params, .. })
+            | Measure::Dependant(DependantMeasure { calc_params, .. }) => calc_params,
         }
     }
     pub fn calculator(&self) -> &Calculator {
@@ -150,8 +164,8 @@ impl Default for BaseMeasure {
     fn default() -> BaseMeasure {
         BaseMeasure {
             name: "Default".into(),
-            calculator: Box::new(|_: &CPM| Ok(col("*"))),
-            //calc_params: &[],
+            calculator: Arc::new(|_: &CPM| Ok(col("*"))),
+            calc_params: vec![],
             aggregation: None,
             precomputefilter: None,
         }
@@ -165,7 +179,7 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
             let y = x.clone();
             Measure::Base(BaseMeasure {
                 name: x.clone(),
-                calculator: Box::new(move |_| Ok(col(y.as_str()))),
+                calculator: Arc::new(move |_| Ok(col(y.as_str()))),
                 ..Default::default()
             })
         })

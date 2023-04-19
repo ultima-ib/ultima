@@ -10,7 +10,7 @@ pub(crate) fn drc_charge(_: &CPM) -> PolarsResult<Expr> {
 pub(crate) fn drc_total_measures() -> Vec<Measure> {
     vec![DependantMeasure {
         name: "DRC Charge".to_string(),
-        calculator: Box::new(drc_charge),
+        calculator: std::sync::Arc::new(drc_charge),
         depends_upon: vec![
             ("DRC nonSec CapitalCharge".to_string(), "scalar".to_string()),
             (
@@ -18,6 +18,7 @@ pub(crate) fn drc_total_measures() -> Vec<Measure> {
                 "scalar".to_string(),
             ),
         ],
+        calc_params: vec![],
     }
     .into()]
 }

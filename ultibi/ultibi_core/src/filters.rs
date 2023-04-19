@@ -76,7 +76,7 @@ pub(crate) fn fltr_neq(c: &str, v: &str) -> Expr {
     }
 }
 
-pub(crate) fn fltr_chain(chain: &AndOrFltrChain) -> Option<Expr> {
+pub fn fltr_chain(chain: &AndOrFltrChain) -> Option<Expr> {
     let mut res: Option<Expr> = None;
 
     // Loop from outer vec to inner

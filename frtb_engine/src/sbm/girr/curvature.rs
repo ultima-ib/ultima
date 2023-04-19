@@ -234,143 +234,157 @@ pub(crate) fn girr_curv_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureDelta".to_string(),
-            calculator: Box::new(ir_curv_delta),
+            calculator: std::sync::Arc::new(ir_curv_delta),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR PnLup".to_string(),
-            calculator: Box::new(girr_pnl_up),
+            calculator: std::sync::Arc::new(girr_pnl_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR PnLdown".to_string(),
-            calculator: Box::new(girr_pnl_down),
+            calculator: std::sync::Arc::new(girr_pnl_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureDelta Weighted".to_string(),
-            calculator: Box::new(girr_curv_delta_weighted),
+            calculator: std::sync::Arc::new(girr_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CVRup".to_string(),
-            calculator: Box::new(girr_cvr_up),
+            calculator: std::sync::Arc::new(girr_cvr_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CVRdown".to_string(),
-            calculator: Box::new(girr_cvr_down),
+            calculator: std::sync::Arc::new(girr_cvr_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature KbPlus".to_string(),
-            calculator: Box::new(girr_curvature_kb_plus),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curvature_kb_plus),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature KbMinus".to_string(),
-            calculator: Box::new(girr_curvature_kb_minus),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curvature_kb_minus),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature Kb".to_string(),
-            calculator: Box::new(girr_curvature_kb),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curvature_kb),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR Curvature Sb".to_string(),
-            calculator: Box::new(girr_curvature_sb),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curvature_sb),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge Low".to_string(),
-            calculator: Box::new(girr_curvature_charge_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curvature_charge_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge Medium".to_string(),
-            calculator: Box::new(girr_curvature_charge_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curvature_charge_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge High".to_string(),
-            calculator: Box::new(girr_curvature_charge_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curvature_charge_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "GIRR CurvatureCharge MAX".to_string(),
-            calculator: Box::new(girr_curv_max),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(girr_curv_max),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("GIRR"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

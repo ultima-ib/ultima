@@ -19,3 +19,7 @@ class TestCreation(unittest.TestCase):
         expected = pl.DataFrame({"c": ["a", "b"], "a_sum": [3, 3]})
 
         self.assertTrue(result.frame_equal(expected))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::aggregations::AggregationName;
+use crate::filters::FilterE;
 use crate::overrides::Override;
 use crate::MeasureName;
 use crate::{add_row::AdditionalRows, filters::AndOrFltrChain};
@@ -40,20 +41,20 @@ pub struct AggregationRequest {
     pub name: Option<String>,
     /// Measure: (Name: String, Action: String) where Name will be looked up in
     /// MeasuresMap of the DataSet
-    pub measures: Vec<(MeasureName, AggregationName)>,
+    pub measures: Vec<(String, String)>,
     /// Which column do you want to Group By?
     pub groupby: Vec<String>,
     /// Filter your data (pre compute),
-    /// Vec<Vec<FilterE>>
+    /// See AndOrFltrChain
     #[serde(default)]
-    pub filters: AndOrFltrChain,
+    pub filters: Vec<Vec<FilterE>>,
     #[serde(default)]
     pub overrides: Vec<Override>,
     #[serde(default, alias = "additionalRows")]
     pub add_row: AdditionalRows,
     /// Map/Dict
     #[serde(default)]
-    pub calc_params: CPM,
+    pub calc_params: BTreeMap<String, String>,
     /// drop rows where all results are NULL or 0
     #[serde(default)]
     pub hide_zeros: bool,

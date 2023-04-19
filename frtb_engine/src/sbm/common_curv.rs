@@ -166,7 +166,7 @@ pub(crate) fn curvature_kb_plus_minus(
         res_kb_cvr.push((Ok((0., 0.)), Ok((0., 0.))))
     }
 
-    let arc_mtx_kbpm_cvr = Arc::new(Mutex::new(res_kb_cvr));
+    let arc_mtx_kbpm_cvr = std::sync::Arc::new(Mutex::new(res_kb_cvr));
 
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
     df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {

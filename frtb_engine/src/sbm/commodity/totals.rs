@@ -31,7 +31,7 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
     vec![
         Measure::Dependant(DependantMeasure {
             name: "Commodity TotalCharge Low".to_string(),
-            calculator: Box::new(com_total_low),
+            calculator: std::sync::Arc::new(com_total_low),
             depends_upon: vec![
                 (
                     "Commodity DeltaCharge Low".to_string(),
@@ -43,10 +43,11 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "Commodity TotalCharge Medium".to_string(),
-            calculator: Box::new(com_total_medium),
+            calculator: std::sync::Arc::new(com_total_medium),
             depends_upon: vec![
                 (
                     "Commodity DeltaCharge Medium".to_string(),
@@ -61,10 +62,11 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "Commodity TotalCharge High".to_string(),
-            calculator: Box::new(com_total_high),
+            calculator: std::sync::Arc::new(com_total_high),
             depends_upon: vec![
                 (
                     "Commodity DeltaCharge High".to_string(),
@@ -79,10 +81,11 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "Commodity TotalCharge MAX".to_string(),
-            calculator: Box::new(com_total_max),
+            calculator: std::sync::Arc::new(com_total_max),
             depends_upon: vec![
                 (
                     "Commodity TotalCharge Low".to_string(),
@@ -97,6 +100,7 @@ pub(crate) fn com_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
     ]
 }

@@ -184,103 +184,113 @@ pub(crate) fn eq_vega_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "EQ VegaSens".to_string(),
-            calculator: Box::new(total_eq_vega_sens),
+            calculator: std::sync::Arc::new(total_eq_vega_sens),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaSens Weighted".to_string(),
-            calculator: Box::new(total_eq_vega_sens_weighted),
+            calculator: std::sync::Arc::new(total_eq_vega_sens_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaSb".to_string(),
-            calculator: Box::new(equity_vega_sb),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(equity_vega_sb),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaKb Low".to_string(),
-            calculator: Box::new(equity_vega_kb_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(equity_vega_kb_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaCharge Low".to_string(),
-            calculator: Box::new(equity_vega_charge_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(equity_vega_charge_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaKb Medium".to_string(),
-            calculator: Box::new(equity_vega_kb_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(equity_vega_kb_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaCharge Medium".to_string(),
-            calculator: Box::new(equity_vega_charge_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(equity_vega_charge_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaKb High".to_string(),
-            calculator: Box::new(equity_vega_kb_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(equity_vega_kb_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaCharge High".to_string(),
-            calculator: Box::new(equity_vega_charge_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(equity_vega_charge_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "EQ VegaCharge MAX".to_string(),
-            calculator: Box::new(eq_vega_max),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(eq_vega_max),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Vega"))
                     .and(col("RiskClass").eq(lit("Equity"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

@@ -15,7 +15,7 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     data.validate_frame(None, ValidateSet::ALL)
         .expect("failed to validate");
     data.prepare().expect("Failed to prepare");
-    Arc::new(data)
+    std::sync::Arc::new(data)
 });
 
 #[ignore]

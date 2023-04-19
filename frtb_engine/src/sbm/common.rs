@@ -214,7 +214,7 @@ where
         reskbs_sbs.push(Ok((0., 0.)))
     }
 
-    let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
+    let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
     df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
         // Safety: since partition, we must have at least one member
@@ -416,7 +416,7 @@ where
         reskbs_sbs.push(Ok((0., 0.)))
     }
 
-    let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
+    let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
     df.fill_null(FillNullStrategy::Zero)?
         .partition_by(["b"])?
@@ -654,7 +654,7 @@ where
         reskbs_sbs.push(Ok(("".to_string(), (0., 0.))))
     }
 
-    let arc_mtx = Arc::new(Mutex::new(reskbs_sbs));
+    let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
     df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
         // Safety: since we are in partition, bucket_df["b"] has at least one element

@@ -23,7 +23,7 @@ pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
     vec![
         Measure::Dependant(DependantMeasure {
             name: "CSR Sec nonCTP TotalCharge Low".to_string(),
-            calculator: Box::new(csrsecnonctp_total_low),
+            calculator: std::sync::Arc::new(csrsecnonctp_total_low),
             depends_upon: vec![
                 (
                     "CSR Sec nonCTP DeltaCharge Low".to_string(),
@@ -38,10 +38,11 @@ pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR Sec nonCTP TotalCharge Medium".to_string(),
-            calculator: Box::new(csrsecnonctp_total_medium),
+            calculator: std::sync::Arc::new(csrsecnonctp_total_medium),
             depends_upon: vec![
                 (
                     "CSR Sec nonCTP DeltaCharge Medium".to_string(),
@@ -56,10 +57,11 @@ pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
         Measure::Dependant(DependantMeasure {
             name: "CSR Sec nonCTP TotalCharge High".to_string(),
-            calculator: Box::new(csrsecnonctp_total_high),
+            calculator: std::sync::Arc::new(csrsecnonctp_total_high),
             depends_upon: vec![
                 (
                     "CSR Sec nonCTP DeltaCharge High".to_string(),
@@ -74,6 +76,7 @@ pub(crate) fn csrsecnonctp_total_measures() -> Vec<Measure> {
                     "scalar".to_string(),
                 ),
             ],
+            calc_params: vec![],
         }),
     ]
 }

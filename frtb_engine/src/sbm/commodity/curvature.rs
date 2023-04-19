@@ -116,223 +116,245 @@ pub(crate) fn com_curv_measures() -> Vec<Measure> {
     vec![
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureDelta".to_string(),
-            calculator: Box::new(com_curv_delta),
+            calculator: std::sync::Arc::new(com_curv_delta),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureDelta Weighted".to_string(),
-            calculator: Box::new(com_curv_delta_weighted),
+            calculator: std::sync::Arc::new(com_curv_delta_weighted),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity PnLup".to_string(),
-            calculator: Box::new(com_pnl_up),
+            calculator: std::sync::Arc::new(com_pnl_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity PnLdown".to_string(),
-            calculator: Box::new(com_pnl_down),
+            calculator: std::sync::Arc::new(com_pnl_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity CVRup".to_string(),
-            calculator: Box::new(com_cvr_up),
+            calculator: std::sync::Arc::new(com_cvr_up),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity CVRdown".to_string(),
-            calculator: Box::new(com_cvr_down),
+            calculator: std::sync::Arc::new(com_cvr_down),
             aggregation: None,
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbPlus Medium".to_string(),
-            calculator: Box::new(com_curvature_kb_plus_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_plus_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbMinus Medium".to_string(),
-            calculator: Box::new(com_curvature_kb_minus_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_minus_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Kb Medium".to_string(),
-            calculator: Box::new(com_curvature_kb_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Sb Medium".to_string(),
-            calculator: Box::new(com_curvature_sb_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_sb_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge Medium".to_string(),
-            calculator: Box::new(com_curvature_charge_medium),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_charge_medium),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbPlus Low".to_string(),
-            calculator: Box::new(com_curvature_kb_plus_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_plus_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbMinus Low".to_string(),
-            calculator: Box::new(com_curvature_kb_minus_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_minus_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Kb Low".to_string(),
-            calculator: Box::new(com_curvature_kb_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Sb Low".to_string(),
-            calculator: Box::new(com_curvature_sb_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_sb_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge Low".to_string(),
-            calculator: Box::new(com_curvature_charge_low),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_charge_low),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbPlus High".to_string(),
-            calculator: Box::new(com_curvature_kb_plus_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_plus_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature KbMinus High".to_string(),
-            calculator: Box::new(com_curvature_kb_minus_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_minus_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Kb High".to_string(),
-            calculator: Box::new(com_curvature_kb_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_kb_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity Curvature Sb High".to_string(),
-            calculator: Box::new(com_curvature_sb_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_sb_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge High".to_string(),
-            calculator: Box::new(com_curvature_charge_high),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curvature_charge_high),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
             name: "Commodity CurvatureCharge MAX".to_string(),
-            calculator: Box::new(com_curv_max),
-            aggregation: Some("scalar"),
+            calculator: std::sync::Arc::new(com_curv_max),
+            aggregation: Some("scalar".into()),
             precomputefilter: Some(
                 col("RiskCategory")
                     .eq(lit("Delta"))
                     .and(col("RiskClass").eq(lit("Commodity"))),
             ),
+            calc_params: vec![],
         }),
     ]
 }

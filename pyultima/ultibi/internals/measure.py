@@ -115,7 +115,7 @@ class BaseMeasure(Measure):
         self,
         measure_name: str,
         calc: TCalculator,
-        precompute_filter: "list[list[TFilter]]|None",
+        precompute_filter: "list[list[TFilter]]|None"=None,
         aggregation_restriction: "str|None" = None,
         calc_params: "list[CalcParam]|None" = None,
     ) -> None:

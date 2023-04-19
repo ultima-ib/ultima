@@ -52,13 +52,12 @@ class TestCreation(unittest.TestCase):
 
         ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 
-        expected = dict(name="mltplr", hint = "float")
+        expected = [('mltplr', 'float', '1')]
 
         assert "TestMeasure" in ds.measures
         assert "TestMeasure1" in ds.measures
         assert "Dependant" in ds.measures
-        assert expected in ds.calc_params
-
+        assert expected == ds.calc_params
 
         request = dict(
             measures=[["TestMeasure", "sum"]],

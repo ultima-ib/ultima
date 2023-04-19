@@ -31,7 +31,7 @@ use prelude::{drc::common::drc_scalinng, frtb_measure_vec};
 use risk_weights::*;
 use sbm::buckets;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 pub struct FRTBDataSet {
     pub frame: LazyFrame,
@@ -74,7 +74,9 @@ impl DataSet for FRTBDataSet {
 
         res.extend_from_slice(FRTB_CALC_PARAMS.as_ref());
 
-        res
+        let hash_res: HashSet<CalcParameter> = res.into_iter().collect();
+
+        hash_res.into_iter().collect()
     }
 
     fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {

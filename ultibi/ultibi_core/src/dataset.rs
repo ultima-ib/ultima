@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
@@ -131,7 +131,9 @@ pub trait DataSet: Send + Sync {
             res.extend_from_slice(measure.calc_params())
         }
 
-        res
+        let hash_res: HashSet<CalcParameter> = res.into_iter().collect();
+
+        hash_res.into_iter().collect()
     }
 
     /// Limits overridable columns which you can override in

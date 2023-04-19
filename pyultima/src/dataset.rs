@@ -2,7 +2,6 @@ use frtb_engine::FRTBDataSet;
 use pyo3::exceptions::PyFileNotFoundError;
 use pyo3::{prelude::*, types::PyType, PyTypeInfo};
 use std::collections::BTreeMap;
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 //use std::sync::Mutex;
@@ -231,25 +230,20 @@ impl DataSetWrapper {
 
         Ok(ultibi::prelude::fields_columns(schema))
     }
-    pub fn calc_params(&self) -> PyResult<Vec<HashMap<&str, Option<String>>>> {
-        let name = "name";
-        let hint = "hint";
+    pub fn calc_params(&self) -> Vec<(String, Option<String>, Option<String>)> {
 
-        let res = self
+        self
             .dataset
             .read()
             .expect("Poisonned RwLock")
             .calc_params()
             .iter()
+            .cloned()
             .map(|calc_param| {
-                HashMap::from([
-                    (name, Some(calc_param.name.to_string())),
-                    (hint, calc_param.type_hint.clone()),
-                ])
+                (calc_param.name, calc_param.type_hint, calc_param.default)
             })
-            .collect::<Vec<HashMap<&str, Option<String>>>>();
+            .collect()
 
-        Ok(res)
     }
 
     pub fn validate(&self) -> PyResult<()> {

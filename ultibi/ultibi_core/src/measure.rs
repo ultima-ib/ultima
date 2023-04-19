@@ -25,7 +25,7 @@ pub type Calculator = Arc<dyn Fn(&CPM) -> PolarsResult<Expr> + Send + Sync>;
 /// This struct is purely for DataSet descriptive purposes(for now).
 /// Recall measure may take parameters in form of HashMap<paramName, paramValue>
 /// This struct returns all possible paramNames for the given Dataset (for UI purposes only)
-#[derive(Debug, Default, Clone, Serialize)]
+#[derive(Debug, Default, Clone, Serialize, Hash, PartialEq, Eq)]
 pub struct CalcParameter {
     pub name: String,
     pub default: Option<String>,

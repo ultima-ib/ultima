@@ -18,7 +18,7 @@ class CalcParam:
     inner = CalcParamWrapper
 
     def __init__(
-        self, name: str, default: str | None = None, type_hint: str | None = None
+        self, name: str, default: "str|None" = None, type_hint: "str|None" = None
     ):
         self.inner = CalcParamWrapper(name, default, type_hint)
 
@@ -116,8 +116,8 @@ class BaseMeasure(Measure):
         measure_name: str,
         calc: TCalculator,
         precompute_filter: list[list[TFilter]],
-        aggregation_restriction: str | None = None,
-        calc_params: list[CalcParam] | None = None,
+        aggregation_restriction: "str|None" = None,
+        calc_params: "list[CalcParam]|None" = None,
     ) -> None:
         """_summary_
 
@@ -156,7 +156,7 @@ class DependantMeasure(Measure):
         measure_name: str,
         calc: TCalculator,
         depends_upon: list[tuple[str, str]],
-        calc_params: list[CalcParam] | None = None,
+        calc_params: "list[CalcParam]|None" = None,
     ) -> None:
         if calc_params:
             calc_params_inner = [calc_param.inner for calc_param in calc_params]

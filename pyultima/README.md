@@ -111,6 +111,8 @@ ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 ds.ui()
 ```
 
+Then navigate to `http://localhost:8000` or checkout `http://localhost:8000/swagger-ui` for the OpenAPI documentation.
+
 ### FRTB SA
 [FRTB SA](https://en.wikipedia.org/wiki/Fundamental_Review_of_the_Trading_Book) is a great usecase for `ultibi`. FRTB SA is a set of standardised, computationally intensive rules established by the regulator. High business impact of these rules manifests in need for **analysis** and **visibility** thoroughout an organisation. Note: Ultima is not a certified aggregator. Always benchmark the results against your own interpretation of the rules.
 See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).

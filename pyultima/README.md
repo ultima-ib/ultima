@@ -18,7 +18,7 @@ With `Ultibi` you can turn your `DataFrame` into a pivot table with a UI and sha
 
 <p align="center">
     <a href="https://frtb.demo.ultimabi.uk/" target="_blank">
-    <img width="900" src="https://ultima-bi.s3.eu-west-2.amazonaws.com/imgs/titanic_gif.gif" alt="Ultima Logo">
+    <img width="900" src="https://ultima-bi.s3.eu-west-2.amazonaws.com/imgs/UltimaScreenshotExplained.jpg" alt="Ultima Logo">
     </a>
 </p>
 
@@ -44,6 +44,8 @@ os.environ["ADDRESS"] = "0.0.0.0:8000" # host on this address
 # for more details: https://pola-rs.github.io/polars/py-polars/html/reference/api/polars.read_csv.html
 df = pl.read_csv("titanic.csv")
 
+# Let's add some Custom/Bespoke Calculations to our UI
+
 # Standard Calculator
 def survival_mean_age(kwargs: dict[str, str]) -> pl.Expr:
     """Mean Age of Survivals
@@ -53,6 +55,11 @@ def survival_mean_age(kwargs: dict[str, str]) -> pl.Expr:
     """
     return pl.col("age") * pl.col("survived") / pl.col("survived").sum()
 
+# Also a Standard Calculator
+def example_dep_calc(kwargs: dict[str, str]) -> pl.Expr:
+    return pl.col("SurvivalMeanAge_sum") + pl.col("SouthamptonFareDivAge_sum")
+
+# When we need more involved calculations we go for a Custom Calculator
 def custom_calculator(
             srs: list[pl.Series], kwargs: dict[str, str]
         ) -> pl.Series:
@@ -68,14 +75,8 @@ def custom_calculator(
         res = df["S"] * df["fare"] / df["age"] * multiplier
         return res
 
-def example_dep_calc(kwargs: dict[str, str]) -> pl.Expr:
-    return pl.col("SurvivalMeanAge_sum") + pl.col("SouthamptonFareDivAge_sum")
-
 # inputs for the custom_calculator srs param
 inputs = ["age", "fare", "embarked"]
-# (Optional) - we are only interested in Southampton
-# unless other measures requested
-precompute_filter = ul.EqFilter("embarked", "S")
 # We return Floats
 res_type = pl.Float64
 # We return a Series, not a scalar (which otherwise would be auto exploded)
@@ -87,7 +88,11 @@ measures = [
                 ul.CustomCalculator(
                     custom_calculator, res_type, inputs, returns_scalar
                 ),
-                [[precompute_filter]],
+                # (Optional) - we are only interested in Southampton, so
+                # unless other measures requested we might as well filter for Southampton only
+                # However, if if multiple measures requested, their precompute_filters will be joined as OR.
+                [[ul.EqFilter("embarked", "S")]],
+                # PARAMS tab of the UI
                 calc_params=[ul.CalcParam("mltplr", "1", "float")]
             ),
             ul.BaseMeasure(

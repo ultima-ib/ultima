@@ -4,11 +4,19 @@ build-backend = "maturin"
 
 [project]
 name = "ultibi"
+description = "Flexible DataFrame Operations via UI"
+readme = "README.md"
+authors = [
+  { name = "Anatoly Bugakov", email = "anatoly@ultimabi.com" },
+]
+license = { file = "LICENSE" }
 dependencies = [
 #  "typing_extensions >= 4.0.0; python_version <= '3.9'",
   "polars",
   "pyarrow"
 ]
+keywords = ["dataframe", "visualization", "aggregation", "calculation", 
+  "chart", "data", "dataviz", "pivot-table"]
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Rust",

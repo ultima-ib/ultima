@@ -1,7 +1,7 @@
 //! This is Work in progress
 
 use crate::api::routers;
-use ultibi_core::{filters::FilterE, AggregationRequest};
+use ultibi_core::{filters::FilterE, AggregationRequest, add_row::AdditionalRows, overrides::Override, reports::report::Report};
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]
@@ -19,7 +19,7 @@ use utoipa::OpenApi;
         routers::describe,
     ),
     components(
-        schemas(AggregationRequest, FilterE)
+        schemas(AggregationRequest, FilterE, AdditionalRows, Override, Report)
     ),
     tags(
         (name = "Ultima BI", description = "Ultimate Business Intellegence endpoints.")

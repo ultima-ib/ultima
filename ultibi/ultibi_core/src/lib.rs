@@ -15,5 +15,6 @@ pub mod helpers;
 mod measure;
 pub mod overrides;
 pub mod prelude;
+pub mod reports;
 
 pub use crate::prelude::*;

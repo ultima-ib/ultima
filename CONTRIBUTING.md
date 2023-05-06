@@ -1,8 +1,8 @@
 # Pre Requisites
 
-Rust + Cargo (Rust's package manager) - follow [this link for installation instructions](https://doc.rust-lang.org/book/ch01-01-installation.html)
+- Rust + Cargo (Rust's package manager) - follow [this link for installation instructions](https://doc.rust-lang.org/book/ch01-01-installation.html)
 
-[npm](https://nodejs.org/en/download)
+- [npm](https://nodejs.org/en/download)
 
 ## How to build existing examples
 
@@ -36,3 +36,8 @@ For that reason we have a special binary - **server** (*instead of server_test*)
 ## Cli Parameters
 `config` is a set up for Data Source
 `requests` are templates, in case user doesn't want to recreate the same requests over and over again.
+
+## Before commiting
+- `cargo test --all-features`
+- `cargo clippy`
+- `cargo fmt`

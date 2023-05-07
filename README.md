@@ -161,5 +161,3 @@ See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 ## Bespoke Hosting
 You don't have to use `.ui()`. You can write your own sevrer easily based on your needs (for example DB interoperability for authentication)
 See an example [template_drivers](https://github.com/ultima-ib/ultima/tree/master/template_drivers) bin server.
-
-

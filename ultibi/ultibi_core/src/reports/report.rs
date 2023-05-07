@@ -5,9 +5,9 @@ use std::sync::Arc;
 use polars::{prelude::DataFrame, lazy::dsl::Expr};
 use serde::{Deserialize, Serialize};
 
-use crate::{CPM, errors::{UltiResult}};
+use crate::{CPM, errors::{UltiResult}, Measure};
 
-pub type ReportCalculator = Arc<dyn Fn(&CPM) -> UltiResult<Expr> + Send + Sync>;
+pub type ReportCalculator = Arc<dyn Fn(&[Expr], &CPM) -> UltiResult<Report> + Send + Sync>;
 
 /// Customised reports about your data/results
 /// For example FRTB Data Quality
@@ -23,4 +23,10 @@ impl Default for Report {
     fn default() -> Report {
         Report::General(vec![])
     }
+}
+
+pub struct ReportProducer{
+    pub name: String,
+    pub measures: Vec<Arc<Measure>>,
+    pub calculator: ReportCalculator,
 }

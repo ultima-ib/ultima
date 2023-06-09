@@ -11,7 +11,7 @@ name = "ultibi"
 crate-type = ["cdylib"]
 
 [package.metadata.maturin]
-name = "ultibi.rust_module.ultibi"
+name = "ultibi.rust_module.ultibi_engine"
 
 [dependencies]
 pyo3 = { version = "0.18.1", features = ["extension-module", "abi3-py37"] }

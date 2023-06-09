@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..rust_module.ultibi import FilterWrapper
+from ..rust_module.ultibi_engine import FilterWrapper
 
 
 class Filter:

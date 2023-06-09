@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..rust_module.ultima_pyengine import (
+from ..rust_module.ultibi import (
     AggregationRequestWrapper,
     ComputeRequestWrapper,
     agg_ops,

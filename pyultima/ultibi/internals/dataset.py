@@ -7,7 +7,7 @@ import polars as pl
 import ultibi.internals as uli
 from ultibi.internals.measure import Measure
 
-from ..rust_module.ultima_pyengine import DataSetWrapper
+from ..rust_module.ultibi import DataSetWrapper
 
 TMeasure = TypeVar("TMeasure", bound=Measure)
 

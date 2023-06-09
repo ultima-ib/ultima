@@ -72,5 +72,8 @@ module = ["ultibi.*"]
 # thin wrapper around the PyO3 api to start with.
 warn_return_any = false
 
+[tool.maturin]
+module-name = "ultibi.rust_module.ultibi_engine"
+
 
 

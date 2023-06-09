@@ -7,8 +7,11 @@ from polars import DataType, Expr, Series
 
 from ultibi.internals.filters import Filter
 
-from ..rust_module.ultibi_engine import (CalcParamWrapper, CalculatorWrapper, 
-                                         MeasureWrapper)
+from ..rust_module.ultibi_engine import (
+    CalcParamWrapper,
+    CalculatorWrapper,
+    MeasureWrapper,
+)
 
 
 class CalcParam:

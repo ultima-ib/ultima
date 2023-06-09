@@ -1,6 +1,6 @@
 use polars::prelude::PolarsError;
-use thiserror::Error;
 use std::fmt::{Debug, Formatter};
+use thiserror::Error;
 
 pub type UltiResult<T> = Result<T, UltimaErr>;
 

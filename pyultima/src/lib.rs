@@ -1,4 +1,5 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
+extern crate ultibi as ultibi_rs;
 
 use errors::{
     ArrowErrorException, ComputeError, DuplicateError, InvalidOperationError, NoDataError,
@@ -16,7 +17,7 @@ mod requests;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {
-    ultibi::aggregations::BASE_CALCS
+    ultibi_rs::aggregations::BASE_CALCS
         .keys()
         .filter(|el| **el != "scalar")
         .copied()

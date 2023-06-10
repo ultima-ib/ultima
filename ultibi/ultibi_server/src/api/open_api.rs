@@ -1,7 +1,10 @@
 //! This is Work in progress
 
 use crate::api::routers;
-use ultibi_core::{filters::FilterE, AggregationRequest, add_row::AdditionalRows, overrides::Override, reports::report::Report};
+use ultibi_core::{
+    add_row::AdditionalRows, filters::FilterE, overrides::Override, reports::report::Report,
+    AggregationRequest,
+};
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]

@@ -5,6 +5,7 @@ edition = "2021"
 default-run = "one_off"
 publish = false
 description = "Example of a few custom ways to tun ultibi"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -38,14 +39,14 @@ actix-web-httpauth = "0.8.0"
 actix-web-static-files = "4.0"
 static-files = "0.2.1"
 
+[build-dependencies]
+static-files = "0.2.1"
+
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 jemallocator = "0.5.0"
 
 [dev-dependencies]
 reqwest = "0.11"
-
-[build-dependencies]
-static-files = "0.2.1"
 
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.

@@ -180,7 +180,7 @@ async fn _validator(
     Err((error, req))
 }
 
-use actix_web_static_files::ResourceFiles;
+//use actix_web_static_files::ResourceFiles;
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
@@ -196,13 +196,13 @@ pub fn run_server(
     pretty_env_logger::init();
 
     let ds = Data::new(ds);
-    //let static_files_dir =
-    //    std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
+    let static_files_dir =
+        std::env::var("STATIC_FILES_DIR").unwrap_or_else(|_| "frontend/dist".to_string());
     let _templates = Data::new(_templates);
 
     let server = HttpServer::new(move || {
         //let auth = HttpAuthentication::basic(validator);
-        let generated = generate();
+        //let generated = generate();
 
         App::new()
             .wrap(Logger::default())
@@ -223,8 +223,8 @@ pub fn run_server(
                     .route("/describe", web::post().to(describe)),
             )
             // must be the last one
-            //.service(actix_files::Files::new("/", &static_files_dir).index_file("index.html"))
-            .service(ResourceFiles::new("/", generated))
+            .service(actix_files::Files::new("/", &static_files_dir).index_file("index.html"))
+            //.service(ResourceFiles::new("/", generated))
             .app_data(ds.clone())
             .app_data(_templates.clone())
     })

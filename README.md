@@ -161,29 +161,3 @@ See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 ## Bespoke Hosting
 You don't have to use `.ui()`. You can write your own sevrer easily based on your needs (for example DB interoperability for authentication)
 See an example [template_drivers](https://github.com/ultima-ib/ultima/tree/master/template_drivers) bin server.
-
-## How to build existing examples
-
-`cargo build` or `cargo build --bin server`
-After you've built,
-Check out `target/debug/one_off.exe --help` for optional command line parameters.
-
-With UI:
-`cd frontend` and then `npm install & npm run build`
-Then go back to `/ultima`
-
-To run as a one off (run is a shortcut for build and execute):
-`cargo run --features FRTB_CRR2 --release`
-Which is equivallent to:
-`cargo run --features FRTB_CRR2 --release -- --config="frtb_engine/tests/data/datasource_config.toml" --requests="./template_drivers/src/request.json"`
-
-Similarly, for:
-`cargo run --bin server --features FRTB_CRR2`
-Although the meaning and usage of --requests is different here.
-
-**NOTE**: frtb_engine/tests/data/datasource_config.toml is used by tests in frtb_engine crate. Therefore, the data paths (**files, attributes etc**) are "local" paths to frtb_engine. Either create your own config or change this one (never push changed to master though)
-
-## Cli Parameters
-
-Config is a set up for Data Source
-Request is what you want to calculate

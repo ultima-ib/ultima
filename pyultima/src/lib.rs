@@ -1,4 +1,5 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
+extern crate ultibi as ultibi_rs;
 
 use errors::{
     ArrowErrorException, ComputeError, DuplicateError, InvalidOperationError, NoDataError,
@@ -16,7 +17,7 @@ mod requests;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {
-    ultibi::aggregations::BASE_CALCS
+    ultibi_rs::aggregations::BASE_CALCS
         .keys()
         .filter(|el| **el != "scalar")
         .copied()
@@ -25,7 +26,7 @@ fn agg_ops() -> Vec<&'static str> {
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn ultima_pyengine(_py: Python, m: &PyModule) -> PyResult<()> {
+fn ultibi_engine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(agg_ops, m)?)?;
     //m.add_function(wrap_pyfunction!(exec_agg, m)?)?;
     m.add_class::<requests::AggregationRequestWrapper>()?;

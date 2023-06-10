@@ -19,19 +19,19 @@ pub enum FilterE {
     /// On Same as In, but better for 1 field only
     Eq {
         field: String,
-        value: String,
+        value: Option<String>,
     },
     Neq {
         field: String,
-        value: String,
+        value: Option<String>,
     },
     In {
         field: String,
-        value: Vec<String>,
+        value: Vec<Option<String>>,
     },
     NotIn {
         field: String,
-        value: Vec<String>,
+        value: Vec<Option<String>>,
     },
 }
 
@@ -52,27 +52,27 @@ impl FilterE {
     }
 }
 
-pub(crate) fn fltr_in(c: &str, vs: &Vec<String>) -> Expr {
+pub(crate) fn fltr_in(c: &str, vs: &Vec<Option<String>>) -> Expr {
     let s = Series::new("filter", vs);
     col(c).cast(DataType::Utf8).is_in(s.lit())
 }
 
-pub(crate) fn fltr_not_in(c: &str, vs: &Vec<String>) -> Expr {
+pub(crate) fn fltr_not_in(c: &str, vs: &Vec<Option<String>>) -> Expr {
     let s = Series::new("filter", vs);
     col(c).cast(DataType::Utf8).is_in(s.lit()).not()
 }
 
-pub(crate) fn fltr_eq(c: &str, v: &str) -> Expr {
+pub(crate) fn fltr_eq(c: &str, v: &Option<String>) -> Expr {
     match v {
-        "null" => col(c).is_null(),
-        _ => col(c).cast(DataType::Utf8).eq(lit::<&str>(v)),
+        None => col(c).is_null(),
+        Some(v) => col(c).cast(DataType::Utf8).eq(lit::<&str>(v)),
     }
 }
 
-pub(crate) fn fltr_neq(c: &str, v: &str) -> Expr {
+pub(crate) fn fltr_neq(c: &str, v: &Option<String>) -> Expr {
     match v {
-        "null" => col(c).is_not_null(),
-        _ => col(c).cast(DataType::Utf8).neq(lit::<&str>(v)),
+        None => col(c).is_not_null(),
+        Some(v) => col(c).cast(DataType::Utf8).neq(lit::<&str>(v)),
     }
 }
 

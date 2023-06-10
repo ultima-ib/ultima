@@ -29,10 +29,10 @@ pub struct CalculatorWrapper {
 #[pymethods]
 impl CalculatorWrapper {
     #[classmethod]
-    /// Converts str into AggregationRequest
     pub fn standard(_: &PyType, lambda: PyObject) -> PyResult<Self> {
         let calculator = move |op: &CPM| {
             let lambda = lambda.clone();
+
             Python::with_gil(move |py| {
                 // this is a python Series
                 let out = lambda
@@ -41,7 +41,10 @@ impl CalculatorWrapper {
                 let b = out.call_method(py, "__getstate__", (), None).unwrap(); // should never fail
                 let as_pybytes = b.downcast::<PyBytes>(py).unwrap(); // should never fail
                 let rustbytes = as_pybytes.as_bytes();
-                let e = serde_json::from_slice::<Expr>(rustbytes).unwrap(); // should never fail
+                //let e = serde_json::from_slice::<Expr>(rustbytes).unwrap(); // should never fail
+                let e: Expr = ciborium::de::from_reader(rustbytes).map_err(|e| {
+                    PolarsError::ComputeError(format!("{}. Try using Custom calculator", e).into())
+                })?;
                 Ok(e)
             })
         };

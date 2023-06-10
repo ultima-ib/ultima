@@ -22,5 +22,6 @@ frtb_engine = { path = "../frtb_engine", features=["CRR2"] }
 serde_json = {workspace = true}
 thiserror = "1.0.38"
 once_cell = "1.17.1"
+ciborium = "0.2"
 
 [features]

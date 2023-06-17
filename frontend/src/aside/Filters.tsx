@@ -98,7 +98,7 @@ const FilterSelect = (props: FilterSelectProps) => {
 }
 
 const Filter = (props: {
-    onChange: (field: string, op: string, val: string | string[]) => void
+    onChange: (field: string, op: string, val: string | string[] | null) => void
     fields: string[]
     field: string | undefined
     op: string | undefined
@@ -111,7 +111,7 @@ const Filter = (props: {
     const [pending, startTransition] = useTransition()
 
     useEffect(() => {
-        if (field !== null && op !== null && val !== null) {
+        if (field !== null && op !== null) {
             props.onChange(field, op, val)
         }
     }, [field, op, val])
@@ -163,7 +163,7 @@ interface FilterListProps {
     onChange: (
         field: string,
         op: string,
-        val: string | string[],
+        val: string | string[] | null,
         index: number,
     ) => void
 }
@@ -259,7 +259,7 @@ export const Filters = (props: FiltersProps) => {
         return (
             field: string,
             op: string,
-            value: string | string[],
+            value: string | string[] | null,
             index: number,
         ) => {
             dispatch({

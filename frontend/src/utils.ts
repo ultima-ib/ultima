@@ -12,7 +12,7 @@ export const fancyZip = <T>(rows: T[][]): T[][] =>
 export const mapFilters = (f: Filters): Filter[][] =>
     Object.values(f).map((ands) =>
         Object.values(ands).filter(
-            (it) => hasValue(it.value) && hasValue(it.op) && hasValue(it.field),
+            (it) => hasValue(it.op) && hasValue(it.field),
         ),
     )
 export const mapRows = (r: Rows): Record<string, string>[] => {

@@ -12,7 +12,7 @@ import {
     TextField,
     DialogActions,
     Button,
-    Dialog,
+    Dialog, Autocomplete,
 } from "@mui/material"
 import { useFRTB, useTemplates } from "../api/hooks"
 import { Dispatch, SetStateAction, useId, useRef, useState } from "react"
@@ -103,8 +103,7 @@ export const Templates = (props: {
         Template | undefined
     >(undefined)
 
-    const handleChange = (event: SelectChangeEvent) => {
-        const name = event.target.value
+    const handleChange = (name: string) => {
         const foundTemplate = templates.find((it) => it.name === name)
         if (foundTemplate === undefined) {
             return
@@ -137,20 +136,13 @@ export const Templates = (props: {
         <>
             <Box sx={{ display: "flex" }}>
                 <FormControl fullWidth variant="filled" sx={{ my: 1, mx: 1 }}>
-                    <InputLabel id={labelId}>Templates</InputLabel>
-                    <Select
-                        labelId={labelId}
+                    <Autocomplete
                         id={id}
                         value={selectedTemplate?.name ?? ""}
-                        label="Templates"
-                        onChange={handleChange}
-                    >
-                        {templates.map((template) => (
-                            <MenuItem value={template.name} key={template.name}>
-                                {template.name}
-                            </MenuItem>
-                        ))}
-                    </Select>
+                        onChange={(e, name) => handleChange(name)}
+                        options={templates.map((it) => it.name)}
+                        renderInput={(params) => <TextField {...params} label="Templates" />}
+                    />
                 </FormControl>
                 <Tooltip title="Use custom template">
                     <IconButton onClick={openJsonSelectorDialog}>

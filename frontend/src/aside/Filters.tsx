@@ -197,7 +197,7 @@ function FilterList(props: FilterListProps) {
                             fields={props.fields}
                             field={props.filters[index].field}
                             op={props.filters[index].op}
-                            val={props.filters[index].value}
+                            val={props.filters[index].value ?? undefined}
                         />
                     </ListItem>
                 ))}

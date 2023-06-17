@@ -28,10 +28,10 @@ export const mapRows = (r: Rows): Record<string, string>[] => {
 }
 
 export const buildAdditionalRowsFromTemplate = (
-    additionalRows: Template["additionalRows"],
+    additionalRows: Template["additionalRows"] | undefined,
 ): AdditionalRows<Rows> => {
     const build: Rows = {}
-    additionalRows.rows.forEach((innerRows, index) => {
+    additionalRows?.rows.forEach((innerRows, index) => {
         const inner: Rows[number] = {}
         for (const key in innerRows) {
             inner[index] = {
@@ -42,7 +42,7 @@ export const buildAdditionalRowsFromTemplate = (
         build[index] = inner
     })
     return {
-        prepare: additionalRows.prepare,
+        prepare: additionalRows?.prepare ?? false,
         rows: build,
     }
 }

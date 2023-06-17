@@ -9,7 +9,7 @@ export interface DataSet {
 export interface Filter {
     field?: string
     op?: string
-    value?: string | string[]
+    value?: string | string[] | null
 }
 
 export interface CalcParam {

@@ -2,10 +2,6 @@ import {
     FormControl,
     IconButton,
     Box,
-    InputLabel,
-    MenuItem,
-    Select,
-    SelectChangeEvent,
     Tooltip,
     DialogTitle,
     DialogContent,
@@ -13,9 +9,10 @@ import {
     DialogActions,
     Button,
     Dialog,
+    Autocomplete,
 } from "@mui/material"
 import { useFRTB, useTemplates } from "../api/hooks"
-import { Dispatch, SetStateAction, useId, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useRef, useState } from "react"
 import { Template } from "../api/types"
 import { buildRequest, InputStateUpdate, useInputs } from "./InputStateContext"
 import LaunchIcon from "@mui/icons-material/Launch"
@@ -103,8 +100,7 @@ export const Templates = (props: {
         Template | undefined
     >(undefined)
 
-    const handleChange = (event: SelectChangeEvent) => {
-        const name = event.target.value
+    const handleChange = (name: string) => {
         const foundTemplate = templates.find((it) => it.name === name)
         if (foundTemplate === undefined) {
             return
@@ -124,9 +120,6 @@ export const Templates = (props: {
         })
     }
 
-    const id = useId()
-    const labelId = `${id}-label`
-
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const openJsonSelectorDialog = () => {
@@ -137,20 +130,14 @@ export const Templates = (props: {
         <>
             <Box sx={{ display: "flex" }}>
                 <FormControl fullWidth variant="filled" sx={{ my: 1, mx: 1 }}>
-                    <InputLabel id={labelId}>Templates</InputLabel>
-                    <Select
-                        labelId={labelId}
-                        id={id}
+                    <Autocomplete
                         value={selectedTemplate?.name ?? ""}
-                        label="Templates"
-                        onChange={handleChange}
-                    >
-                        {templates.map((template) => (
-                            <MenuItem value={template.name} key={template.name}>
-                                {template.name}
-                            </MenuItem>
-                        ))}
-                    </Select>
+                        onChange={(e, name) => name && handleChange(name)}
+                        options={templates.map((it) => it.name)}
+                        renderInput={(params) => (
+                            <TextField {...params} label="Templates" />
+                        )}
+                    />
                 </FormControl>
                 <Tooltip title="Use custom template">
                     <IconButton onClick={openJsonSelectorDialog}>

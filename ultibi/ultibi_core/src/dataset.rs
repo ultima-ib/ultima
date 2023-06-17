@@ -4,6 +4,7 @@ use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
+use crate::reports::report::ReportersMap;
 use crate::{derive_basic_measures_vec, execute, Measure, CPM};
 use crate::{CalcParameter, ComputeRequest, DataSourceConfig, MeasuresMap};
 
@@ -15,6 +16,8 @@ pub struct DataSetBase {
     pub frame: LazyFrame,
     /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
+    ///Similar to measures, but stores Reports
+    pub reports: ReportersMap,
     /// build_params are passed into .prepare() - if streaming or add_row
     ///  this happens during the execution. Hence we can't remove and pass to .prepare() directly
     pub build_params: BTreeMap<String, String>,
@@ -38,8 +41,14 @@ pub trait DataSet: Send + Sync {
     /// Modify lf in place
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
 
-    /// Get all measures associated with the DataSet
+    /// Get all Measures associated with the DataSet
+    /// TODO by default coauld be numeric columns accessed via [get_lazyframe]
     fn get_measures(&self) -> &MeasuresMap;
+
+    /// Get all Reporters associated with the DataSet
+    fn get_reporters(&self) -> Box<ReportersMap> {
+        Default::default()
+    }
 
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
     fn new(frame: LazyFrame, mm: MeasuresMap, params: CPM) -> Self
@@ -268,13 +277,14 @@ impl Serialize for dyn DataSet {
     where
         S: Serializer,
     {
+        // For measures we are only interested in their agg method
         let measures = self
             .get_measures()
             .iter()
             .map(|(x, m)| (x, m.aggregation()))
             .collect::<BTreeMap<&String, &Option<String>>>();
-
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
+
         let utf8_cols = self
             .get_lazyframe()
             .schema()

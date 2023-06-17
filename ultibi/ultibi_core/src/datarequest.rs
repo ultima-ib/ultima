@@ -94,6 +94,7 @@ pub enum CacheableComputeRequest {
     Breakdown,
 }
 
+/// Similar to AggregationRequest, but Measure is only one
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub struct CacheableAggregationRequest {
@@ -133,4 +134,16 @@ impl From<&AggregationRequest> for Vec<CacheableAggregationRequest> {
             })
             .collect::<Vec<CacheableAggregationRequest>>()
     }
+}
+
+/// Request similar to [AggregationRequest]
+/// But only two fields accepted
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(tag = "type")]
+pub struct GroupByAggRequest {
+    /// Measure: (Name: String, Action: String) where Name will be looked up in
+    /// MeasuresMap of the DataSet
+    pub measures: Vec<(String, String)>,
+    /// Which column do you want to Group By?
+    pub groupby: Vec<String>,
 }

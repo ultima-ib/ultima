@@ -6,6 +6,7 @@ mod drc;
 mod rrao;
 mod sbm;
 mod totals;
+mod reports;
 
 pub mod calc_params;
 pub mod docs;
@@ -19,6 +20,7 @@ pub mod statics;
 mod validate;
 
 use ultibi::cache::{Cache, CacheableDataSet};
+use ultibi::reports::report::ReportersMap;
 use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, ValidateSet, CPM};
 //use crate::drc::drc_weights;
 use prelude::calc_params::FRTB_CALC_PARAMS;
@@ -36,6 +38,7 @@ use std::collections::{BTreeMap, HashSet};
 pub struct FRTBDataSet {
     pub frame: LazyFrame,
     pub measures: MeasuresMap,
+    pub reports: ReportersMap,
     pub build_params: BTreeMap<String, String>,
     pub cache: Cache,
 }
@@ -85,6 +88,7 @@ impl DataSet for FRTBDataSet {
             measures: mm,
             build_params,
             cache: Cache::default(),
+            reports: Default::default(),
         };
         res.with_measures(frtb_measure_vec());
         res

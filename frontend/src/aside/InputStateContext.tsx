@@ -48,6 +48,7 @@ export function inputStateReducer(
             }
             break
         case InputStateUpdate.Filters:
+            console.log(action.data.filters)
             update = {
                 filters: {
                     ...action.data.filters,

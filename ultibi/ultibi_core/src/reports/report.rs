@@ -52,21 +52,21 @@ pub struct Reporter {
     pub calculator: ReportWriter,
 }
 
-/* TODO
+
 /// Publishes a [Report]
 #[derive(Clone)]
-#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+//#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub enum Publisher {
     /// This report has fixed GroupBy, Measure
     /// Everything else is ammendable
     /// eg FRTB EQ11
-    GroupbyAggPublisher(GroupbyAggPublisher)  
+    GroupbyAggPublisher(GroupbyAggReport)  
 }
 
 /// Publishes [Report]
 #[derive(Clone)]
-#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
-pub struct GroupbyAggPublisher {
+//#[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
+pub struct GroupbyAggReport {
     /// Unique name for DataSet, to be seen in the UI
     /// or called by this name from request
     pub name: String,
@@ -74,9 +74,16 @@ pub struct GroupbyAggPublisher {
     /// Each report has a list of associated !incomplete! requests
     /// incomplete means GroupBy, Measure is fixed
     /// everything else is variable
-    pub requests: Vec<GroupbyAggRequest>,
+    pub requests: Vec<GroupbyAggReportRequest>,
 
     /// Simply appends text for the result of each request
     pub calculator: ReportWriter,
 }
-*/
+
+#[derive(Clone)]
+pub struct GroupbyAggReportRequest;
+
+
+
+
+

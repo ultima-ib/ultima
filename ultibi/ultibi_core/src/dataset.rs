@@ -24,6 +24,8 @@ pub struct DataSetBase {
     /// Cache
     pub cache: Cache,
 }
+use once_cell::sync::Lazy;
+pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(|| {Default::default()});
 
 /// The main Trait
 ///
@@ -46,8 +48,8 @@ pub trait DataSet: Send + Sync {
     fn get_measures(&self) -> &MeasuresMap;
 
     /// Get all Reporters associated with the DataSet
-    fn get_reporters(&self) -> Box<ReportersMap> {
-        Default::default()
+    fn get_reporters(&self) -> &ReportersMap {
+        &EMPTY_REPORTS_MAP
     }
 
     /// See [DataSetBase] and [CalcParameter] for description of the parameters

@@ -24,6 +24,8 @@ pub type CPM = BTreeMap<String, String>;
 pub enum ComputeRequest {
     /// Measures will be called in GroupBy-Aggregate context
     Aggregation(AggregationRequest),
+    /// Converted into a Vec<AggregationRequest/Breakdown) to produce a report
+    Report(ReportRequest),
     /// TODO Measures will be called in groupby-Apply Context
     Breakdown,
 }
@@ -140,14 +142,12 @@ impl From<&AggregationRequest> for Vec<CacheableAggregationRequest> {
     }
 }
 
-/// Request similar to [AggregationRequest]
-/// But only two fields accepted
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
-pub struct GroupByAggRequest {
-    /// Measure: (Name: String, Action: String) where Name will be looked up in
-    /// MeasuresMap of the DataSet
-    pub measures: Vec<(String, String)>,
-    /// Which column do you want to Group By?
-    pub groupby: Vec<String>,
+pub struct ReportRequest {
+    /// Report Name
+    pub report_name: String,
+    /// This should Deserialise into report specific request
+    /// For example [GroupbyAggReportRequest]
+    pub report_body: String,
 }

@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use once_cell::sync::Lazy;
-use ultibi::{reports::report::{Reporter, Report}, DataFrame};
+use ultibi::{reports::report::{Report, GroupbyAggReport}, DataFrame};
 
-pub(crate) static _EQ11: Lazy<Reporter> = Lazy::new(||
-    Reporter{
+pub(crate) static _EQ11: Lazy<GroupbyAggReport> = Lazy::new(||
+    GroupbyAggReport{
         name: "Equity Bucket 11".into(),
-        requests: vec![],
+        fixed_fields: vec![],
         calculator: Arc::new(
             |_dfs: &[DataFrame]|{
                 Ok(Report::default())

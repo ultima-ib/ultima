@@ -1,4 +1,7 @@
+//! TODO rename to compute request and move to a separate module
+
 use std::collections::BTreeMap;
+use typed_builder::TypedBuilder;
 
 use crate::aggregations::AggregationName;
 use crate::filters::FilterE;
@@ -21,6 +24,8 @@ pub type CPM = BTreeMap<String, String>;
 pub enum ComputeRequest {
     /// Measures will be called in GroupBy-Aggregate context
     Aggregation(AggregationRequest),
+    /// Converted into a Vec<AggregationRequest/Breakdown) to produce a report
+    Report(ReportRequest),
     /// TODO Measures will be called in groupby-Apply Context
     Breakdown,
 }
@@ -30,8 +35,9 @@ impl From<AggregationRequest> for ComputeRequest {
         ComputeRequest::Aggregation(item)
     }
 }
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, TypedBuilder)]
 #[serde(tag = "type")]
+#[builder(field_defaults(default))]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct AggregationRequest {
     // general fields
@@ -94,6 +100,7 @@ pub enum CacheableComputeRequest {
     Breakdown,
 }
 
+/// Similar to AggregationRequest, but Measure is only one
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub struct CacheableAggregationRequest {
@@ -133,4 +140,14 @@ impl From<&AggregationRequest> for Vec<CacheableAggregationRequest> {
             })
             .collect::<Vec<CacheableAggregationRequest>>()
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(tag = "type")]
+pub struct ReportRequest {
+    /// Report Name
+    pub report_name: String,
+    /// This should Deserialise into report specific request
+    /// For example [GroupbyAggReportRequest]
+    pub report_body: String,
 }

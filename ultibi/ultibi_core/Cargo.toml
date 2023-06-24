@@ -33,11 +33,12 @@ aws-sdk-s3 = { version = "0.19.0", optional = true }
 tokio = { version = "1.21.2", features = ["rt-multi-thread"], optional = true }
 futures = { version = "0.3", optional = true }
 #Cache
-#May be make optional
 dashmap = { workspace = true }
 # Open API Swagger
 quote = "1.0.26" # Needs to be specified for utoipa to build
 utoipa = { git="https://github.com/juhaku/utoipa", optional = true} # TODO change to version
+# Other Utils
+typed-builder="0.14.0"
 
 
 [features]

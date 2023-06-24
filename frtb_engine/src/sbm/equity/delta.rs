@@ -124,6 +124,7 @@ where
                         .eq(lit("Equity"))
                         .and(col("rcat").eq(lit("Delta"))),
                 )
+                // TODO Fill empty bucket with 11 here
                 .with_columns([
                     when(col("rft").eq(lit("EqSpot")))
                         .then((col("d") * col("w")).alias("Spot"))

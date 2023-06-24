@@ -5,10 +5,12 @@ Licensed Work:        Ultima
                       The Licensed Work is (c) 2023 Ultibi Ltd.
 
 Abstract
-Ultibi users can run it as a service, make availiable to their employees, contractors, and subsidiary companies. They can  extend Ultibi with their own Measures applied to their DataSets. They can use Ultibi to present their data to their consumers. The only thing that Ultibi users will not be able to do is offer a commercial version of Ultibi as Analytics as a Service without buying a license. For information about alternative licensing arrangements for the Software,
+`ultibi` users can use it as it is, make availiable to their employees, contractors, and subsidiary companies. The only thing that Ultibi users will not be able to do is offer a commercial version of Ultibi as Analytics as a Service without buying a license. For information about alternative licensing arrangements for the Software,
 please visit: https://ultimabi.uk/
 
-`Ultibi as Analytics as a Service` is a commercial offering that allows third parties (other than your employees andcontractors) to make use of the setup and Measures defined by that who makes the offer or other third parties.
+`ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. 
+
+`Ultibi as Analytics as a Service` is a commercial offering that allows third parties (other than your employees and contractors) to make use of the setup and extensions (eg Measures) defined by that who makes the offer or other third parties.
 
 Acceptance
 By using the software, you agree to all of the terms and conditions below.

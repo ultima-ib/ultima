@@ -6,6 +6,7 @@ mod drc;
 mod rrao;
 mod sbm;
 mod totals;
+mod reports;
 
 pub mod calc_params;
 pub mod docs;
@@ -20,7 +21,6 @@ mod validate;
 
 use ultibi::cache::{Cache, CacheableDataSet};
 use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, ValidateSet, CPM};
-//use crate::drc::drc_weights;
 use prelude::calc_params::FRTB_CALC_PARAMS;
 use ultibi::polars::prelude::{
     col, lit, when, AnyValue, Expr, LazyFrame, Literal, LiteralValue, NamedFrom, PolarsResult,

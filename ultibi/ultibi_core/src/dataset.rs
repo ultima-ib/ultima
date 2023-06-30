@@ -4,6 +4,7 @@ use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
+use crate::errors::{UltimaErr, UltiResult};
 use crate::reports::report::ReportersMap;
 use crate::{derive_basic_measures_vec, execute, Measure, CPM};
 use crate::{CalcParameter, ComputeRequest, DataSourceConfig, MeasuresMap};
@@ -115,7 +116,7 @@ pub trait DataSet: Send + Sync {
     /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
     /// Any pre-computations which are common to all queries could go in here.
     /// Calls [DataSet::prepare_frame] insternally
-    fn prepare(&mut self) -> PolarsResult<()>
+    fn prepare(&mut self) -> UltiResult<()>
     where
         Self: Sized,
     {
@@ -126,12 +127,8 @@ pub trait DataSet: Send + Sync {
 
     /// By returning a Frame this method can be used on a
     /// *lf - buffer. if None, function "prepares" self.lazy_frame()
-    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
-        if let Some(lf) = _lf {
-            Ok(lf)
-        } else {
-            Ok(self.get_lazyframe().clone())
-        }
+    fn prepare_frame(&self, lf: LazyFrame) -> UltiResult<LazyFrame> {
+        Ok(lf)
     }
 
     /// Calc params are used for the UI and hence are totally optional

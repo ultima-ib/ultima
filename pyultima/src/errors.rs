@@ -13,6 +13,7 @@ pub enum PyUltimaErr {
     Polars(#[from] PolarsError),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+    Ultima(#[from] UltimaErr),
     #[error("{0}")]
     Other(String),
 }
@@ -51,6 +52,7 @@ impl std::convert::From<PyUltimaErr> for PyErr {
             SerdeJson(err) => SerdeJsonError::new_err(format!(
                 "Couldn't (de)serialise input. Check format. {err}"
             )),
+            Ultima(err) => UltimaError::new_err(err),
             Other(_str) => OtherError::new_err(_str.to_string()),
         }
     }
@@ -62,6 +64,7 @@ impl Debug for PyUltimaErr {
         match self {
             Polars(err) => write!(f, "{err}"),
             SerdeJson(err) => write!(f, "Couldn't serialize string. Check format. {err}"),
+            Ultima(err) => write!(f, "Ultima error. {err}"),
             Other(err) => write!(f, "BindingsError: {err}"),
         }
     }
@@ -79,3 +82,5 @@ create_exception!(exceptions, SerdeJsonError, PyException);
 create_exception!(exceptions, OtherError, PyException);
 create_exception!(exceptions, SchemaFieldNotFound, PyException);
 create_exception!(exceptions, StructFieldNotFound, PyException);
+create_exception!(exceptions, UltimaError, PyException);
+

@@ -5,6 +5,7 @@ use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
 use crate::errors::{UltimaErr, UltiResult};
+use crate::filters::{AndOrFltrChain, fltr_chain};
 use crate::reports::report::ReportersMap;
 use crate::{derive_basic_measures_vec, execute, Measure, CPM};
 use crate::{CalcParameter, ComputeRequest, DataSourceConfig, MeasuresMap};
@@ -14,12 +15,12 @@ use crate::{CalcParameter, ComputeRequest, DataSourceConfig, MeasuresMap};
 #[derive(Default)]
 pub struct DataSetBase {
     /// Data
-    pub frame: LazyFrame,
+    pub source: Source,
     /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
     ///Similar to measures, but stores Reports
     pub reports: ReportersMap,
-    /// build_params are passed into .prepare() - if streaming or add_row
+    /// build_params can be used in .prepare() - if streaming or add_row
     ///  this happens during the execution. Hence we can't remove and pass to .prepare() directly
     pub build_params: BTreeMap<String, String>,
     /// Cache
@@ -27,6 +28,21 @@ pub struct DataSetBase {
 }
 use once_cell::sync::Lazy;
 pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(|| {Default::default()});
+
+/// Indicated the source of data
+pub enum Source {
+    /// In Memory Data - fast, since prepare runs only once, instead of in every request
+    InMemory(DataFrame),
+    /// It's caller's responsibility to ensure that this Frame is a Scan and not just any LazyFrame
+    Scan(LazyFrame),
+    // TODO DB Conn
+}
+
+impl Default for Source {
+    fn default() -> Self {
+        Source::InMemory(Default::default())
+    }
+}
 
 /// The main Trait
 ///
@@ -36,94 +52,99 @@ pub trait DataSet: Send + Sync {
     fn ui(&self) {
         ultibi_server::run_server(self)
     }
+    /// Clones but clone is cheap
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
     /// This method gets the main LazyFrame of the Dataset
-    fn get_lazyframe(&self) -> &LazyFrame;
+    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame;
 
-    /// Modify lf in place
-    fn set_lazyframe_inplace(&mut self, lf: LazyFrame);
-
+    
     /// Get all Measures associated with the DataSet
     /// TODO by default coauld be numeric columns accessed via [get_lazyframe]
     fn get_measures(&self) -> &MeasuresMap;
 
+    /// Get Schema (Column Names) of the underlying Data
+    fn get_schema(&self) -> UltiResult<Arc<Schema>> {
+        Ok(self.get_lazyframe(&vec![])
+            .schema()?)
+    }
+    
     /// Get all Reporters associated with the DataSet
     fn get_reporters(&self) -> &ReportersMap {
         &EMPTY_REPORTS_MAP
     }
+    
+    // /// Modify lf in place - applicable only to InMemory DataSet
+    // /// Common use case - prepare, and the set_inplace
+    // #[must_use] 
+    // fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()> {
+    //     Err(UltimaErr::Other("Not implemented for your Data Set".to_string()))
+    // }
 
-    /// See [DataSetBase] and [CalcParameter] for description of the parameters
-    fn new(frame: LazyFrame, mm: MeasuresMap, params: CPM) -> Self
-    where
-        Self: Sized;
+    // /// See [DataSetBase] and [CalcParameter] for description of the parameters
+    // fn new(frame: LazyFrame, mm: MeasuresMap, params: CPM) -> Self
+    // where
+    //     Self: Sized;
 
-    /// Cannot be defined since returns Self which is a Struct.
-    /// Not possible to call [DataSet::new] either since it's not on self
-    fn from_config(conf: DataSourceConfig) -> Self
-    where
-        Self: Sized,
-    {
-        let (frame, measure_cols, bp) = conf.build();
-        let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
-        Self::new(frame, mm, bp)
-    }
+    // /// Cannot be defined since returns Self which is a Struct.
+    // /// Not possible to call [DataSet::new] either since it's not on self
+    // fn from_config(conf: DataSourceConfig) -> Self
+    // where
+    //     Self: Sized,
+    // {
+    //     let (frame, measure_cols, bp) = conf.build();
+    //     let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
+    //     Self::new(frame, mm, bp)
+    // }
 
-    /// Either place your desired numeric columns and bespokes in
-    /// *ms and set include_numeric_cols_as_measures = False
-    /// or set your bespokes in *ms and include_numeric_cols_as_measures = True
-    /// See [DataSetBase] and [CalcParameter] for description of the parameters
-    fn from_vec(
-        frame: LazyFrame,
-        mut ms: Vec<Measure>,
-        include_numeric_cols_as_measures: bool,
-        params: CPM,
-    ) -> Self
-    where
-        Self: Sized,
-    {
-        if include_numeric_cols_as_measures {
-            let num_cols = frame
-                .schema()
-                .map(numeric_columns)
-                .expect("Failed to obtain numeric columns");
+    // /// Either place your desired numeric columns and bespokes in
+    // /// *ms and set include_numeric_cols_as_measures = False
+    // /// or set your bespokes in *ms and include_numeric_cols_as_measures = True
+    // /// See [DataSetBase] and [CalcParameter] for description of the parameters
+    // fn from_vec(
+    //     frame: LazyFrame,
+    //     mut ms: Vec<Measure>,
+    //     include_numeric_cols_as_measures: bool,
+    //     params: CPM,
+    // ) -> Self
+    // where
+    //     Self: Sized,
+    // {
+    //     if include_numeric_cols_as_measures {
+    //         let num_cols = frame
+    //             .schema()
+    //             .map(numeric_columns)
+    //             .expect("Failed to obtain numeric columns");
 
-            let numeric_cols_as_measures = derive_basic_measures_vec(num_cols);
-            ms.extend(numeric_cols_as_measures);
-        }
+    //         let numeric_cols_as_measures = derive_basic_measures_vec(num_cols);
+    //         ms.extend(numeric_cols_as_measures);
+    //     }
 
-        let mm: MeasuresMap = MeasuresMap::from_iter(ms);
-        Self::new(frame, mm, params)
-    }
+    //     let mm: MeasuresMap = MeasuresMap::from_iter(ms);
+    //     Self::new(frame, mm, params)
+    // }
 
-    /// Collects the (main) LazyFrame of the DataSet
-    fn collect(&mut self) -> PolarsResult<()>
-    where
-        Self: Sized,
-    {
-        let lf = self.get_lazyframe().clone().collect()?.lazy();
-        self.set_lazyframe_inplace(lf);
-        Ok(())
-    }
+    // /// Collects the (main) LazyFrame of the DataSet
+    // fn collect(&mut self) -> PolarsResult<()>
+    // where
+    //     Self: Sized,
+    // {
+    //     let lf = self.get_lazyframe().collect()?.lazy();
+    //     self.set_lazyframe_inplace(lf);
+    //     Ok(())
+    // }
 
-    // These methods could be overwritten.
-
-    /// Clones
-    fn frame(&self) -> PolarsResult<DataFrame> {
-        self.get_lazyframe().clone().collect()
-    }
-
-    /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
-    /// Any pre-computations which are common to all queries could go in here.
-    /// Calls [DataSet::prepare_frame] insternally
-    fn prepare(&mut self) -> UltiResult<()>
-    where
-        Self: Sized,
-    {
-        let new_frame = self.prepare_frame(None)?;
-        self.set_lazyframe_inplace(new_frame);
-        Ok(())
-    }
+    // /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
+    // /// Any pre-computations which are common to all queries could go in here.
+    // /// Calls [DataSet::prepare_frame] insternally
+    // fn prepare(&mut self) -> UltiResult<()>
+    // where
+    //     Self: Sized,
+    // {
+    //     let new_frame = self.prepare_frame(self.get_lazyframe())?;
+    //     self.set_lazyframe_inplace(new_frame);
+    //     Ok(())
+    // }
 
     /// By returning a Frame this method can be used on a
     /// *lf - buffer. if None, function "prepares" self.lazy_frame()
@@ -146,8 +167,9 @@ pub trait DataSet: Send + Sync {
 
     /// Limits overridable columns which you can override in
     /// See [AggregationRequest::overrides]
+    /// Good usecase: add prepared 
     fn overridable_columns(&self) -> Vec<String> {
-        self.get_lazyframe()
+        self.get_lazyframe(&vec![])
             .schema()
             .map(overrides_columns)
             .unwrap_or_default()
@@ -161,7 +183,7 @@ pub trait DataSet: Send + Sync {
 
     /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame
     /// into memory. See: https://www.rhosignal.com/posts/polars-dont-fear-streaming/
-    fn compute(&self, r: ComputeRequest, streaming: bool) -> PolarsResult<DataFrame> {
+    fn compute(&self, r: ComputeRequest, streaming: bool) -> UltiResult<DataFrame> {
         execute(self, r, streaming)
     }
 
@@ -176,35 +198,41 @@ pub trait DataSet: Send + Sync {
 impl DataSet for DataSetBase {
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
-    fn get_lazyframe(&self) -> &LazyFrame {
-        &self.frame
+    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame {
+        let filter = fltr_chain(filters);
+        match self.source {
+            Source::InMemory(df) => if let Some(f) = filter { df.lazy().filter(f) } else {df.lazy()},
+            Source::Scan(lf) => if let Some(f) = filter { lf.filter(f) } else {lf}
+        }
     }
-    /// Modify lf in place
-    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
-        self.frame = lf;
-    }
+    // TODO to go into DataSetBase impl
+    // /// Modify lf in place
+    // fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()>  {
+    //     //match self.source { 
+    //     //    Source::InMemory(df) => {self.source = Source::InMemory(lf.collect()?)},
+    //     //    _ => 
+    //     //};
+    //     if let Source::InMemory(df) = self.source {
+    //         self.source = Source::InMemory(lf.collect()?)
+    //     } else {
+    //         return Err(UltimaErr::Other("Not implemented for your Data Set".to_string()))
+    //     }
+    //     Ok(())
+    // }
 
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
     }
 
-    //fn new(frame: LazyFrame, mm: MeasuresMap, build_params: BTreeMap<String, String>) -> Self {
-    //    Self {
-    //        frame,
-    //        measures: mm,
-    //        build_params,
-    //        ..Default::default()
-    //    }
-    //}
-
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {
-        Self {
-            frame,
-            measures: mm,
-            build_params,
-            ..Default::default()
-        }
-    }
+    // TODO to go into DataSetBase impl
+    // fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {
+    //     Self {
+    //         source: frame,
+    //         measures: mm,
+    //         build_params,
+    //         ..Default::default()
+    //     }
+    // }
 
     //fn collect(self) -> PolarsResult<Self> {
     //    let lf = self.frame.collect()?.lazy();
@@ -285,8 +313,7 @@ impl Serialize for dyn DataSet {
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
 
         let utf8_cols = self
-            .get_lazyframe()
-            .schema()
+            .get_schema()
             .map(fields_columns)
             .unwrap_or_default();
         let calc_params = self.calc_params();

@@ -18,7 +18,7 @@ use crate::{
     overrides::Override,
     prelude::helpers::diag_concat_lf,
     AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
-    ValidateSet,
+    ValidateSet, errors::UltiResult,
 };
 
 /// Looks up measures and calls calculator on those returning an Expr
@@ -29,13 +29,13 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     data: &DS,
     req: AggregationRequest,
     streaming: bool,
-) -> PolarsResult<DataFrame> {
+) -> UltiResult<DataFrame> {
     // Step 0: Lookup and return Expr
     let all_requested_measures = req.measures();
     if all_requested_measures.is_empty() {
         return Err(PolarsError::InvalidOperation(
             "Select measures. What do you want to aggregate?".into(),
-        ));
+        ).into());
     }
 
     let op = req.calc_params(); // Optional params of the request
@@ -172,15 +172,15 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     totals: bool,
     processed_base_measures: Vec<ProcessedBaseMeasure>,
     streaming: bool,
-) -> PolarsResult<DataFrame> {
+) -> UltiResult<DataFrame> {
     // Step 0.1 - get existing frame - first building block
-    let mut f1 = data.get_lazyframe().clone();
+    let mut f1 = data.get_lazyframe(filters);
 
     // Step 1.0 Applying FILTERS:
     // TODO check if column is present in DF - (is this "second line of defence" even needed?)
-    if let Some(f) = fltr_chain(filters) {
-        f1 = f1.filter(f)
-    }
+    // if let Some(f) = fltr_chain(filters) {
+    //     f1 = f1.filter(f)
+    // }
 
     // Step 2.1
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
@@ -216,7 +216,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
     // If streaming then prepare (assign weights) NOW (ie post filtering)
     if streaming {
-        f1 = data.prepare_frame(Some(f1))?
+        f1 = data.prepare_frame(f1)?
     }
 
     // Step 2.4 Applying Overwrites
@@ -232,7 +232,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
         if add_rows.prepare {
             // Validating only a subset required for prepare()
             data.validate_frame(Some(&extra_frame), ValidateSet::SUBSET1)?;
-            extra_frame = data.prepare_frame(Some(extra_frame))?;
+            extra_frame = data.prepare_frame(extra_frame)?;
         }
         f1 = diag_concat_lf([f1, extra_frame], true, true)?;
     }

@@ -4,11 +4,11 @@ use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
-use crate::errors::{UltimaErr, UltiResult};
+use crate::errors::{UltiResult};
 use crate::filters::{AndOrFltrChain, fltr_chain};
 use crate::reports::report::ReportersMap;
-use crate::{derive_basic_measures_vec, execute, Measure, CPM};
-use crate::{CalcParameter, ComputeRequest, DataSourceConfig, MeasuresMap};
+use crate::{execute};
+use crate::{CalcParameter, ComputeRequest, MeasuresMap};
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -177,7 +177,7 @@ pub trait DataSet: Send + Sync {
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
-    fn validate_frame(&self, _: Option<&LazyFrame>, _: ValidateSet) -> PolarsResult<()> {
+    fn validate_frame(&self, _: Option<&LazyFrame>, _: ValidateSet) -> UltiResult<()> {
         Ok(())
     }
 

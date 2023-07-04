@@ -209,7 +209,7 @@ impl DataSet for DataSetBase {
         if let Source::InMemory(_) = self.source {
             self.source = Source::InMemory(lf.collect()?)
         } else {
-            return Err(UltimaErr::Other("Not implemented for your Data Set".to_string()))
+            return Err(UltimaErr::Other("Can't set data inplace with this Source. Currently can only set In Memory Dataframe".to_string()))
         }
         Ok(())
     }

@@ -5,7 +5,7 @@ use polars::prelude::*;
 
 use ultibi_core::{
     prelude::{read_toml2, DataSet, DataSetBase, DataSourceConfig},
-    DependantMeasure, Measure, CPM,
+    DependantMeasure, Measure, CPM, new::NewSourcedDataSet, Source,
 };
 
 #[allow(dead_code)] // Not dead code actually, but clippy complains
@@ -22,6 +22,7 @@ pub static TEST_DASET: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
 
     let mut data: DataSetBase = DataSetBase::from_config(conf);
+
     data.prepare().unwrap();
     Arc::new(data)
 });
@@ -56,8 +57,8 @@ pub static TEST_DASET_WITH_DEPENDANTS: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
         .into(),
     ];
 
-    let mut data: DataSetBase = DataSet::from_vec(df, measures, true, Default::default());
-
-    data.prepare().unwrap();
+    let data: DataSetBase = DataSetBase::from_vec(Source::Scan(df), measures, true, vec![], Default::default());
+    
+    // Not preparing here, since scan
     Arc::new(data)
 });

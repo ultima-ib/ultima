@@ -120,19 +120,8 @@ pub trait DataSet: Send + Sync {
     /// Modify lf in place - applicable only to InMemory DataSet
     /// Common use case - prepare, and then set_inplace
     fn set_lazyframe_inplace(&mut self, _: LazyFrame) -> UltiResult<()> {
-        Err(UltimaErr::Other("Not implemented for your Data Set".to_string()))
+        Err(UltimaErr::Other("set_lazyframe_inplace is Not implemented for your Data Set".to_string()))
     }
-
-    // /// Cannot be defined since returns Self which is a Struct.
-    // /// Not possible to call [DataSet::new] either since it's not on self
-    // fn from_config(conf: DataSourceConfig) -> Self
-    // where
-    //     Self: Sized,
-    // {
-    //     let (frame, measure_cols, bp) = conf.build();
-    //     let mm: MeasuresMap = MeasuresMap::from_iter(measure_cols);
-    //     Self::new(frame, mm, bp)
-    // }
 
     /// Collects the (main) LazyFrame of the DataSet
     /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
@@ -213,39 +202,21 @@ impl DataSet for DataSetBase {
     fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame {
         self.source.get_lazyframe(filters)
     }
-    // TODO to go into DataSetBase impl
-    // /// Modify lf in place
-    // fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()>  {
-    //     //match self.source { 
-    //     //    Source::InMemory(df) => {self.source = Source::InMemory(lf.collect()?)},
-    //     //    _ => 
-    //     //};
-    //     if let Source::InMemory(df) = self.source {
-    //         self.source = Source::InMemory(lf.collect()?)
-    //     } else {
-    //         return Err(UltimaErr::Other("Not implemented for your Data Set".to_string()))
-    //     }
-    //     Ok(())
-    // }
+
+    /// Modify lf in place - applicable only to InMemory DataSet
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()>  {
+        
+        if let Source::InMemory(_) = self.source {
+            self.source = Source::InMemory(lf.collect()?)
+        } else {
+            return Err(UltimaErr::Other("Not implemented for your Data Set".to_string()))
+        }
+        Ok(())
+    }
 
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
     }
-
-    // TODO to go into DataSetBase impl
-    // fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {
-    //     Self {
-    //         source: frame,
-    //         measures: mm,
-    //         build_params,
-    //         ..Default::default()
-    //     }
-    // }
-
-    //fn collect(self) -> PolarsResult<Self> {
-    //    let lf = self.frame.collect()?.lazy();
-    //    Ok(Self { frame: lf, ..self })
-    //}
 
     //    /// Validate Dataset contains columns
     //    /// files_join_attributes and attributes_join_hierarchy

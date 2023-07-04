@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
+use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet};
 
 /// Reads initial DataSet from Source
 ///
@@ -13,19 +13,19 @@ use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 /// *`collect` - indicates if DF should be collected
 /// *`prepare` - indicates if DF should be prepared
 /// *`bespoke_measures` - bespoke measures
-
+/// TODO add reports
 #[allow(clippy::uninlined_format_args)]
-pub fn config_build_validate_prepare<DS: DataSet>(
+pub fn config_build_validate_prepare<DS: NewSourcedDataSet>(
     config_path: &str,
     collect: bool,
     prepare: bool,
     bespoke_measures: MeasuresMap,
-) -> impl DataSet {
+) -> DS {
     // Read Config
     let conf = read_toml2::<DataSourceConfig>(config_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
 
-    let (lf, measure_vec, build_params) = conf.build();
+    let (source, measure_vec, config) = conf.build();
 
     let mut mm = MeasuresMap::from_iter(measure_vec);
     mm.extend(bespoke_measures);

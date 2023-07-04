@@ -53,7 +53,8 @@ pub fn finish(
     df_hms: LazyFrame,
     mut concatinated_frame: LazyFrame,
     build_params: BTreeMap<String, String>,
-) -> (LazyFrame, Vec<Measure>, BTreeMap<String, String>) {
+    source_type: &str
+) -> (Source, Vec<Measure>, BTreeMap<String, String>) {
     // join with hms if a2h was provided
     if !a2h.is_empty() {
         let a2h_expr = a2h.iter().map(|c| col(c)).collect::<Vec<Expr>>();
@@ -88,8 +89,8 @@ pub fn finish(
         });
         derive_basic_measures_vec(measures)
     }
+
     // If not provided return all numeric columns
-    // TODO move inside the DataSet see FRTBDataSetWrapper::new
     else {
         let num_cols = concatinated_frame
             .schema()
@@ -97,6 +98,10 @@ pub fn finish(
             .expect("Check numeric columns in the config");
         derive_basic_measures_vec(num_cols)
     };
+
+    match source_type {
+        ""
+    }
 
     (concatinated_frame, measures, build_params)
 }

@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::Instant};
 
 use polars::{
     prelude::{
@@ -8,7 +8,7 @@ use polars::{
     series::Series,
 };
 
-use crate::{derive_basic_measures_vec, numeric_columns, Measure};
+use crate::{derive_basic_measures_vec, numeric_columns, Measure, Source, SourceVariant};
 
 /// creates an empty frame with columns
 pub fn empty_frame(with_columns: &[String]) -> DataFrame {
@@ -53,7 +53,7 @@ pub fn finish(
     df_hms: LazyFrame,
     mut concatinated_frame: LazyFrame,
     build_params: BTreeMap<String, String>,
-    source_type: &str
+    source_type: SourceVariant
 ) -> (Source, Vec<Measure>, BTreeMap<String, String>) {
     // join with hms if a2h was provided
     if !a2h.is_empty() {
@@ -99,11 +99,17 @@ pub fn finish(
         derive_basic_measures_vec(num_cols)
     };
 
-    match source_type {
-        ""
-    }
+    let source = match source_type {
+        SourceVariant::InMemory =>{
+            let now = Instant::now();
+            let df = concatinated_frame.collect().expect("Failed to read frame from config");
+            println!("Time to Read/Aggregate DF: {:.6?}", now.elapsed());
+             Source::InMemory(df)
+            },
+        SourceVariant::Scan => Source::Scan(concatinated_frame)
+    };
 
-    (concatinated_frame, measures, build_params)
+    (source, measures, build_params)
 }
 
 /// TODO contribute to Polars

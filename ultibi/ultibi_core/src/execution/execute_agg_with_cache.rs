@@ -1,4 +1,4 @@
-use polars::prelude::{col, DataFrame, Expr, IntoLazy, JoinType, PolarsResult};
+use polars::prelude::{col, DataFrame, Expr, IntoLazy, JoinType};
 
 use crate::cache::CacheableDataSet;
 use crate::errors::UltiResult;

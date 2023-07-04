@@ -3,6 +3,7 @@ pub mod new;
 use std::collections::{BTreeMap, HashSet};
 
 use polars::prelude::*;
+use serde::Deserialize;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
@@ -45,7 +46,10 @@ pub enum Source {
 }
 
 /// Maps to [Source]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[serde(untagged)]
 pub enum SourceVariant {
+    #[default]
     InMemory,
     Scan,
     // TODO DB Conn
@@ -71,8 +75,8 @@ impl Source {
     pub fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame{
         let filter = fltr_chain(filters);
         match self {
-            Source::InMemory(df) => if let Some(f) = filter { df.lazy().filter(f) } else {df.lazy()},
-            Source::Scan(lf) => if let Some(f) = filter { lf.filter(f) } else {lf.clone()}
+            Source::InMemory(df) => if let Some(f) = filter { df.clone().lazy().filter(f) } else {df.clone().lazy()},
+            Source::Scan(lf) => if let Some(f) = filter { lf.clone().filter(f) } else {lf.clone()}
         }
     }
     pub fn get_schema(&self) -> UltiResult<Arc<Schema>>{
@@ -115,8 +119,7 @@ pub trait DataSet: Send + Sync {
 
     /// Modify lf in place - applicable only to InMemory DataSet
     /// Common use case - prepare, and then set_inplace
-    #[must_use] 
-    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()> {
+    fn set_lazyframe_inplace(&mut self, _: LazyFrame) -> UltiResult<()> {
         Err(UltimaErr::Other("Not implemented for your Data Set".to_string()))
     }
 
@@ -133,24 +136,25 @@ pub trait DataSet: Send + Sync {
 
     /// Collects the (main) LazyFrame of the DataSet
     /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
-    fn collect(&mut self) -> PolarsResult<()>
+    fn collect(&mut self) -> UltiResult<()>
     where
         Self: Sized,
     {
         let lf = self.get_lazyframe(&vec![]).collect()?.lazy();
-        self.set_lazyframe_inplace(lf);
+        self.set_lazyframe_inplace(lf)?;
         Ok(())
     }
 
     /// Prepare runs BEFORE any calculations. In eager mode it runs ONCE
     /// Any pre-computations which are common to all queries could go in here.
-    /// Calls [DataSet::prepare_frame] insternally
+    /// Calls [DataSet::prepare_frame]
+    /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
     fn prepare(&mut self) -> UltiResult<()>
     where
         Self: Sized,
     {
         let new_frame = self.prepare_frame(self.get_lazyframe(&vec![]))?;
-        self.set_lazyframe_inplace(new_frame);
+        self.set_lazyframe_inplace(new_frame)?;
         Ok(())
     }
 

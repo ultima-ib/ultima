@@ -1,6 +1,6 @@
 pub mod acquire;
 pub mod helpers;
-pub mod from;
+
 #[cfg(feature = "aws_s3")]
 pub mod awss3;
 
@@ -9,9 +9,9 @@ use polars::functions::diag_concat_df;
 
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, path::PathBuf};
+use std::{collections::BTreeMap};
 
-use crate::{Measure, DataSetBase, Source};
+use crate::{Measure, Source, SourceVariant};
 use helpers::{empty_frame, finish, path_to_lf};
 
 use self::helpers::diag_concat_lf;
@@ -35,6 +35,8 @@ where
 #[non_exhaustive]
 pub enum DataSourceConfig {
     CSV {
+        #[serde(default)]
+        source_type: SourceVariant,
         #[serde(default, rename = "files")]
         file_paths: Vec<String>,
         #[serde(default, rename = "attributes_path")]
@@ -98,6 +100,7 @@ impl DataSourceConfig {
                 f1_cast_to_str: mut str_cols,
                 f1_numeric_cols: f64_cols,
                 build_params,
+                source_type
             } => {
                 for s in f2a.iter() {
                     if !str_cols.contains(s) {
@@ -142,6 +145,7 @@ impl DataSourceConfig {
                     df_hms,
                     concatinated_frame,
                     build_params,
+                    source_type
                 )
             }
             #[cfg(feature = "aws_s3")]
@@ -195,6 +199,8 @@ impl DataSourceConfig {
                     df_hms.lazy(),
                     concatinated_frame.lazy(),
                     build_params,
+                    // Currently AWS doesn't support Scan
+                    SourceVariant::InMemory,
                 )
             }
         }

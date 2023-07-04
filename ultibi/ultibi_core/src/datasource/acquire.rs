@@ -1,6 +1,4 @@
-use std::time::Instant;
-
-use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet};
+use crate::{read_toml2, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet, Source};
 
 /// Reads initial DataSet from Source
 ///
@@ -17,8 +15,6 @@ use crate::{read_toml2, DataSet, DataSourceConfig, MeasuresMap, new::NewSourcedD
 #[allow(clippy::uninlined_format_args)]
 pub fn config_build_validate_prepare<DS: NewSourcedDataSet>(
     config_path: &str,
-    collect: bool,
-    prepare: bool,
     bespoke_measures: MeasuresMap,
 ) -> DS {
     // Read Config
@@ -27,18 +23,12 @@ pub fn config_build_validate_prepare<DS: NewSourcedDataSet>(
 
     let (source, measure_vec, config) = conf.build();
 
+    let prepare = matches!(source, Source::InMemory(_));
+
     let mut mm = MeasuresMap::from_iter(measure_vec);
     mm.extend(bespoke_measures);
 
-    let mut data = DS::new(lf, mm, build_params);
-
-    // If cfg is streaming then we can't collect, otherwise collect to check errors
-    if collect {
-        let now = Instant::now();
-        data.collect().expect("Failed to read frame");
-        let elapsed = now.elapsed();
-        println!("Time to Read/Aggregate DF: {:.6?}", elapsed);
-    }
+    let mut data = DS::new(source, mm, Default::default(), config);
 
     // Build DataSet
 
@@ -48,14 +38,10 @@ pub fn config_build_validate_prepare<DS: NewSourcedDataSet>(
     // Pre build some columns, which you wish to store in memory alongside the original data
     // Note if streaming then .prepare() should happen post filtering
     if prepare {
-        data.prepare().expect("Failed to Prepare Frame");
-    }
-
-    if collect {
-        let now = Instant::now();
-        data.collect().expect("Failed to Prepare Frame");
-        let elapsed = now.elapsed();
-        println!("Time to Prepare DF: {:.6?}", elapsed);
+        data.prepare()
+        .expect("Failed to Prepare Frame");
+        data.collect()
+        .expect("Failed to Prepare Frame");
     }
 
     data

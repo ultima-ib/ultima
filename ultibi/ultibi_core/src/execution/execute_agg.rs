@@ -13,7 +13,7 @@ use crate::{
     agg_measure_lookup, agg_measure_to_expr,
     aggregations::{Aggregation, AggregationName, BASE_CALCS},
     execute_agg_with_cache::_exec_agg_with_cache,
-    filters::{fltr_chain, AndOrFltrChain},
+    filters::{AndOrFltrChain},
     lookup_dependants_with_depth,
     overrides::Override,
     prelude::helpers::diag_concat_lf,
@@ -173,14 +173,9 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     processed_base_measures: Vec<ProcessedBaseMeasure>,
     streaming: bool,
 ) -> UltiResult<DataFrame> {
-    // Step 0.1 - get existing frame - first building block
-    let mut f1 = data.get_lazyframe(filters);
 
-    // Step 1.0 Applying FILTERS:
-    // TODO check if column is present in DF - (is this "second line of defence" even needed?)
-    // if let Some(f) = fltr_chain(filters) {
-    //     f1 = f1.filter(f)
-    // }
+    // Step 1.0 and 1.1 - get existing Filtered frame - first building block
+    let mut f1 = data.get_lazyframe(filters);
 
     // Step 2.1
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)

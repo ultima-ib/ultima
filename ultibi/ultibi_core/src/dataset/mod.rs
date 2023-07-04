@@ -130,7 +130,10 @@ pub trait DataSet: Send + Sync {
         Self: Sized,
     {
         let lf = self.get_lazyframe(&vec![]).collect()?.lazy();
-        self.set_lazyframe_inplace(lf)?;
+        self.set_lazyframe_inplace(lf)
+            .map_err(|err|UltimaErr::Other(format!("Error calling .collect(), followed by
+            an attempt to set Data inplace: {err}. Does it make sence to collect you Datasource?",
+            )))?;
         Ok(())
     }
 
@@ -143,7 +146,9 @@ pub trait DataSet: Send + Sync {
         Self: Sized,
     {
         let new_frame = self.prepare_frame(self.get_lazyframe(&vec![]))?;
-        self.set_lazyframe_inplace(new_frame)?;
+        self.set_lazyframe_inplace(new_frame)
+            .map_err(|err|UltimaErr::Other(format!("Error calling .prepare(), followed by
+            an attempt to set Data inplace: {err}. Does it make sence to prepare you Datasource?")))?;
         Ok(())
     }
 

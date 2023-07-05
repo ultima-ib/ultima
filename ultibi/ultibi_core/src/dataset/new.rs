@@ -1,8 +1,8 @@
-use crate::{MeasuresMap, CPM, numeric_columns, derive_basic_measures_vec, Measure, reports::report::{ReportersMap, Reporter}, Source, DataSet, DataSourceConfig, DataSetBase};
+use crate::{MeasuresMap, CPM, numeric_columns, derive_basic_measures_vec, Measure, reports::report::{ReportersMap, Reporter}, DataSource, DataSet, DataSourceConfig, DataSetBase};
 
 pub trait NewSourcedDataSet: DataSet {
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
-    fn new(source: Source, mm: MeasuresMap, rm: ReportersMap, params: CPM) -> Self
+    fn new(source: DataSource, mm: MeasuresMap, rm: ReportersMap, params: CPM) -> Self
     where
         Self: Sized;
 
@@ -13,7 +13,7 @@ pub trait NewSourcedDataSet: DataSet {
     /// or set your bespokes in *ms and include_numeric_cols_as_measures = True
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
     fn from_vec<M, R>(
-        source: Source,
+        source: DataSource,
         mm: M,
         include_numeric_cols_as_measures: bool,
         rm: R,
@@ -53,7 +53,7 @@ pub trait NewSourcedDataSet: DataSet {
 
 impl NewSourcedDataSet for DataSetBase {
 
-    fn new(source: Source, mm: MeasuresMap, _: ReportersMap, config: CPM) -> Self {
+    fn new(source: DataSource, mm: MeasuresMap, _: ReportersMap, config: CPM) -> Self {
             Self {
                 source,
                 measures: mm,

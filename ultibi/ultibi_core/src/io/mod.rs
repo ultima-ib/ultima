@@ -11,7 +11,7 @@ use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap};
 
-use crate::{Measure, Source, SourceVariant};
+use crate::{Measure, DataSource, SourceVariant};
 use helpers::{empty_frame, finish, path_to_lf};
 
 use self::helpers::diag_concat_lf;
@@ -88,7 +88,7 @@ impl DataSourceConfig {
     /// Returns:
     ///
     /// (joined concatinated DataFrame, vec of base measures, build params)
-    pub fn build(self) -> (Source, Vec<Measure>, BTreeMap<String, String>) {
+    pub fn build(self) -> (DataSource, Vec<Measure>, BTreeMap<String, String>) {
         match self {
             DataSourceConfig::CSV {
                 file_paths: files,

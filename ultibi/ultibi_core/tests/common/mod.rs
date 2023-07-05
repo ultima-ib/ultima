@@ -5,7 +5,7 @@ use polars::prelude::*;
 
 use ultibi_core::{
     prelude::{read_toml2, DataSet, DataSetBase, DataSourceConfig},
-    DependantMeasure, Measure, CPM, new::NewSourcedDataSet, Source,
+    DependantMeasure, Measure, CPM, new::NewSourcedDataSet, DataSource,
 };
 
 #[allow(dead_code)] // Not dead code actually, but clippy complains
@@ -57,8 +57,8 @@ pub static TEST_DASET_WITH_DEPENDANTS: Lazy<Arc<DataSetBase>> = Lazy::new(|| {
         .into(),
     ];
 
-    let data: DataSetBase = DataSetBase::from_vec(Source::Scan(df), measures, true, vec![], Default::default());
-    
+    let data: DataSetBase = DataSetBase::from_vec(DataSource::Scan(df), measures, true, vec![], Default::default());
+
     // Not preparing here, since scan
     Arc::new(data)
 });

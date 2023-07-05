@@ -1,4 +1,4 @@
-use crate::{read_toml2, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet, Source};
+use crate::{read_toml2, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet, DataSource};
 
 /// Reads initial DataSet from Source
 ///
@@ -23,7 +23,7 @@ pub fn config_build_validate_prepare<DS: NewSourcedDataSet>(
 
     let (source, measure_vec, config) = conf.build();
 
-    let prepare = matches!(source, Source::InMemory(_));
+    let prepare = matches!(source, DataSource::InMemory(_));
 
     let mut mm = MeasuresMap::from_iter(measure_vec);
     mm.extend(bespoke_measures);

@@ -20,7 +20,7 @@ pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(|| {Default::defaul
 #[derive(Default)]
 pub struct DataSetBase {
     /// Data
-    pub source: Source,
+    pub source: DataSource,
     /// Stores measures map, ie what you want to calculate
     pub measures: MeasuresMap,
     ///Similar to measures, but stores Reports
@@ -37,7 +37,7 @@ impl DataSetBase {
 }
 
 /// Indicated the source of data
-pub enum Source {
+pub enum DataSource {
     /// In Memory Data - fast, since prepare runs only once, instead of in every request
     InMemory(DataFrame),
     /// It's caller's responsibility to ensure that this Frame is a Scan and not just any LazyFrame
@@ -56,33 +56,33 @@ pub enum SourceVariant {
 }
 
 /// Marker trait implementation to ensure every SourceVariant is covered
-impl From<Source> for SourceVariant{
-    fn from(item: Source) -> Self {
+impl From<DataSource> for SourceVariant{
+    fn from(item: DataSource) -> Self {
         match item {
-            Source::InMemory(_) => SourceVariant::InMemory,
-            Source::Scan(_) => SourceVariant::Scan,
+            DataSource::InMemory(_) => SourceVariant::InMemory,
+            DataSource::Scan(_) => SourceVariant::Scan,
         }
     }
 }
 
-impl Default for Source {
+impl Default for DataSource {
     fn default() -> Self {
-        Source::InMemory(Default::default())
+        DataSource::InMemory(Default::default())
     }
 }
 
-impl Source {
+impl DataSource {
     pub fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame{
         let filter = fltr_chain(filters);
         match self {
-            Source::InMemory(df) => if let Some(f) = filter { df.clone().lazy().filter(f) } else {df.clone().lazy()},
-            Source::Scan(lf) => if let Some(f) = filter { lf.clone().filter(f) } else {lf.clone()}
+            DataSource::InMemory(df) => if let Some(f) = filter { df.clone().lazy().filter(f) } else {df.clone().lazy()},
+            DataSource::Scan(lf) => if let Some(f) = filter { lf.clone().filter(f) } else {lf.clone()}
         }
     }
     pub fn get_schema(&self) -> UltiResult<Arc<Schema>>{
         match self {
-            Source::InMemory(df) => Ok(Arc::new(df.schema())),
-            Source::Scan(lf) => Ok(lf.schema()?)
+            DataSource::InMemory(df) => Ok(Arc::new(df.schema())),
+            DataSource::Scan(lf) => Ok(lf.schema()?)
         }
     }
 }
@@ -211,8 +211,8 @@ impl DataSet for DataSetBase {
     /// Modify lf in place - applicable only to InMemory DataSet
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()>  {
         
-        if let Source::InMemory(_) = self.source {
-            self.source = Source::InMemory(lf.collect()?)
+        if let DataSource::InMemory(_) = self.source {
+            self.source = DataSource::InMemory(lf.collect()?)
         } else {
             return Err(UltimaErr::Other("Can't set data inplace with this Source. Currently can only set In Memory Dataframe".to_string()))
         }

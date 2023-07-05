@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use polars::prelude::{LazyCsvReader, LazyFileListReader};
-use ultibi_core::{DataSet, Source, DataSetBase, new::NewSourcedDataSet};
+use ultibi_core::{DataSet, DataSource, DataSetBase, new::NewSourcedDataSet};
 mod common;
 
 #[test]
@@ -14,7 +14,7 @@ fn prepare_scanned() {
 
     let df = LazyCsvReader::new(path).finish().unwrap();
 
-    let mut data: DataSetBase = DataSetBase::from_vec(Source::Scan(df), vec![], true, vec![], Default::default());
+    let mut data: DataSetBase = DataSetBase::from_vec(DataSource::Scan(df), vec![], true, vec![], Default::default());
 
     data.prepare().unwrap();
 }
@@ -29,7 +29,7 @@ fn collect_scanned() {
 
     let df = LazyCsvReader::new(path).finish().unwrap();
 
-    let mut data: DataSetBase = DataSetBase::from_vec(Source::Scan(df), vec![], true, vec![], Default::default());
+    let mut data: DataSetBase = DataSetBase::from_vec(DataSource::Scan(df), vec![], true, vec![], Default::default());
 
     data.collect().unwrap();
 

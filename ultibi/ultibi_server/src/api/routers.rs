@@ -9,8 +9,8 @@ use anyhow::Context;
 use serde::Deserialize;
 use tokio::task;
 use ultibi_core::{
-    aggregations::BASE_CALCS, polars::lazy::dsl::col, AggregationRequest, ComputeRequest,
-    DataFrame, DataSet, PolarsResult,
+    aggregations::BASE_CALCS, AggregationRequest, ComputeRequest,
+    DataFrame, DataSet, errors::UltiResult,
 };
 
 #[derive(Deserialize)]
@@ -36,18 +36,17 @@ async fn column_search(
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
     let res = task::spawn_blocking(move || {
-        let lf = data
-            .read()
+        
+        let srs = data.read()
             .expect("Poisonned RwLock")
-            .get_lazyframe()
-            .clone();
-        let df = lf.select([col(&column_name)]).collect()?;
-        let srs = df.column(&column_name)?;
-        let search = ultibi_core::helpers::searches::filter_contains_unique(srs, &pat)?;
+            .get_column(&column_name)?;
+
+        let search = ultibi_core::helpers::searches::filter_contains_unique(&srs, &pat)?;
         let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
-        PolarsResult::Ok(s)
+        UltiResult::Ok(s)
+
     })
     .await
     .context("Failed to spawn blocking task.")

@@ -1,3 +1,6 @@
+//! Ultibi IO operations
+//! This potentially will be moved to a separate crate
+
 pub mod acquire;
 pub mod helpers;
 

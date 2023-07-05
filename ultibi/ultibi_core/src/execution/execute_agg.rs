@@ -18,7 +18,7 @@ use crate::{
     overrides::Override,
     prelude::helpers::diag_concat_lf,
     AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
-    ValidateSet, errors::UltiResult,
+    errors::UltiResult,
 };
 
 /// Looks up measures and calls calculator on those returning an Expr
@@ -226,7 +226,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
         if add_rows.prepare {
             // Validating only a subset required for prepare()
-            data.validate_frame(Some(&extra_frame), ValidateSet::SUBSET1)?;
+            data.validate_frame(Some(&extra_frame), 1)?;
             extra_frame = data.prepare_frame(extra_frame)?;
         }
         f1 = diag_concat_lf([f1, extra_frame], true, true)?;

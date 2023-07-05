@@ -106,10 +106,20 @@ pub trait DataSet: Send + Sync {
     /// TODO by default coauld be numeric columns accessed via [get_lazyframe]
     fn get_measures(&self) -> &MeasuresMap;
 
-    /// Get Schema (Column Names) of the underlying Data
+    /// Get Schema (Column Names and DataTypes) of the underlying Data
     fn get_schema(&self) -> UltiResult<Arc<Schema>> {
         Ok(self.get_lazyframe(&vec![])
             .schema()?)
+    }
+
+    /// Get a column
+    /// Potentially this will be removed in favour of get_columns
+    fn get_column(&self, col_name: &str) -> UltiResult<Series> {
+        self.get_lazyframe(&vec![])
+            .select([col(col_name)])
+            .collect()?
+            .pop() //above select guaranteed one column
+            .ok_or(UltimaErr::Other(format!("Column {col_name} doesn't exist")))
     }
     
     /// Get all Reporters associated with the DataSet
@@ -175,15 +185,16 @@ pub trait DataSet: Send + Sync {
     /// See [AggregationRequest::overrides]
     /// Good usecase: add prepared 
     fn overridable_columns(&self) -> Vec<String> {
-        self.get_lazyframe(&vec![])
-            .schema()
-            .map(overrides_columns)
+        self.get_schema()
+            .map(overridable_columns)
             .unwrap_or_default()
     }
     /// Validate DataSet
     /// Runs once, making sure all the required columns, their contents, types etc are valid
     /// Should contain an optional flag for analysis(ie displaying statistics of filtered out items, saving those as CSVs)
-    fn validate_frame(&self, _: Option<&LazyFrame>, _: ValidateSet) -> UltiResult<()> {
+    /// *_validation_set - at different points in the runtime it makes sence to validate different subsets of the data
+    /// eg FRTB validate before or after .prepare(). User can control that through _validation_set param
+    fn validate_frame(&self, _: Option<&LazyFrame>, _validation_set: u8) -> UltiResult<()> {
         Ok(())
     }
 
@@ -208,7 +219,7 @@ impl DataSet for DataSetBase {
         self.source.get_lazyframe(filters)
     }
 
-    /// Modify lf in place - applicable only to InMemory DataSet
+    /// Modify lf in place - applicable only to InMemory DataSource
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()>  {
         
         if let DataSource::InMemory(_) = self.source {
@@ -269,7 +280,7 @@ pub fn fields_columns(schema: Arc<Schema>) -> Vec<String> {
 }
 
 /// DataTypes supported for overrides are defined in [overrides::string_to_lit]
-pub(crate) fn overrides_columns(schema: Arc<Schema>) -> Vec<String> {
+pub fn overridable_columns(schema: Arc<Schema>) -> Vec<String> {
     schema
         .iter_fields()
         .filter(|c| match c.data_type() {
@@ -309,9 +320,4 @@ impl Serialize for dyn DataSet {
         seq.serialize_entry("calc_params", &calc_params)?;
         seq.end()
     }
-}
-
-pub enum ValidateSet {
-    ALL,
-    SUBSET1,
 }

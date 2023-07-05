@@ -20,7 +20,11 @@ pub mod statics;
 mod validate;
 
 use ultibi::cache::{Cache, CacheableDataSet};
-use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, ValidateSet, CPM};
+use ultibi::errors::{UltiResult, UltimaErr};
+use ultibi::filters::AndOrFltrChain;
+use ultibi::new::NewSourcedDataSet;
+use ultibi::reports::report::ReportersMap;
+use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, CPM, DataSource, overridable_columns};
 use prelude::calc_params::FRTB_CALC_PARAMS;
 use ultibi::polars::prelude::{
     col, lit, when, AnyValue, Expr, LazyFrame, Literal, LiteralValue, NamedFrom, PolarsResult,
@@ -34,9 +38,9 @@ use sbm::buckets;
 use std::collections::{BTreeMap, HashSet};
 
 pub struct FRTBDataSet {
-    pub frame: LazyFrame,
+    pub source: DataSource,
     pub measures: MeasuresMap,
-    pub build_params: BTreeMap<String, String>,
+    pub config: BTreeMap<String, String>,
     pub cache: Cache,
 }
 impl FRTBDataSet {
@@ -50,21 +54,44 @@ impl FRTBDataSet {
     }
 }
 
+impl NewSourcedDataSet for FRTBDataSet {
+    /// Here we add FRTB measures
+    /// We do it here, since [new] will be called one only 
+    fn new(source: DataSource, mm: MeasuresMap, _: ReportersMap, config: CPM) -> Self {
+        let mut res = Self {
+            source,
+            measures: mm,
+            config,
+            cache: Cache::default(),
+        };
+        res.with_measures(frtb_measure_vec());
+        res
+        }
+}
+
 impl DataSet for FRTBDataSet {
+
+    /// FRTBDataSet has a cache
     fn as_cacheable(&self) -> Option<&dyn CacheableDataSet> {
         Some(self)
     }
 
-    fn get_lazyframe(&self) -> &LazyFrame {
-        &self.frame
+    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame {
+        self.source.get_lazyframe(filters)
     }
-    /// Modify lf in place
-    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) {
-        self.frame = lf;
+    /// Modify lf in place - applicable only to InMemory DataSource
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()> {
+        if let DataSource::InMemory(_) = self.source {
+            self.source = DataSource::InMemory(lf.collect()?)
+        } else {
+            return Err(UltimaErr::Other("Can't set data inplace with this Source. Currently can only set In Memory Dataframe".to_string()))
+        }
+        Ok(())
     }
     fn get_measures(&self) -> &MeasuresMap {
         &self.measures
     }
+    /// TODO - this should be done once only
     fn calc_params(&self) -> Vec<CalcParameter> {
         let mut res = vec![];
 
@@ -79,33 +106,17 @@ impl DataSet for FRTBDataSet {
         hash_res.into_iter().collect()
     }
 
-    fn new(frame: LazyFrame, mm: MeasuresMap, build_params: CPM) -> Self {
-        let mut res = Self {
-            frame,
-            measures: mm,
-            build_params,
-            cache: Cache::default(),
-        };
-        res.with_measures(frtb_measure_vec());
-        res
-    }
-
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
-    fn prepare_frame(&self, _lf: Option<LazyFrame>) -> PolarsResult<LazyFrame> {
-        let mut lf1 = if let Some(lf) = _lf {
-            lf
-        } else {
-            self.get_lazyframe().clone()
-        };
-
+    fn prepare_frame(&self, lf: LazyFrame) -> UltiResult<LazyFrame> {
+        
         //First, where possible (FX and GIRR) - assign buckets
         //this really is an optional step
-        lf1 = lf1.with_column(buckets::sbm_buckets(&self.build_params).alias("BucketBCBS"));
+        let lf1 = lf.with_column(buckets::sbm_buckets(&self.config).alias("BucketBCBS"));
         //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS")]).collect());
 
         // Then assign SensWeights(BCBS) based on buckets
-        lf1 = weights_assign(lf1, &self.build_params)?;
+        lf1 = weights_assign(lf1, &self.config)?;
 
         // TODO Remove after this issue
         // workaround for https://github.com/pola-rs/polars/issues/5812
@@ -137,7 +148,7 @@ impl DataSet for FRTBDataSet {
         let mut other_cols: Vec<Expr> = vec![];
         // 21.53 Footnote 17
         let csrnonsec_covered_bond_15 = self
-            .build_params
+            .config
             .get("csrnonsec_covered_bond_15")
             .and_then(|s| s.parse::<bool>().ok())
             .unwrap_or_else(|| false);
@@ -166,7 +177,7 @@ impl DataSet for FRTBDataSet {
         if cfg!(feature = "CRR2") {
             lf1 = lf1.with_column(buckets::sbm_buckets_crr2());
             //other_cols.push(weights_assign_crr2().alias("SensWeightsCRR2"))
-            lf1 = crate::risk_weights_crr2::weights_assign_crr2(lf1, &self.build_params)?;
+            lf1 = crate::risk_weights_crr2::weights_assign_crr2(lf1, &self.config)?;
 
             // Now, we need to also ammend CRR2 weights
             // Bucket 10 as per
@@ -208,8 +219,8 @@ impl DataSet for FRTBDataSet {
         //    .expect("Failed to unwrap tmp_frame while .prepare()");
         //lf1 = tmp_frame.lazy()
         lf1 = lf1.with_columns(&[drc_scalinng(
-            self.build_params.get("DayCountConvention"),
-            self.build_params.get("DateFormat"),
+            self.config.get("DayCountConvention"),
+            self.config.get("DateFormat"),
         )
         .alias("ScaleFactor")]);
 
@@ -239,19 +250,35 @@ impl DataSet for FRTBDataSet {
     // CSR_nonSec CRR2 buckets
     // if csrnonsec_covered_bond_15 == true in build config then
     // If DRC validate CreditQuality
-    fn validate_frame(&self, lf: Option<&LazyFrame>, v: ValidateSet) -> PolarsResult<()> {
+    fn validate_frame(&self, lf: Option<&LazyFrame>, set: u8) -> UltiResult<()> {
         let csrnonsec_covered_bond_15 = self
-            .build_params
+            .config
             .get("csrnonsec_covered_bond_15")
             .and_then(|s| s.parse::<bool>().ok())
             .unwrap_or_else(|| false);
 
         if let Some(lf) = lf {
-            validate::validate_frame(lf, csrnonsec_covered_bond_15, v)
+            validate::validate_frtb_frame(lf, csrnonsec_covered_bond_15, set)
         } else {
-            validate::validate_frame(self.get_lazyframe(), csrnonsec_covered_bond_15, v)
+            validate::validate_frtb_frame(&self.get_lazyframe(&vec![]), csrnonsec_covered_bond_15, set)
         }
     }
+
+    /// We manually add "prepared" columns here
+    /// Good usecase: add prepared 
+    fn overridable_columns(&self) -> Vec<String> {
+
+        let mut standard_cols = self.get_schema()
+            .map(overridable_columns)
+            .unwrap_or_default();
+
+        // TODO add CRR2
+        standard_cols.extend(["SensWeights".to_string(),
+             "ScaleFactor".to_string(),
+              "CurvatureRiskWeight".to_string()]);
+        standard_cols
+    }
+
 }
 
 impl CacheableDataSet for FRTBDataSet {

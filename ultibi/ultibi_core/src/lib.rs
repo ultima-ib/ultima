@@ -7,7 +7,7 @@ pub mod aggregations;
 pub mod cache;
 mod datarequest;
 pub mod dataset;
-mod io;
+pub mod io;
 pub mod errors;
 pub mod execution;
 pub mod filters;

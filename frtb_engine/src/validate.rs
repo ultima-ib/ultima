@@ -1,12 +1,12 @@
 use ultibi::{
     polars::prelude::{LazyFrame, PolarsError},
-    ValidateSet, errors::{UltiResult, UltimaErr},
+    errors::{UltiResult, UltimaErr},
 };
 
 pub(crate) fn validate_frtb_frame(
     lf: &LazyFrame,
     covered_bond: bool,
-    v: ValidateSet,
+    v: u8,
 ) -> UltiResult<()> {
     let arc_schema = lf.schema()?;
 
@@ -33,7 +33,7 @@ pub(crate) fn validate_frtb_frame(
         must_have.push("BucketCRR2")
     }
 
-    if matches!(v, ValidateSet::ALL) {
+    if matches!(v, 0) {
         // RRAO
         must_have.push("TradeId");
         must_have.push("EXOTIC_RRAO");

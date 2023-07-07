@@ -163,10 +163,7 @@ fn drc_charge() {
 
     let compute_req = ComputeRequest::Aggregation(data_req);
 
-    let res = common::LAZY_DASET
-        .as_ref()
-        .compute(compute_req)
-        .unwrap();
+    let res = common::LAZY_DASET.as_ref().compute(compute_req).unwrap();
 
     assert!(dbg!(res.column("DRC Charge")).is_ok());
 }

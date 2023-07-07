@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use log::info;
-use ultibi::{read_toml2, DataSet, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet};
+use ultibi::{new::NewSourcedDataSet, read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 
 /// Reads initial DataSet from Source
 ///
@@ -19,7 +19,12 @@ pub fn data<DS: NewSourcedDataSet>(config_path: &str, streaming: bool) -> impl D
 
     let (lf, measure_vec, build_params) = conf.build();
 
-    let mut data = DS::new(lf, MeasuresMap::from_iter(measure_vec), Default::default(), build_params);
+    let mut data = DS::new(
+        lf,
+        MeasuresMap::from_iter(measure_vec),
+        Default::default(),
+        build_params,
+    );
 
     // If cfg is streaming then we can't collect, otherwise collect to check errors
     if !streaming {

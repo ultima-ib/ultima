@@ -1,4 +1,6 @@
-use crate::{read_toml2, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet, datasource::DataSource};
+use crate::{
+    datasource::DataSource, new::NewSourcedDataSet, read_toml2, DataSourceConfig, MeasuresMap,
+};
 
 /// Reads initial DataSet from Source
 ///
@@ -38,10 +40,8 @@ pub fn config_build_validate_prepare<DS: NewSourcedDataSet>(
     // Pre build some columns, which you wish to store in memory alongside the original data
     // Note if streaming then .prepare() should happen post filtering
     if prepare {
-        data.prepare()
-        .expect("Failed to Prepare Frame");
-        data.collect()
-        .expect("Failed to Prepare Frame");
+        data.prepare().expect("Failed to Prepare Frame");
+        data.collect().expect("Failed to Prepare Frame");
     }
 
     data

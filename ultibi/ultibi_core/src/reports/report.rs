@@ -1,11 +1,14 @@
 //! TODO Work In Progress - Not ready for usage yet
 
-use std::{sync::Arc, collections::BTreeMap, ops::Deref};
+use std::{collections::BTreeMap, ops::Deref, sync::Arc};
 
 use polars::prelude::DataFrame;
 use serde::{Deserialize, Serialize};
 
-use crate::{errors::{UltiResult}, ComputeRequest, filters::FilterE, overrides::Override, add_row::AdditionalRows, AggregationRequest};
+use crate::{
+    add_row::AdditionalRows, errors::UltiResult, filters::FilterE, overrides::Override,
+    AggregationRequest, ComputeRequest,
+};
 
 // pub type ReportCalculator = Arc<dyn Fn(&[Expr], &CPM) -> UltiResult<Report> + Send + Sync>;
 
@@ -44,15 +47,14 @@ pub struct GroupbyAggReport {
 
     /// A Report request can result in multiple [AggregationRequest]'s
     /// This is reflected by Vec<Vec<>> structure
-    /// 
+    ///
     /// fixed_fields are used to populate outer [AggregationRequest]
-    /// 
+    ///
     /// For this report these fields are fixed and cannot be changed
     /// For each inner Vec the FixedFields must be the same
     pub fixed_fields: Vec<Vec<FixedFields>>,
 
-    // TODO must set fields 
-
+    // TODO must set fields
     /// Simply appends text for the result of each request
     pub calculator: ReportWriter,
 }
@@ -68,7 +70,7 @@ pub enum FixedFields {
     AdditionalRows(AdditionalRows),
     CalcParams(BTreeMap<String, String>),
     HideZeros(bool),
-    Totals (bool),
+    Totals(bool),
 }
 
 pub trait ReporterTrait: Send + Sync {
@@ -95,27 +97,19 @@ impl Deref for Reporter {
     }
 }
 
-impl From<Arc<dyn ReporterTrait>> for Reporter
-{
+impl From<Arc<dyn ReporterTrait>> for Reporter {
     fn from(r: Arc<dyn ReporterTrait>) -> Self {
         Self(r)
     }
 }
 
-impl FromIterator<Reporter> for ReportersMap
-{
+impl FromIterator<Reporter> for ReportersMap {
     fn from_iter<I>(v: I) -> Self
     where
         I: IntoIterator<Item = Reporter>,
-    
     {
         v.into_iter()
             .map(|reporter| (reporter.name().to_string(), reporter))
             .collect()
     }
 }
-
-
-
-
-

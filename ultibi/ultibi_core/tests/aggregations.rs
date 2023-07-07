@@ -15,10 +15,7 @@ fn simple_fltr_grpby_sum() {
     }"#;
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    let res = common::TEST_DASET
-        .as_ref()
-        .compute(data_req)
-        .unwrap();
+    let res = common::TEST_DASET.as_ref().compute(data_req).unwrap();
 
     let expected = df!(
         "State" => ["NY"],
@@ -42,10 +39,7 @@ fn non_existent_measure() {
 
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    common::TEST_DASET
-        .as_ref()
-        .compute(data_req)
-        .unwrap();
+    common::TEST_DASET.as_ref().compute(data_req).unwrap();
 }
 
 #[test]
@@ -61,8 +55,5 @@ fn non_existent_action() {
 
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    common::TEST_DASET
-        .as_ref()
-        .compute(data_req)
-        .unwrap();
+    common::TEST_DASET.as_ref().compute(data_req).unwrap();
 }

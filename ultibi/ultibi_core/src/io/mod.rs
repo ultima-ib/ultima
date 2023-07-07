@@ -12,14 +12,15 @@ use polars::functions::diag_concat_df;
 
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap};
+use std::collections::BTreeMap;
 
-use crate::{Measure, datasource::{SourceVariant, DataSource}};
+use crate::{
+    datasource::{DataSource, SourceVariant},
+    Measure,
+};
 use helpers::{empty_frame, finish, path_to_lf};
 
 use self::helpers::diag_concat_lf;
-
-
 
 /// reads setup.toml
 /// # Panics
@@ -103,7 +104,7 @@ impl DataSourceConfig {
                 f1_cast_to_str: mut str_cols,
                 f1_numeric_cols: f64_cols,
                 build_params,
-                source_type
+                source_type,
             } => {
                 for s in f2a.iter() {
                     if !str_cols.contains(s) {
@@ -148,7 +149,7 @@ impl DataSourceConfig {
                     df_hms,
                     concatinated_frame,
                     build_params,
-                    source_type
+                    source_type,
                 )
             }
             #[cfg(feature = "aws_s3")]

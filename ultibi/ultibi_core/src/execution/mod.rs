@@ -1,7 +1,7 @@
 pub use super::helpers::searches::*;
 pub mod execute_agg;
 pub use crate::execution::execute_agg::*;
-use crate::{ComputeRequest, DataSet, errors::UltiResult};
+use crate::{errors::UltiResult, ComputeRequest, DataSet};
 pub mod execute_agg_with_cache;
 
 /// Distributes work based on request

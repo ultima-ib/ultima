@@ -12,13 +12,13 @@ use crate::{
     add_row::{df_from_maps_and_schema, AdditionalRows},
     agg_measure_lookup, agg_measure_to_expr,
     aggregations::{Aggregation, AggregationName, BASE_CALCS},
+    errors::UltiResult,
     execute_agg_with_cache::_exec_agg_with_cache,
-    filters::{AndOrFltrChain},
+    filters::AndOrFltrChain,
     lookup_dependants_with_depth,
     overrides::Override,
     prelude::helpers::diag_concat_lf,
     AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
-    errors::UltiResult,
 };
 
 /// Looks up measures and calls calculator on those returning an Expr
@@ -35,7 +35,8 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     if all_requested_measures.is_empty() {
         return Err(PolarsError::InvalidOperation(
             "Select measures. What do you want to aggregate?".into(),
-        ).into());
+        )
+        .into());
     }
 
     let op = req.calc_params(); // Optional params of the request
@@ -173,7 +174,6 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     processed_base_measures: Vec<ProcessedBaseMeasure>,
     prepare: bool,
 ) -> UltiResult<DataFrame> {
-
     // Step 1.0 and 1.1 - get existing Filtered frame - first building block
     let mut f1 = data.get_lazyframe(filters);
 

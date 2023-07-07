@@ -1,4 +1,9 @@
-use crate::{MeasuresMap, CPM, numeric_columns, derive_basic_measures_vec, Measure, reports::report::{ReportersMap, Reporter}, DataSet, DataSourceConfig, DataSetBase, datasource::DataSource};
+use crate::{
+    datasource::DataSource,
+    derive_basic_measures_vec, numeric_columns,
+    reports::report::{Reporter, ReportersMap},
+    DataSet, DataSetBase, DataSourceConfig, Measure, MeasuresMap, CPM,
+};
 
 pub trait NewSourcedDataSet: DataSet {
     /// See [DataSetBase] and [CalcParameter] for description of the parameters
@@ -18,12 +23,11 @@ pub trait NewSourcedDataSet: DataSet {
         include_numeric_cols_as_measures: bool,
         rm: R,
         params: CPM,
-    ) 
-    -> Self
+    ) -> Self
     where
         Self: Sized,
         M: IntoIterator<Item = Measure>,
-        R: IntoIterator<Item = Reporter>
+        R: IntoIterator<Item = Reporter>,
     {
         let mut ms = Vec::from_iter(mm);
         if include_numeric_cols_as_measures {
@@ -52,13 +56,12 @@ pub trait NewSourcedDataSet: DataSet {
 }
 
 impl NewSourcedDataSet for DataSetBase {
-
     fn new(source: DataSource, mm: MeasuresMap, _: ReportersMap, config: CPM) -> Self {
-            Self {
-                source,
-                measures: mm,
-                config,
-                ..Default::default()
-            }
+        Self {
+            source,
+            measures: mm,
+            config,
+            ..Default::default()
         }
+    }
 }

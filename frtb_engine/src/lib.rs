@@ -3,10 +3,10 @@
 #![doc(html_no_source)]
 
 mod drc;
+mod reports;
 mod rrao;
 mod sbm;
 mod totals;
-mod reports;
 
 pub mod calc_params;
 pub mod docs;
@@ -19,17 +19,17 @@ mod risk_weights_crr2;
 pub mod statics;
 mod validate;
 
+use prelude::calc_params::FRTB_CALC_PARAMS;
 use ultibi::cache::{Cache, CacheableDataSet};
 use ultibi::datasource::DataSource;
 use ultibi::errors::{UltiResult, UltimaErr};
 use ultibi::new::NewSourcedDataSet;
-use ultibi::reports::report::ReportersMap;
-use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, CPM, overridable_columns};
-use prelude::calc_params::FRTB_CALC_PARAMS;
 use ultibi::polars::prelude::{
     col, lit, when, AnyValue, Expr, LazyFrame, Literal, LiteralValue, NamedFrom, PolarsResult,
     Series, NULL,
 };
+use ultibi::reports::report::ReportersMap;
+use ultibi::{overridable_columns, CalcParameter, DataSet, Measure, MeasuresMap, CPM};
 //use polars:: series::Series, lazy::dsl::when};
 use prelude::{drc::common::drc_scalinng, frtb_measure_vec};
 use risk_weights::*;
@@ -56,7 +56,7 @@ impl FRTBDataSet {
 
 impl NewSourcedDataSet for FRTBDataSet {
     /// Here we add FRTB measures
-    /// We do it here, since [new] will be called one only 
+    /// We do it here, since [new] will be called one only
     fn new(source: DataSource, mm: MeasuresMap, _: ReportersMap, config: CPM) -> Self {
         let mut res = Self {
             source,
@@ -66,11 +66,10 @@ impl NewSourcedDataSet for FRTBDataSet {
         };
         res.with_measures(frtb_measure_vec());
         res
-        }
+    }
 }
 
 impl DataSet for FRTBDataSet {
-
     /// FRTBDataSet has a cache
     fn as_cacheable(&self) -> Option<&dyn CacheableDataSet> {
         Some(self)
@@ -84,7 +83,7 @@ impl DataSet for FRTBDataSet {
         if let DataSource::InMemory(_) = self.source {
             self.source = DataSource::InMemory(lf.collect()?)
         } else {
-            return Err(UltimaErr::Other("Can't set data inplace with this Source. Currently can only set In Memory Dataframe".to_string()))
+            return Err(UltimaErr::Other("Can't set data inplace with this Source. Currently can only set In Memory Dataframe".to_string()));
         }
         Ok(())
     }
@@ -109,7 +108,6 @@ impl DataSet for FRTBDataSet {
     /// Adds: BCBS buckets, CRR2 Buckets
     /// Adds: SensWeights, CurvatureRiskWeight, SensWeightsCRR2, SeniorityRank
     fn prepare_frame(&self, lf: LazyFrame) -> UltiResult<LazyFrame> {
-        
         //First, where possible (FX and GIRR) - assign buckets
         //this really is an optional step
         let mut lf1 = lf.with_column(buckets::sbm_buckets(&self.config).alias("BucketBCBS"));
@@ -260,28 +258,33 @@ impl DataSet for FRTBDataSet {
         if let Some(lf) = lf {
             validate::validate_frtb_frame(lf, csrnonsec_covered_bond_15, set)
         } else {
-            validate::validate_frtb_frame(&self.get_lazyframe(&vec![]), csrnonsec_covered_bond_15, set)
+            validate::validate_frtb_frame(
+                &self.get_lazyframe(&vec![]),
+                csrnonsec_covered_bond_15,
+                set,
+            )
         }
     }
 
     /// We manually add "prepared" columns here
-    /// Good usecase: add prepared 
+    /// Good usecase: add prepared
     fn overridable_columns(&self) -> Vec<String> {
-
-        let mut standard_cols = self.get_schema()
+        let mut standard_cols = self
+            .get_schema()
             .map(overridable_columns)
             .unwrap_or_default();
 
         // TODO add CRR2
-        standard_cols.extend(["SensWeights".to_string(),
-             "ScaleFactor".to_string(),
-              "CurvatureRiskWeight".to_string()]);
+        standard_cols.extend([
+            "SensWeights".to_string(),
+            "ScaleFactor".to_string(),
+            "CurvatureRiskWeight".to_string(),
+        ]);
 
         let hash_res: HashSet<String> = standard_cols.into_iter().collect();
 
         hash_res.into_iter().collect()
     }
-
 }
 
 impl CacheableDataSet for FRTBDataSet {

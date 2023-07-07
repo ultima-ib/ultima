@@ -1,7 +1,4 @@
-use polars::{
-    prelude::{Utf8NameSpaceImpl},
-    series::Series,
-};
+use polars::{prelude::Utf8NameSpaceImpl, series::Series};
 
 use crate::errors::{UltiResult, UltimaErr};
 

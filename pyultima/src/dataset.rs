@@ -1,12 +1,12 @@
 use frtb_engine::FRTBDataSet;
 use pyo3::exceptions::PyFileNotFoundError;
 use pyo3::{prelude::*, types::PyType, PyTypeInfo};
-use ultibi::datasource::DataSource;
-use ultibi::filters::FilterE;
-use ultibi::new::NewSourcedDataSet;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
+use ultibi::datasource::DataSource;
+use ultibi::filters::FilterE;
+use ultibi::new::NewSourcedDataSet;
 //use std::sync::Mutex;
 use crate::conversions::series::{py_series_to_rust_series, rust_series_to_py_series};
 use crate::errors::PyUltimaErr;
@@ -17,8 +17,7 @@ use std::sync::RwLock;
 use ultibi::polars::prelude::Series;
 use ultibi::VisualDataSet;
 use ultibi::{
-    self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase,
-    MeasuresMap,
+    self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase, MeasuresMap,
 };
 
 #[pyclass]
@@ -38,10 +37,8 @@ fn from_conf<T: NewSourcedDataSet + 'static>(
         return Err(PyFileNotFoundError::new_err("Config file doesn't exist"));
     }
 
-    let ds = ultibi::acquire::config_build_validate_prepare::<T>(
-        conf_path.as_str(),
-        bespoke_measures,
-    );
+    let ds =
+        ultibi::acquire::config_build_validate_prepare::<T>(conf_path.as_str(), bespoke_measures);
     //let dataset = Box::new(ds);
     Ok(DataSetWrapper {
         dataset: Arc::new(RwLock::new(ds)),
@@ -71,7 +68,12 @@ fn from_frame<T: NewSourcedDataSet + 'static>(
     let mut mm: MeasuresMap = MeasuresMap::from_iter(mv);
     mm.extend(bespoke_measures);
 
-    let ds: T = T::new(DataSource::InMemory(df), mm, Default::default(), build_params);
+    let ds: T = T::new(
+        DataSource::InMemory(df),
+        mm,
+        Default::default(),
+        build_params,
+    );
 
     Ok(DataSetWrapper {
         dataset: Arc::new(RwLock::new(ds)),
@@ -110,7 +112,6 @@ impl DataSetWrapper {
         conf_path: String,
         bespoke_measures: Option<Vec<MeasureWrapper>>,
     ) -> PyResult<Self> {
-
         let bespoke_measures = bespoke_measures.unwrap_or_default();
         let mm = bespoke_measures
             .into_iter()
@@ -162,8 +163,7 @@ impl DataSetWrapper {
 
     pub fn prepare(&mut self, collect: Option<bool>) -> PyResult<()> {
         let mut ds = self.dataset.write().expect("Poisonned RwLock");
-        ds.prepare()
-            .map_err(PyUltimaErr::Ultima)?;
+        ds.prepare().map_err(PyUltimaErr::Ultima)?;
         if let Some(true) = collect {
             ds.collect().map_err(PyUltimaErr::Ultima)?;
         }
@@ -212,11 +212,12 @@ impl DataSetWrapper {
     pub fn frame(&self, fltrs: Option<Vec<Vec<FilterWrapper>>>) -> PyResult<Vec<PyObject>> {
         let fltrs = if let Some(f) = fltrs {
             f.into_iter()
-                .map(|inner|
-                    inner.into_iter()
-                        .map(|fltr_wrap|fltr_wrap.inner)
+                .map(|inner| {
+                    inner
+                        .into_iter()
+                        .map(|fltr_wrap| fltr_wrap.inner)
                         .collect::<Vec<FilterE>>()
-                )
+                })
                 .collect::<Vec<Vec<FilterE>>>()
         } else {
             Default::default()
@@ -255,7 +256,7 @@ impl DataSetWrapper {
     }
 
     pub fn validate(&self, subset: Option<u8>) -> PyResult<()> {
-        let subset = if let Some(u) = subset {u} else {0};
+        let subset = if let Some(u) = subset { u } else { 0 };
         self.dataset
             .read()
             .expect("Poisonned RwLock")

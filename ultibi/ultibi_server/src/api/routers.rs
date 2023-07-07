@@ -9,8 +9,8 @@ use anyhow::Context;
 use serde::Deserialize;
 use tokio::task;
 use ultibi_core::{
-    aggregations::BASE_CALCS, AggregationRequest, ComputeRequest,
-    DataFrame, DataSet, errors::UltiResult,
+    aggregations::BASE_CALCS, errors::UltiResult, AggregationRequest, ComputeRequest, DataFrame,
+    DataSet,
 };
 
 #[derive(Deserialize)]
@@ -36,8 +36,8 @@ async fn column_search(
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
     let res = task::spawn_blocking(move || {
-        
-        let srs = data.read()
+        let srs = data
+            .read()
             .expect("Poisonned RwLock")
             .get_column(&column_name)?;
 
@@ -46,7 +46,6 @@ async fn column_search(
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
         UltiResult::Ok(s)
-
     })
     .await
     .context("Failed to spawn blocking task.")
@@ -119,14 +118,10 @@ pub(crate) async fn execute(
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
-    let res = task::spawn_blocking(move || {
-        data.read()
-            .expect("Poisonned RwLock")
-            .compute(r)
-    })
-    .await
-    .context("Failed to spawn blocking task.")
-    .map_err(actix_web::error::ErrorInternalServerError)?;
+    let res = task::spawn_blocking(move || data.read().expect("Poisonned RwLock").compute(r))
+        .await
+        .context("Failed to spawn blocking task.")
+        .map_err(actix_web::error::ErrorInternalServerError)?;
 
     match res {
         Ok(df) => Ok(HttpResponse::Ok().json(df)),

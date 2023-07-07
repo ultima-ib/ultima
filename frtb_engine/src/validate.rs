@@ -1,13 +1,9 @@
 use ultibi::{
-    polars::prelude::{LazyFrame, PolarsError},
     errors::{UltiResult, UltimaErr},
+    polars::prelude::{LazyFrame, PolarsError},
 };
 
-pub(crate) fn validate_frtb_frame(
-    lf: &LazyFrame,
-    covered_bond: bool,
-    v: u8,
-) -> UltiResult<()> {
+pub(crate) fn validate_frtb_frame(lf: &LazyFrame, covered_bond: bool, v: u8) -> UltiResult<()> {
     let arc_schema = lf.schema()?;
 
     // Buckets and weights assignments
@@ -59,11 +55,10 @@ pub(crate) fn validate_frtb_frame(
 
     for must_have_col in must_have {
         if !arc_schema.iter_names().any(|col| col == must_have_col) {
-            return Err(UltimaErr::from(
-                PolarsError::NoData(
+            return Err(UltimaErr::from(PolarsError::NoData(
                 format!("{must_have_col} is missing. It is a required column. Check your data")
-                    .into() ),
-            ));
+                    .into(),
+            )));
         }
     }
 

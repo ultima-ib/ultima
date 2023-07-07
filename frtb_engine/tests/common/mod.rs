@@ -3,8 +3,9 @@ use polars::prelude::*;
 
 use frtb_engine::prelude::FRTBDataSet;
 use ultibi::{
+    new::NewSourcedDataSet,
     prelude::{read_toml2, DataSet, DataSourceConfig},
-    ComputeRequest, new::NewSourcedDataSet,
+    ComputeRequest,
 };
 
 pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
@@ -12,8 +13,7 @@ pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf = read_toml2::<DataSourceConfig>(conf_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
     let mut data: FRTBDataSet = FRTBDataSet::from_config(conf);
-    data.validate_frame(None, 0)
-        .expect("failed to validate");
+    data.validate_frame(None, 0).expect("failed to validate");
     data.prepare().expect("Failed to prepare");
     std::sync::Arc::new(data)
 });

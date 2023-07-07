@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use ultibi_core::{read_toml2, DataSetBase, DataSourceConfig, new::NewSourcedDataSet};
+use ultibi_core::{new::NewSourcedDataSet, read_toml2, DataSetBase, DataSourceConfig};
 
 #[test]
 fn toml2config() {

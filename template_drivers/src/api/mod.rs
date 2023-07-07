@@ -1,12 +1,6 @@
 //! This module builds App and is Server bin specific
 
-use actix_web::{
-    dev::Server,
-    middleware::Logger,
-    web::{Data},
-    App,
-    HttpServer
-};
+use actix_web::{dev::Server, middleware::Logger, web::Data, App, HttpServer};
 
 use std::{
     net::TcpListener,
@@ -16,11 +10,11 @@ use std::{
 // use tokio::task;
 
 use ultibi::{
+    api::routers,
     //aggregations::BASE_CALCS, polars::prelude::PolarsError,
-    AggregationRequest, DataSet,
-    api::routers
+    AggregationRequest,
+    DataSet,
 };
-
 
 // use uuid::Uuid;
 // use tracing::Instrument; //enters the span we pass as argument
@@ -154,10 +148,6 @@ use ultibi::{
 // async fn overridable_columns(data: Data<Arc<dyn DataSet>>) -> impl Responder {
 //     web::Json(data.overridable_columns())
 // }
-
-
-
-
 
 // async fn _validator(
 //     req: ServiceRequest,

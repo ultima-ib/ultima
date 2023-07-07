@@ -22,10 +22,7 @@ fn sa_charge() {
 
     let compute_req = ComputeRequest::Aggregation(data_req);
 
-    let res = common::LAZY_DASET
-        .as_ref()
-        .compute(compute_req)
-        .unwrap();
+    let res = common::LAZY_DASET.as_ref().compute(compute_req).unwrap();
 
     assert!(dbg!(res.column("SA Charge")).is_ok());
 }

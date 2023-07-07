@@ -1,5 +1,5 @@
-pub mod new;
 pub mod datasource;
+pub mod new;
 
 use std::collections::{BTreeMap, HashSet};
 
@@ -8,14 +8,14 @@ use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
 use crate::errors::{UltiResult, UltimaErr};
-use crate::filters::{AndOrFltrChain};
+use crate::execute;
+use crate::filters::AndOrFltrChain;
 use crate::reports::report::ReportersMap;
-use crate::{execute};
 use crate::{CalcParameter, ComputeRequest, MeasuresMap};
 use once_cell::sync::Lazy;
 
 use self::datasource::DataSource;
-pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(|| {Default::default()});
+pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(|| Default::default());
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet
@@ -34,7 +34,6 @@ pub struct DataSetBase {
     pub cache: Cache,
 }
 
-
 /// The main Trait
 ///
 /// If you have your own DataSet, implement this
@@ -47,7 +46,7 @@ pub trait DataSet: Send + Sync {
     /// Since we support a limited number of data sources, each [DataSet] must contain a source.
     /// Since many of the [DataSet] methods' logic depends on the variant of the source, we implement those there    
     fn get_datasource(&self) -> &DataSource;
-    
+
     /// Get all Measures associated with the DataSet
     /// TODO by default coauld be numeric columns accessed via [get_lazyframe]
     fn get_measures(&self) -> &MeasuresMap;
@@ -62,22 +61,22 @@ pub trait DataSet: Send + Sync {
 
     /// Get Schema (Column Names and DataTypes) of the underlying Data
     /// !Default implementation calls `.get_lazyframe(&vec![])`, so if `get_lazyframe` materialises/loads data (eg from DB via a connector)
-    /// Be careful, this might break your app. 
+    /// Be careful, this might break your app.
     fn get_schema(&self) -> UltiResult<Arc<Schema>> {
         self.get_datasource().get_schema()
     }
 
     /// !Default implementation assumes the DataSet is an InMemory DataSet, and has been prepared.
-    /// Therefore by default we don't prepare on each compute request. 
+    /// Therefore by default we don't prepare on each compute request.
     /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame
     /// into memory. See: https://www.rhosignal.com/posts/polars-dont-fear-streaming/
     fn compute(&self, r: ComputeRequest) -> UltiResult<DataFrame> {
-        execute(self, r, self.get_datasource().prepare_on_each_request() )
+        execute(self, r, self.get_datasource().prepare_on_each_request())
     }
 
     /// Get a column. Potentially this will be removed in favour of get_columns
     /// !Default implementation calls `.get_lazyframe(&vec![])`, so if `get_lazyframe` materialises/loads data (eg from DB via a connector)
-    /// Be careful, this might break your app. 
+    /// Be careful, this might break your app.
     fn get_column(&self, col_name: &str) -> UltiResult<Series> {
         self.get_lazyframe(&vec![])
             .select([col(col_name)])
@@ -85,7 +84,7 @@ pub trait DataSet: Send + Sync {
             .pop() //above select guaranteed one column
             .ok_or(UltimaErr::Other(format!("Column {col_name} doesn't exist")))
     }
-    
+
     /// Get all Reporters associated with the DataSet
     fn get_reporters(&self) -> &ReportersMap {
         &EMPTY_REPORTS_MAP
@@ -94,18 +93,21 @@ pub trait DataSet: Send + Sync {
     /// Modify lf in place - applicable only to InMemory DataSet
     /// Common use case - prepare, and then set_inplace
     fn set_lazyframe_inplace(&mut self, _: LazyFrame) -> UltiResult<()> {
-        Err(UltimaErr::Other("set_lazyframe_inplace is Not implemented for your Data Set".to_string()))
+        Err(UltimaErr::Other(
+            "set_lazyframe_inplace is Not implemented for your Data Set".to_string(),
+        ))
     }
 
     /// Collects the (main) LazyFrame of the DataSet
     /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
-    fn collect(&mut self) -> UltiResult<()>
-    {
+    fn collect(&mut self) -> UltiResult<()> {
         let lf = self.get_lazyframe(&vec![]).collect()?.lazy();
-        self.set_lazyframe_inplace(lf)
-            .map_err(|err|UltimaErr::Other(format!("Error calling .collect(), followed by
+        self.set_lazyframe_inplace(lf).map_err(|err| {
+            UltimaErr::Other(format!(
+                "Error calling .collect(), followed by
             an attempt to set Data inplace: {err}. Does it make sence to collect you Datasource?",
-            )))?;
+            ))
+        })?;
         Ok(())
     }
 
@@ -114,13 +116,16 @@ pub trait DataSet: Send + Sync {
     /// Calls [DataSet::prepare_frame]
     /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
     fn prepare(&mut self) -> UltiResult<()>
-    //where
+//where
     //    Self: Sized,
     {
         let new_frame = self.prepare_frame(self.get_lazyframe(&vec![]))?;
-        self.set_lazyframe_inplace(new_frame)
-            .map_err(|err|UltimaErr::Other(format!("Error calling .prepare(), followed by
-            an attempt to set Data inplace: {err}. Does it make sence to prepare you Datasource?")))?;
+        self.set_lazyframe_inplace(new_frame).map_err(|err| {
+            UltimaErr::Other(format!(
+                "Error calling .prepare(), followed by
+            an attempt to set Data inplace: {err}. Does it make sence to prepare you Datasource?"
+            ))
+        })?;
         Ok(())
     }
 
@@ -145,7 +150,7 @@ pub trait DataSet: Send + Sync {
 
     /// Limits overridable columns which you can override in
     /// See [AggregationRequest::overrides]
-    /// Good usecase: add prepared 
+    /// Good usecase: add prepared
     fn overridable_columns(&self) -> Vec<String> {
         self.get_schema()
             .map(overridable_columns)
@@ -159,8 +164,6 @@ pub trait DataSet: Send + Sync {
     fn validate_frame(&self, _: Option<&LazyFrame>, _validation_set: u8) -> UltiResult<()> {
         Ok(())
     }
-
-    
 
     /// Indicates if your DataSet has a cache or not
     /// It is recommended that you implement CacheableDataSet
@@ -178,12 +181,11 @@ impl DataSet for DataSetBase {
     }
 
     /// Modify lf in place - applicable only to InMemory DataSource
-    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()>  {
-        
+    fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()> {
         if let DataSource::InMemory(_) = self.source {
             self.source = DataSource::InMemory(lf.collect()?)
         } else {
-            return Err(UltimaErr::Other("Can't set data inplace with this Source. Currently can only set In Memory Dataframe".to_string()))
+            return Err(UltimaErr::Other("Can't set data inplace with this Source. Currently can only set In Memory Dataframe".to_string()));
         }
         Ok(())
     }
@@ -265,10 +267,7 @@ impl Serialize for dyn DataSet {
             .collect::<BTreeMap<&String, &Option<String>>>();
         let ordered_measures: BTreeMap<_, _> = measures.iter().collect();
 
-        let utf8_cols = self
-            .get_schema()
-            .map(fields_columns)
-            .unwrap_or_default();
+        let utf8_cols = self.get_schema().map(fields_columns).unwrap_or_default();
         let calc_params = self.calc_params();
 
         let mut seq = serializer.serialize_map(Some(4))?;

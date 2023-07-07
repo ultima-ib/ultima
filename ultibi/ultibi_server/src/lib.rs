@@ -50,7 +50,5 @@ fn run_server(ds: Arc<RwLock<dyn DataSet>>) {
     let url = format!("http://localhost:{port}");
     dbg!(url);
 
-    runtime.block_on(
-        crate::app::build_app(listener, ds, vec![]).expect("Failed to bind address"),
-    );
+    runtime.block_on(crate::app::build_app(listener, ds, vec![]).expect("Failed to bind address"));
 }

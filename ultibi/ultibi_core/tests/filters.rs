@@ -14,10 +14,7 @@ fn fltr_in_and_eq() {
 
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    let res = common::TEST_DASET
-        .as_ref()
-        .compute(data_req)
-        .unwrap();
+    let res = common::TEST_DASET.as_ref().compute(data_req).unwrap();
 
     let res_sum = res
         .column("Balance_sum")
@@ -39,10 +36,7 @@ fn fltr_eq_or_eq() {
 
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
 
-    let res = common::TEST_DASET
-        .as_ref()
-        .compute(data_req)
-        .unwrap();
+    let res = common::TEST_DASET.as_ref().compute(data_req).unwrap();
 
     let res_sum = res
         .column("Balance_mean")

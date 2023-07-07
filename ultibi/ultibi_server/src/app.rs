@@ -37,7 +37,7 @@ pub fn build_app(
             .service(ResourceFiles::new("/", generated))
             .app_data(ds.clone())
             .app_data(_templates.clone())
-            //.app_data(streaming.clone())
+        //.app_data(streaming.clone())
     })
     .listen(listener)?
     .run();

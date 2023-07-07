@@ -112,7 +112,7 @@ impl DataSet for FRTBDataSet {
         
         //First, where possible (FX and GIRR) - assign buckets
         //this really is an optional step
-        let lf1 = lf.with_column(buckets::sbm_buckets(&self.config).alias("BucketBCBS"));
+        let mut lf1 = lf.with_column(buckets::sbm_buckets(&self.config).alias("BucketBCBS"));
         //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS")]).collect());
 
         // Then assign SensWeights(BCBS) based on buckets
@@ -276,7 +276,10 @@ impl DataSet for FRTBDataSet {
         standard_cols.extend(["SensWeights".to_string(),
              "ScaleFactor".to_string(),
               "CurvatureRiskWeight".to_string()]);
-        standard_cols
+
+        let hash_res: HashSet<String> = standard_cols.into_iter().collect();
+
+        hash_res.into_iter().collect()
     }
 
 }

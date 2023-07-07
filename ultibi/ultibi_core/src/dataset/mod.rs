@@ -1,18 +1,20 @@
 pub mod new;
+pub mod datasource;
 
 use std::collections::{BTreeMap, HashSet};
 
 use polars::prelude::*;
-use serde::Deserialize;
 use serde::{ser::SerializeMap, Serialize, Serializer};
 
 use crate::cache::{Cache, CacheableDataSet};
 use crate::errors::{UltiResult, UltimaErr};
-use crate::filters::{AndOrFltrChain, fltr_chain};
+use crate::filters::{AndOrFltrChain};
 use crate::reports::report::ReportersMap;
 use crate::{execute};
 use crate::{CalcParameter, ComputeRequest, MeasuresMap};
 use once_cell::sync::Lazy;
+
+use self::datasource::DataSource;
 pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(|| {Default::default()});
 
 /// This is the default struct which implements Dataset
@@ -32,60 +34,6 @@ pub struct DataSetBase {
     pub cache: Cache,
 }
 
-impl DataSetBase {
-    
-}
-
-/// Indicated the source of data
-pub enum DataSource {
-    /// In Memory Data - fast, since prepare runs only once, instead of in every request
-    InMemory(DataFrame),
-    /// It's caller's responsibility to ensure that this Frame is a Scan and not just any LazyFrame
-    Scan(LazyFrame),
-    // TODO DB Conn
-}
-
-/// Maps to [Source]
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
-#[serde(untagged)]
-pub enum SourceVariant {
-    #[default]
-    InMemory,
-    Scan,
-    // TODO DB Conn
-}
-
-/// Marker trait implementation to ensure every SourceVariant is covered
-impl From<DataSource> for SourceVariant{
-    fn from(item: DataSource) -> Self {
-        match item {
-            DataSource::InMemory(_) => SourceVariant::InMemory,
-            DataSource::Scan(_) => SourceVariant::Scan,
-        }
-    }
-}
-
-impl Default for DataSource {
-    fn default() -> Self {
-        DataSource::InMemory(Default::default())
-    }
-}
-
-impl DataSource {
-    pub fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame{
-        let filter = fltr_chain(filters);
-        match self {
-            DataSource::InMemory(df) => if let Some(f) = filter { df.clone().lazy().filter(f) } else {df.clone().lazy()},
-            DataSource::Scan(lf) => if let Some(f) = filter { lf.clone().filter(f) } else {lf.clone()}
-        }
-    }
-    pub fn get_schema(&self) -> UltiResult<Arc<Schema>>{
-        match self {
-            DataSource::InMemory(df) => Ok(Arc::new(df.schema())),
-            DataSource::Scan(lf) => Ok(lf.schema()?)
-        }
-    }
-}
 
 /// The main Trait
 ///
@@ -95,25 +43,41 @@ pub trait DataSet: Send + Sync {
     fn ui(&self) {
         ultibi_server::run_server(self)
     }
-    /// Clones but clone is cheap
-    /// Polars DataFrame clone is cheap:
-    /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
-    /// This method gets the main LazyFrame of the Dataset
-    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame;
 
+    /// Since we support a limited number of data sources, each [DataSet] must contain a source.
+    /// Since many of the [DataSet] methods' logic depends on the variant of the source, we implement those there    
+    fn get_datasource(&self) -> &DataSource;
     
     /// Get all Measures associated with the DataSet
     /// TODO by default coauld be numeric columns accessed via [get_lazyframe]
     fn get_measures(&self) -> &MeasuresMap;
 
-    /// Get Schema (Column Names and DataTypes) of the underlying Data
-    fn get_schema(&self) -> UltiResult<Arc<Schema>> {
-        Ok(self.get_lazyframe(&vec![])
-            .schema()?)
+    /// Clones but clone is cheap
+    /// Polars DataFrame clone is cheap:
+    /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
+    /// This method gets the main LazyFrame of the Dataset
+    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame {
+        self.get_datasource().get_lazyframe(filters)
     }
 
-    /// Get a column
-    /// Potentially this will be removed in favour of get_columns
+    /// Get Schema (Column Names and DataTypes) of the underlying Data
+    /// !Default implementation calls `.get_lazyframe(&vec![])`, so if `get_lazyframe` materialises/loads data (eg from DB via a connector)
+    /// Be careful, this might break your app. 
+    fn get_schema(&self) -> UltiResult<Arc<Schema>> {
+        self.get_datasource().get_schema()
+    }
+
+    /// !Default implementation assumes the DataSet is an InMemory DataSet, and has been prepared.
+    /// Therefore by default we don't prepare on each compute request. 
+    /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame
+    /// into memory. See: https://www.rhosignal.com/posts/polars-dont-fear-streaming/
+    fn compute(&self, r: ComputeRequest) -> UltiResult<DataFrame> {
+        execute(self, r, self.get_datasource().prepare_on_each_request() )
+    }
+
+    /// Get a column. Potentially this will be removed in favour of get_columns
+    /// !Default implementation calls `.get_lazyframe(&vec![])`, so if `get_lazyframe` materialises/loads data (eg from DB via a connector)
+    /// Be careful, this might break your app. 
     fn get_column(&self, col_name: &str) -> UltiResult<Series> {
         self.get_lazyframe(&vec![])
             .select([col(col_name)])
@@ -198,11 +162,7 @@ pub trait DataSet: Send + Sync {
         Ok(())
     }
 
-    /// * `streaming` - See polars streaming. Use when your LazyFrame is a Scan if you don't want to load whole frame
-    /// into memory. See: https://www.rhosignal.com/posts/polars-dont-fear-streaming/
-    fn compute(&self, r: ComputeRequest, streaming: bool) -> UltiResult<DataFrame> {
-        execute(self, r, streaming)
-    }
+    
 
     /// Indicates if your DataSet has a cache or not
     /// It is recommended that you implement CacheableDataSet
@@ -215,8 +175,8 @@ pub trait DataSet: Send + Sync {
 impl DataSet for DataSetBase {
     /// Polars DataFrame clone is cheap:
     /// https://stackoverflow.com/questions/72320911/how-to-avoid-deep-copy-when-using-groupby-in-polars-rust
-    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame {
-        self.source.get_lazyframe(filters)
+    fn get_datasource(&self) -> &DataSource {
+        &self.source
     }
 
     /// Modify lf in place - applicable only to InMemory DataSource

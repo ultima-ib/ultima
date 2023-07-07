@@ -1,4 +1,4 @@
-use crate::{MeasuresMap, CPM, numeric_columns, derive_basic_measures_vec, Measure, reports::report::{ReportersMap, Reporter}, DataSource, DataSet, DataSourceConfig, DataSetBase};
+use crate::{MeasuresMap, CPM, numeric_columns, derive_basic_measures_vec, Measure, reports::report::{ReportersMap, Reporter}, DataSet, DataSourceConfig, DataSetBase, datasource::DataSource};
 
 pub trait NewSourcedDataSet: DataSet {
     /// See [DataSetBase] and [CalcParameter] for description of the parameters

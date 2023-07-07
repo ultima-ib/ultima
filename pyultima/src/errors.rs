@@ -6,6 +6,7 @@ use pyo3::exceptions::{PyException, PyIOError};
 use pyo3::{create_exception, PyErr};
 //use pyo3::prelude::*;
 use thiserror::Error;
+use ultibi::errors::UltimaErr;
 
 #[derive(Error)]
 pub enum PyUltimaErr {
@@ -13,6 +14,7 @@ pub enum PyUltimaErr {
     Polars(#[from] PolarsError),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+    #[error(transparent)]
     Ultima(#[from] UltimaErr),
     #[error("{0}")]
     Other(String),
@@ -52,7 +54,7 @@ impl std::convert::From<PyUltimaErr> for PyErr {
             SerdeJson(err) => SerdeJsonError::new_err(format!(
                 "Couldn't (de)serialise input. Check format. {err}"
             )),
-            Ultima(err) => UltimaError::new_err(err),
+            Ultima(err) => UltimaError::new_err(err.to_string()),
             Other(_str) => OtherError::new_err(_str.to_string()),
         }
     }

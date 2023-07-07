@@ -8,10 +8,10 @@ pub mod execute_agg_with_cache;
 pub fn execute<DS: DataSet + ?Sized>(
     data: &DS,
     r: ComputeRequest,
-    streaming: bool,
+    prepare: bool,
 ) -> UltiResult<DataFrame> {
     match r {
-        ComputeRequest::Aggregation(ar) => exec_agg(data, ar, streaming),
+        ComputeRequest::Aggregation(ar) => exec_agg(data, ar, prepare),
         _ => unimplemented!(),
     }
 }

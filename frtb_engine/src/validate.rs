@@ -22,7 +22,6 @@ pub(crate) fn validate_frtb_frame(
         "PnL_Down",
         "COB",
         "MaturityDate",
-        "BucketCRR2",
     ];
 
     if covered_bond {

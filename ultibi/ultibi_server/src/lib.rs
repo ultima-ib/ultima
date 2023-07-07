@@ -1,3 +1,5 @@
+#![doc(html_no_source)]
+
 use std::sync::RwLock;
 use std::{net::SocketAddr, sync::Arc};
 

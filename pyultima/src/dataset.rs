@@ -14,7 +14,7 @@ use ultibi::polars::prelude::Series;
 use ultibi::VisualDataSet;
 use ultibi::{
     self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase, IntoLazy,
-    MeasuresMap, ValidateSet,
+    MeasuresMap,
 };
 
 #[pyclass]
@@ -164,6 +164,7 @@ impl DataSetWrapper {
     pub fn prepare(&mut self, collect: Option<bool>) -> PyResult<()> {
         let ds = self.dataset.read().expect("Poisonned RwLock");
         let lf = ds.get_lazyframe().clone();
+        std::mem::drop(ds);
         let collect = collect.unwrap_or_else(|| true);
 
         let mut new_frame = ds.prepare_frame(Some(lf)).map_err(PyUltimaErr::Polars)?;
@@ -171,7 +172,6 @@ impl DataSetWrapper {
         if collect {
             new_frame = new_frame.collect().map_err(PyUltimaErr::Polars)?.lazy()
         }
-        std::mem::drop(ds);
 
         let mut ds = self.dataset.write().expect("Poisonned RwLock");
         ds.set_lazyframe_inplace(new_frame);

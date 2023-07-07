@@ -28,7 +28,7 @@ use crate::{
 pub fn exec_agg<DS: DataSet + ?Sized>(
     data: &DS,
     req: AggregationRequest,
-    streaming: bool,
+    prepare: bool,
 ) -> UltiResult<DataFrame> {
     // Step 0: Lookup and return Expr
     let all_requested_measures = req.measures();
@@ -104,7 +104,7 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
 
     // Step 2 Compute basics
     let mut res = match data.as_cacheable() {
-        Some(cacheable) => _exec_agg_with_cache(cacheable, req.clone(), base_measures, streaming),
+        Some(cacheable) => _exec_agg_with_cache(cacheable, req.clone(), base_measures, prepare),
         _ => _exec_agg_base(
             data,
             req.filters(),
@@ -113,7 +113,7 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
             &req.groupby,
             req.totals,
             base_measures.into_iter().map(|(_, _, pbm)| pbm).collect(),
-            streaming,
+            prepare,
         ),
     }?;
 
@@ -171,7 +171,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     groupby: &[String],
     totals: bool,
     processed_base_measures: Vec<ProcessedBaseMeasure>,
-    streaming: bool,
+    prepare: bool,
 ) -> UltiResult<DataFrame> {
 
     // Step 1.0 and 1.1 - get existing Filtered frame - first building block
@@ -210,7 +210,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     }
 
     // If streaming then prepare (assign weights) NOW (ie post filtering)
-    if streaming {
+    if prepare {
         f1 = data.prepare_frame(f1)?
     }
 
@@ -228,12 +228,16 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
             // Validating only a subset required for prepare()
             data.validate_frame(Some(&extra_frame), 1)?;
             extra_frame = data.prepare_frame(extra_frame)?;
+            // Collect now to reduce pressure on the logical plan
+            // Totally Fine since extra_frame is always relatively small
+            extra_frame = extra_frame.collect()?.lazy();
         }
         f1 = diag_concat_lf([f1, extra_frame], true, true)?;
     }
 
-    //dbg!(f1.clone().select([col("TradeId"), col("RiskClass"), col("RiskFactor"),col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
+    //dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
     //dbg!(f1.clone().select([col("*")]).collect());
+    //dbg!(&groupby);
 
     // Step 3.1 Build GROUPBY
     let groups: Vec<Expr> = groupby.iter().map(|x| col(x)).collect();
@@ -243,6 +247,8 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
         .into_iter()
         .map(|e| e.fill_null(lit(" ")))
         .collect();
+
+    //let f1 = f1.collect()?.lazy();
 
     // Step 3.2 Apply GroupBy and Agg
     // Note .limit doesn't work with standard groupby on large frames
@@ -255,6 +261,8 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
         .limit(1_000)
         .with_columns(&groups_fill_nulls)
         .collect()?;
+
+    dbg!(&aggregated_df);
 
     if totals & (groups.len() > 1) {
         let ordered_cols = aggregated_df.get_column_names_owned();

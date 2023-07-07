@@ -100,8 +100,6 @@ pub trait DataSet: Send + Sync {
     /// Collects the (main) LazyFrame of the DataSet
     /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
     fn collect(&mut self) -> UltiResult<()>
-    where
-        Self: Sized,
     {
         let lf = self.get_lazyframe(&vec![]).collect()?.lazy();
         self.set_lazyframe_inplace(lf)
@@ -116,8 +114,8 @@ pub trait DataSet: Send + Sync {
     /// Calls [DataSet::prepare_frame]
     /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
     fn prepare(&mut self) -> UltiResult<()>
-    where
-        Self: Sized,
+    //where
+    //    Self: Sized,
     {
         let new_frame = self.prepare_frame(self.get_lazyframe(&vec![]))?;
         self.set_lazyframe_inplace(new_frame)

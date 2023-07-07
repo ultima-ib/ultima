@@ -10,7 +10,7 @@ use ultibi_core::DataSet;
 
 use log::info;
 
-mod api;
+pub mod api;
 mod app;
 mod helpers;
 mod visual;
@@ -18,7 +18,7 @@ mod visual;
 pub use visual::VisualDataSet;
 
 #[allow(unused_must_use)]
-fn run_server(ds: Arc<RwLock<dyn DataSet>>, streaming: bool) {
+fn run_server(ds: Arc<RwLock<dyn DataSet>>) {
     // Read .env
     dotenv::dotenv().ok();
     // Allow pretty logs
@@ -51,6 +51,6 @@ fn run_server(ds: Arc<RwLock<dyn DataSet>>, streaming: bool) {
     dbg!(url);
 
     runtime.block_on(
-        crate::app::build_app(listener, ds, vec![], streaming).expect("Failed to bind address"),
+        crate::app::build_app(listener, ds, vec![]).expect("Failed to bind address"),
     );
 }

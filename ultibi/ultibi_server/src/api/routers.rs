@@ -147,7 +147,7 @@ async fn overridable_columns(data: Data<RwLock<dyn DataSet>>) -> impl Responder 
     web::Json(data.read().expect("Poisonned RwLock").overridable_columns())
 }
 
-pub(crate) fn configure() -> impl FnOnce(&mut ServiceConfig) {
+pub fn configure() -> impl FnOnce(&mut ServiceConfig) {
     |config: &mut ServiceConfig| {
         config.service(
             web::scope("/api")

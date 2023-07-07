@@ -15,7 +15,7 @@ use crate::{CalcParameter, ComputeRequest, MeasuresMap};
 use once_cell::sync::Lazy;
 
 use self::datasource::DataSource;
-pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(|| Default::default());
+pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(Default::default);
 
 /// This is the default struct which implements Dataset
 /// Usually a client/user would overwrite it with their own DataSet

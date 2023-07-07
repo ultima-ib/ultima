@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::sync::RwLock;
 use std::{env, fs};
 use std::{net::TcpListener, sync::Arc};
 
@@ -51,5 +52,5 @@ async fn main() -> std::io::Result<()> {
 
     let listener = TcpListener::bind(addr).expect("Failed to bind random port");
     let data = acquire::data::<DataSetType>(setup_path.as_str(), cfg!(feature = "streaming"));
-    run_server(listener, Arc::new(data), _requests)?.await
+    run_server(listener, Arc::new(RwLock::new(data)), _requests)?.await
 }

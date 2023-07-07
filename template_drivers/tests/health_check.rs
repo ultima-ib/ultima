@@ -7,7 +7,7 @@
 //! You can inspect what code gets generated using
 //! `cargo expand --test health_check` (<- name of the test file)
 
-use std::{net::TcpListener, sync::Arc};
+use std::{net::TcpListener, sync::{Arc, RwLock}};
 
 use ultibi::DataSetBase;
 
@@ -35,7 +35,7 @@ fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     // We retrieve the port assigned to us by the OS
     let port = listener.local_addr().unwrap().port();
-    let ds = Arc::new(DataSetBase::default());
+    let ds = Arc::new(RwLock::new(DataSetBase::default()));
     let server =
         template_drivers::api::run_server(listener, ds, vec![]).expect("Failed to bind address");
     let _ = tokio::spawn(server);

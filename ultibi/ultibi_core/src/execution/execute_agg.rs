@@ -262,8 +262,6 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
         .with_columns(&groups_fill_nulls)
         .collect()?;
 
-    dbg!(&aggregated_df);
-
     if totals & (groups.len() > 1) {
         let ordered_cols = aggregated_df.get_column_names_owned();
         let mut total_frames = vec![];

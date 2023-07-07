@@ -8,7 +8,7 @@ use polars::{
     series::Series,
 };
 
-use crate::{derive_basic_measures_vec, numeric_columns, Measure, DataSource, SourceVariant};
+use crate::{derive_basic_measures_vec, numeric_columns, Measure, datasource::{SourceVariant, DataSource}};
 
 /// creates an empty frame with columns
 pub fn empty_frame(with_columns: &[String]) -> DataFrame {

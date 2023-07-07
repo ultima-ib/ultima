@@ -20,11 +20,11 @@ pub mod statics;
 mod validate;
 
 use ultibi::cache::{Cache, CacheableDataSet};
+use ultibi::datasource::DataSource;
 use ultibi::errors::{UltiResult, UltimaErr};
-use ultibi::filters::AndOrFltrChain;
 use ultibi::new::NewSourcedDataSet;
 use ultibi::reports::report::ReportersMap;
-use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, CPM, DataSource, overridable_columns};
+use ultibi::{CalcParameter, DataSet, Measure, MeasuresMap, CPM, overridable_columns};
 use prelude::calc_params::FRTB_CALC_PARAMS;
 use ultibi::polars::prelude::{
     col, lit, when, AnyValue, Expr, LazyFrame, Literal, LiteralValue, NamedFrom, PolarsResult,
@@ -76,8 +76,8 @@ impl DataSet for FRTBDataSet {
         Some(self)
     }
 
-    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame {
-        self.source.get_lazyframe(filters)
+    fn get_datasource(&self) -> &DataSource {
+        &self.source
     }
     /// Modify lf in place - applicable only to InMemory DataSource
     fn set_lazyframe_inplace(&mut self, lf: LazyFrame) -> UltiResult<()> {

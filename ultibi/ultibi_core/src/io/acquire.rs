@@ -1,4 +1,4 @@
-use crate::{read_toml2, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet, DataSource};
+use crate::{read_toml2, DataSourceConfig, MeasuresMap, new::NewSourcedDataSet, datasource::DataSource};
 
 /// Reads initial DataSet from Source
 ///

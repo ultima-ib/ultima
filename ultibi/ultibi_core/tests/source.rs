@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use polars::prelude::{LazyCsvReader, LazyFileListReader};
-use ultibi_core::{DataSet, DataSource, DataSetBase, new::NewSourcedDataSet};
+use ultibi_core::{DataSet, DataSetBase, new::NewSourcedDataSet, datasource::DataSource};
 mod common;
 
 #[test]

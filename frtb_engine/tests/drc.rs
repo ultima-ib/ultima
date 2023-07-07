@@ -165,7 +165,7 @@ fn drc_charge() {
 
     let res = common::LAZY_DASET
         .as_ref()
-        .compute(compute_req, false)
+        .compute(compute_req)
         .unwrap();
 
     assert!(dbg!(res.column("DRC Charge")).is_ok());

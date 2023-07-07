@@ -17,7 +17,7 @@ fn simple_fltr_grpby_sum() {
 
     let res = common::TEST_DASET
         .as_ref()
-        .compute(data_req, false)
+        .compute(data_req)
         .unwrap();
 
     let expected = df!(
@@ -44,7 +44,7 @@ fn non_existent_measure() {
 
     common::TEST_DASET
         .as_ref()
-        .compute(data_req, false)
+        .compute(data_req)
         .unwrap();
 }
 
@@ -63,6 +63,6 @@ fn non_existent_action() {
 
     common::TEST_DASET
         .as_ref()
-        .compute(data_req, false)
+        .compute(data_req)
         .unwrap();
 }

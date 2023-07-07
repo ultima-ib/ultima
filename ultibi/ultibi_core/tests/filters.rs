@@ -16,7 +16,7 @@ fn fltr_in_and_eq() {
 
     let res = common::TEST_DASET
         .as_ref()
-        .compute(data_req, false)
+        .compute(data_req)
         .unwrap();
 
     let res_sum = res
@@ -41,7 +41,7 @@ fn fltr_eq_or_eq() {
 
     let res = common::TEST_DASET
         .as_ref()
-        .compute(data_req, false)
+        .compute(data_req)
         .unwrap();
 
     let res_sum = res

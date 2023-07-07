@@ -5,7 +5,7 @@ use polars::prelude::*;
 
 use ultibi_core::{
     prelude::{read_toml2, DataSet, DataSetBase, DataSourceConfig},
-    DependantMeasure, Measure, CPM, new::NewSourcedDataSet, DataSource,
+    DependantMeasure, Measure, CPM, new::NewSourcedDataSet, datasource::DataSource,
 };
 
 #[allow(dead_code)] // Not dead code actually, but clippy complains

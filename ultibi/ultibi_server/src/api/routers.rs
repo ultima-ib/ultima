@@ -116,14 +116,13 @@ async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Res
 pub(crate) async fn execute(
     data: Data<RwLock<dyn DataSet>>,
     req: web::Json<ComputeRequest>,
-    streaming: Data<bool>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
     let res = task::spawn_blocking(move || {
         data.read()
             .expect("Poisonned RwLock")
-            .compute(r, **streaming) //TODO streaming mode
+            .compute(r)
     })
     .await
     .context("Failed to spawn blocking task.")

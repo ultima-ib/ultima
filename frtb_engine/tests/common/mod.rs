@@ -31,7 +31,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     //let excl = data_req.groupby().clone();
     let a = LAZY_DASET.as_ref();
     let res = a
-        .compute(data_req, false)
+        .compute(data_req)
         .expect("Error while calculating results");
     let res_numeric = res
         .lazy()

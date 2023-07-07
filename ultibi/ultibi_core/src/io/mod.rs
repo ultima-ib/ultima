@@ -14,7 +14,7 @@ use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap};
 
-use crate::{Measure, DataSource, SourceVariant};
+use crate::{Measure, datasource::{SourceVariant, DataSource}};
 use helpers::{empty_frame, finish, path_to_lf};
 
 use self::helpers::diag_concat_lf;

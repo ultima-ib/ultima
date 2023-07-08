@@ -123,7 +123,7 @@ pub trait DataSet: Send + Sync {
         self.set_lazyframe_inplace(new_frame).map_err(|err| {
             UltimaErr::Other(format!(
                 "Error calling .prepare(), followed by
-            an attempt to set Data inplace: {err}. Does it make sence to prepare you Datasource?"
+            an attempt to set Data inplace: {err}. Does it make sence to prepare you Datasource? Has your DataSet already been prepared?"
             ))
         })?;
         Ok(())

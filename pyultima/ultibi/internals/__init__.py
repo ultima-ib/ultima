@@ -6,7 +6,7 @@ they all import from each other via this __init__ file using
 `import ultibi.internals as uli`. The imports below are being shared across this module.
 """
 
-from ..rust_module.ultibi_engine import NoDataError, OtherError
+from ..rust_module.ultibi_engine import NoDataError, OtherError, UltimaError
 from .dataset import DS, DataSet, FRTBDataSet
 from .filters import EqFilter, Filter, InFilter, NeqFilter, NotInFilter
 from .measure import (
@@ -29,6 +29,7 @@ __all__ = [
     "DS",
     "NoDataError",
     "OtherError",
+    "UltimaError",
     "EqFilter",
     "NeqFilter",
     "InFilter",

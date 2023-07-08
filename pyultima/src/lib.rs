@@ -3,7 +3,7 @@ extern crate ultibi as ultibi_rs;
 
 use errors::{
     ArrowErrorException, ComputeError, DuplicateError, InvalidOperationError, NoDataError,
-    NotFoundError, OtherError, SchemaError, SerdeJsonError, ShapeError,
+    NotFoundError, OtherError, SchemaError, SerdeJsonError, ShapeError, UltimaError,
 };
 use pyo3::{pyfunction, pymodule, types::PyModule, wrap_pyfunction, PyResult, Python};
 
@@ -36,6 +36,8 @@ fn ultibi_engine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<filter::FilterWrapper>()?;
     m.add_class::<calculator::CalculatorWrapper>()?;
     m.add_class::<measure::CalcParamWrapper>()?;
+
+    m.add("UltimaError", _py.get_type::<UltimaError>()).unwrap();
 
     m.add("NotFoundError", _py.get_type::<NotFoundError>())
         .unwrap();

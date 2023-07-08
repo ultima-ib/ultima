@@ -16,13 +16,11 @@ use ultibi::{
     DataSet,
 };
 
-
 // We don't use actix_web_static_files here since because we don't want to rebuild the whole
 //project when working on the frontend
 //use actix_web_static_files::ResourceFiles;
 //include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
-// TODO Why can't I use ds: impl DataSet ?
 pub fn run_server(
     listener: TcpListener,
     ds: Arc<RwLock<dyn DataSet>>,

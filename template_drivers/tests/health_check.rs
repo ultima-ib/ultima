@@ -7,7 +7,10 @@
 //! You can inspect what code gets generated using
 //! `cargo expand --test health_check` (<- name of the test file)
 
-use std::{net::TcpListener, sync::{Arc, RwLock}};
+use std::{
+    net::TcpListener,
+    sync::{Arc, RwLock},
+};
 
 use ultibi::DataSetBase;
 

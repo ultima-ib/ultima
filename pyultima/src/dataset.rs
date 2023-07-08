@@ -149,10 +149,18 @@ impl DataSetWrapper {
         series: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
+        bespoke_measures: Option<Vec<MeasureWrapper>>,
     ) -> PyResult<Self> {
         let build_params = build_params.unwrap_or_default();
-        let empty = BTreeMap::default();
-        from_frame::<FRTBDataSet>(py, series, measures, build_params, empty)
+        let mm = bespoke_measures
+            .unwrap_or_default()
+            .into_iter()
+            .map(|x| {
+                let m = x._inner;
+                (m.name().clone(), m)
+            })
+            .collect::<MeasuresMap>();
+        from_frame::<FRTBDataSet>(py, series, measures, build_params, mm)
     }
 
     pub fn ui(&self, py: Python) -> PyResult<()> {
@@ -168,19 +176,6 @@ impl DataSetWrapper {
             ds.collect().map_err(PyUltimaErr::Ultima)?;
         }
         Ok(())
-        // let lf = ds.get_lazyframe().clone();
-        // std::mem::drop(ds);
-        // let collect = collect.unwrap_or_else(|| true);
-
-        // let mut new_frame = ds.prepare_frame(Some(lf)).map_err(PyUltimaErr::Polars)?;
-
-        // if collect {
-        //     new_frame = new_frame.collect().map_err(PyUltimaErr::Polars)?.lazy()
-        // }
-
-        // let mut ds = self.dataset.write().expect("Poisonned RwLock");
-        // ds.set_lazyframe_inplace(new_frame);
-        // Ok(())
     }
 
     pub fn compute(

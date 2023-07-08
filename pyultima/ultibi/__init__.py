@@ -21,6 +21,7 @@ from .internals import (
     NotInFilter,
     OtherError,
     StandardCalculator,
+    UltimaError,
     aggregation_ops,
 )
 
@@ -47,4 +48,5 @@ __all__ = [
     "CustomCalculator",
     "StandardCalculator",
     "CalcParam",
+    "UltimaError",
 ]

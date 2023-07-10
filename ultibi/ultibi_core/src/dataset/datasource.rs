@@ -9,6 +9,7 @@ use crate::{
 };
 
 /// Indicated the source of data
+#[derive(Clone)]
 pub enum DataSource {
     /// In Memory Data - fast, since prepare runs only once, instead of in every request
     InMemory(DataFrame),

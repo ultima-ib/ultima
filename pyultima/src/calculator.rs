@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use crate::conversions::{
+use crate::{conversions::{
     series::{py_series_to_rust_series, rust_series_to_py_series},
-    wrappers::Wrap,
-};
+    wrappers::Wrap}};
 use polars::prelude::PolarsError;
 use pyo3::types::PyBytes;
 use pyo3::{
@@ -43,7 +42,7 @@ impl CalculatorWrapper {
                 let rustbytes = as_pybytes.as_bytes();
                 //let e = serde_json::from_slice::<Expr>(rustbytes).unwrap(); // should never fail
                 let e: Expr = ciborium::de::from_reader(rustbytes).map_err(|e| {
-                    PolarsError::ComputeError(format!("{}. Try using Custom calculator", e).into())
+                    PolarsError::ComputeError(format!("Error deserializing expression. This could be due to differenet Polars version. Try using Custom calculator. {}", e).into())
                 })?;
                 Ok(e)
             })

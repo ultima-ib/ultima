@@ -90,7 +90,7 @@ if __name__ == "__main__":
         # collect all tests
         tests = [
             doctest.DocTestSuite(
-                m, extraglobs={"pl": ultibi, "dirpath": Path(tmpdir)}, optionflags=1
+                m, extraglobs={"ul": ultibi, "dirpath": Path(tmpdir)}, optionflags=1
             )
             for m in modules_in_path(src_dir)
         ]

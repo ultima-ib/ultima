@@ -1,3 +1,8 @@
+from ..rust_module.ultibi_engine import DataSourceWrapper
+
+from polars import DataFrame, LazyFrame
+
+
 class DataSource:
     """Represents a Source of your Data. The source can be:
     1) An In Memory Dataframe. This is the fastest way to perform computations.
@@ -10,5 +15,26 @@ class DataSource:
         i) (if relevant) Moreover .prepare() will run with every request, making it
             potentially too slow.
 
-    3) A DB connection. Similar to 2. We use connectorX library to 
+    3) A DB connection string. Similar to 2. We use connectorX library.
+
+    Parameters
+    ----------
+    data : DataFrame, LazyFrame, str
+        * DataFrame for In Memory Data
+        * LazyFrame for a Scan. It's caller's responsibility to ensure the object was
+            created with pl.scan_... function and was not collected at any point
+        * str for a DB Connection String
     """
+
+    inner: DataSourceWrapper
+
+    def __init__(self, data: DataFrame|LazyFrame|str):
+
+        if isinstance(data, DataFrame):
+            self.inner = DataSourceWrapper.from_frame(data)
+        
+        elif isinstance(data, LazyFrame):
+            self.inner = DataSourceWrapper.from_scan(data)
+
+        elif isinstance(data, str):
+            raise NotImplementedError("Scan DB is not yet implemented")

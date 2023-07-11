@@ -33,6 +33,7 @@ fn ultibi_engine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<requests::AggregationRequestWrapper>()?;
     m.add_class::<requests::ComputeRequestWrapper>()?;
     m.add_class::<dataset::DataSetWrapper>()?;
+    m.add_class::<datasource::DataSourceWrapper>()?;
     m.add_class::<measure::MeasureWrapper>()?;
     m.add_class::<filter::FilterWrapper>()?;
     m.add_class::<calculator::CalculatorWrapper>()?;

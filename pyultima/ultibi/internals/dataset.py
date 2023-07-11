@@ -20,8 +20,8 @@ class DataSet:
     """
     Main DataSet class
 
-    Holds data, optionally validates and prepares Data,
-     and finally executes request.
+    Holds data source info, optionally validates and prepares Data,
+     and executes request.
     """
 
     inner: DataSetWrapper

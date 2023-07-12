@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, TypeVar
 
 from ..rust_module.ultibi_engine import FilterWrapper
 
+# Create a generic variable that can be 'Parent', or any subclass.
+F = TypeVar("F", bound="Filter")
 
 class Filter:
     """

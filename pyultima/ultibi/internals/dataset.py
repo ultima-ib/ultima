@@ -5,6 +5,7 @@ from typing import Any, Type, TypeVar
 import polars as pl
 
 import ultibi.internals as uli
+from ultibi.internals.filters import F
 from ultibi.internals.measure import Measure
 
 from ..rust_module.ultibi_engine import DataSetWrapper
@@ -64,8 +65,6 @@ class DataSet:
 
         Args:
             path (str): path to <config>.toml
-            collect (str): non-lazy evaluation
-            prepare (str): calls prepare
 
         Returns:
             T: Self
@@ -126,8 +125,10 @@ class DataSet:
         """
         self.inner.validate()
 
-    def frame(self) -> pl.DataFrame:
-        vec_srs = self.inner.frame()
+    def frame(self, fltrs: list[list[F]]|None) -> pl.DataFrame:
+        "Use with caution. The returned frame might be very large"
+        fltrs = [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]
+        vec_srs = self.inner.frame(fltrs)
         return pl.DataFrame(vec_srs)
 
     def compute(self, req: "dict[Any, Any]|uli.ComputeRequest") -> pl.DataFrame:

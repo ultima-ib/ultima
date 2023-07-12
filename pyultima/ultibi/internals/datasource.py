@@ -28,6 +28,14 @@ class DataSource:
 
     inner: DataSourceWrapper
 
+    @classmethod
+    def inmemory(cls, data: DataFrame):
+        return cls(data)
+    
+    @classmethod
+    def scan(cls, data: LazyFrame):
+        return cls(data)
+
     def __init__(self, data: DataFrame|LazyFrame|str):
 
         if isinstance(data, DataFrame):
@@ -38,3 +46,7 @@ class DataSource:
 
         elif isinstance(data, str):
             raise NotImplementedError("Scan DB is not yet implemented")
+        
+if __name__ == "__main__":
+    a = DataSource()
+    print(a.inner)

@@ -19,6 +19,7 @@ use ultibi::VisualDataSet;
 use ultibi::{
     self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase, MeasuresMap,
 };
+use crate::datasource::DataSourceWrapper;
 
 #[pyclass]
 pub struct DataSetWrapper {
@@ -45,31 +46,22 @@ fn from_conf<T: NewSourcedDataSet + 'static>(
     })
 }
 
-fn from_frame<T: NewSourcedDataSet + 'static>(
-    py: Python,
-    seriess: Vec<Py<PyAny>>,
+fn from_source<T: NewSourcedDataSet + 'static>(
+    _: Python,
+    source: DataSource,
     measures: Option<Vec<String>>,
     build_params: BTreeMap<String, String>,
     bespoke_measures: MeasuresMap,
 ) -> PyResult<DataSetWrapper> {
-    let df = DataFrame::new(
-        seriess
-            .into_iter()
-            .map(|x| py_series_to_rust_series(x.as_ref(py)))
-            .collect::<PyResult<Vec<Series>>>()?,
-    )
-    .map_err(PyUltimaErr::Polars)?;
 
-    let schema = df.schema();
-    let arc_schema = Arc::new(schema);
-    // TODO function arg should be add_numeric_columns_as_measures, defaulted to true
+    let arc_schema = source.get_schema().map_err(PyUltimaErr::Ultima)?;
     let measures = measures.unwrap_or_else(|| numeric_columns(arc_schema));
     let mv = derive_basic_measures_vec(measures);
     let mut mm: MeasuresMap = MeasuresMap::from_iter(mv);
     mm.extend(bespoke_measures);
 
     let ds: T = T::new(
-        DataSource::InMemory(df),
+        source,
         mm,
         Default::default(),
         build_params,
@@ -130,6 +122,15 @@ impl DataSetWrapper {
         build_params: Option<BTreeMap<String, String>>,
         bespoke_measures: Option<Vec<MeasureWrapper>>,
     ) -> PyResult<Self> {
+
+        let df = DataFrame::new(
+            seriess
+                .into_iter()
+                .map(|x| py_series_to_rust_series(x.as_ref(py)))
+                .collect::<PyResult<Vec<Series>>>()?,
+        )
+        .map_err(PyUltimaErr::Polars)?;
+        let source = DataSource::InMemory(df);
         let build_params = build_params.unwrap_or_default();
         let mm = bespoke_measures
             .unwrap_or_default()
@@ -139,14 +140,43 @@ impl DataSetWrapper {
                 (m.name().clone(), m)
             })
             .collect::<MeasuresMap>();
-        from_frame::<DataSetBase>(py, seriess, measures, build_params, mm)
+        from_source::<DataSetBase>(py, source, measures, build_params, mm)
     }
 
     #[classmethod]
     fn frtb_from_frame(
         _: &PyType,
         py: Python,
-        series: Vec<Py<PyAny>>,
+        seriess: Vec<Py<PyAny>>,
+        measures: Option<Vec<String>>,
+        build_params: Option<BTreeMap<String, String>>,
+        bespoke_measures: Option<Vec<MeasureWrapper>>,
+    ) -> PyResult<Self> {
+        let df = DataFrame::new(
+            seriess
+                .into_iter()
+                .map(|x| py_series_to_rust_series(x.as_ref(py)))
+                .collect::<PyResult<Vec<Series>>>()?,
+        )
+        .map_err(PyUltimaErr::Polars)?;
+        let source = DataSource::InMemory(df);
+        let build_params = build_params.unwrap_or_default();
+        let mm = bespoke_measures
+            .unwrap_or_default()
+            .into_iter()
+            .map(|x| {
+                let m = x._inner;
+                (m.name().clone(), m)
+            })
+            .collect::<MeasuresMap>();
+        from_source::<FRTBDataSet>(py, source, measures, build_params, mm)
+    }
+
+    #[classmethod]
+    fn from_source(
+        _: &PyType,
+        py: Python,
+        source: DataSourceWrapper,
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
         bespoke_measures: Option<Vec<MeasureWrapper>>,
@@ -160,7 +190,7 @@ impl DataSetWrapper {
                 (m.name().clone(), m)
             })
             .collect::<MeasuresMap>();
-        from_frame::<FRTBDataSet>(py, series, measures, build_params, mm)
+        from_source::<DataSetBase>(py, source.inner, measures, build_params, mm)
     }
 
     pub fn ui(&self, py: Python) -> PyResult<()> {

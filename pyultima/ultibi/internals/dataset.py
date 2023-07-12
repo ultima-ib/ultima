@@ -102,6 +102,21 @@ class DataSet:
         return cls(
             DataSetWrapper.from_frame(df, measures, build_params, bespoke_measures),
         )
+    
+    @classmethod
+    def from_source(
+        cls: Type[DS],
+        ds: uli.DataSource,
+        measures: "list[str] | None" = None,
+        build_params: "dict[str, str] | None" = None,
+        bespoke_measures: "list[TMeasure] | None" = None,
+    ) -> DS:
+        bespoke_measures = (
+            [m.inner for m in bespoke_measures] if bespoke_measures else None
+        )
+        return cls(
+            DataSetWrapper.from_source(ds, measures, build_params, bespoke_measures),
+        )
 
     def prepare(self, collect: bool = True) -> None:
         """Does nothing unless overriden. To be used for one of computations.
@@ -127,7 +142,8 @@ class DataSet:
 
     def frame(self, fltrs: list[list[F]]|None) -> pl.DataFrame:
         "Use with caution. The returned frame might be very large"
-        fltrs = [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]
+        fltrs = ( [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]
+                  if fltrs is not None else None )
         vec_srs = self.inner.frame(fltrs)
         return pl.DataFrame(vec_srs)
 

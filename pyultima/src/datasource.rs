@@ -40,7 +40,7 @@ impl DataSourceWrapper {
             )
             .map_err(PyUltimaErr::Polars)?;
 
-        Ok(DataSourceWrapper{inner: DataSource::InMemory(df)})
+        Ok(DataSourceWrapper{inner: df.into()})
     }
 
     /// Should be used for a scan only
@@ -49,7 +49,7 @@ impl DataSourceWrapper {
         _py: Python,
         pylf: PyLazyFrame) -> PyResult<Self> {
             let lf = pylf.0;
-            Ok(DataSourceWrapper{inner: DataSource::Scan(lf)})
+            Ok(DataSourceWrapper{inner: lf.into()})
         }
 }
 

@@ -19,10 +19,16 @@ DS = TypeVar("DS", bound="DataSet")
 
 class DataSet:
     """
-    Main DataSet class
-
-    Holds data source info, optionally validates and prepares Data,
+    Main DataSet class. Holds data source info, optionally validates and prepares Data,
      and executes request.
+
+    Creation:
+        Preffer `DataSet.from_source`
+
+        `DataSet.from_config_path`
+
+        `DataSet.from_frame`
+
     """
 
     inner: DataSetWrapper
@@ -115,7 +121,8 @@ class DataSet:
             [m.inner for m in bespoke_measures] if bespoke_measures else None
         )
         return cls(
-            DataSetWrapper.from_source(ds, measures, build_params, bespoke_measures),
+            DataSetWrapper.from_source(ds.inner, measures, build_params, 
+                                       bespoke_measures),
         )
 
     def prepare(self, collect: bool = True) -> None:
@@ -142,8 +149,8 @@ class DataSet:
 
     def frame(self, fltrs: list[list[F]]|None) -> pl.DataFrame:
         "Use with caution. The returned frame might be very large"
-        fltrs = ( [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]
-                  if fltrs is not None else None )
+        if fltrs is not None: # extract inner
+            fltrs = [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]
         vec_srs = self.inner.frame(fltrs)
         return pl.DataFrame(vec_srs)
 

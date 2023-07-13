@@ -9,12 +9,18 @@ class TestCreationWithScan(unittest.TestCase):
     def test_scan(self) -> None:
         scan = pl.scan_csv("../frtb_engine/data/frtb/Delta.csv", 
                            dtypes={"SensitivitySpot": pl.Float64})
-        ul.DataSource.scan(scan)
+        dsource = ul.DataSource.scan(scan)
+        ds = ul.DataSet.from_source(dsource)
+        self.assertRaises(ul.internals.UltimaError, ds.prepare)
+
     
     def test_inmemory(self) -> None:
         scan = pl.read_csv("../frtb_engine/data/frtb/Delta.csv", 
                            dtypes={"SensitivitySpot": pl.Float64})
-        ul.DataSource.inmemory(scan)
+        dsource = ul.DataSource.inmemory(scan)
+        ds = ul.DataSet.from_source(dsource)
+        ds.prepare()
+
 
 if __name__ == "__main__":
     unittest.main()

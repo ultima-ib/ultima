@@ -85,6 +85,12 @@ pub(crate) fn string_to_any<'a>(
             let f = serde_json::from_str::<f64>(value)
                 .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))?;
             Ok(AnyValue::Float64(f))
+        },
+        // Python int
+        DataType::Int64 => {
+            let i = serde_json::from_str::<i64>(value)
+                .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))?;
+            Ok(AnyValue::Int64(i))
         }
         // Boolean column
         DataType::Boolean => Ok(AnyValue::Boolean(

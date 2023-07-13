@@ -80,3 +80,15 @@ impl DataSource {
         }
     }
 }
+
+impl From<DataFrame> for DataSource {
+    fn from(item: DataFrame) -> Self {
+        DataSource::InMemory(item)
+    }
+}
+
+impl From<LazyFrame> for DataSource {
+    fn from(item: LazyFrame) -> Self {
+        DataSource::Scan(item)
+    }
+}

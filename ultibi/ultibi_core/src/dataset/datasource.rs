@@ -16,6 +16,8 @@ pub enum DataSource {
     /// It's caller's responsibility to ensure that this Frame is a Scan and not just any LazyFrame
     Scan(LazyFrame),
     // TODO DB Conn
+    #[cfg(feature = "db")]
+    Db
 }
 
 /// Maps to [Source]
@@ -73,10 +75,13 @@ impl DataSource {
 
     /// InMemory -> false
     /// Scan -> true
+    /// Db -> true
     pub fn prepare_on_each_request(&self) -> bool {
         match self {
             DataSource::InMemory(_) => false,
             DataSource::Scan(_) => true,
+            #[cfg(feature = "db")]
+            DataSource::Db(_) => wrong,
         }
     }
 }

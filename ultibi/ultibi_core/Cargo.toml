@@ -39,9 +39,13 @@ quote = "1.0.26" # Needs to be specified for utoipa to build
 utoipa = { git="https://github.com/juhaku/utoipa", optional = true} # TODO change to version
 # Other Utils
 typed-builder="0.14.0"
+# DB
+connectorx = { version = "0.3.1", optional = true }
+
 
 
 [features]
 default = []
 aws_s3 = ["dep:aws-config", "dep:aws-sdk-s3", "dep:tokio", "dep:futures"]
 openapi = ["dep:utoipa"]
+db = ["dep:connectorx"]

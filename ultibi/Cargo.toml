@@ -17,3 +17,4 @@ ultibi_server = {path = "ultibi_server", optional = true}
 default = []
 aws_s3 = ["ultibi_core/aws_s3"]
 ui = ["ultibi_server"]
+db = ["ultibi_core/db"]

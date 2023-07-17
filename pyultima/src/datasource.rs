@@ -1,12 +1,11 @@
 use std::ops::Deref;
 
 use polars::prelude::LogicalPlan;
-use ultibi::polars::{series::Series, prelude::LazyFrame};
-use pyo3::{pyclass, pymethods, types::PyType, Python, PyAny, Py, PyResult, FromPyObject};
+use pyo3::{pyclass, pymethods, types::PyType, FromPyObject, Py, PyAny, PyResult, Python};
+use ultibi::polars::{prelude::LazyFrame, series::Series};
 use ultibi::{datasource::DataSource, DataFrame};
 
 use crate::{conversions::series::py_series_to_rust_series, errors::PyUltimaErr};
-
 
 #[pyclass]
 #[derive(Clone)]
@@ -24,33 +23,27 @@ impl Deref for DataSourceWrapper {
 }
 
 #[pymethods]
-impl DataSourceWrapper { 
-
+impl DataSourceWrapper {
     /// In Memory
     #[classmethod]
-    fn from_frame(_: &PyType,
-        py: Python,
-        seriess: Vec<Py<PyAny>>) -> PyResult<Self> {
+    fn from_frame(_: &PyType, py: Python, seriess: Vec<Py<PyAny>>) -> PyResult<Self> {
+        let df = DataFrame::new(
+            seriess
+                .into_iter()
+                .map(|x| py_series_to_rust_series(x.as_ref(py)))
+                .collect::<PyResult<Vec<Series>>>()?,
+        )
+        .map_err(PyUltimaErr::Polars)?;
 
-            let df = DataFrame::new(
-                seriess
-                    .into_iter()
-                    .map(|x| py_series_to_rust_series(x.as_ref(py)))
-                    .collect::<PyResult<Vec<Series>>>()?,
-            )
-            .map_err(PyUltimaErr::Polars)?;
-
-        Ok(DataSourceWrapper{inner: df.into()})
+        Ok(DataSourceWrapper { inner: df.into() })
     }
 
     /// Should be used for a scan only
     #[classmethod]
-    fn from_scan(_: &PyType,
-        _py: Python,
-        pylf: PyLazyFrame) -> PyResult<Self> {
-            let lf = pylf.0;
-            Ok(DataSourceWrapper{inner: lf.into()})
-        }
+    fn from_scan(_: &PyType, _py: Python, pylf: PyLazyFrame) -> PyResult<Self> {
+        let lf = pylf.0;
+        Ok(DataSourceWrapper { inner: lf.into() })
+    }
 }
 
 pub struct PyLazyFrame(pub LazyFrame);

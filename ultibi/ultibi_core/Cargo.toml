@@ -40,7 +40,7 @@ utoipa = { git="https://github.com/juhaku/utoipa", optional = true} # TODO chang
 # Other Utils
 typed-builder="0.14.0"
 # DB
-connectorx = { version = "0.3.1", optional = true }
+connectorx = { git = "https://github.com/AnatolyBuga/connector-x.git", branch="polars_dtype_u8", optional = true, features=["dst_arrow2", "src_mysql"]}
 
 
 

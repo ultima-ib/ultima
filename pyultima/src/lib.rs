@@ -10,11 +10,11 @@ use pyo3::{pyfunction, pymodule, types::PyModule, wrap_pyfunction, PyResult, Pyt
 mod calculator;
 mod conversions;
 mod dataset;
+mod datasource;
 mod errors;
 mod filter;
 mod measure;
 mod requests;
-mod datasource;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {

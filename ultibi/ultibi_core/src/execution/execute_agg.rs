@@ -165,7 +165,6 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
 /// Executes base measures on your DataSet
 pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     data: &DS,
-    //req: AggregationRequest,
     filters: &AndOrFltrChain,
     add_rows: &AdditionalRows,
     overrides: &[Override],

@@ -50,15 +50,27 @@ use crate::rrao::rrao_measures;
 
 use crate::totals::sa_total_measures;
 
+use crate::prelude::total_delta_sens;
+use ultibi::CPM;
+
 /// Exporting Measures
 pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
-    let non_rc_specific = vec![Measure::Base(BaseMeasure {
-        name: "RiskWeights".to_string(),
-        calculator: std::sync::Arc::new(sens_weights),
-        aggregation: Some("first".into()),
-        precomputefilter: None,
-        calc_params: vec![],
-    })];
+    let non_rc_specific = vec![
+        Measure::Base(BaseMeasure {
+            name: "RiskWeights".to_string(),
+            calculator: std::sync::Arc::new(sens_weights),
+            aggregation: Some("first".into()),
+            precomputefilter: None,
+            calc_params: vec![],
+        }),
+        Measure::Base(BaseMeasure {
+            name: "Total DeltaSens".to_string(),
+            calculator: std::sync::Arc::new(|_: &CPM| Ok(total_delta_sens())),
+            aggregation: None,
+            precomputefilter: None,
+            calc_params: vec![],
+        }),
+    ];
 
     let mut res = vec![];
     res.extend(fx_delta_measures());

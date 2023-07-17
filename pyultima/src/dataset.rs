@@ -9,6 +9,7 @@ use ultibi::filters::FilterE;
 use ultibi::new::NewSourcedDataSet;
 //use std::sync::Mutex;
 use crate::conversions::series::{py_series_to_rust_series, rust_series_to_py_series};
+use crate::datasource::DataSourceWrapper;
 use crate::errors::PyUltimaErr;
 use crate::filter::FilterWrapper;
 use crate::measure::MeasureWrapper;
@@ -19,7 +20,6 @@ use ultibi::VisualDataSet;
 use ultibi::{
     self, derive_basic_measures_vec, numeric_columns, DataFrame, DataSet, DataSetBase, MeasuresMap,
 };
-use crate::datasource::DataSourceWrapper;
 
 #[pyclass]
 pub struct DataSetWrapper {
@@ -53,19 +53,13 @@ fn from_source<T: NewSourcedDataSet + 'static>(
     build_params: BTreeMap<String, String>,
     bespoke_measures: MeasuresMap,
 ) -> PyResult<DataSetWrapper> {
-
     let arc_schema = source.get_schema().map_err(PyUltimaErr::Ultima)?;
     let measures = measures.unwrap_or_else(|| numeric_columns(arc_schema));
     let mv = derive_basic_measures_vec(measures);
     let mut mm: MeasuresMap = MeasuresMap::from_iter(mv);
     mm.extend(bespoke_measures);
 
-    let ds: T = T::new(
-        source,
-        mm,
-        Default::default(),
-        build_params,
-    );
+    let ds: T = T::new(source, mm, Default::default(), build_params);
 
     Ok(DataSetWrapper {
         dataset: Arc::new(RwLock::new(ds)),
@@ -122,7 +116,6 @@ impl DataSetWrapper {
         build_params: Option<BTreeMap<String, String>>,
         bespoke_measures: Option<Vec<MeasureWrapper>>,
     ) -> PyResult<Self> {
-
         let df = DataFrame::new(
             seriess
                 .into_iter()

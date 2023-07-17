@@ -15,9 +15,9 @@ pub enum DataSource {
     InMemory(DataFrame),
     /// It's caller's responsibility to ensure that this Frame is a Scan and not just any LazyFrame
     Scan(LazyFrame),
-    // TODO DB Conn
+    // TODO DB Connection
     #[cfg(feature = "db")]
-    Db
+    Db(DbInfo),
 }
 
 /// Maps to [Source]
@@ -28,7 +28,12 @@ pub enum SourceVariant {
     InMemory,
     Scan,
     // TODO DB Conn
+    #[cfg(feature = "db")]
+    Db,
 }
+
+#[derive(Clone)]
+pub struct DbInfo;
 
 /// Marker trait implementation to ensure every SourceVariant is covered
 impl From<DataSource> for SourceVariant {
@@ -36,6 +41,8 @@ impl From<DataSource> for SourceVariant {
         match item {
             DataSource::InMemory(_) => SourceVariant::InMemory,
             DataSource::Scan(_) => SourceVariant::Scan,
+            #[cfg(feature = "db")]
+            DataSource::Db(_) => SourceVariant::Db,
         }
     }
 }
@@ -64,12 +71,16 @@ impl DataSource {
                     lf.clone()
                 }
             }
+            #[cfg(feature = "db")]
+            DataSource::Db(_) => todo!(),
         }
     }
     pub fn get_schema(&self) -> UltiResult<Arc<Schema>> {
         match self {
             DataSource::InMemory(df) => Ok(Arc::new(df.schema())),
             DataSource::Scan(lf) => Ok(lf.schema()?),
+            #[cfg(feature = "db")]
+            DataSource::Db(_) => todo!(),
         }
     }
 
@@ -81,7 +92,7 @@ impl DataSource {
             DataSource::InMemory(_) => false,
             DataSource::Scan(_) => true,
             #[cfg(feature = "db")]
-            DataSource::Db(_) => wrong,
+            DataSource::Db(_) => unimplemented!(),
         }
     }
 }

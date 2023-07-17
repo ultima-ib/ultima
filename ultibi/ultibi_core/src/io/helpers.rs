@@ -111,6 +111,8 @@ pub fn finish(
             DataSource::InMemory(df)
         }
         SourceVariant::Scan => DataSource::Scan(concatinated_frame),
+        // only InMemory or Scan is supported for DataSourceConfig::CSV
+        _ => panic!("only InMemory or Scan for CSV Config"),
     };
 
     (source, measures, build_params)

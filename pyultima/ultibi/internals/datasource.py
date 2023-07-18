@@ -24,6 +24,29 @@ class DataSource:
         * LazyFrame for a Scan. It's caller's responsibility to ensure the object was
             created with pl.scan_... function and was not collected at any point
         * str for a DB Connection String
+    
+    Examples
+    --------
+    Constructing:
+
+    >>> import ultibi as ul
+    >>> import polars as pl
+    >>> # Note that the LazyFrame query must start with scan_
+    >>> # and must've NOT been collected
+    >>> scan = pl.scan_csv("../frtb_engine/data/frtb/Delta.csv", 
+    ...     dtypes={"SensitivitySpot": pl.Float64})
+    >>> dsource = ul.DataSource.scan(scan)
+    >>> ds = ul.DataSet.from_source(dsource)
+    >>> # Such dataSet cannot be prepared because this would require reading the whole 
+    >>> # Data at once
+    >>> # Prepare will run with each request.
+    >>> ############################################################
+    >>> scan = pl.read_csv("../frtb_engine/data/frtb/Delta.csv",
+    ...     dtypes={"SensitivitySpot": pl.Float64})
+    >>> dsource = ul.DataSource.inmemory(scan)
+    >>> ds = ul.DataSet.from_source(dsource)
+    >>> ds.prepare()
+
     """
 
     inner: DataSourceWrapper

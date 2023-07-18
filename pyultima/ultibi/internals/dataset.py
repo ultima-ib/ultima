@@ -24,10 +24,40 @@ class DataSet:
 
     Creation:
         Preffer `DataSet.from_source`
-
         `DataSet.from_config_path`
-
         `DataSet.from_frame`
+    
+    Examples
+    --------
+    Usage:
+
+    >>> import ultibi as ul
+    >>> import polars as pl
+    >>> df = pl.DataFrame({"a": [1, 2, -3], 
+    ...                    "b": [4, 5, 6],
+    ...                    "c": ["z", "z", "w"],
+    ...                    "d": ["k", "y", "s"]})
+    ...    
+    >>> ds = ul.DataSet.from_frame(df)
+    >>> request = dict(measures=[["a", "sum"], ["b", "max"]], 
+    ...                groupby=["c"],
+    ...                filters=[ #c==a OR b in (5,6) 
+    ...                         [{"op": "Eq", "field": "c", "value": "z"},
+    ...                          {"op": "In", "field": "b", "value": ["6","5"]}],
+    ...                         # AND k!=c
+    ...                         [{"op": "Neq", "field": "d", "value": "y"}]
+    ...                         ],
+    ...                 overrides = [
+    ...                         {
+    ...                         "field": "a",
+    ...                         "value": "100",
+    ...                         "filters": [
+    ...                             [{"op": "Eq", "field": "b", "value": "4"}],
+    ...                         ],
+    ...                         }
+    ...                         ]
+    ...                 )
+    >>> result = ds.compute(request)
 
     """
 

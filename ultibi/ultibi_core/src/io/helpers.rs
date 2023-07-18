@@ -101,6 +101,7 @@ pub fn finish(
         derive_basic_measures_vec(num_cols)
     };
 
+    #[allow(unreachable_patterns)]
     let source = match source_type {
         SourceVariant::InMemory => {
             let now = Instant::now();

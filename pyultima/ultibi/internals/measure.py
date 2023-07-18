@@ -53,6 +53,9 @@ class CustomCalculator(Calculator):
     Use StandardCalculator if you can.
 
     Since CustomCalculator locks GIL, therefore killing parallisation.
+
+    Examples:
+        See BaseMeasure, DependantMeasure
     """
 
     def __init__(
@@ -80,6 +83,9 @@ class StandardCalculator(Calculator):
     Not every Expression can be serialised. AnonymousFunction for example cannot be
 
     If your expression can't be serialised - use CustomCalculator(locks GIL)
+
+    Examples:
+        See BaseMeasure, DependantMeasure
     """
 
     def __init__(self, calc: StandardCalculatorType) -> None:
@@ -109,6 +115,70 @@ class Measure:
 class BaseMeasure(Measure):
     """
     Executed in .filter(precompute_filter) .groupby() .agg() context
+
+    Args:
+        measure_name (str): Name of your measure
+        calc (TCalculator): _description_
+        precompute_filter (list[list[TFilter]]): Automatically
+            filters every time measure is calclated.
+            !!! Inner elements are joined as OR, outer elements are joined as AND
+            !!! If your request consist of several measures with different
+                precomupte filters, they will be joined as OR,
+            !!! Not to be confused with ComputeRequest filter
+        aggregation_restriction (str | None, optional):
+            eg. if your measure should only be aggregated as "scalar" or "sum"
+        calc_params (list[CalcParam] | None, optional):
+            Allows user to set calc_params (which are passed to calculators) via UI
+        
+
+    Examples
+    --------
+    Usage:
+
+    >>> import ultibi as ul
+    >>> import polars as pl
+    >>> data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "d", "b"]}
+    >>> df = pl.DataFrame(data)
+    ...
+    >>> def custom_calculator(
+    ...     srs: list[pl.Series], kwargs: dict[str, str]
+    ... ) -> pl.Series:
+    ...     multiplier = float(kwargs.get("multiplier", 1))
+    ...     res = srs[0] ** srs[1] * multiplier
+    ...     return res
+    ...
+    >>> def standard_calculator(kwargs: dict[str, str]) -> pl.Expr:
+    ...     return pl.col("TestMeasure1_sum").mul(2)
+    ...
+    >>> res_type = pl.Float64
+    >>> inputs = ["a", "b"]
+    >>> returns_scalar = False
+    >>> precompute_filter = ul.NeqFilter("c", "b")
+    >>> measures = [
+    ...     BaseMeasure(
+    ...         "TestMeasure",
+    ...         ul.CustomCalculator(
+    ...             custom_calculator, res_type, inputs, returns_scalar
+    ...         ),
+    ...         [[precompute_filter]],
+    ...         calc_params=[ul.CalcParam("mltplr", "1", "float")],
+    ...     ),
+    ...     BaseMeasure(
+    ...         "TestMeasure1",
+    ...         ul.CustomCalculator(
+    ...             custom_calculator, res_type, inputs, returns_scalar
+    ...         ),
+    ...         [[precompute_filter]],
+    ...         calc_params=[ul.CalcParam("mltplr", "1", "float")],
+    ...     ),
+    ...     DependantMeasure(
+    ...         "Dependant",
+    ...         ul.StandardCalculator(standard_calculator),
+    ...         [("TestMeasure1", "sum")],
+    ...     ),
+    ... ]
+    >>> ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
+
     """
 
     def __init__(
@@ -119,22 +189,6 @@ class BaseMeasure(Measure):
         aggregation_restriction: "str|None" = None,
         calc_params: "list[CalcParam]|None" = None,
     ) -> None:
-        """_summary_
-
-        Args:
-            measure_name (str): Name of your measure
-            calc (TCalculator): _description_
-            precompute_filter (list[list[TFilter]]): Automatically
-                filters every time measure is calclated.
-                !!! Inner elements are joined as OR, outer elements are joined as AND
-                !!! If your request consist of several measures with different
-                    precomupte filters, they will be joined as OR,
-                !!! Not to be confused with ComputeRequest filter
-            aggregation_restriction (str | None, optional):
-                eg. if your measure should only be aggregated as "scalar" or "sum"
-            calc_params (list[CalcParam] | None, optional):
-                Allows user to set calc_params (which are passed to calculators) via UI
-        """
 
         if precompute_filter:
             precompute_filter_inner = [[y.inner for y in x] for x in precompute_filter]
@@ -158,6 +212,55 @@ class BaseMeasure(Measure):
 class DependantMeasure(Measure):
     """
     Executed in .with_columns() context
+
+    Examples
+    --------
+    Usage:
+
+    >>> import ultibi as ul
+    >>> import polars as pl
+    >>> data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "d", "b"]}
+    >>> df = pl.DataFrame(data)
+    ...
+    >>> def custom_calculator(
+    ...     srs: list[pl.Series], kwargs: dict[str, str]
+    ... ) -> pl.Series:
+    ...     multiplier = float(kwargs.get("multiplier", 1))
+    ...     res = srs[0] ** srs[1] * multiplier
+    ...     return res
+    ...
+    >>> def standard_calculator(kwargs: dict[str, str]) -> pl.Expr:
+    ...     return pl.col("TestMeasure1_sum").mul(2)
+    ...
+    >>> res_type = pl.Float64
+    >>> inputs = ["a", "b"]
+    >>> returns_scalar = False
+    >>> precompute_filter = ul.NeqFilter("c", "b")
+    >>> measures = [
+    ...     BaseMeasure(
+    ...         "TestMeasure",
+    ...         ul.CustomCalculator(
+    ...             custom_calculator, res_type, inputs, returns_scalar
+    ...         ),
+    ...         [[precompute_filter]],
+    ...         calc_params=[ul.CalcParam("mltplr", "1", "float")],
+    ...     ),
+    ...     BaseMeasure(
+    ...         "TestMeasure1",
+    ...         ul.CustomCalculator(
+    ...             custom_calculator, res_type, inputs, returns_scalar
+    ...         ),
+    ...         [[precompute_filter]],
+    ...         calc_params=[ul.CalcParam("mltplr", "1", "float")],
+    ...     ),
+    ...     DependantMeasure(
+    ...         "Dependant",
+    ...         ul.StandardCalculator(standard_calculator),
+    ...         [("TestMeasure1", "sum")],
+    ...     ),
+    ... ]
+    >>> ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
+
     """
 
     def __init__(

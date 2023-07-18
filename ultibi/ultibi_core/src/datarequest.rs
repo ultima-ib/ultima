@@ -1,7 +1,6 @@
 //! TODO rename to compute request and move to a separate module
 
 use std::collections::BTreeMap;
-use typed_builder::TypedBuilder;
 
 use crate::aggregations::AggregationName;
 use crate::filters::FilterE;
@@ -35,9 +34,8 @@ impl From<AggregationRequest> for ComputeRequest {
         ComputeRequest::Aggregation(item)
     }
 }
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash, TypedBuilder)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
-#[builder(field_defaults(default))]
 #[cfg_attr(feature = "openapi", derive(utoipa::ToSchema))]
 pub struct AggregationRequest {
     // general fields

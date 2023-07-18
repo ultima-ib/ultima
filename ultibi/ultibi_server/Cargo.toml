@@ -22,8 +22,8 @@ log = "0.4"
 mime = "0.3"
 actix-web-static-files = "4.0"
 static-files = "0.2.1"
-utoipa = { git="https://github.com/juhaku/utoipa", features = ["actix_extras"] }
-utoipa-swagger-ui = { git="https://github.com/juhaku/utoipa", features = ["actix-web"] }
+utoipa = { version="3.3.0", features = ["actix_extras"] }
+utoipa-swagger-ui = { version="3.1.4", features = ["actix-web"] }
 
 [build-dependencies]
 static-files = "0.2.1"

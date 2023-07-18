@@ -185,7 +185,7 @@ class DataSet:
         self.inner.validate()
 
     @no_type_check
-    def frame(self, fltrs: list[list[AnyFilter]] | None = None) -> pl.DataFrame:
+    def frame(self, fltrs: "list[list[AnyFilter]] | None" = None) -> pl.DataFrame:
         "Use with caution. The returned frame might be very large"
         if fltrs is not None:  # extract inner
             fltrs = [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]

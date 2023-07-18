@@ -55,6 +55,7 @@ enable_error_code = [
 disable_error_code = [
   "empty-body",
 ]
+python_version = 3.9 # MRV of Python for Ultibi is 3.9
 
 [[tool.mypy.overrides]]
 module = [

@@ -1,6 +1,5 @@
-from typing import Self
-
 from polars import DataFrame, LazyFrame
+from typing_extensions import Self
 
 from ..rust_module.ultibi_engine import DataSourceWrapper
 
@@ -63,7 +62,7 @@ class DataSource:
     def scan(cls, data: LazyFrame) -> Self:
         return cls(data)
 
-    def __init__(self, data: DataFrame | LazyFrame | str):
+    def __init__(self, data: "DataFrame | LazyFrame | str"):
         if isinstance(data, DataFrame):
             self.inner = DataSourceWrapper.from_frame(data)
 

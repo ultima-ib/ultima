@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Type, TypeVar
+from typing import Any, Type, TypeVar, no_type_check
 
 import polars as pl
 
 import ultibi.internals as uli
-from ultibi.internals.filters import F
+from ultibi.internals.filters import AnyFilter
 from ultibi.internals.measure import Measure
 
 from ..rust_module.ultibi_engine import DataSetWrapper
@@ -26,37 +26,43 @@ class DataSet:
         Preffer `DataSet.from_source`
         `DataSet.from_config_path`
         `DataSet.from_frame`
-    
+
     Examples
     --------
     Usage:
 
     >>> import ultibi as ul
     >>> import polars as pl
-    >>> df = pl.DataFrame({"a": [1, 2, -3], 
-    ...                    "b": [4, 5, 6],
-    ...                    "c": ["z", "z", "w"],
-    ...                    "d": ["k", "y", "s"]})
-    ...    
+    >>> df = pl.DataFrame(
+    ...     {
+    ...         "a": [1, 2, -3],
+    ...         "b": [4, 5, 6],
+    ...         "c": ["z", "z", "w"],
+    ...         "d": ["k", "y", "s"],
+    ...     }
+    ... )
     >>> ds = ul.DataSet.from_frame(df)
-    >>> request = dict(measures=[["a", "sum"], ["b", "max"]], 
-    ...                groupby=["c"],
-    ...                filters=[ #c==a OR b in (5,6) 
-    ...                         [{"op": "Eq", "field": "c", "value": "z"},
-    ...                          {"op": "In", "field": "b", "value": ["6","5"]}],
-    ...                         # AND k!=c
-    ...                         [{"op": "Neq", "field": "d", "value": "y"}]
-    ...                         ],
-    ...                 overrides = [
-    ...                         {
-    ...                         "field": "a",
-    ...                         "value": "100",
-    ...                         "filters": [
-    ...                             [{"op": "Eq", "field": "b", "value": "4"}],
-    ...                         ],
-    ...                         }
-    ...                         ]
-    ...                 )
+    >>> request = dict(
+    ...     measures=[["a", "sum"], ["b", "max"]],
+    ...     groupby=["c"],
+    ...     filters=[  # c==a OR b in (5,6)
+    ...         [
+    ...             {"op": "Eq", "field": "c", "value": "z"},
+    ...             {"op": "In", "field": "b", "value": ["6", "5"]},
+    ...         ],
+    ...         # AND k!=c
+    ...         [{"op": "Neq", "field": "d", "value": "y"}],
+    ...     ],
+    ...     overrides=[
+    ...         {
+    ...             "field": "a",
+    ...             "value": "100",
+    ...             "filters": [
+    ...                 [{"op": "Eq", "field": "b", "value": "4"}],
+    ...             ],
+    ...         }
+    ...     ],
+    ... )
     >>> result = ds.compute(request)
 
     """
@@ -138,7 +144,7 @@ class DataSet:
         return cls(
             DataSetWrapper.from_frame(df, measures, build_params, bespoke_measures),
         )
-    
+
     @classmethod
     def from_source(
         cls: Type[DS],
@@ -151,8 +157,9 @@ class DataSet:
             [m.inner for m in bespoke_measures] if bespoke_measures else None
         )
         return cls(
-            DataSetWrapper.from_source(ds.inner, measures, build_params, 
-                                       bespoke_measures),
+            DataSetWrapper.from_source(
+                ds.inner, measures, build_params, bespoke_measures
+            ),
         )
 
     def prepare(self, collect: bool = True) -> None:
@@ -177,9 +184,10 @@ class DataSet:
         """
         self.inner.validate()
 
-    def frame(self, fltrs: list[list[F]]|None = None) -> pl.DataFrame:
+    @no_type_check
+    def frame(self, fltrs: list[list[AnyFilter]] | None = None) -> pl.DataFrame:
         "Use with caution. The returned frame might be very large"
-        if fltrs is not None: # extract inner
+        if fltrs is not None:  # extract inner
             fltrs = [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]
         vec_srs = self.inner.frame(fltrs)
         return pl.DataFrame(vec_srs)

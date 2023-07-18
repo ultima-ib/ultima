@@ -6,7 +6,8 @@ from typing import Any, TypeVar
 from ..rust_module.ultibi_engine import FilterWrapper
 
 # Create a generic variable that can be 'Parent', or any subclass.
-F = TypeVar("F", bound="Filter")
+AnyFilter = TypeVar("AnyFilter", bound="Filter")
+
 
 class Filter:
     """

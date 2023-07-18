@@ -129,7 +129,7 @@ class BaseMeasure(Measure):
             eg. if your measure should only be aggregated as "scalar" or "sum"
         calc_params (list[CalcParam] | None, optional):
             Allows user to set calc_params (which are passed to calculators) via UI
-        
+
 
     Examples
     --------
@@ -139,17 +139,14 @@ class BaseMeasure(Measure):
     >>> import polars as pl
     >>> data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "d", "b"]}
     >>> df = pl.DataFrame(data)
-    ...
     >>> def custom_calculator(
     ...     srs: list[pl.Series], kwargs: dict[str, str]
     ... ) -> pl.Series:
     ...     multiplier = float(kwargs.get("multiplier", 1))
     ...     res = srs[0] ** srs[1] * multiplier
     ...     return res
-    ...
     >>> def standard_calculator(kwargs: dict[str, str]) -> pl.Expr:
     ...     return pl.col("TestMeasure1_sum").mul(2)
-    ...
     >>> res_type = pl.Float64
     >>> inputs = ["a", "b"]
     >>> returns_scalar = False
@@ -189,7 +186,6 @@ class BaseMeasure(Measure):
         aggregation_restriction: "str|None" = None,
         calc_params: "list[CalcParam]|None" = None,
     ) -> None:
-
         if precompute_filter:
             precompute_filter_inner = [[y.inner for y in x] for x in precompute_filter]
         else:
@@ -221,17 +217,14 @@ class DependantMeasure(Measure):
     >>> import polars as pl
     >>> data = {"a": [1, 2, 3], "b": [4, 5, 6], "c": ["a", "d", "b"]}
     >>> df = pl.DataFrame(data)
-    ...
     >>> def custom_calculator(
     ...     srs: list[pl.Series], kwargs: dict[str, str]
     ... ) -> pl.Series:
     ...     multiplier = float(kwargs.get("multiplier", 1))
     ...     res = srs[0] ** srs[1] * multiplier
     ...     return res
-    ...
     >>> def standard_calculator(kwargs: dict[str, str]) -> pl.Expr:
     ...     return pl.col("TestMeasure1_sum").mul(2)
-    ...
     >>> res_type = pl.Float64
     >>> inputs = ["a", "b"]
     >>> returns_scalar = False

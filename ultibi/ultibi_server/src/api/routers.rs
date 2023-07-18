@@ -12,8 +12,9 @@ use ultibi_core::{
     aggregations::BASE_CALCS, errors::UltiResult, AggregationRequest, ComputeRequest, DataFrame,
     DataSet,
 };
+use utoipa::IntoParams;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, IntoParams)]
 struct Pagination {
     page: usize,
     pattern: String,

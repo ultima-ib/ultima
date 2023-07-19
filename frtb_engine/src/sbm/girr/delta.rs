@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, col, df, lit, max_exprs, when, DataType, GetOutput, PolarsError,
+        apply_multiple, col, df, lit, max_horizontal, when, DataType, GetOutput, PolarsError,
     },
     BaseMeasure, IntoLazy, CPM,
 };
@@ -300,7 +300,7 @@ where
                 return Ok(Some(Series::new("res", [0.])));
             };
 
-            let part = df.partition_by(["b"])?;
+            let part = df.partition_by(["b"], true)?;
 
             let res_buckets_kbs_sbs: PolarsResult<Vec<(String, (f64, f64))>> = part
                 .into_par_iter()
@@ -371,17 +371,17 @@ where
             col("Sensitivity_30Y"),
             col("RiskCategory"),
             //col("SensWeights"),
-            col("SensWeights").arr().get(lit(0)),
-            col("SensWeights").arr().get(lit(1)),
-            col("SensWeights").arr().get(lit(2)),
-            col("SensWeights").arr().get(lit(3)),
-            col("SensWeights").arr().get(lit(4)),
-            col("SensWeights").arr().get(lit(5)),
-            col("SensWeights").arr().get(lit(6)),
-            col("SensWeights").arr().get(lit(7)),
-            col("SensWeights").arr().get(lit(8)),
-            col("SensWeights").arr().get(lit(9)),
-            col("SensWeights").arr().get(lit(10)),
+            col("SensWeights").list().get(lit(0)),
+            col("SensWeights").list().get(lit(1)),
+            col("SensWeights").list().get(lit(2)),
+            col("SensWeights").list().get(lit(3)),
+            col("SensWeights").list().get(lit(4)),
+            col("SensWeights").list().get(lit(5)),
+            col("SensWeights").list().get(lit(6)),
+            col("SensWeights").list().get(lit(7)),
+            col("SensWeights").list().get(lit(8)),
+            col("SensWeights").list().get(lit(9)),
+            col("SensWeights").list().get(lit(10)),
         ],
         GetOutput::from_type(DataType::Float64),
         true,
@@ -445,7 +445,7 @@ pub(crate) fn girr_corr_matrix() -> Array2<f64> {
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         girr_delta_charge_low(op)?,
         girr_delta_charge_medium(op)?,
         girr_delta_charge_high(op)?,

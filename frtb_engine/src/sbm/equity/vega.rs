@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -11,7 +11,7 @@ pub fn total_eq_vega_sens(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub fn total_eq_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    total_eq_vega_sens(op).map(|expr| expr * col("SensWeights").arr().get(lit(0)))
+    total_eq_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0)))
 }
 ///Interm Result
 pub(crate) fn equity_vega_sb(op: &CPM) -> PolarsResult<Expr> {
@@ -160,7 +160,7 @@ where
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
         true,
@@ -172,7 +172,7 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         equity_vega_charge_low(op)?,
         equity_vega_charge_medium(op)?,
         equity_vega_charge_high(op)?,

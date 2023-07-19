@@ -94,7 +94,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             // And THEN apply CreditQuality weights, BECAUSE Obligor - CreditQuality should be 1to1 map
             if offset {
                 lf = lf
-                    .sort_by_exprs(&[col("rft")], [false], false)
+                    .sort_by_exprs(&[col("rft")], [false], false, true)
                     .groupby(["b", "rf"])
                     .apply(
                         |mut df| {
@@ -222,7 +222,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             col("RiskFactor"),
             col("SeniorityRank"),
             col("GrossJTD"),
-            weights.arr().get(lit(0)),
+            weights.list().get(lit(0)),
             col("ScaleFactor"),
         ],
         GetOutput::from_type(DataType::Float64),

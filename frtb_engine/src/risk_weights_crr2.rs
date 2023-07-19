@@ -3,11 +3,11 @@
 use std::collections::BTreeMap;
 
 use once_cell::sync::OnceCell;
+use ultibi::polars::prelude::diag_concat_lf;
 use ultibi::polars::prelude::{
     col, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsResult,
     Series, Utf8NameSpaceImpl,
 };
-use ultibi::prelude::helpers::diag_concat_lf;
 
 use crate::{
     drc::drc_weights,
@@ -134,7 +134,7 @@ pub fn weight_assign_logic_crr2(
         weights.rc_rcat_b_weights_crr2,
         join_on.clone(),
         join_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1.rename(["WeightsCRR2"], ["SensWeightsCRR2"]);
 
@@ -150,7 +150,7 @@ pub fn weight_assign_logic_crr2(
         weights.drc_nonsec_weights_frame_crr2,
         join_on.clone(),
         join_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1
         .with_column(col("SensWeightsCRR2").fill_null(col("WeightsCRR2")))

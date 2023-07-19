@@ -2,7 +2,7 @@
 
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs},
+    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput, MeltArgs},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -255,7 +255,7 @@ where
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
@@ -268,7 +268,7 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecnonctp_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         csr_sec_nonctp_delta_charge_low(op)?,
         csr_sec_nonctp_delta_charge_medium(op)?,
         csr_sec_nonctp_delta_charge_high(op)?,

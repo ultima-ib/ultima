@@ -2,7 +2,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use polars::prelude::PolarsError;
+use polars::prelude::{diag_concat_lf, PolarsError};
 pub use polars::{
     functions::diag_concat_df,
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
@@ -17,7 +17,6 @@ use crate::{
     filters::AndOrFltrChain,
     lookup_dependants_with_depth,
     overrides::Override,
-    prelude::helpers::diag_concat_lf,
     AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
 };
 
@@ -297,7 +296,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
         aggregated_df = aggregated_df
             .lazy()
-            .sort_by_exprs(&groups, vec![false; groups.len()], false)
+            .sort_by_exprs(&groups, vec![false; groups.len()], false, true)
             .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>())
             .with_columns(groups_totals)
             .collect()?;

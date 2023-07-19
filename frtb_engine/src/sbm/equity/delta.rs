@@ -11,7 +11,7 @@
 
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -172,7 +172,7 @@ where
             col("RiskFactor"),
             col("RiskFactorType"),
             col("SensitivitySpot"),
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
         true,
@@ -185,7 +185,7 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         equity_delta_charge_low(op)?,
         equity_delta_charge_medium(op)?,
         equity_delta_charge_high(op)?,

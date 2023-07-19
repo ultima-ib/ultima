@@ -21,7 +21,7 @@ pub(crate) fn csrnonsec_total_high(_: &CPM) -> PolarsResult<Expr> {
 
 /// Not a real measure. Used for analysis only
 fn csrnonsec_total_max(_: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         col("CSR nonSec TotalCharge Low"),
         col("CSR nonSec TotalCharge Medium"),
         col("CSR nonSec TotalCharge High"),

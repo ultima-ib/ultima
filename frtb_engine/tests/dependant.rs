@@ -1,7 +1,7 @@
 use ultibi::{AggregationRequest, ComputeRequest, DataSet};
 mod common;
 use common::LAZY_DASET;
-use polars::prelude::Float64Type;
+use ultibi::polars::prelude::{Float64Type, IndexOrder};
 
 /// Note in later(post 25.1) versions of polars cannot call max_expr on
 /// an aggregated Expr. See this:
@@ -33,7 +33,7 @@ fn dependant_sbm() {
         .expect("Error while calculating dependant results");
     let _ = res1.drop_in_place("Desk").unwrap();
     let sum1 = res1
-        .to_ndarray::<Float64Type>()
+        .to_ndarray::<Float64Type>(IndexOrder::Fortran)
         .expect("Couldn't convert result 1 to ndarray")
         .sum();
 

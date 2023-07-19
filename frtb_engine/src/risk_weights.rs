@@ -5,12 +5,12 @@
 use crate::drc::drc_weights;
 use once_cell::sync::OnceCell;
 use std::collections::BTreeMap;
+use ultibi::polars::prelude::diag_concat_lf;
 use ultibi::polars::prelude::{
-    col, concat_lst, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
+    col, concat_list, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
     IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
     Series, Utf8NameSpaceImpl,
 };
-use ultibi::prelude::helpers::diag_concat_lf;
 
 static FX_SPECIAL_DELTA_FULL_RW: OnceCell<LazyFrame> = OnceCell::new();
 static FX_SPECIAL_DELTA_PARTIAL_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -538,13 +538,13 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         weights.rc_rcat_rtype_b_weights,
         join_on.clone(),
         join_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     // tmp workaround, since .rename() panics
     // TODO remove
     // Adding here to check if weights were assigned, if not - create a dummy column
     if !lf1.schema()?.iter_names().any(|col| col == "Weights") {
-        lf1 = lf1.with_column(lit(0.).list().alias("SensWeights"))
+        lf1 = lf1.with_column(lit(0.).implode().alias("SensWeights"))
     } else {
         lf1 = lf1.rename(["Weights"], ["SensWeights"])
     }
@@ -556,7 +556,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         weights.rc_rcat_b_weights,
         join_on.clone(),
         join_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("Weights")))
@@ -576,7 +576,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         weights.rc_rcat_b_weights_second,
         right_on.clone(),
         right_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("Weights")))
@@ -587,7 +587,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         weights.rc_rcat_rtype_weights,
         join_on.clone(),
         join_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("Weights")))
@@ -598,7 +598,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         weights.rc_rcat_weights,
         join_on.clone(),
         join_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("Weights")))
@@ -616,7 +616,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         weights.drc_nonsec_weights_frame,
         join_on.clone(),
         join_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("Weights")))
@@ -646,7 +646,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         weights.drc_secnonctp_weights,
         left_on,
         right_on,
-        JoinType::Left,
+        JoinType::Left.into(),
     );
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("RiskWeightDRC")))
@@ -750,7 +750,7 @@ pub(crate) fn girr_infl_xccy_weights_frame(
     ]
     .unwrap() // We must not fail on default frame
     .lazy()
-    .with_column(concat_lst([col("Weights")]).unwrap()) // don't expect to fail on default
+    .with_column(concat_list([col("Weights")]).unwrap()) // don't expect to fail on default
     .collect()
     .expect("failed on IR Delta weights") // We must not fail on default frame
 }

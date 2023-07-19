@@ -2,8 +2,9 @@ use crate::helpers::{get_optional_parameter, get_optional_parameter_array, Retur
 use crate::prelude::*;
 use crate::sbm::common::{across_bucket_agg, rc_rcat_sens, total_vega_curv_sens, SBMChargeType};
 use ndarray::{Array1, Array2, Axis};
+use polars::prelude::IndexOrder;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_exprs, DataType, Float64Type, GetOutput},
+    polars::prelude::{apply_multiple, df, max_horizontal, DataType, Float64Type, GetOutput},
     CPM,
 };
 use ultibi::{BaseMeasure, IntoLazy};
@@ -13,7 +14,7 @@ pub fn total_fx_vega_sens(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub fn total_fx_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    Ok(total_fx_vega_sens(op)? * col("SensWeights").arr().get(lit(0)))
+    Ok(total_fx_vega_sens(op)? * col("SensWeights").list().get(lit(0)))
 }
 
 /// Sb Low == Sb Medium == Sb High
@@ -113,7 +114,7 @@ fn fx_vega_charge(
                 return Ok(Some(Series::new("res", [0.])));
             };
 
-            let sens = df.to_ndarray::<Float64Type>()?;
+            let sens = df.to_ndarray::<Float64Type>(IndexOrder::Fortran)?;
 
             let sbs = sens.sum_axis(Axis(1));
 
@@ -152,7 +153,7 @@ fn fx_vega_charge(
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
         true,
@@ -165,7 +166,7 @@ fn fx_vega_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         fx_vega_charge_low(op)?,
         fx_vega_charge_medium(op)?,
         fx_vega_charge_high(op)?,

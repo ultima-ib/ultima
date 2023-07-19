@@ -48,12 +48,9 @@ impl Override {
             dt,
             &self.field,
         )?)?);
-        // Special case,
-        //if dt == &DataType::List(Box::new(DataType::Float64)) {
-        //    lt = lt.list()
-        //};
+
         if let DataType::List(_) = dt {
-            lt = lt.list()
+            lt = lt.implode()
         }
         let new_col_as_expr = self.override_builder(lt);
         Ok(lf.with_column(new_col_as_expr))

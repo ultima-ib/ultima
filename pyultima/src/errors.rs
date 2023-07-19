@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 use std::io::Error;
 
 use polars::prelude::PolarsError;
-use pyo3::exceptions::{PyException, PyIOError};
+use pyo3::exceptions::PyException;
 use pyo3::{create_exception, PyErr};
 //use pyo3::prelude::*;
 use thiserror::Error;
@@ -32,25 +32,27 @@ impl std::convert::From<PyUltimaErr> for PyErr {
 
         use PyUltimaErr::*;
         match &err {
-            Polars(err) => match err {
-                PolarsError::ColumnNotFound(name) => NotFoundError::new_err(name.to_string()),
-                PolarsError::ComputeError(err) => ComputeError::new_err(err.to_string()),
-                PolarsError::SchemaFieldNotFound(err) => {
-                    SchemaFieldNotFound::new_err(err.to_string())
-                }
-                PolarsError::StructFieldNotFound(err) => {
-                    StructFieldNotFound::new_err(err.to_string())
-                }
-                PolarsError::NoData(err) => NoDataError::new_err(err.to_string()),
-                PolarsError::ShapeMismatch(err) => ShapeError::new_err(err.to_string()),
-                PolarsError::SchemaMismatch(err) => SchemaError::new_err(err.to_string()),
-                PolarsError::Io(err) => PyIOError::new_err(err.to_string()),
-                PolarsError::ArrowError(err) => ArrowErrorException::new_err(format!("{err}")),
-                PolarsError::Duplicate(err) => DuplicateError::new_err(err.to_string()),
-                PolarsError::InvalidOperation(err) => {
-                    InvalidOperationError::new_err(err.to_string())
-                }
-            },
+            Polars(err) => UltiPolarsError::new_err(err.to_string()),
+            // Polars(err) => match err {
+            //     PolarsError::ColumnNotFound(name) => NotFoundError::new_err(name.to_string()),
+            //     PolarsError::ComputeError(err) => ComputeError::new_err(err.to_string()),
+            //     PolarsError::SchemaFieldNotFound(err) => {
+            //         SchemaFieldNotFound::new_err(err.to_string())
+            //     }
+            //     PolarsError::StructFieldNotFound(err) => {
+            //         StructFieldNotFound::new_err(err.to_string())
+            //     }
+            //     PolarsError::NoData(err) => NoDataError::new_err(err.to_string()),
+            //     PolarsError::ShapeMismatch(err) => ShapeError::new_err(err.to_string()),
+            //     PolarsError::SchemaMismatch(err) => SchemaError::new_err(err.to_string()),
+            //     PolarsError::Io(err) => PyIOError::new_err(err.to_string()),
+            //     PolarsError::ArrowError(err) => ArrowErrorException::new_err(format!("{err}")),
+            //     PolarsError::Duplicate(err) => DuplicateError::new_err(err.to_string()),
+            //     PolarsError::InvalidOperation(err) => {
+            //         InvalidOperationError::new_err(err.to_string())
+            //     },
+            //     PolarsError::StringCacheMismatch(err) => Other(err.to_string())
+            //},
             SerdeJson(err) => SerdeJsonError::new_err(format!(
                 "Couldn't (de)serialise input. Check format. {err}"
             )),
@@ -85,3 +87,4 @@ create_exception!(exceptions, OtherError, PyException);
 create_exception!(exceptions, SchemaFieldNotFound, PyException);
 create_exception!(exceptions, StructFieldNotFound, PyException);
 create_exception!(exceptions, UltimaError, PyException);
+create_exception!(exceptions, UltiPolarsError, PyException);

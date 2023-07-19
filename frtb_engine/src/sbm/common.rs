@@ -1,5 +1,6 @@
 //#![allow(clippy::unnecessary_lazy_evaluations)]
 
+use ultibi::polars::prelude::IndexOrder;
 use ultibi::prelude::*;
 
 use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
@@ -107,7 +108,7 @@ pub fn rc_tenor_weighted_sens(
         &[
             col("RiskClass"),
             col(delta_tenor),
-            col(weights_col).arr().get(lit(weight_idx)),
+            col(weights_col).list().get(lit(weight_idx)),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
@@ -216,47 +217,49 @@ where
 
     let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
-        // Safety: since partition, we must have at least one member
-        let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
-        // validating also bucket is not greater than max index of bucket_rho_diff_rf
-        let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-            AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
-                if (1..=n_buckets).contains(&b_id) {
-                    Some(b_id)
-                } else {
-                    None
-                }
-            }),
+    df.partition_by(["b"], true)?
+        .par_iter()
+        .for_each(|bucket_df| {
+            // Safety: since partition, we must have at least one member
+            let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
+            // validating also bucket is not greater than max index of bucket_rho_diff_rf
+            let b_as_idx_plus_1 = match b_as_idx_plus_1 {
+                AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
+                    if (1..=n_buckets).contains(&b_id) {
+                        Some(b_id)
+                    } else {
+                        None
+                    }
+                }),
 
-            _ => None,
-        };
-
-        // CALCULATE Kb Sb for a bucket
-        if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
-            // Above we check len of bucket_rho_diff_rf via n_buckets, so we won't panic here
-            let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1 - 1];
+                _ => None,
+            };
 
             // CALCULATE Kb Sb for a bucket
-            let is_special_bucket = Some(b_as_idx_plus_1) == special_bucket;
-            let a = bucket_kb_sb_onsq(
-                bucket_df,
-                tenor_col,
-                rho_diff_tenor,
-                name_col,
-                name_rho,
-                basis_col,
-                rho_diff_rft,
-                risk_col,
-                scenario_fn,
-                is_special_bucket,
-                rho_overwrite,
-            );
+            if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
+                // Above we check len of bucket_rho_diff_rf via n_buckets, so we won't panic here
+                let name_rho = bucket_rho_diff_rf[b_as_idx_plus_1 - 1];
 
-            let mut res = arc_mtx.lock().unwrap();
-            res[b_as_idx_plus_1 - 1] = a;
-        }
-    });
+                // CALCULATE Kb Sb for a bucket
+                let is_special_bucket = Some(b_as_idx_plus_1) == special_bucket;
+                let a = bucket_kb_sb_onsq(
+                    bucket_df,
+                    tenor_col,
+                    rho_diff_tenor,
+                    name_col,
+                    name_rho,
+                    basis_col,
+                    rho_diff_rft,
+                    risk_col,
+                    scenario_fn,
+                    is_special_bucket,
+                    rho_overwrite,
+                );
+
+                let mut res = arc_mtx.lock().unwrap();
+                res[b_as_idx_plus_1 - 1] = a;
+            }
+        });
     let reskbs_sbs: PolarsResult<Vec<(f64, f64)>> = Arc::try_unwrap(arc_mtx)
         .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
         .into_inner()
@@ -419,7 +422,7 @@ where
     let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
     df.fill_null(FillNullStrategy::Zero)?
-        .partition_by(["b"])?
+        .partition_by(["b"], true)?
         .par_iter()
         .for_each(|bucket_df| {
             // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
@@ -524,7 +527,9 @@ where
             let rho_case5 = scenario_fn(dt * rho_diff_rft);
             let rho_case6 = scenario_fn(dt * rho_name_bucket);
             let rho_case7 = scenario_fn(dt * rho_diff_rft * rho_name_bucket);
-            let mut arr_tenor = df.select([*c1, *c2])?.to_ndarray::<Float64Type>()?; // Nulls must've been filled
+            let mut arr_tenor = df
+                .select([*c1, *c2])?
+                .to_ndarray::<Float64Type>(IndexOrder::Fortran)?; // Nulls must've been filled
             let dim = arr_tenor.raw_dim();
 
             let mut next_tenors_sum = Array2::<f64>::zeros(dim);
@@ -532,7 +537,7 @@ where
                 let next_tenor = df
                     .select([*c3, *c4])?
                     //.fill_null(FillNullStrategy::Zero)?
-                    .to_ndarray::<Float64Type>()?; // Nulls must've been filled
+                    .to_ndarray::<Float64Type>(IndexOrder::Fortran)?; // Nulls must've been filled
                 next_tenors_sum = next_tenors_sum + next_tenor;
             }
             let type0_sum = next_tenors_sum.slice(s![.., 0]).sum();
@@ -656,11 +661,12 @@ where
 
     let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
-        // Safety: since we are in partition, bucket_df["b"] has at least one element
-        let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
-        let b_as_idx_plus_1 =
-            match b_as_idx_plus_1 {
+    df.partition_by(["b"], true)?
+        .par_iter()
+        .for_each(|bucket_df| {
+            // Safety: since we are in partition, bucket_df["b"] has at least one element
+            let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
+            let b_as_idx_plus_1 = match b_as_idx_plus_1 {
                 AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
                     if b_id <= n_buckets {
                         Some(b_id)
@@ -671,27 +677,27 @@ where
                 _ => None,
             };
 
-        // For example if CSR BCBS bucket is 19, then we would have None here
-        // Now, if b_as_idx_plus_1 is None then we simply do nothing
-        if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
-            let rho_diff_curve = rho_diff_curve
-                .get(b_as_idx_plus_1 - 1)
-                .unwrap_or_else(|| &0.);
+            // For example if CSR BCBS bucket is 19, then we would have None here
+            // Now, if b_as_idx_plus_1 is None then we simply do nothing
+            if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
+                let rho_diff_curve = rho_diff_curve
+                    .get(b_as_idx_plus_1 - 1)
+                    .unwrap_or_else(|| &0.);
 
-            // CALCULATE Kb Sb for a bucket
-            let buck_kb_sb = bucket_kb_sb_single_type(
-                bucket_df,
-                rho_same_curve,
-                *rho_diff_curve,
-                scenario_fn,
-                columns,
-                None,
-                special_bucket,
-            );
-            let mut res = arc_mtx.lock().unwrap();
-            res[b_as_idx_plus_1 - 1] = buck_kb_sb;
-        }
-    });
+                // CALCULATE Kb Sb for a bucket
+                let buck_kb_sb = bucket_kb_sb_single_type(
+                    bucket_df,
+                    rho_same_curve,
+                    *rho_diff_curve,
+                    scenario_fn,
+                    columns,
+                    None,
+                    special_bucket,
+                );
+                let mut res = arc_mtx.lock().unwrap();
+                res[b_as_idx_plus_1 - 1] = buck_kb_sb;
+            }
+        });
 
     let reskbs_sbs: PolarsResult<Vec<(String, (f64, f64))>> = Arc::try_unwrap(arc_mtx)
         .map_err(|_| PolarsError::ComputeError("Couldn't unwrap Arc".into()))?
@@ -742,7 +748,7 @@ where
     let yield_df = bucket_df
         .select(columns)?
         .fill_null(FillNullStrategy::Zero)?;
-    let all_yield_arr = yield_df.to_ndarray::<Float64Type>()?;
+    let all_yield_arr = yield_df.to_ndarray::<Float64Type>(IndexOrder::Fortran)?;
 
     // EQ Vega, take care of special bucket
     match special_bucket {

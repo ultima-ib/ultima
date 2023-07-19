@@ -3,7 +3,7 @@
 
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput, MeltArgs},
+    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput, MeltArgs},
     BaseMeasure, DataFrame, IntoLazy, CPM,
 };
 
@@ -15,7 +15,7 @@ pub fn total_commodity_delta_sens(_: &CPM) -> PolarsResult<Expr> {
 
 /// Total Commodity Delta
 pub(crate) fn commodity_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    total_commodity_delta_sens(op).map(|expr| expr * col("SensWeights").arr().get(lit(0)))
+    total_commodity_delta_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0)))
 }
 
 /// Interm Result: Commodity Delta Sb <--> Sb Low == Sb Medium == Sb High
@@ -180,17 +180,17 @@ where
                 )
                 .groupby(grp_by)
                 .agg([
-                    (col("y0") * col("w").arr().get(lit(0))).sum(),
-                    (col("y025") * col("w").arr().get(lit(1))).sum(),
-                    (col("y05") * col("w").arr().get(lit(2))).sum(),
-                    (col("y1") * col("w").arr().get(lit(3))).sum(),
-                    (col("y2") * col("w").arr().get(lit(4))).sum(),
-                    (col("y3") * col("w").arr().get(lit(5))).sum(),
-                    (col("y5") * col("w").arr().get(lit(6))).sum(),
-                    (col("y10") * col("w").arr().get(lit(7))).sum(),
-                    (col("y15") * col("w").arr().get(lit(8))).sum(),
-                    (col("y20") * col("w").arr().get(lit(9))).sum(),
-                    (col("y30") * col("w").arr().get(lit(10))).sum(),
+                    (col("y0") * col("w").list().get(lit(0))).sum(),
+                    (col("y025") * col("w").list().get(lit(1))).sum(),
+                    (col("y05") * col("w").list().get(lit(2))).sum(),
+                    (col("y1") * col("w").list().get(lit(3))).sum(),
+                    (col("y2") * col("w").list().get(lit(4))).sum(),
+                    (col("y3") * col("w").list().get(lit(5))).sum(),
+                    (col("y5") * col("w").list().get(lit(6))).sum(),
+                    (col("y10") * col("w").list().get(lit(7))).sum(),
+                    (col("y15") * col("w").list().get(lit(8))).sum(),
+                    (col("y20") * col("w").list().get(lit(9))).sum(),
+                    (col("y30") * col("w").list().get(lit(10))).sum(),
                 ])
                 // No need to fill null here
                 .collect()?;
@@ -258,7 +258,7 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         commodity_delta_charge_low(op)?,
         commodity_delta_charge_medium(op)?,
         commodity_delta_charge_high(op)?,

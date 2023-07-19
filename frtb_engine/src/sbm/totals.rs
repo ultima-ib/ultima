@@ -1,6 +1,6 @@
 //! Totals across different Risk Classes
 
-use ultibi::polars::lazy::dsl::{col, max_exprs, Expr};
+use ultibi::polars::lazy::dsl::{col, max_horizontal, Expr};
 use ultibi::{DependantMeasure, Measure, PolarsResult, CPM};
 
 // Testing Dependant Measures
@@ -34,7 +34,7 @@ fn sbm_charge_high_dep(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub(crate) fn sbm_charge_dep(_: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         col("SBM Charge High"),
         col("SBM Charge Medium"),
         col("SBM Charge Low"),

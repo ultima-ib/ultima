@@ -123,7 +123,7 @@ impl DataSet for FRTBDataSet {
         );
         lf1 = lf1.with_column(
             when(col("SensWeights").is_null())
-                .then(a.list())
+                .then(a.implode())
                 .otherwise(col("SensWeights"))
                 .alias("SensWeights"),
         );
@@ -137,7 +137,7 @@ impl DataSet for FRTBDataSet {
                     .is_not_null()
                     .or(col("PnL_Down").is_not_null()),
             )
-            .then(col("SensWeights").arr().max().alias("CurvatureRiskWeight"))
+            .then(col("SensWeights").list().max().alias("CurvatureRiskWeight"))
             .otherwise(NULL.lit()),
         );
         //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS"), col("SensWeights"), col("CurvatureRiskWeight")]).collect());
@@ -160,7 +160,7 @@ impl DataSet for FRTBDataSet {
                         .and(col("BucketBCBS").eq(lit("8")))
                         .and(col("CoveredBondReducedWeight").eq(lit::<bool>(true))),
                 )
-                .then(Series::new("", &[0.015]).lit().list())
+                .then(Series::new("", &[0.015]).lit().implode())
                 .otherwise(col("SensWeights"))
                 .alias("SensWeights"),
             )
@@ -187,7 +187,7 @@ impl DataSet for FRTBDataSet {
             )
             .then(
                 col("SensWeightsCRR2")
-                    .arr()
+                    .list()
                     .max()
                     .alias("CurvatureRiskWeightCRR2"),
             )
@@ -202,7 +202,7 @@ impl DataSet for FRTBDataSet {
                             .and(col("BucketCRR2").eq(lit("10")))
                             .and(col("CoveredBondReducedWeight").eq(lit::<bool>(true))),
                     )
-                    .then(Series::new("", &[0.015]).lit().list())
+                    .then(Series::new("", &[0.015]).lit().implode())
                     .otherwise(col("SensWeightsCRR2"))
                     .alias("SensWeightsCRR2"),
                 )

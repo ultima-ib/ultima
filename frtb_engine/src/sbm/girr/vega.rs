@@ -7,8 +7,8 @@ use crate::sbm::common::{
 use ultibi::polars::prelude::IndexOrder;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, col, df, lit, max_horizontal, ChunkCompare, DataType, Float64Type, GetOutput,
-        TakeRandom,
+        apply_multiple, col, df, lit, max_horizontal, ChunkCompare, DataType, Float64Type,
+        GetOutput, TakeRandom,
     },
     CPM,
 };

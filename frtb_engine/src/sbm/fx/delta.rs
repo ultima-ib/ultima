@@ -10,8 +10,8 @@ use crate::{
 };
 use ultibi::{
     polars::prelude::{
-        apply_multiple, df, max_horizontal, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
-        PolarsError, Utf8NameSpaceImpl,
+        apply_multiple, df, max_horizontal, ChunkCompare, ChunkSet, DataType, GetOutput,
+        IntoSeries, PolarsError, Utf8NameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
 };

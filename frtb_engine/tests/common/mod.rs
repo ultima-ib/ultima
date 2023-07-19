@@ -9,7 +9,7 @@ use ultibi::{
     ComputeRequest, IntoLazy,
 };
 
-use ultibi::polars::prelude::{IndexOrder, col, Float64Type};
+use ultibi::polars::prelude::{col, Float64Type, IndexOrder};
 
 pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf_path = r"data/frtb/datasource_config.toml";

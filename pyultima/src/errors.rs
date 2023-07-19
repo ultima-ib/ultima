@@ -88,4 +88,3 @@ create_exception!(exceptions, SchemaFieldNotFound, PyException);
 create_exception!(exceptions, StructFieldNotFound, PyException);
 create_exception!(exceptions, UltimaError, PyException);
 create_exception!(exceptions, UltiPolarsError, PyException);
-

@@ -3,11 +3,11 @@
 use std::collections::BTreeMap;
 
 use once_cell::sync::OnceCell;
+use ultibi::polars::prelude::diag_concat_lf;
 use ultibi::polars::prelude::{
     col, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsResult,
     Series, Utf8NameSpaceImpl,
 };
-use ultibi::polars::prelude::diag_concat_lf;
 
 use crate::{
     drc::drc_weights,

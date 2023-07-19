@@ -48,7 +48,7 @@ impl Override {
             dt,
             &self.field,
         )?)?);
-        
+
         if let DataType::List(_) = dt {
             lt = lt.implode()
         }

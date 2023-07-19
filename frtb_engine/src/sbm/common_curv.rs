@@ -169,11 +169,12 @@ pub(crate) fn curvature_kb_plus_minus(
     let arc_mtx_kbpm_cvr = std::sync::Arc::new(Mutex::new(res_kb_cvr));
 
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    df.partition_by(["b"], true)?.par_iter().for_each(|bucket_df| {
-        // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
-        let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
-        let b_as_idx_plus_1 =
-            match b_as_idx_plus_1 {
+    df.partition_by(["b"], true)?
+        .par_iter()
+        .for_each(|bucket_df| {
+            // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
+            let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
+            let b_as_idx_plus_1 = match b_as_idx_plus_1 {
                 AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
                     if b_id <= n_buckets {
                         Some(b_id)
@@ -184,20 +185,20 @@ pub(crate) fn curvature_kb_plus_minus(
                 _ => None,
             };
 
-        if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
-            let is_special_bucket = matches!(special_bucket, Some(b) if b == b_as_idx_plus_1);
+            if let Some(b_as_idx_plus_1) = b_as_idx_plus_1 {
+                let is_special_bucket = matches!(special_bucket, Some(b) if b == b_as_idx_plus_1);
 
-            let rho = bucket_rho[b_as_idx_plus_1 - 1];
-            // CALCULATE Kb Sb for a bucket
-            let buck_kb_plus_cvr_up_sum =
-                kb_plus_minus(&bucket_df["cvr_up"], rho, is_special_bucket);
-            let buck_kb_minus_cvr_down_sum =
-                kb_plus_minus(&bucket_df["cvr_down"], rho, is_special_bucket);
-            let res = (buck_kb_plus_cvr_up_sum, buck_kb_minus_cvr_down_sum);
-            let mut r = arc_mtx_kbpm_cvr.lock().unwrap(); //[b_as_idx_plus_1-1];// = res;
-            r[b_as_idx_plus_1 - 1] = res;
-        }
-    });
+                let rho = bucket_rho[b_as_idx_plus_1 - 1];
+                // CALCULATE Kb Sb for a bucket
+                let buck_kb_plus_cvr_up_sum =
+                    kb_plus_minus(&bucket_df["cvr_up"], rho, is_special_bucket);
+                let buck_kb_minus_cvr_down_sum =
+                    kb_plus_minus(&bucket_df["cvr_down"], rho, is_special_bucket);
+                let res = (buck_kb_plus_cvr_up_sum, buck_kb_minus_cvr_down_sum);
+                let mut r = arc_mtx_kbpm_cvr.lock().unwrap(); //[b_as_idx_plus_1-1];// = res;
+                r[b_as_idx_plus_1 - 1] = res;
+            }
+        });
     //Result<Vec<(f64, f64)>>
     let (res_kbp_cvrup, res_kbm_cvrdown): (
         Vec<PolarsResult<(f64, f64)>>,

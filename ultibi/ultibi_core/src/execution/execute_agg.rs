@@ -2,7 +2,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use polars::prelude::{PolarsError, diag_concat_lf};
+use polars::prelude::{diag_concat_lf, PolarsError};
 pub use polars::{
     functions::diag_concat_df,
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},

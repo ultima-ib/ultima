@@ -1,5 +1,5 @@
 use crate::{prelude::*, sbm::csr_nonsec::vega::csr_nonsec_vega_charge};
-use ultibi::{polars::prelude::max_exprs, BaseMeasure, CPM};
+use ultibi::{polars::prelude::max_horizontal, BaseMeasure, CPM};
 
 pub fn total_csrsecctp_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     Ok(rc_rcat_sens("Vega", "CSR_Sec_CTP", total_vega_curv_sens()))
@@ -11,9 +11,9 @@ pub fn total_csrsecctp_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
     match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => total_csrsecctp_vega_sens(op)
-            .map(|expr| expr * col("SensWeightsCRR2").arr().get(lit(0))),
+            .map(|expr| expr * col("SensWeightsCRR2").list().get(lit(0))),
         Jurisdiction::BCBS => {
-            total_csrsecctp_vega_sens(op).map(|expr| expr * col("SensWeights").arr().get(lit(0)))
+            total_csrsecctp_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0)))
         }
     }
 }
@@ -66,7 +66,7 @@ fn csrsecctp_vega_charge_distributor(
     let (weight, bucket_col, name_rho_vec, rho_opt, gamma, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2").arr().get(lit(0)),
+            col("SensWeightsCRR2").list().get(lit(0)),
             col("BucketCRR2"),
             Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_crr2),
             &scenario.base_vega_rho,
@@ -75,7 +75,7 @@ fn csrsecctp_vega_charge_distributor(
         ),
 
         Jurisdiction::BCBS => (
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
             col("BucketBCBS"),
             Vec::from(scenario.csr_ctp_delta_vega_diff_name_rho_per_bucket_base_bcbs),
             &scenario.base_vega_rho,
@@ -112,7 +112,7 @@ fn csrsecctp_vega_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecctp_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         csrsecctp_vega_charge_low(op)?,
         csrsecctp_vega_charge_medium(op)?,
         csrsecctp_vega_charge_high(op)?,

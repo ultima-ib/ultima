@@ -1,5 +1,6 @@
 //#![allow(clippy::unnecessary_lazy_evaluations)]
 
+use ultibi::polars::prelude::IndexOrder;
 use ultibi::prelude::*;
 
 use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
@@ -107,7 +108,7 @@ pub fn rc_tenor_weighted_sens(
         &[
             col("RiskClass"),
             col(delta_tenor),
-            col(weights_col).arr().get(lit(weight_idx)),
+            col(weights_col).list().get(lit(weight_idx)),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
@@ -216,7 +217,7 @@ where
 
     let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
+    df.partition_by(["b"], true)?.par_iter().for_each(|bucket_df| {
         // Safety: since partition, we must have at least one member
         let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
         // validating also bucket is not greater than max index of bucket_rho_diff_rf
@@ -419,7 +420,7 @@ where
     let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
     df.fill_null(FillNullStrategy::Zero)?
-        .partition_by(["b"])?
+        .partition_by(["b"], true)?
         .par_iter()
         .for_each(|bucket_df| {
             // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
@@ -524,7 +525,7 @@ where
             let rho_case5 = scenario_fn(dt * rho_diff_rft);
             let rho_case6 = scenario_fn(dt * rho_name_bucket);
             let rho_case7 = scenario_fn(dt * rho_diff_rft * rho_name_bucket);
-            let mut arr_tenor = df.select([*c1, *c2])?.to_ndarray::<Float64Type>()?; // Nulls must've been filled
+            let mut arr_tenor = df.select([*c1, *c2])?.to_ndarray::<Float64Type>(IndexOrder::Fortran)?; // Nulls must've been filled
             let dim = arr_tenor.raw_dim();
 
             let mut next_tenors_sum = Array2::<f64>::zeros(dim);
@@ -532,7 +533,7 @@ where
                 let next_tenor = df
                     .select([*c3, *c4])?
                     //.fill_null(FillNullStrategy::Zero)?
-                    .to_ndarray::<Float64Type>()?; // Nulls must've been filled
+                    .to_ndarray::<Float64Type>(IndexOrder::Fortran)?; // Nulls must've been filled
                 next_tenors_sum = next_tenors_sum + next_tenor;
             }
             let type0_sum = next_tenors_sum.slice(s![.., 0]).sum();
@@ -656,7 +657,7 @@ where
 
     let arc_mtx = std::sync::Arc::new(Mutex::new(reskbs_sbs));
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
+    df.partition_by(["b"], true)?.par_iter().for_each(|bucket_df| {
         // Safety: since we are in partition, bucket_df["b"] has at least one element
         let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
         let b_as_idx_plus_1 =
@@ -742,7 +743,7 @@ where
     let yield_df = bucket_df
         .select(columns)?
         .fill_null(FillNullStrategy::Zero)?;
-    let all_yield_arr = yield_df.to_ndarray::<Float64Type>()?;
+    let all_yield_arr = yield_df.to_ndarray::<Float64Type>(IndexOrder::Fortran)?;
 
     // EQ Vega, take care of special bucket
     match special_bucket {

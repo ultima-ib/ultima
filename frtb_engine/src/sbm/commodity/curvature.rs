@@ -1,6 +1,7 @@
-use crate::{prelude::*, sbm::equity::curvature::eq_curvature_charge};
-use polars::prelude::*;
-use ultibi::{prelude::CPM, BaseMeasure};
+use crate::{sbm::{equity::curvature::eq_curvature_charge, common_curv::{curv_delta_total, Cvr, rc_cvr}, common::rc_rcat_sens}, prelude::{ReturnMetric, LOW_CORR_SCENARIO, MEDIUM_CORR_SCENARIO, HIGH_CORR_SCENARIO, ScenarioConfig, get_optional_parameter_array, get_optional_parameter}};
+use ultibi::polars::lazy::dsl::{Expr, col, max_horizontal};
+use ultibi::{prelude::CPM, BaseMeasure, PolarsResult, Measure};
+use ultibi::lit;
 
 pub fn com_curv_delta(_: &CPM) -> PolarsResult<Expr> {
     Ok(curv_delta_total("Commodity"))
@@ -104,7 +105,7 @@ fn com_curvature_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         com_curvature_charge_low(op)?,
         com_curvature_charge_medium(op)?,
         com_curvature_charge_high(op)?,

@@ -4,7 +4,7 @@ use crate::{
 };
 use ndarray::{Array1, Array2};
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -222,7 +222,7 @@ fn girr_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         girr_curvature_charge_low(op)?,
         girr_curvature_charge_medium(op)?,
         girr_curvature_charge_high(op)?,

@@ -20,8 +20,6 @@ use crate::{
 };
 use helpers::{empty_frame, finish, path_to_lf};
 
-use self::helpers::diag_concat_lf;
-
 /// reads setup.toml
 /// # Panics
 /// When path or file is invalid

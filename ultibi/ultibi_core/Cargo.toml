@@ -18,7 +18,6 @@ polars = { workspace = true, features = [
     "is_in",
     "dtype-categorical",
     "serde",
-    "csv-file",
     "diagonal_concat",
     "describe",
 ] }

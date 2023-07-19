@@ -2,7 +2,7 @@ use crate::prelude::*;
 use ndarray::{Array1, Array2};
 use ultibi::{
     polars::prelude::{
-        apply_multiple, df, max_exprs, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
+        apply_multiple, df, max_horizontal, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
         GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
@@ -226,7 +226,7 @@ fn fx_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         fx_curvature_charge_low(op)?,
         fx_curvature_charge_medium(op)?,
         fx_curvature_charge_high(op)?,

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -16,9 +16,9 @@ pub fn total_csrnonsec_vega_sens_weighted_bcbs(op: &CPM) -> PolarsResult<Expr> {
     match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => total_csrnonsec_vega_sens(op)
-            .map(|expr| expr * col("SensWeightsCRR2").arr().get(lit(0))),
+            .map(|expr| expr * col("SensWeightsCRR2").list().get(lit(0))),
         Jurisdiction::BCBS => {
-            total_csrnonsec_vega_sens(op).map(|expr| expr * col("SensWeights").arr().get(lit(0)))
+            total_csrnonsec_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0)))
         }
     }
 }
@@ -71,7 +71,7 @@ fn csr_nonsec_vega_charge_distributor(
     let (weight, bucket_col, name_rho_vec, rho_opt, gamma, special_bucket) = match juri {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
-            col("SensWeightsCRR2").arr().get(lit(0)),
+            col("SensWeightsCRR2").list().get(lit(0)),
             col("BucketCRR2"),
             Vec::from(scenario.csr_nonsec_delta_diff_name_rho_per_bucket_base_crr2),
             &scenario.base_vega_rho,
@@ -80,7 +80,7 @@ fn csr_nonsec_vega_charge_distributor(
         ),
 
         Jurisdiction::BCBS => (
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
             col("BucketBCBS"),
             Vec::from(scenario.csr_nonsec_delta_vega_diff_name_rho_per_bucket_base_bcbs),
             &scenario.base_vega_rho,
@@ -212,7 +212,7 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrnonsec_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         csr_nonsec_vega_charge_low(op)?,
         csr_nonsec_vega_charge_medium(op)?,
         csr_nonsec_vega_charge_high(op)?,

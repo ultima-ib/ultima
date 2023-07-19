@@ -2,8 +2,8 @@ use std::{collections::BTreeMap, time::Instant};
 
 use polars::{
     prelude::{
-        col, concat, DataFrame, DataType, Expr, Field, JoinType, LazyCsvReader, LazyFileListReader,
-        LazyFrame, Literal, NamedFrom, PolarsResult, Schema, NULL,
+        col, DataFrame, DataType, Expr, Field, JoinType, LazyCsvReader, LazyFileListReader,
+        LazyFrame, NamedFrom, Schema,
     },
     series::Series,
 };
@@ -61,7 +61,7 @@ pub fn finish(
     // join with hms if a2h was provided
     if !a2h.is_empty() {
         let a2h_expr = a2h.iter().map(|c| col(c)).collect::<Vec<Expr>>();
-        df_attr = df_attr.join(df_hms, a2h_expr.clone(), a2h_expr, JoinType::Left)
+        df_attr = df_attr.join(df_hms, a2h_expr.clone(), a2h_expr, JoinType::Left.into())
         //.collect()
         //.expect("Could not join attributes to hms. Review attributes_join_hierarchy field in the setup");
     }
@@ -69,7 +69,7 @@ pub fn finish(
     if !f2a.is_empty() {
         let f2a_expr = f2a.iter().map(|c| col(c)).collect::<Vec<Expr>>();
         concatinated_frame =
-            concatinated_frame.join(df_attr, f2a_expr.clone(), f2a_expr, JoinType::Outer)
+            concatinated_frame.join(df_attr, f2a_expr.clone(), f2a_expr, JoinType::Outer.into())
         //.collect()
         //.expect("Could not join files with attributes-hms. Review files_join_attributes field in the setup");
     }
@@ -119,59 +119,59 @@ pub fn finish(
     (source, measures, build_params)
 }
 
-/// TODO contribute to Polars
-/// Concat [LazyFrame]s diagonally.
-/// Calls [concat] internally.
-pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
-    lfs: L,
-    rechunk: bool,
-    parallel: bool,
-) -> PolarsResult<LazyFrame> {
-    let lfs = lfs.as_ref().to_vec();
-    let schemas = lfs
-        .iter()
-        .map(|lf| lf.schema())
-        .collect::<PolarsResult<Vec<_>>>()?;
+// /// TODO contribute to Polars
+// /// Concat [LazyFrame]s diagonally.
+// /// Calls [concat] internally.
+// pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
+//     lfs: L,
+//     rechunk: bool,
+//     parallel: bool,
+// ) -> PolarsResult<LazyFrame> {
+//     let lfs = lfs.as_ref().to_vec();
+//     let schemas = lfs
+//         .iter()
+//         .map(|lf| lf.schema())
+//         .collect::<PolarsResult<Vec<_>>>()?;
 
-    let upper_bound_width = schemas.iter().map(|sch| sch.len()).sum();
+//     let upper_bound_width = schemas.iter().map(|sch| sch.len()).sum();
 
-    // Use Vec to preserve order
-    let mut column_names = Vec::with_capacity(upper_bound_width);
-    let mut total_schema = Vec::with_capacity(upper_bound_width);
+//     // Use Vec to preserve order
+//     let mut column_names = Vec::with_capacity(upper_bound_width);
+//     let mut total_schema = Vec::with_capacity(upper_bound_width);
 
-    for sch in schemas.iter() {
-        sch.iter().for_each(|(name, dtype)| {
-            if !column_names.contains(name) {
-                column_names.push(name.clone());
-                total_schema.push((name.clone(), dtype.clone()));
-            }
-        });
-    }
+//     for sch in schemas.iter() {
+//         sch.iter().for_each(|(name, dtype)| {
+//             if !column_names.contains(name) {
+//                 column_names.push(name.clone());
+//                 total_schema.push((name.clone(), dtype.clone()));
+//             }
+//         });
+//     }
 
-    //Append column if missing
-    let lfs_with_all_columns = lfs
-        .into_iter()
-        // Zip Frames with their Schemas
-        .zip(schemas.into_iter())
-        .map(|(mut lf, lf_schema)| {
-            for (name, dtype) in total_schema.iter() {
-                // If a name from Total Schema is not present - append
-                if lf_schema.get_field(name).is_none() {
-                    lf = lf.with_column(NULL.lit().cast(dtype.clone()).alias(name))
-                }
-            }
+//     //Append column if missing
+//     let lfs_with_all_columns = lfs
+//         .into_iter()
+//         // Zip Frames with their Schemas
+//         .zip(schemas.into_iter())
+//         .map(|(mut lf, lf_schema)| {
+//             for (name, dtype) in total_schema.iter() {
+//                 // If a name from Total Schema is not present - append
+//                 if lf_schema.get_field(name).is_none() {
+//                     lf = lf.with_column(NULL.lit().cast(dtype.clone()).alias(name))
+//                 }
+//             }
 
-            // Now, reorder to match schema
-            let reordered_lf = lf.select(
-                column_names
-                    .iter()
-                    .map(|col_name| col(col_name))
-                    .collect::<Vec<Expr>>(),
-            );
+//             // Now, reorder to match schema
+//             let reordered_lf = lf.select(
+//                 column_names
+//                     .iter()
+//                     .map(|col_name| col(col_name))
+//                     .collect::<Vec<Expr>>(),
+//             );
 
-            Ok(reordered_lf)
-        })
-        .collect::<PolarsResult<Vec<_>>>()?;
+//             Ok(reordered_lf)
+//         })
+//         .collect::<PolarsResult<Vec<_>>>()?;
 
-    concat(lfs_with_all_columns, rechunk, parallel)
-}
+//     concat(lfs_with_all_columns, rechunk, parallel)
+// }

@@ -169,7 +169,7 @@ pub(crate) fn curvature_kb_plus_minus(
     let arc_mtx_kbpm_cvr = std::sync::Arc::new(Mutex::new(res_kb_cvr));
 
     // Do not iterate over each bukcet. Instead, only iterate over unique buckets
-    df.partition_by(["b"])?.par_iter().for_each(|bucket_df| {
+    df.partition_by(["b"], true)?.par_iter().for_each(|bucket_df| {
         // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
         let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
         let b_as_idx_plus_1 =

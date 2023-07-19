@@ -78,7 +78,7 @@ pub(crate) fn _drc_secnonctp_weights_frame() -> DataFrame {
     ]
     .unwrap() // We must not fail on default frame
     .lazy()
-    .with_column(concat_lst([col("RiskWeightDRC")]).unwrap())
+    .with_column(concat_list([col("RiskWeightDRC")]).unwrap())
     .collect()
     .unwrap() // we should never fail on default frame
 }
@@ -235,5 +235,5 @@ pub fn with_drc_seniority(lf: LazyFrame) -> LazyFrame {
     .lazy();
 
     let join_on = [col("RiskClass"), col("RiskCategory"), col("RiskFactorType")];
-    lf.join(drc_sen, join_on.clone(), join_on, JoinType::Left)
+    lf.join(drc_sen, join_on.clone(), join_on, JoinType::Left.into())
 }

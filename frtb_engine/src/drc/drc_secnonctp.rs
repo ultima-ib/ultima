@@ -174,7 +174,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             col("RiskFactorType"), //Seniority
             col("Tranche"),
             col("GrossJTD"),
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
             col("ScaleFactor"),
         ],
         GetOutput::from_type(DataType::Float64),

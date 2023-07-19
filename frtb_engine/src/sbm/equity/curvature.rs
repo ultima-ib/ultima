@@ -2,7 +2,7 @@
 
 use crate::prelude::*;
 use ndarray::Array2;
-use ultibi::polars::prelude::{apply_multiple, df, max_exprs, DataType, GetOutput};
+use ultibi::polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput};
 use ultibi::prelude::CPM;
 use ultibi::{BaseMeasure, IntoLazy};
 
@@ -192,7 +192,7 @@ pub(crate) fn eq_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         eq_curvature_charge_low(op)?,
         eq_curvature_charge_medium(op)?,
         eq_curvature_charge_high(op)?,

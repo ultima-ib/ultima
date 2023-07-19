@@ -4,9 +4,10 @@ use crate::sbm::common::{
     across_bucket_agg, option_maturity_rho, rc_rcat_sens, rc_tenor_weighted_sens,
     total_vega_curv_sens, SBMChargeType,
 };
+use ultibi::polars::prelude::IndexOrder;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, col, df, lit, max_exprs, ChunkCompare, DataType, Float64Type, GetOutput,
+        apply_multiple, col, df, lit, max_horizontal, ChunkCompare, DataType, Float64Type, GetOutput,
         TakeRandom,
     },
     CPM,
@@ -166,7 +167,7 @@ fn girr_vega_charge(
                 return Ok(Some(Series::new("res", [0.])));
             };
 
-            let part = df.partition_by(["b"])?;
+            let part = df.partition_by(["b"], true)?;
             let res_buckets_kbs_sbs: PolarsResult<Vec<((&str, f64), f64)>> = part
                 .par_iter()
                 .map(|bdf| girr_vega_bucket_kb_sb(bdf, &girr_vega_opt_rho))
@@ -210,7 +211,7 @@ fn girr_vega_charge(
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
             col("RiskFactorType"),
         ],
         GetOutput::from_type(DataType::Float64),
@@ -278,7 +279,7 @@ pub(crate) fn girr_underlying_maturity_arr(
     Ok(df
         .filter(&mask)?
         .select(["y05", "y1", "y3", "y5", "y10"])?
-        .to_ndarray::<Float64Type>()?
+        .to_ndarray::<Float64Type>(IndexOrder::Fortran)?
         .into_shape(5)
         .unwrap_or_else(|_| Array1::<f64>::zeros(5)))
 }
@@ -319,7 +320,7 @@ pub(crate) fn girr_vega_rho() -> Array2<f64> {
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         girr_vega_charge_low(op)?,
         girr_vega_charge_medium(op)?,
         girr_vega_charge_high(op)?,

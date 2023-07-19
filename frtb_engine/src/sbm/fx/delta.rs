@@ -10,7 +10,7 @@ use crate::{
 };
 use ultibi::{
     polars::prelude::{
-        apply_multiple, df, max_exprs, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
+        apply_multiple, df, max_horizontal, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries,
         PolarsError, Utf8NameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
@@ -69,7 +69,7 @@ pub(crate) fn fx_delta_sens_repccy(op: &CPM) -> PolarsResult<Expr> {
 
 /// takes CalcParams because we need to know reporting CCY
 pub(crate) fn fx_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    Ok(fx_delta_sens_repccy(op)? * col("SensWeights").arr().get(lit(0)))
+    Ok(fx_delta_sens_repccy(op)? * col("SensWeights").list().get(lit(0)))
 }
 ///calculate FX Delta Sb, same for all scenarios
 pub(crate) fn fx_delta_sb(op: &CPM) -> PolarsResult<Expr> {
@@ -131,7 +131,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
             ]?;
 
             let ccy_regex = ccy_regex.clone();
-            let mut df = df
+            let df = df
                 .lazy()
                 .filter(
                     col("rc")
@@ -150,7 +150,8 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
                 .drop_nulls(Some(vec![col("dw_sum")]))
                 .collect()?;
 
-            df.rechunk();
+            // Not needed anymore
+            //df.rechunk();
 
             if df.height() == 0 {
                 return Ok(Some(Series::new("res", [0.])));
@@ -188,7 +189,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
             col("RiskClass"),
             col("BucketBCBS"),
             col("SensitivitySpot"),
-            col("SensWeights").arr().get(lit(0)),
+            col("SensWeights").list().get(lit(0)),
         ],
         GetOutput::from_type(DataType::Float64),
         true,
@@ -200,7 +201,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_exprs(&[
+    Ok(max_horizontal(&[
         fx_delta_charge_low(op)?,
         fx_delta_charge_medium(op)?,
         fx_delta_charge_high(op)?,

@@ -1,12 +1,15 @@
+use std::sync::Arc;
+
 use once_cell::sync::Lazy;
-use polars::prelude::*;
 
 use frtb_engine::prelude::FRTBDataSet;
 use ultibi::{
     new::NewSourcedDataSet,
     prelude::{read_toml2, DataSet, DataSourceConfig},
-    ComputeRequest,
+    ComputeRequest, IntoLazy,
 };
+
+use ultibi::polars::prelude::{IndexOrder, col, Float64Type};
 
 pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf_path = r"data/frtb/datasource_config.toml";
@@ -39,7 +42,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
         .collect()
         .expect("Could not remove column");
     let res_arr = res_numeric
-        .to_ndarray::<Float64Type>()
+        .to_ndarray::<Float64Type>(IndexOrder::Fortran)
         .expect("Could not convert result to nd_array");
     // Slightly naive, but we assume if the sum is equivallent then the result is accurate
     dbg!(res_arr.sum());

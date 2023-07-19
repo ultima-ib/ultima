@@ -29,7 +29,7 @@ fn dependant_sbm() {
 
     let a = &*LAZY_DASET;
     let mut res1 = a
-        .compute(ComputeRequest::Aggregation(req_deps), false)
+        .compute(ComputeRequest::Aggregation(req_deps))
         .expect("Error while calculating dependant results");
     let _ = res1.drop_in_place("Desk").unwrap();
     let sum1 = res1

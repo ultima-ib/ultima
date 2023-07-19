@@ -18,7 +18,7 @@ venv:  ## Set up virtual environment
 	$(VENV_BIN)/pip install -r requirements-lint.txt
 
 .PHONY: develop
-build: venv  ## Compile and install Polars for development
+develop: venv  ## Compile and install Polars for development
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop
 
 .PHONY: build

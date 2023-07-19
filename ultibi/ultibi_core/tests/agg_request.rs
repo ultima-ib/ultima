@@ -14,7 +14,7 @@ fn simple_fltr_grpby_sum() {
     }"#;
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
     let a = (*common::TEST_DASET).as_ref();
-    let res = a.compute(data_req, false).expect("Calculation failed");
+    let res = a.compute(data_req).expect("Calculation failed");
 
     let res_sum = res
         .column("Balance_sum")

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use ultibi_core::{read_toml2, DataSet, DataSetBase, DataSourceConfig};
+use ultibi_core::{new::NewSourcedDataSet, read_toml2, DataSetBase, DataSourceConfig};
 
 #[test]
 fn toml2config() {
@@ -17,7 +17,7 @@ fn config_build() {
 
     let conf = read_toml2::<DataSourceConfig>(path.to_str().unwrap())
         .expect("Can not proceed without valid Data Set Up");
-    let _data: DataSetBase = DataSet::from_config(conf);
+    let _data: DataSetBase = DataSetBase::from_config(conf);
 }
 
 /// In this config, files_join_attributes was provided but no such column is present

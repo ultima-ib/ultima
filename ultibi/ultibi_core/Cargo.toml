@@ -36,12 +36,14 @@ futures = { version = "0.3", optional = true }
 dashmap = { workspace = true }
 # Open API Swagger
 quote = "1.0.26" # Needs to be specified for utoipa to build
-utoipa = { git="https://github.com/juhaku/utoipa", optional = true} # TODO change to version
-# Other Utils
-typed-builder="0.14.0"
+utoipa = { version="3.3.0", optional = true} # TODO change to version
+# DB
+connectorx = { git = "https://github.com/AnatolyBuga/connector-x.git", branch="polars_dtype_u8", optional = true, features=["dst_arrow2", "src_mysql"]}
+
 
 
 [features]
 default = []
 aws_s3 = ["dep:aws-config", "dep:aws-sdk-s3", "dep:tokio", "dep:futures"]
 openapi = ["dep:utoipa"]
+db = ["dep:connectorx"]

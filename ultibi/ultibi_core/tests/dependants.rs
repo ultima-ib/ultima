@@ -23,7 +23,7 @@ fn agg_dependant_and_cache() {
 
     let res = common::TEST_DASET_WITH_DEPENDANTS
         .as_ref()
-        .compute(compute_req, false)
+        .compute(compute_req)
         .unwrap();
 
     let res_sum = res
@@ -78,7 +78,7 @@ fn dependant_is_scalar() {
 
     let res = common::TEST_DASET_WITH_DEPENDANTS
         .as_ref()
-        .compute(compute_req, false)
+        .compute(compute_req)
         .unwrap();
 
     let res_sum = res
@@ -107,6 +107,6 @@ fn child_not_found() {
 
     let _ = common::TEST_DASET_WITH_DEPENDANTS
         .as_ref()
-        .compute(compute_req, false)
+        .compute(compute_req)
         .unwrap();
 }

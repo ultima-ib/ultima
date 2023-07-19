@@ -43,7 +43,7 @@ impl CalculatorWrapper {
                 let rustbytes = as_pybytes.as_bytes();
                 //let e = serde_json::from_slice::<Expr>(rustbytes).unwrap(); // should never fail
                 let e: Expr = ciborium::de::from_reader(rustbytes).map_err(|e| {
-                    PolarsError::ComputeError(format!("{}. Try using Custom calculator", e).into())
+                    PolarsError::ComputeError(format!("Error deserializing expression. This could be due to differenet Polars version. Try using Custom calculator. {}", e).into())
                 })?;
                 Ok(e)
             })

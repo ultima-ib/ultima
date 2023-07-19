@@ -1,6 +1,7 @@
-use polars::prelude::{col, DataFrame, Expr, IntoLazy, JoinType, PolarsResult};
+use polars::prelude::{col, DataFrame, Expr, IntoLazy, JoinType};
 
 use crate::cache::CacheableDataSet;
+use crate::errors::UltiResult;
 use crate::{
     AggregationRequest, CacheableAggregationRequest, CacheableComputeRequest, ProcessedBaseMeasure,
 };
@@ -15,7 +16,7 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
     req: AggregationRequest,
     processed_base_measures: Vec<(&String, &String, ProcessedBaseMeasure)>,
     streaming: bool,
-) -> PolarsResult<DataFrame> {
+) -> UltiResult<DataFrame> {
     let requested_groupby = req.groupby().clone();
     let grp_by_expr = req.groupby().iter().map(|x| col(x)).collect::<Vec<Expr>>();
 
@@ -115,7 +116,7 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
 
     // Finally join cached and new if needed and return
     match (_chached_df, _new_res) {
-        (Some(cached), Some(new)) => cached
+        (Some(cached), Some(new)) => Ok(cached
             .lazy()
             .join(
                 new.lazy(),
@@ -123,7 +124,7 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
                 grp_by_expr,
                 JoinType::Outer,
             )
-            .collect(),
+            .collect()?),
         (None, Some(df)) | (Some(df), None) => Ok(df),
         _ => unreachable!(),
     }

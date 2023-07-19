@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Type, TypeVar
+from typing import Any, Type, TypeVar, no_type_check
 
 import polars as pl
 
 import ultibi.internals as uli
+from ultibi.internals.filters import AnyFilter
 from ultibi.internals.measure import Measure
 
 from ..rust_module.ultibi_engine import DataSetWrapper
@@ -18,22 +19,62 @@ DS = TypeVar("DS", bound="DataSet")
 
 class DataSet:
     """
-    Main DataSet class
+    Main DataSet class. Holds data source info, optionally validates and prepares Data,
+     and executes request.
 
-    Holds data, optionally validates and prepares Data,
-     and finally executes request.
+    Creation:
+        Preffer `DataSet.from_source`
+        `DataSet.from_config_path`
+        `DataSet.from_frame`
+
+    Examples
+    --------
+    Usage:
+
+    >>> import ultibi as ul
+    >>> import polars as pl
+    >>> df = pl.DataFrame(
+    ...     {
+    ...         "a": [1, 2, -3],
+    ...         "b": [4, 5, 6],
+    ...         "c": ["z", "z", "w"],
+    ...         "d": ["k", "y", "s"],
+    ...     }
+    ... )
+    >>> ds = ul.DataSet.from_frame(df)
+    >>> request = dict(
+    ...     measures=[["a", "sum"], ["b", "max"]],
+    ...     groupby=["c"],
+    ...     filters=[  # c==a OR b in (5,6)
+    ...         [
+    ...             {"op": "Eq", "field": "c", "value": "z"},
+    ...             {"op": "In", "field": "b", "value": ["6", "5"]},
+    ...         ],
+    ...         # AND k!=c
+    ...         [{"op": "Neq", "field": "d", "value": "y"}],
+    ...     ],
+    ...     overrides=[
+    ...         {
+    ...             "field": "a",
+    ...             "value": "100",
+    ...             "filters": [
+    ...                 [{"op": "Eq", "field": "b", "value": "4"}],
+    ...             ],
+    ...         }
+    ...     ],
+    ... )
+    >>> result = ds.compute(request)
+
     """
 
     inner: DataSetWrapper
-    prepared: bool
 
-    def __init__(self, ds: DataSetWrapper, prepared: bool = False) -> None:
+    def __init__(self, ds: DataSetWrapper) -> None:
         """
         Class constructor - not to br called directly.
         call .from_frame() or .from_config()
         """
         self.inner = ds
-        self.prepared = prepared
 
         """All column which you can group by. Currently those are string 
             and bool columns
@@ -58,9 +99,7 @@ class DataSet:
         )
 
     @classmethod
-    def from_config_path(
-        cls: Type[DS], path: str, collect: bool = True, prepare: bool = False
-    ) -> DS:
+    def from_config_path(cls: Type[DS], path: str) -> DS:
         """
         Reads path to <config>.toml
         Converts into DataSourceConfig
@@ -68,13 +107,11 @@ class DataSet:
 
         Args:
             path (str): path to <config>.toml
-            collect (str): non-lazy evaluation
-            prepare (str): calls prepare
 
         Returns:
             T: Self
         """
-        return cls(DataSetWrapper.from_config_path(path, collect, prepare), prepare)
+        return cls(DataSetWrapper.from_config_path(path))
 
     @classmethod
     def from_frame(
@@ -82,7 +119,6 @@ class DataSet:
         df: pl.DataFrame,
         measures: "list[str] | None" = None,
         build_params: "dict[str, str] | None" = None,
-        prepared: bool = True,
         bespoke_measures: "list[TMeasure] | None" = None,
     ) -> DS:
         """
@@ -107,12 +143,29 @@ class DataSet:
         )
         return cls(
             DataSetWrapper.from_frame(df, measures, build_params, bespoke_measures),
-            prepared,
+        )
+
+    @classmethod
+    def from_source(
+        cls: Type[DS],
+        ds: uli.DataSource,
+        measures: "list[str] | None" = None,
+        build_params: "dict[str, str] | None" = None,
+        bespoke_measures: "list[TMeasure] | None" = None,
+    ) -> DS:
+        bespoke_measures = (
+            [m.inner for m in bespoke_measures] if bespoke_measures else None
+        )
+        return cls(
+            DataSetWrapper.from_source(
+                ds.inner, measures, build_params, bespoke_measures
+            ),
         )
 
     def prepare(self, collect: bool = True) -> None:
         """Does nothing unless overriden. To be used for one of computations.
             eg Weights Assignments
+            #TODO throws exception if Scan or DB
 
         Args:
             collect (cool): non-lazy mode. Evaluates.
@@ -120,11 +173,7 @@ class DataSet:
         Raises:
             OtherError: Calling prepare on an already prepared dataset
         """
-        if not self.prepared:
-            self.inner.prepare(collect)
-            self.prepared = True
-        else:
-            raise uli.OtherError("Calling prepare on an already prepared dataset")
+        self.inner.prepare(collect)
 
     def validate(self) -> None:
         """Raises:
@@ -135,13 +184,15 @@ class DataSet:
         """
         self.inner.validate()
 
-    def frame(self) -> pl.DataFrame:
-        vec_srs = self.inner.frame()
+    @no_type_check
+    def frame(self, fltrs: "list[list[AnyFilter]] | None" = None) -> pl.DataFrame:
+        "Use with caution. The returned frame might be very large"
+        if fltrs is not None:  # extract inner
+            fltrs = [[a_fltr.inner for a_fltr in or_fltrs] for or_fltrs in fltrs]
+        vec_srs = self.inner.frame(fltrs)
         return pl.DataFrame(vec_srs)
 
-    def compute(
-        self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False
-    ) -> pl.DataFrame:
+    def compute(self, req: "dict[Any, Any]|uli.ComputeRequest") -> pl.DataFrame:
         """Make sure that requested groupby and filters exist in self.columns,
         Make sure that requested measures exist in self.measures
         Make sure that aggregation type for a measure is selected properly
@@ -160,17 +211,9 @@ class DataSet:
         if isinstance(req, dict):
             req = uli.ComputeRequest(req)
 
-        vec_srs = self.inner.compute(req._ar, streaming)
+        vec_srs = self.inner.compute(req._ar)
 
         return pl.DataFrame(vec_srs)
-
-    def execute(
-        self, req: "dict[Any, Any]|uli.ComputeRequest", streaming: bool = False
-    ) -> pl.DataFrame:
-        from warnings import warn
-
-        warn("use .compute() instead")
-        return self.compute(req, streaming)
 
     def ui(self) -> None:
         """Spins up a localhost.
@@ -181,8 +224,7 @@ class DataSet:
         """
         # Streaming mode calls prepare on each request
         # If already prepared we don't want to call it again
-        streaming = not self.prepared
-        self.inner.ui(streaming)
+        self.inner.ui()
 
 
 class FRTBDataSet(DataSet):
@@ -190,11 +232,9 @@ class FRTBDataSet(DataSet):
 
     @classmethod
     def from_config_path(
-        cls: Type[DS], path: str, collect: bool = True, prepare: bool = False
+        cls: Type[DS], path: str, bespoke_measures: "list[TMeasure] | None" = None
     ) -> DS:
-        return cls(
-            DataSetWrapper.frtb_from_config_path(path, collect, prepare), prepare
-        )
+        return cls(DataSetWrapper.frtb_from_config_path(path, bespoke_measures))
 
     @classmethod
     def from_frame(
@@ -202,7 +242,8 @@ class FRTBDataSet(DataSet):
         df: pl.DataFrame,
         measures: "list[str] | None" = None,
         build_params: "dict[str, str] | None" = None,
-        prepared: bool = False,
         bespoke_measures: "list[TMeasure] | None" = None,
     ) -> DS:
-        return cls(DataSetWrapper.frtb_from_frame(df, measures, build_params), prepared)
+        return cls(
+            DataSetWrapper.frtb_from_frame(df, measures, build_params, bespoke_measures)
+        )

@@ -12,8 +12,8 @@ authors = [
 license = { file = "LICENSE" }
 dependencies = [
 #  "typing_extensions >= 4.0.0; python_version <= '3.9'",
-  "polars >= 0.18",
-  "pyarrow"
+  "polars >= 0.18.0, <= 0.18.6",
+  #"pyarrow"
 ]
 keywords = ["dataframe", "visualization", "aggregation", "calculation", 
   "chart", "data", "dataviz", "pivot-table", "frtb", "risk"]
@@ -55,6 +55,7 @@ enable_error_code = [
 disable_error_code = [
   "empty-body",
 ]
+python_version = 3.9 # MRV of Python for Ultibi is 3.9
 
 [[tool.mypy.overrides]]
 module = [

@@ -617,6 +617,7 @@ fn add_rows_prepare_no_bucket() {
 
 #[test]
 /// User sets prepare to true but none of the required columns matches weights assignments
+/// so the weight of this sensi should be [0.0]
 fn add_rows_nothing_to_match_prepare() {
     let expected_res = arr1(&[-250.0]);
     let request = r#"

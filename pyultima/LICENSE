@@ -5,12 +5,9 @@ Licensed Work:        Ultima
                       The Licensed Work is (c) 2023 Ultibi Ltd.
 
 Abstract
-`ultibi` users can use it as it is, make availiable to their employees, contractors, and subsidiary companies. The only thing that Ultibi users will not be able to do is offer a commercial version of Ultibi as Analytics as a Service without buying a license. For information about alternative licensing arrangements for the Software,
-please visit: https://ultimabi.uk/
+`ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You may use the library for non comercial, non for profit activity. You may not use this library in production, but you can purchase an alternative license for doing so. 
 
-`ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. 
-
-`Ultibi as Analytics as a Service` is a commercial offering that allows third parties (other than your employees and contractors) to make use of the setup and extensions (eg Measures) defined by that who makes the offer or other third parties.
+Our `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via anatoly at ultimabi dot uk.
 
 Acceptance
 By using the software, you agree to all of the terms and conditions below.
@@ -19,6 +16,8 @@ Copyright License
 The licensor grants you a non-exclusive, royalty-free, worldwide, non-sublicensable, non-transferable license to use, copy, distribute, make available, and tailor derivative works of the software, in each case subject to the limitations and conditions below.
 
 Limitations
+You may use the library for non comercial, non for profit activity. You may not use this library in production, but you can purchase an alternative license for doing so.
+
 You may not make the functionality of the software or a modified version available to third parties as a service, or distribute the software or a modified version in a manner that makes the functionality of the software available to third parties.
 
 Making the functionality of the software or modified version available to third parties includes, without limitation, enabling third parties to interact with the functionality of the software or modified version in distributed form or remotely through a computer network, offering a product or service the value of which entirely or primarily derives from the value of the software or modified version, or offering a product or service that accomplishes for users the primary purpose of the software or modified version.

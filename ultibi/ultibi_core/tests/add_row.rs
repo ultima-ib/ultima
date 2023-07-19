@@ -14,7 +14,7 @@ mod tests {
             serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
         let res = common::TEST_DASET
             .as_ref()
-            .compute(data_req, false)
+            .compute(data_req)
             .expect("Calculation failed");
 
         let res_sum = dbg!(res)
@@ -38,7 +38,7 @@ mod tests {
 
         let res = common::TEST_DASET
             .as_ref()
-            .compute(data_req, false)
+            .compute(data_req)
             .expect("Calculation failed");
 
         let res_sum = dbg!(res)

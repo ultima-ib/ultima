@@ -18,10 +18,9 @@ pub fn build_app(
     listener: TcpListener,
     ds: Arc<RwLock<dyn DataSet>>,
     _templates: Vec<AggregationRequest>,
-    streaming: bool,
 ) -> std::io::Result<Server> {
     let ds = Data::from(ds);
-    let streaming = Data::new(streaming);
+    //let streaming = Data::new(streaming);
     let openapi = ApiDoc::openapi();
 
     let _templates = Data::new(_templates);
@@ -38,7 +37,7 @@ pub fn build_app(
             .service(ResourceFiles::new("/", generated))
             .app_data(ds.clone())
             .app_data(_templates.clone())
-            .app_data(streaming.clone())
+        //.app_data(streaming.clone())
     })
     .listen(listener)?
     .run();

@@ -1,20 +1,26 @@
-use std::{collections::BTreeMap, path::PathBuf};
+//! Ultibi IO operations
+//! This potentially will be moved to a separate crate
 
-//use log::error;
-#[cfg(feature = "aws_s3")]
-use polars::functions::diag_concat_df;
-use polars::prelude::*;
-use serde::{Deserialize, Serialize};
-
-use crate::Measure;
 pub mod acquire;
 pub mod helpers;
-use helpers::{empty_frame, finish, path_to_lf};
-
-use self::helpers::diag_concat_lf;
 
 #[cfg(feature = "aws_s3")]
 pub mod awss3;
+
+#[cfg(feature = "aws_s3")]
+use polars::functions::diag_concat_df;
+
+use polars::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+
+use crate::{
+    datasource::{DataSource, SourceVariant},
+    Measure,
+};
+use helpers::{empty_frame, finish, path_to_lf};
+
+use self::helpers::diag_concat_lf;
 
 /// reads setup.toml
 /// # Panics
@@ -33,6 +39,8 @@ where
 #[non_exhaustive]
 pub enum DataSourceConfig {
     CSV {
+        #[serde(default)]
+        source_type: SourceVariant,
         #[serde(default, rename = "files")]
         file_paths: Vec<String>,
         #[serde(default, rename = "attributes_path")]
@@ -84,7 +92,7 @@ impl DataSourceConfig {
     /// Returns:
     ///
     /// (joined concatinated DataFrame, vec of base measures, build params)
-    pub fn build(self) -> (LazyFrame, Vec<Measure>, BTreeMap<String, String>) {
+    pub fn build(self) -> (DataSource, Vec<Measure>, BTreeMap<String, String>) {
         match self {
             DataSourceConfig::CSV {
                 file_paths: files,
@@ -96,6 +104,7 @@ impl DataSourceConfig {
                 f1_cast_to_str: mut str_cols,
                 f1_numeric_cols: f64_cols,
                 build_params,
+                source_type,
             } => {
                 for s in f2a.iter() {
                     if !str_cols.contains(s) {
@@ -140,6 +149,7 @@ impl DataSourceConfig {
                     df_hms,
                     concatinated_frame,
                     build_params,
+                    source_type,
                 )
             }
             #[cfg(feature = "aws_s3")]
@@ -193,30 +203,10 @@ impl DataSourceConfig {
                     df_hms.lazy(),
                     concatinated_frame.lazy(),
                     build_params,
+                    // Currently AWS doesn't support Scan
+                    SourceVariant::InMemory,
                 )
             }
-        }
-    }
-
-    /// Checks relative path, if file not exists then tries to find file by abs path.
-    /// Panics if failed.
-    pub fn change_path_on_abs_if_not_exist(&mut self, path_to_file_location: &str) {
-        match self {
-            DataSourceConfig::CSV { file_paths, .. } => {
-                file_paths.iter_mut().for_each(|path_str| {
-                    if !PathBuf::from(&path_str).exists() {
-                        let mut new_path_str = String::from(path_to_file_location);
-                        new_path_str.push_str(path_str);
-                        std::mem::swap(path_str, &mut new_path_str);
-
-                        if !PathBuf::from(&path_str).exists() {
-                            panic!("Non existend path: {path_str}");
-                        }
-                    }
-                });
-            }
-            #[cfg(feature = "aws_s3")]
-            _ => panic!("Only allowed for CSV data source"),
         }
     }
 }

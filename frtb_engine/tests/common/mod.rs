@@ -3,17 +3,17 @@ use polars::prelude::*;
 
 use frtb_engine::prelude::FRTBDataSet;
 use ultibi::{
+    new::NewSourcedDataSet,
     prelude::{read_toml2, DataSet, DataSourceConfig},
-    ComputeRequest, ValidateSet,
+    ComputeRequest,
 };
 
 pub static LAZY_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf_path = r"data/frtb/datasource_config.toml";
     let conf = read_toml2::<DataSourceConfig>(conf_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
-    let mut data: FRTBDataSet = DataSet::from_config(conf);
-    data.validate_frame(None, ValidateSet::ALL)
-        .expect("failed to validate");
+    let mut data: FRTBDataSet = FRTBDataSet::from_config(conf);
+    data.validate_frame(None, 0).expect("failed to validate");
     data.prepare().expect("Failed to prepare");
     std::sync::Arc::new(data)
 });
@@ -31,7 +31,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     //let excl = data_req.groupby().clone();
     let a = LAZY_DASET.as_ref();
     let res = a
-        .compute(data_req, false)
+        .compute(data_req)
         .expect("Error while calculating results");
     let res_numeric = res
         .lazy()

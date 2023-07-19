@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::Instant};
 
 use polars::{
     prelude::{
@@ -8,7 +8,10 @@ use polars::{
     series::Series,
 };
 
-use crate::{derive_basic_measures_vec, numeric_columns, Measure};
+use crate::{
+    datasource::{DataSource, SourceVariant},
+    derive_basic_measures_vec, numeric_columns, Measure,
+};
 
 /// creates an empty frame with columns
 pub fn empty_frame(with_columns: &[String]) -> DataFrame {
@@ -53,7 +56,8 @@ pub fn finish(
     df_hms: LazyFrame,
     mut concatinated_frame: LazyFrame,
     build_params: BTreeMap<String, String>,
-) -> (LazyFrame, Vec<Measure>, BTreeMap<String, String>) {
+    source_type: SourceVariant,
+) -> (DataSource, Vec<Measure>, BTreeMap<String, String>) {
     // join with hms if a2h was provided
     if !a2h.is_empty() {
         let a2h_expr = a2h.iter().map(|c| col(c)).collect::<Vec<Expr>>();
@@ -89,7 +93,6 @@ pub fn finish(
         derive_basic_measures_vec(measures)
     }
     // If not provided return all numeric columns
-    // TODO move inside the DataSet see FRTBDataSetWrapper::new
     else {
         let num_cols = concatinated_frame
             .schema()
@@ -98,7 +101,22 @@ pub fn finish(
         derive_basic_measures_vec(num_cols)
     };
 
-    (concatinated_frame, measures, build_params)
+    #[allow(unreachable_patterns)]
+    let source = match source_type {
+        SourceVariant::InMemory => {
+            let now = Instant::now();
+            let df = concatinated_frame
+                .collect()
+                .expect("Failed to read frame from config");
+            println!("Time to Read/Aggregate DF: {:.6?}", now.elapsed());
+            DataSource::InMemory(df)
+        }
+        SourceVariant::Scan => DataSource::Scan(concatinated_frame),
+        // only InMemory or Scan is supported for DataSourceConfig::CSV
+        _ => panic!("only InMemory or Scan for CSV Config"),
+    };
+
+    (source, measures, build_params)
 }
 
 /// TODO contribute to Polars

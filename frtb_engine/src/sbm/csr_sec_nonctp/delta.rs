@@ -9,7 +9,7 @@ use ultibi::{
 use ndarray::Array2;
 
 pub fn total_csr_sec_nonctp_delta_sens(_: &CPM) -> PolarsResult<Expr> {
-    Ok(rc_rcat_sens("CSR_Sec_nonCTP", "Delta", total_delta_sens()))
+    Ok(rc_rcat_sens("Delta", "CSR_Sec_nonCTP", total_delta_sens()))
 }
 /// Helper functions
 

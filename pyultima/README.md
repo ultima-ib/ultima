@@ -46,13 +46,15 @@ os.environ["ADDRESS"] = "0.0.0.0:8000" # host on this address
 df = pl.read_csv("titanic.csv")
 
 # Convert it into an Ultibi DataSet
-ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
+ds = ul.DataSet.from_frame(df)
 
 # By default (might change in the future)
 # Fields are Utf8 (non numerics) and integers
 # Measures are numeric columns.
 ds.ui() 
 ```
+
+Then navigate to `http://localhost:8000` or checkout `http://localhost:8000/swagger-ui` for the OpenAPI documentation.
 
 ### More flexible - custom measures
 ```python
@@ -138,8 +140,36 @@ ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 ds.ui() 
 ```
 
-Then navigate to `http://localhost:8000` or checkout `http://localhost:8000/swagger-ui` for the OpenAPI documentation.
+### DataSources
+We provide aim to support different sources of the data. 
+```python
+scan = pl.read_csv("../frtb_engine/data/frtb/Delta.csv", 
+                           dtypes={"SensitivitySpot": pl.Float64})
+dsource = ul.DataSource.inmemory(scan)
+ds = ul.DataSet.from_source(dsource)
+ds.prepare() # .prepare() is only relevant to FRTB dataset currently
+ds.ui()
+```
+If you don't want to/can't hold all your data in the process memory, you can sacrifise performance for memory with Scan/DataBase
+```python
+import polars as pl
+import ultibi as ul
+# Note that the LazyFrame query must start with scan_
+# and must've NOT been collected
+scan = pl.scan_csv("../frtb_engine/data/frtb/Delta.csv", 
+                    dtypes={"SensitivitySpot": pl.Float64})
+dsource = ul.DataSource.scan(scan)
+ds = ul.DataSet.from_source(dsource)
+ds.ui()
+```
+
+Note: Naturally the later two options will be slower, because prior to computing your measures we will need to read the relevant bits of the data into the process memory. 
 
 ### FRTB SA
 [FRTB SA](https://en.wikipedia.org/wiki/Fundamental_Review_of_the_Trading_Book) is a great usecase for `ultibi`. FRTB SA is a set of standardised, computationally intensive rules established by the regulator. High business impact of these rules manifests in need for **analysis** and **visibility** thoroughout an organisation. Note: Ultima is not a certified aggregator. Always benchmark the results against your own interpretation of the rules.
 See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
+
+### License 
+`ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You may use the library for non comercial, non for profit activity. You may not use this library in production, but you can purchase an alternative license for doing so. 
+
+Our `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via anatoly at ultimabi dot uk.

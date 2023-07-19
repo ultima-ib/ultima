@@ -60,49 +60,6 @@ impl Override {
     }
 }
 
-// removed in favour of string_to_any
-// This function also defines Column DataTypes which we can override
-//fn string_to_lit(value: &str, dt: &DataType, column: &str) -> PolarsResult<Expr> {
-//    match dt {
-//        // RW column is a list for example
-//        DataType::List(x) => {
-//            match **x {
-//                DataType::Float64 => {
-//                    let vc = serde_json::from_str::<Vec<f64>>(value)
-//                        .map_err(|_|PolarsError::SchemaMisMatch(format!("Argument {} could not be parsed into column {} format. Argument should be a vector",value, column).into()))?;
-//                    Ok(
-//                        Expr::Literal(LiteralValue::try_from(AnyValue::List(Series::from_vec(
-//                            "NewVal", vc,
-//                        )))?)
-//                        .list(), // <-- Needed since this one is a list
-//                    )
-//                }
-//                _ => Err(PolarsError::SchemaMisMatch(
-//                    "Only List f64 columns can be overwritten".into(),
-//                )),
-//            }
-//        }
-//        // All Numeric columns are f64
-//        DataType::Float64 => {
-//            let f = serde_json::from_str::<f64>(value)
-//                .map_err(|_|PolarsError::SchemaMisMatch(format!("Argument {} could not be parsed into column {} format. Argument should be a digit",value , column).into()))?;
-//            Ok(Expr::Literal(LiteralValue::try_from(AnyValue::Float64(f))?))
-//        }
-//        // Boolean column
-//        DataType::Boolean => Ok(Expr::Literal(LiteralValue::try_from(AnyValue::Boolean(
-//            serde_json::from_str::<bool>(value)
-//                        .map_err(|_|PolarsError::SchemaMisMatch(format!("Argument {} could not be parsed into column {} format. Argument should be a boolean",value, column).into()))?
-//        ))?)),
-//        // All Other columns are
-//        DataType::Utf8 => Ok(Expr::Literal(LiteralValue::try_from(AnyValue::Utf8(
-//            value,
-//        ))?)),
-//        _ => Err(PolarsError::ComputeError(
-//            format!("Column {} of this format cannot be overwritten", column).into(),
-//        )),
-//    }
-//}
-
 /// This function also defines Column DataTypes which we can override  
 pub(crate) fn string_to_any<'a>(
     value: &'a str,
@@ -128,6 +85,12 @@ pub(crate) fn string_to_any<'a>(
             let f = serde_json::from_str::<f64>(value)
                 .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))?;
             Ok(AnyValue::Float64(f))
+        }
+        // Python int
+        DataType::Int64 => {
+            let i = serde_json::from_str::<i64>(value)
+                .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))?;
+            Ok(AnyValue::Int64(i))
         }
         // Boolean column
         DataType::Boolean => Ok(AnyValue::Boolean(

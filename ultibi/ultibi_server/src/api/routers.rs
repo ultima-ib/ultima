@@ -9,11 +9,12 @@ use anyhow::Context;
 use serde::Deserialize;
 use tokio::task;
 use ultibi_core::{
-    aggregations::BASE_CALCS, polars::lazy::dsl::col, AggregationRequest, ComputeRequest,
-    DataFrame, DataSet, PolarsResult,
+    aggregations::BASE_CALCS, errors::UltiResult, AggregationRequest, ComputeRequest, DataFrame,
+    DataSet,
 };
+use utoipa::IntoParams;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, IntoParams)]
 struct Pagination {
     page: usize,
     pattern: String,
@@ -36,18 +37,16 @@ async fn column_search(
     let column_name = path.into_inner();
     let (page, pat) = (page.page, page.pattern.clone());
     let res = task::spawn_blocking(move || {
-        let lf = data
+        let srs = data
             .read()
             .expect("Poisonned RwLock")
-            .get_lazyframe()
-            .clone();
-        let df = lf.select([col(&column_name)]).collect()?;
-        let srs = df.column(&column_name)?;
-        let search = ultibi_core::helpers::searches::filter_contains_unique(srs, &pat)?;
+            .get_column(&column_name)?;
+
+        let search = ultibi_core::helpers::searches::filter_contains_unique(&srs, &pat)?;
         let first = page * PER_PAGE as usize;
         let last = first + PER_PAGE as usize;
         let s = search.slice(first as i64, last);
-        PolarsResult::Ok(s)
+        UltiResult::Ok(s)
     })
     .await
     .context("Failed to spawn blocking task.")
@@ -117,18 +116,13 @@ async fn dataset_info(_: HttpRequest, ds: Data<RwLock<dyn DataSet>>) -> impl Res
 pub(crate) async fn execute(
     data: Data<RwLock<dyn DataSet>>,
     req: web::Json<ComputeRequest>,
-    streaming: Data<bool>,
 ) -> Result<HttpResponse> {
     let r = req.into_inner();
     // TODO kill this OS thread if it is hanging (see spawn_blocking docs for ideas)
-    let res = task::spawn_blocking(move || {
-        data.read()
-            .expect("Poisonned RwLock")
-            .compute(r, **streaming) //TODO streaming mode
-    })
-    .await
-    .context("Failed to spawn blocking task.")
-    .map_err(actix_web::error::ErrorInternalServerError)?;
+    let res = task::spawn_blocking(move || data.read().expect("Poisonned RwLock").compute(r))
+        .await
+        .context("Failed to spawn blocking task.")
+        .map_err(actix_web::error::ErrorInternalServerError)?;
 
     match res {
         Ok(df) => Ok(HttpResponse::Ok().json(df)),
@@ -149,7 +143,7 @@ async fn overridable_columns(data: Data<RwLock<dyn DataSet>>) -> impl Responder 
     web::Json(data.read().expect("Poisonned RwLock").overridable_columns())
 }
 
-pub(crate) fn configure() -> impl FnOnce(&mut ServiceConfig) {
+pub fn configure() -> impl FnOnce(&mut ServiceConfig) {
     |config: &mut ServiceConfig| {
         config.service(
             web::scope("/api")

@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use log::info;
-use ultibi::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
+use ultibi::{new::NewSourcedDataSet, read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 
 /// Reads initial DataSet from Source
 ///
@@ -11,7 +11,7 @@ use ultibi::{read_toml2, DataSet, DataSourceConfig, MeasuresMap};
 ///
 /// If streaming is False - also collects
 #[allow(clippy::uninlined_format_args)]
-pub fn data<DS: DataSet>(config_path: &str, streaming: bool) -> impl DataSet {
+pub fn data<DS: NewSourcedDataSet>(config_path: &str, streaming: bool) -> impl DataSet {
     // Read Config
     let conf = read_toml2::<DataSourceConfig>(config_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
@@ -19,7 +19,12 @@ pub fn data<DS: DataSet>(config_path: &str, streaming: bool) -> impl DataSet {
 
     let (lf, measure_vec, build_params) = conf.build();
 
-    let mut data = DS::new(lf, MeasuresMap::from_iter(measure_vec), build_params);
+    let mut data = DS::new(
+        lf,
+        MeasuresMap::from_iter(measure_vec),
+        Default::default(),
+        build_params,
+    );
 
     // If cfg is streaming then we can't collect, otherwise collect to check errors
     if !streaming {

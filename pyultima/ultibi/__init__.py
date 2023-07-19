@@ -12,6 +12,7 @@ from .internals import (
     ComputeRequest,
     CustomCalculator,
     DataSet,
+    DataSource,
     DependantMeasure,
     EqFilter,
     FRTBDataSet,
@@ -21,6 +22,7 @@ from .internals import (
     NotInFilter,
     OtherError,
     StandardCalculator,
+    UltimaError,
     aggregation_ops,
 )
 
@@ -29,6 +31,7 @@ __all__ = [
     "ComputeRequest",
     "FRTBDataSet",
     "DataSet",
+    "DataSource",
     "aggregation_ops",
     "OtherError",
     "NoDataError",
@@ -47,4 +50,5 @@ __all__ = [
     "CustomCalculator",
     "StandardCalculator",
     "CalcParam",
+    "UltimaError",
 ]

@@ -1,13 +1,9 @@
 use ultibi::{
-    polars::prelude::{LazyFrame, PolarsError, PolarsResult},
-    ValidateSet,
+    errors::{UltiResult, UltimaErr},
+    polars::prelude::{LazyFrame, PolarsError},
 };
 
-pub(crate) fn validate_frame(
-    lf: &LazyFrame,
-    covered_bond: bool,
-    v: ValidateSet,
-) -> PolarsResult<()> {
+pub(crate) fn validate_frtb_frame(lf: &LazyFrame, covered_bond: bool, v: u8) -> UltiResult<()> {
     let arc_schema = lf.schema()?;
 
     // Buckets and weights assignments
@@ -22,7 +18,6 @@ pub(crate) fn validate_frame(
         "PnL_Down",
         "COB",
         "MaturityDate",
-        "BucketCRR2",
     ];
 
     if covered_bond {
@@ -33,7 +28,7 @@ pub(crate) fn validate_frame(
         must_have.push("BucketCRR2")
     }
 
-    if matches!(v, ValidateSet::ALL) {
+    if matches!(v, 0) {
         // RRAO
         must_have.push("TradeId");
         must_have.push("EXOTIC_RRAO");
@@ -60,10 +55,10 @@ pub(crate) fn validate_frame(
 
     for must_have_col in must_have {
         if !arc_schema.iter_names().any(|col| col == must_have_col) {
-            return Err(PolarsError::NoData(
+            return Err(UltimaErr::from(PolarsError::NoData(
                 format!("{must_have_col} is missing. It is a required column. Check your data")
                     .into(),
-            ));
+            )));
         }
     }
 

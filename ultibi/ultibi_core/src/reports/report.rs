@@ -1,11 +1,14 @@
 //! TODO Work In Progress - Not ready for usage yet
 
-use std::{sync::Arc, collections::BTreeMap};
+use std::{collections::BTreeMap, ops::Deref, sync::Arc};
 
 use polars::prelude::DataFrame;
 use serde::{Deserialize, Serialize};
 
-use crate::{errors::{UltiResult}, ComputeRequest, filters::FilterE, overrides::Override, add_row::AdditionalRows, AggregationRequest};
+use crate::{
+    add_row::AdditionalRows, errors::UltiResult, filters::FilterE, overrides::Override,
+    AggregationRequest, ComputeRequest,
+};
 
 // pub type ReportCalculator = Arc<dyn Fn(&[Expr], &CPM) -> UltiResult<Report> + Send + Sync>;
 
@@ -13,7 +16,7 @@ use crate::{errors::{UltiResult}, ComputeRequest, filters::FilterE, overrides::O
 /// Writes text for each of your reports
 pub type ReportWriter = Arc<dyn Fn(&[DataFrame]) -> UltiResult<Report> + Send + Sync>;
 /// (Reporter Name, Reporter)
-pub type ReportersMap = BTreeMap<ReporterName, Box<dyn Reporter>>;
+pub type ReportersMap = BTreeMap<ReporterName, Reporter>;
 
 /// Each [DataSet] has reporters accessed via get_reporters()
 /// This alias to represent a Reporter name, a unique string
@@ -44,15 +47,14 @@ pub struct GroupbyAggReport {
 
     /// A Report request can result in multiple [AggregationRequest]'s
     /// This is reflected by Vec<Vec<>> structure
-    /// 
+    ///
     /// fixed_fields are used to populate outer [AggregationRequest]
-    /// 
+    ///
     /// For this report these fields are fixed and cannot be changed
     /// For each inner Vec the FixedFields must be the same
     pub fixed_fields: Vec<Vec<FixedFields>>,
 
-    // TODO must set fields 
-
+    // TODO must set fields
     /// Simply appends text for the result of each request
     pub calculator: ReportWriter,
 }
@@ -68,17 +70,46 @@ pub enum FixedFields {
     AdditionalRows(AdditionalRows),
     CalcParams(BTreeMap<String, String>),
     HideZeros(bool),
-    Totals (bool),
+    Totals(bool),
 }
 
-pub trait Reporter: Send + Sync {
+pub trait ReporterTrait: Send + Sync {
     /// Any Report Request
     //type Item<'a>: Deserialize<'a>;
     fn compute_request(&self, report_req: AggregationRequest) -> UltiResult<Vec<ComputeRequest>>;
     fn report(&self, dfs: &[DataFrame]) -> Report;
+    fn name(&self) -> &str;
 }
 
+pub struct Reporter(pub Arc<dyn ReporterTrait>);
 
+impl<'a> AsRef<(dyn ReporterTrait + 'a)> for Reporter {
+    fn as_ref(&self) -> &(dyn ReporterTrait + 'a) {
+        self.0.as_ref()
+    }
+}
 
+impl Deref for Reporter {
+    type Target = dyn ReporterTrait;
 
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref()
+    }
+}
 
+impl From<Arc<dyn ReporterTrait>> for Reporter {
+    fn from(r: Arc<dyn ReporterTrait>) -> Self {
+        Self(r)
+    }
+}
+
+impl FromIterator<Reporter> for ReportersMap {
+    fn from_iter<I>(v: I) -> Self
+    where
+        I: IntoIterator<Item = Reporter>,
+    {
+        v.into_iter()
+            .map(|reporter| (reporter.name().to_string(), reporter))
+            .collect()
+    }
+}

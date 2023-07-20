@@ -34,7 +34,7 @@ pub fn run_server(
     let ds = Data::from(ds);
     let _templates = Data::new(_templates);
 
-    dbg!("ANATOoOOOOOoooOOOOoooOOOOOOOOooLY");
+    dbg!("app");
 
     // This is Useful to run locally in dev mode, without regenerating dist, just serve whatever is in the dir
     // Note: it goes together with .service(actix_files::Files::new("/", &static_files_dir).index_file("index.html")) later

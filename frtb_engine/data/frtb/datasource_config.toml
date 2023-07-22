@@ -11,14 +11,13 @@ type = "CSV"
 #source_type = "InMemory"
 
 # Risk file paths, can be many, expecting at least one
-# "frtb_engine/data/frtb/Delta.csv"
-files = ["data/frtb/Delta.csv"]
+files = ["./data/frtb/Delta.csv"]
 
 # Optional: trade attributes
-attributes_path = "data/frtb/TradeAttributes.csv"
+attributes_path = "./data/frtb/TradeAttributes.csv"
 
 # Optional: Hierarchy
-hierarchy_path = "data/frtb/hms.csv"
+hierarchy_path = "./data/frtb/hms.csv"
 
 # file_1/file_2/file_3 <-> attributes
 # must be provided if attributes file is provided

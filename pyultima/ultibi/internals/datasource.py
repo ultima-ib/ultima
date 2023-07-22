@@ -1,8 +1,9 @@
 from polars import DataFrame, LazyFrame
-from typing_extensions import Self
+from typing import TypeVar
 
 from ..rust_module.ultibi_engine import DataSourceWrapper
 
+TDataSource = TypeVar("TDataSource", bound="DataSource")
 
 class DataSource:
     """Represents a Source of your Data. The source can be:
@@ -55,11 +56,11 @@ class DataSource:
     inner: DataSourceWrapper
 
     @classmethod
-    def inmemory(cls, data: DataFrame) -> Self:
+    def inmemory(cls, data: DataFrame) -> TDataSource:
         return cls(data)
 
     @classmethod
-    def scan(cls, data: LazyFrame) -> Self:
+    def scan(cls, data: LazyFrame) -> TDataSource:
         return cls(data)
 
     def __init__(self, data: "DataFrame | LazyFrame | str"):

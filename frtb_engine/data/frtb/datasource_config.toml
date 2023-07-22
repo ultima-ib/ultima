@@ -6,14 +6,19 @@ type = "CSV"
 #If using AwsCSV then provide the bucket name
 #bucket = "ultima-bi"
 
+# source_type defaults to "InMemory"
+# can be one of "InMemory", "Scan", "Db" (work in progress).
+#source_type = "InMemory"
+
 # Risk file paths, can be many, expecting at least one
-files = ["data/frtb/Delta.csv"]
+# "frtb_engine/data/frtb/Delta.csv"
+files = ["./data/frtb/Delta.csv"]
 
 # Optional: trade attributes
-attributes_path = "data/frtb/TradeAttributes.csv"
+attributes_path = "./data/frtb/TradeAttributes.csv"
 
 # Optional: Hierarchy
-hierarchy_path = "data/frtb/hms.csv"
+hierarchy_path = "./data/frtb/hms.csv"
 
 # file_1/file_2/file_3 <-> attributes
 # must be provided if attributes file is provided

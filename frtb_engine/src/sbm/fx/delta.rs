@@ -161,7 +161,6 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
             //21.4.5.a sb == dw_sum
             let dw_sum = df["dw_sum"].f64()?.to_ndarray()?; //Ok since we have filtered out NULLs above
                                                             // Early return Kb or Sb, ie the required metric
-            dbg!(&dw_sum);
             let res_len = columns[0].len();
             if let ReturnMetric::Sb = rtrn {
                 return Ok(Some(Series::new("res", [dw_sum.sum()])));

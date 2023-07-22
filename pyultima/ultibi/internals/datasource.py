@@ -1,5 +1,4 @@
 from polars import DataFrame, LazyFrame
-from typing_extensions import Self
 
 from ..rust_module.ultibi_engine import DataSourceWrapper
 
@@ -55,11 +54,11 @@ class DataSource:
     inner: DataSourceWrapper
 
     @classmethod
-    def inmemory(cls, data: DataFrame) -> Self:
+    def inmemory(cls, data: DataFrame) -> "DataSource":
         return cls(data)
 
     @classmethod
-    def scan(cls, data: LazyFrame) -> Self:
+    def scan(cls, data: LazyFrame) -> "DataSource":
         return cls(data)
 
     def __init__(self, data: "DataFrame | LazyFrame | str"):

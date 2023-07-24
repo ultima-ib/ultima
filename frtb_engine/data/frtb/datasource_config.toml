@@ -1,6 +1,6 @@
 title = "setup.toml Example"
 
-#type can be either CSV or AwsCSV
+#type can be either CSV or AwsCSV 
 type = "CSV"
 
 #If using AwsCSV then provide the bucket name

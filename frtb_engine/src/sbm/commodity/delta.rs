@@ -10,7 +10,7 @@ use ultibi::{
 use ndarray::Array2;
 
 pub fn total_commodity_delta_sens(_: &CPM) -> PolarsResult<Expr> {
-    Ok(rc_rcat_sens("Delta", "Commodity", total_delta_sens()))
+    Ok(rc_rcat_sens("Delta", "Commodity", total_sensis_sum()))
 }
 
 /// Total Commodity Delta

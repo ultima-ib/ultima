@@ -42,7 +42,7 @@ fn curv_delta(rc: &'static str, risk: Expr) -> Expr {
 }
 
 pub(crate) fn total_sens_curv_weighted() -> Expr {
-    total_delta_sens() * col("CurvatureRiskWeight")
+    total_sensis_sum() * col("CurvatureRiskWeight")
 }
 
 /// CSR
@@ -102,7 +102,7 @@ pub(crate) fn rc_cvr_5(rc: &'static str, dir: Cvr) -> Expr {
 }
 
 pub(crate) fn curv_delta_total(rc: &'static str) -> Expr {
-    curv_delta(rc, total_delta_sens())
+    curv_delta(rc, total_sensis_sum())
 }
 
 pub(crate) fn curv_delta_spot(rc: &'static str) -> Expr {

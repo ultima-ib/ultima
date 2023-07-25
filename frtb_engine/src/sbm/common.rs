@@ -19,10 +19,10 @@ use std::sync::{Arc, Mutex};
 
 use crate::prelude::{RhoOverwrite, RhoType};
 
-/// Sum of all delta sensis, from spot to 30Y tenor
+/// Sum of all sensis, across all tenors, from spot to 30Y tenor
 /// In practice should be used only with filter on RiskClass
 /// as combining FX and IR sensis is meaningless
-pub fn total_delta_sens() -> Expr {
+pub fn total_sensis_sum() -> Expr {
     // When adding Exprs NULLs have to be filled Otherwise returns NULL
     col("SensitivitySpot").fill_null(0.)
         + col("Sensitivity_025Y").fill_null(0.)

@@ -3,7 +3,7 @@ FRTB usecase specific library which levrages on ultima's base engine
 """
 
 import polars  # reexport
-import pyarrow
+# import pyarrow - not needed
 
 from .internals import (
     AggRequest,

@@ -13,7 +13,7 @@ use crate::risk_weights::REDUCED_IR_WEIGHT;
 use ndarray::{parallel::prelude::ParallelIterator, Array1, Array2};
 
 pub fn total_ir_delta_sens(_: &CPM) -> PolarsResult<Expr> {
-    Ok(rc_rcat_sens("Delta", "GIRR", total_delta_sens()))
+    Ok(rc_rcat_sens("Delta", "GIRR", total_sensis_sum()))
 }
 /// Helper functions
 fn girr_delta_sens_weighted_spot() -> Expr {

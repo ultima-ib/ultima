@@ -11,8 +11,8 @@ else
 	VENV_BIN=$(VENV)/bin
 endif
 
-venv:  ## Set up virtual environment
-	python3 -m venv $(VENV)
+venv:  ## Set up virtual environment - local use
+	$(PY311) -m venv $(VENV)
 	$(VENV_BIN)/python -m pip install --upgrade pip
 	$(VENV_BIN)/pip install -r requirements.txt
 	$(VENV_BIN)/pip install -r requirements-lint.txt

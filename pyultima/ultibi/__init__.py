@@ -3,7 +3,6 @@ FRTB usecase specific library which levrages on ultima's base engine
 """
 
 import polars  # reexport
-import pyarrow
 
 from .internals import (
     AggRequest,
@@ -25,6 +24,9 @@ from .internals import (
     UltimaError,
     aggregation_ops,
 )
+
+# import pyarrow - not needed
+
 
 __all__ = [
     "AggRequest",

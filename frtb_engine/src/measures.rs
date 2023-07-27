@@ -50,7 +50,7 @@ use crate::rrao::rrao_measures;
 
 use crate::totals::sa_total_measures;
 
-use crate::prelude::total_delta_sens;
+use crate::prelude::total_sensis_sum;
 use ultibi::CPM;
 
 /// Exporting Measures
@@ -64,8 +64,8 @@ pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
             calc_params: vec![],
         }),
         Measure::Base(BaseMeasure {
-            name: "Total DeltaSens".to_string(),
-            calculator: std::sync::Arc::new(|_: &CPM| Ok(total_delta_sens())),
+            name: "Total Sens".to_string(),
+            calculator: std::sync::Arc::new(|_: &CPM| Ok(total_sensis_sum())),
             aggregation: None,
             precomputefilter: None,
             calc_params: vec![],

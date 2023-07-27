@@ -74,29 +74,30 @@ class DataSet:
         Class constructor - not to br called directly.
         call .from_frame() or .from_config()
         """
+
         self.inner = ds
 
+        self.fields: list[str] = self.inner.fields()
         """All column which you can group by. Currently those are string 
             and bool columns
         """
-        self.fields: list[str] = self.inner.fields()
 
+        self.measures: "dict[str, str | None]" = self.inner.measures()
         """{measureName: "aggtype restriction(if any, otherwise
             None)"}. If none, then you can use any of the availiable agg operations.
             Check :func:`~ultima.internals.aggregation_ops` for supported aggregation
              operations
         """
-        self.measures: "dict[str, str | None]" = self.inner.measures()
 
+        self.calc_params: "list[tuple[str, str|None, str|None]]" = (
+            self.inner.calc_params()
+        )
         """parameters which you can pass to the Request for the given DataSet
 
         Returns:
             list[dict[str, str|None]]: List of {"name": parameter name to be
             passed to the request, "hint": type hint of the param}
         """
-        self.calc_params: "list[tuple[str, str|None, str|None]]" = (
-            self.inner.calc_params()
-        )
 
     @classmethod
     def from_config_path(cls: Type[DS], path: str) -> DS:

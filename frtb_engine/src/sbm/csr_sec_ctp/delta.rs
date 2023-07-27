@@ -7,7 +7,7 @@ use ultibi::{polars::prelude::max_horizontal, BaseMeasure, CPM};
 use crate::prelude::*;
 
 pub fn total_csr_sec_ctp_delta_sens(_: &CPM) -> PolarsResult<Expr> {
-    Ok(rc_rcat_sens("Delta", "CSR_Sec_CTP", total_delta_sens()))
+    Ok(rc_rcat_sens("Delta", "CSR_Sec_CTP", total_sensis_sum()))
 }
 /// Helper functions
 

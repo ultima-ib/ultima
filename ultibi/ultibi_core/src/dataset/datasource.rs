@@ -32,6 +32,7 @@ pub enum SourceVariant {
     Db,
 }
 
+/// DbInfo Depends on the kind of Db you are connecting to
 #[derive(Clone)]
 pub struct DbInfo;
 

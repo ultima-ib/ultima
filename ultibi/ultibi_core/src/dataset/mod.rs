@@ -2,6 +2,7 @@ pub mod datasource;
 pub mod new;
 
 use std::collections::{BTreeMap, HashSet};
+use std::ops::Deref;
 
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
@@ -116,7 +117,7 @@ pub trait DataSet: Send + Sync {
     /// Calls [DataSet::prepare_frame]
     /// Will return an error if [DataSet::set_lazyframe_inplace] is not implemented
     fn prepare(&mut self) -> UltiResult<()>
-//where
+    //where
     //    Self: Sized,
     {
         let new_frame = self.prepare_frame(self.get_lazyframe(&vec![]))?;
@@ -276,5 +277,13 @@ impl Serialize for dyn DataSet {
         seq.serialize_entry("measures", &ordered_measures)?;
         seq.serialize_entry("calc_params", &calc_params)?;
         seq.end()
+    }
+}
+
+impl Deref for dyn DataSet {
+    type Target = dyn Send;
+
+    fn deref(&self) -> &Self::Target {
+        self
     }
 }

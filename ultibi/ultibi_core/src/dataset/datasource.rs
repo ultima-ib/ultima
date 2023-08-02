@@ -93,7 +93,7 @@ impl DataSource {
             DataSource::InMemory(_) => false,
             DataSource::Scan(_) => true,
             #[cfg(feature = "db")]
-            DataSource::Db(_) => unimplemented!(),
+            DataSource::Db(_) => true,
         }
     }
 }

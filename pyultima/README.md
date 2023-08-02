@@ -170,11 +170,11 @@ Note: Naturally the later two options will be slower, because prior to computing
 See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 
 ### License 
-`ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You can choose:
+`ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You can choose one of the following:
 
 1) GNU General Public License
 
-2) Proprietary Permissive License, which allow you to use the software in whichever way you want. These `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via anatoly at ultimabi dot uk.
+1) Proprietary License.  which allow you to use the software in whichever way you want. These `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via `anatoly at ultimabi dot uk`, or by visiting `ultimabi dot uk`
 
 ### No Liability
 As far as the law allows, the software comes as is, without any warranty or condition, and the licensor will not be liable to you for any damages arising out of these terms or the use or nature of the software, under any kind of legal claim.

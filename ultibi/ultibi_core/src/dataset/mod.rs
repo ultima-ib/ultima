@@ -2,7 +2,6 @@ pub mod datasource;
 pub mod new;
 
 use std::collections::{BTreeMap, HashSet};
-use std::ops::Deref;
 
 use polars::prelude::*;
 use serde::{ser::SerializeMap, Serialize, Serializer};
@@ -280,10 +279,10 @@ impl Serialize for dyn DataSet {
     }
 }
 
-impl Deref for dyn DataSet {
-    type Target = dyn Send;
+// impl Deref for dyn DataSet {
+//     type Target = dyn Send;
 
-    fn deref(&self) -> &Self::Target {
-        self
-    }
-}
+//     fn deref(&self) -> &Self::Target {
+//         self
+//     }
+// }

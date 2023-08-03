@@ -1,3 +1,5 @@
+//! This crate accrues Ultibi In/Out operations 
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }

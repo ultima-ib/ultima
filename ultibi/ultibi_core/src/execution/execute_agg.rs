@@ -17,8 +17,11 @@ use crate::{
     filters::AndOrFltrChain,
     lookup_dependants_with_depth,
     overrides::Override,
-    AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure, datasource::DataSource,
+    AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
 };
+
+#[cfg(feature = "db")]
+use crate::datasource::DataSource;
 
 /// Looks up measures and calls calculator on those returning an Expr
 /// Breaks down requested measures into Basic and Dependents

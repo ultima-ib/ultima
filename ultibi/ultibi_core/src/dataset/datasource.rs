@@ -1,8 +1,12 @@
 use std::sync::Arc;
 
+#[cfg(feature = "db")]
 use connectorx::{sql::CXQuery, source_router::SourceConn};
-use polars::{prelude::{DataFrame, IntoLazy, LazyFrame, Schema, DataType}, lazy::dsl::{col, Expr}};
+
+use polars::{prelude::{DataFrame, IntoLazy, LazyFrame, Schema, DataType}, lazy::dsl::col};
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "db")]
 use connectorx::prelude::get_arrow2;
 
 use crate::{
@@ -114,6 +118,7 @@ impl DataSource {
     }
 }
 
+#[cfg(feature = "db")]
 pub fn sql_schema(db: &DbInfo) -> UltiResult<Arc<Schema>> {
     if let Some(schema) = &db.schema {
         Ok(Arc::clone(schema))
@@ -127,6 +132,7 @@ pub fn sql_schema(db: &DbInfo) -> UltiResult<Arc<Schema>> {
     }
 }
 
+#[cfg(feature = "db")]
 pub fn sql_query(db: &DbInfo, query: &str) -> UltiResult<LazyFrame> {
 
     let source_conn = SourceConn::try_from(db.conn_uri.as_str())
@@ -161,6 +167,7 @@ pub fn sql_query(db: &DbInfo, query: &str) -> UltiResult<LazyFrame> {
 
 }
 
+#[cfg(feature = "db")]
 pub fn fltr_chain_to_sql_query(table: &str, chain: &AndOrFltrChain) -> String {
 
     let mut base = format!("SELECT * FROM {}", table);
@@ -191,6 +198,7 @@ pub fn fltr_chain_to_sql_query(table: &str, chain: &AndOrFltrChain) -> String {
     base
 }
 
+#[cfg(feature = "db")]
 pub fn fltr_to_sql_query(fltr: &FilterE) -> String {
     match fltr {
         FilterE::Eq{field, value} => match value {
@@ -220,6 +228,7 @@ pub fn fltr_to_sql_query(fltr: &FilterE) -> String {
 /// AND ((RiskFactor != 'EURUSD' AND RiskFactor != 'GBPEUR'));
 /// 
 /// For more info see tests
+#[cfg(feature = "db")]
 pub fn vec_to_or_sql(field: &str, ors: &[Option<String>], not: bool) -> String {
 
     let mut has_none = false;
@@ -262,14 +271,14 @@ impl From<LazyFrame> for DataSource {
 
 
 
-/// Helper. A wrapper around DataSource
-#[derive(Clone)]
-pub struct DataSourceBase<S: DataSourceT>(pub S);
+// TODO
+// #[derive(Clone)]
+// pub struct DataSourceBase<S: DataSourceT>(pub S);
 
-/// A DataSource must provide these fields at least
-pub trait DataSourceT {
-    /// Return LazyFrame to accommodate for both Scan and InMemory cases
-    fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame;
-    fn get_schema(&self) -> UltiResult<Arc<Schema>>;
-    fn prepare_on_each_request(&self) -> bool;
-}
+// /// A DataSource must provide these fields at least
+// pub trait DataSourceT {
+//     /// Return LazyFrame to accommodate for both Scan and InMemory cases
+//     fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame;
+//     fn get_schema(&self) -> UltiResult<Arc<Schema>>;
+//     fn prepare_on_each_request(&self) -> bool;
+// }

@@ -15,7 +15,7 @@ path = "src/lib.rs"
 [dependencies]
 ultibi = { path = "../ultibi", features = ["ui"]}
 # Business Logic
-frtb_engine = { path = "../frtb_engine", optional = true }
+frtb_engine = { path = "../frtb_engine"}
 # JSON
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }
@@ -50,9 +50,7 @@ reqwest = "0.11"
 
 [features]
 #default = ["FRTB"] # To avoid rust-analyzer showing error. To be removed.
-FRTB = [
-    "frtb_engine",
-] # feature FRTB of my lib activate optional dep frtb_engine
+FRTB = [] # feature FRTB of my lib activate optional dep frtb_engine
 FRTB_CRR2 = [
     "FRTB",
     "frtb_engine/CRR2",

@@ -24,7 +24,6 @@ pub enum DataSource {
 
 /// Maps to [Source]
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
-#[serde(untagged)]
 pub enum SourceVariant {
     #[default]
     InMemory,

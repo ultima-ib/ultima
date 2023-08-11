@@ -42,7 +42,7 @@ fn main() -> anyhow::Result<()> {
     let requests_path = cli.requests;
 
     // Build Data
-    let data = acquire::data::<DataSetType>(setup_path.as_str(), cfg!(feature = "streaming"));
+    let data = acquire::data::<DataSetType>(setup_path.as_str());
 
     let arc_data = Arc::new(data);
 

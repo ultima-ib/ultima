@@ -60,3 +60,4 @@ FRTB_CRR2 = [
 # BUT also need to activate FRTB because one_off.rs and server.rs have #[cfg(feature = "FRTB")]
 # cache = ["ultibi/cache"]
 streaming = []
+db = ["ultibi/db"]

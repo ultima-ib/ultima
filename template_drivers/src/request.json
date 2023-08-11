@@ -7,7 +7,8 @@
         "measures": [
         ["Commodity DeltaCharge Low", "scalar"],
         ["Commodity DeltaCharge Medium", "scalar"],
-        ["Commodity DeltaCharge High", "scalar"]
+        ["Commodity DeltaCharge High", "scalar"],
+        ["SA Charge", "scalar"]
         ],
         "add_row": {"prepare": true, "rows": [
           {

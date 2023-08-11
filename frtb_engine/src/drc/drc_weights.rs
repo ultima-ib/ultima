@@ -223,7 +223,7 @@ pub fn drc_secnonctp_weights_raw() -> BTreeMap<&'static str, f64> {
 
 /// DRC Seniority
 /// as per 22.19
-/// Neened to determine
+/// Needed to determine
 pub fn with_drc_seniority(lf: LazyFrame) -> LazyFrame {
     let drc_sen = df![
         "SeniorityRank" => [5, 4, 3, 2, 1, 0],

@@ -17,7 +17,7 @@ use crate::{
     filters::AndOrFltrChain,
     lookup_dependants_with_depth,
     overrides::Override,
-    AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
+    AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure, datasource::DataSource,
 };
 
 /// Looks up measures and calls calculator on those returning an Expr
@@ -209,7 +209,15 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
     // If streaming then prepare (assign weights) NOW (ie post filtering)
     if prepare {
-        f1 = data.prepare_frame(f1)?
+        f1 = data.prepare_frame(f1)?;
+
+        // WORKAROUND - it's OK to collect for DataBase since we are holding post filtering result in Memory Anyway
+        // For some reason polars throws col("Weights") not found if we don't do this
+        #[cfg(feature = "db")]
+        match data.get_datasource() {
+            DataSource::Db(_) => f1 = f1.collect()?.lazy(),
+            _ => ()
+        }
     }
 
     // Step 2.4 Applying Overwrites

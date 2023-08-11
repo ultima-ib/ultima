@@ -1,5 +1,4 @@
-//! Server side entry point
-//! This to be conversted into server
+//! Example of a driver which calls .ui()
 
 use clap::Parser;
 //use base_engine::prelude::*;

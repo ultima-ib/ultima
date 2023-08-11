@@ -540,6 +540,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         join_on,
         JoinType::Left.into(),
     );
+
     // tmp workaround, since .rename() panics
     // TODO remove
     // Adding here to check if weights were assigned, if not - create a dummy column
@@ -651,7 +652,6 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("RiskWeightDRC")))
         .select([col("*").exclude(["RiskWeightDRC", "Key"])]);
-
     Ok(lf1)
 }
 

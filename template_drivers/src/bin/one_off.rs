@@ -2,7 +2,7 @@
 //! This to be conversted into server
 
 use clap::Parser;
-use ultibi::AggregationRequest;
+use ultibi::{AggregationRequest, DataSet};
 //use base_engine::prelude::*;
 use template_drivers::helpers::{acquire, cli::CliOnce};
 
@@ -51,6 +51,8 @@ fn main() -> anyhow::Result<()> {
     // Later this will be RequestE (to match other requests as well)
     let requests: Vec<AggregationRequest> = serde_json::from_str(&json).expect("Bad requests");
 
+    let prepare = arc_data.as_ref().get_datasource().prepare_on_each_request();
+
     // From here we do not panic
     for request in requests {
         //let rqst_str = serde_json::to_string(&request);
@@ -59,7 +61,7 @@ fn main() -> anyhow::Result<()> {
         match ultibi::exec_agg(
             &*Arc::clone(&arc_data),
             request,
-            cfg!(feature = "streaming"),
+            prepare,
         ) {
             Err(e) => {
                 error!("Application error: {:#?}", e);

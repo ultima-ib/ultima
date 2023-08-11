@@ -85,7 +85,7 @@ pub enum DataSourceConfig {
 }
 
 impl DataSourceConfig {
-    /// build's DataSet
+    /// build's DataSet, prepares depending on DataSourceType
     ///
     /// Returns:
     ///

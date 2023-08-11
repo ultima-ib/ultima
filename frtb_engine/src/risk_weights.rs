@@ -552,6 +552,9 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
 
     //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS"), col("RiskFactor"), col("SensWeights")]).collect());
 
+    // due to bug in polars https://github.com/pola-rs/polars/issues/10431
+    // we can only exclude col("Weights") once.
+    // Hence as a workaround we'll need to do the renaming 
     let join_on = [col("RiskClass"), col("RiskCategory"), col("BucketBCBS")];
     lf1 = lf1.join(
         weights.rc_rcat_b_weights,

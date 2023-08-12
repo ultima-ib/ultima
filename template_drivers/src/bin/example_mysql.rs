@@ -6,7 +6,7 @@ use ultibi::polars::prelude::{Schema, Field, DataType};
 
 use std::sync::{Arc, RwLock};
 
-use ultibi::{DataSet, VisualDataSet, AggregationRequest};
+use ultibi::{DataSet, AggregationRequest};
 use frtb_engine::FRTBDataSet;
 
 #[cfg(target_os = "linux")]

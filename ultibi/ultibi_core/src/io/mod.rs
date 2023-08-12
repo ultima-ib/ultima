@@ -85,6 +85,15 @@ pub enum DataSourceConfig {
 }
 
 impl DataSourceConfig {
+    
+    #[allow(irrefutable_let_patterns)]
+    pub fn get_source_type_mut(&mut self) -> &mut SourceVariant {
+        if let DataSourceConfig::CSV{source_type, ..} = self {
+            source_type
+        } else {
+            panic!("Can only get mutable Source Type of a CSV config")
+        }
+    }
     /// build's DataSet, prepares depending on DataSourceType
     ///
     /// Returns:

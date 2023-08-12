@@ -20,8 +20,8 @@ use crate::{
     AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
 };
 
-#[cfg(feature = "db")]
-use crate::datasource::DataSource;
+// #[cfg(feature = "db")]
+// use crate::datasource::DataSource;
 
 /// Looks up measures and calls calculator on those returning an Expr
 /// Breaks down requested measures into Basic and Dependents
@@ -216,11 +216,11 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
 
         // WORKAROUND - it's OK to collect for DataBase since we are holding post filtering result in Memory Anyway
         // For some reason polars throws col("Weights") not found if we don't do this
-        #[cfg(feature = "db")]
-        match data.get_datasource() {
-            DataSource::Db(_) => f1 = f1.collect()?.lazy(),
-            _ => ()
-        }
+        // #[cfg(feature = "db")]
+        // match data.get_datasource() {
+        //     DataSource::Db(_) => f1 = f1.collect()?.lazy(),
+        //     _ => ()
+        // }
     }
 
     // Step 2.4 Applying Overwrites

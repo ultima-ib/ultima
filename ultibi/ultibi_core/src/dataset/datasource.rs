@@ -3,15 +3,24 @@ use std::sync::Arc;
 #[cfg(feature = "db")]
 use connectorx::{sql::CXQuery, source_router::SourceConn};
 
-use polars::{prelude::{DataFrame, IntoLazy, LazyFrame, Schema, DataType}, lazy::dsl::col};
+use polars::prelude::{DataFrame, IntoLazy, LazyFrame, Schema};
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "db")]
+use polars::{prelude::DataType, lazy::dsl::col};
 
 #[cfg(feature = "db")]
 use connectorx::prelude::get_arrow2;
 
+#[cfg(feature = "db")]
 use crate::{
-    errors::{UltiResult, UltimaErr},
-    filters::{fltr_chain, AndOrFltrChain, FilterE},
+    errors::UltimaErr,
+    filters::FilterE,
+};
+
+use crate::{
+    errors::UltiResult,
+    filters::{fltr_chain, AndOrFltrChain},
 };
 
 /// Indicated the source of data

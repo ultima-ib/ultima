@@ -7,7 +7,7 @@ use once_cell::sync::OnceCell;
 use std::collections::BTreeMap;
 use ultibi::polars::prelude::diag_concat_lf;
 use ultibi::polars::prelude::{
-    col, concat_list, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
+    col, concat_list, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput,
     IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
     Series, Utf8NameSpaceImpl,
 };

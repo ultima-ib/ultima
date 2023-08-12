@@ -20,8 +20,8 @@ use crate::{
     AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
 };
 
-// #[cfg(feature = "db")]
-// use crate::datasource::DataSource;
+#[cfg(feature = "db")]
+use crate::datasource::DataSource;
 
 /// Looks up measures and calls calculator on those returning an Expr
 /// Breaks down requested measures into Basic and Dependents
@@ -175,6 +175,9 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     processed_base_measures: Vec<ProcessedBaseMeasure>,
     prepare: bool,
 ) -> UltiResult<DataFrame> {
+
+    // TODO PRECOMPUTE FILTER TO THE MAIN FILTER
+
     // Step 1.0 and 1.1 - get existing Filtered frame - first building block
     let mut f1 = data.get_lazyframe(filters);
 
@@ -210,18 +213,20 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
         f1 = f1.filter(fltr)
     }
 
+
+    // dbg!(f1.clone().collect());
+
     // If streaming then prepare (assign weights) NOW (ie post filtering)
     if prepare {
         f1 = data.prepare_frame(f1)?;
-
-        // WORKAROUND - it's OK to collect for DataBase since we are holding post filtering result in Memory Anyway
-        // For some reason polars throws col("Weights") not found if we don't do this
-        // #[cfg(feature = "db")]
-        // match data.get_datasource() {
-        //     DataSource::Db(_) => f1 = f1.collect()?.lazy(),
-        //     _ => ()
-        // }
+        
+        // Workaround
+        // We get a strange error if f1 is not collected for Db source in particular
+        #[cfg(feature = "db")]
+        if let DataSource::Db(_) = data.get_datasource() {f1 = f1.collect()?.lazy();}
     }
+
+    //dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeights"), col("SensitivitySpot")]).collect());
 
     // Step 2.4 Applying Overwrites
     for ow in overrides {

@@ -4,9 +4,10 @@ use ultibi::datasource::DataSource;
 use ultibi::new::NewSourcedDataSet;
 use ultibi::polars::prelude::{Schema, Field, DataType};
 
+use std::collections::BTreeMap;
 use std::sync::{Arc, RwLock};
 
-use ultibi::{DataSet, AggregationRequest};
+use ultibi::{DataSet, AggregationRequest, VisualDataSet};
 use frtb_engine::FRTBDataSet;
 
 #[cfg(target_os = "linux")]
@@ -42,14 +43,14 @@ fn main() -> anyhow::Result<()> {
 
     let dataset = FRTBDataSet::from_vec(datasource, vec![],
     true, vec![],
-    Default::default());
+    params());
 
     let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(dataset));
 
-    //ds.ui();
+    ds.ui();
 
     //dbg!(
-        dbg!(ds.read().unwrap().compute(request.into()).expect("COMPUTE FAILED"))
+        // dbg!(ds.read().unwrap().compute(request.into()).expect("COMPUTE FAILED"))
     //)
     ;
 
@@ -109,23 +110,39 @@ fn hardcoded_schema() -> Schema {
 // dbg
 fn request() -> &'static str {
     r#"{
-        "filters": [],
+        "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
         "groupby": [
-          "COB"
+          "Desk"
         ],
         "measures": [
-          [
-            "SA Charge",
-            "scalar"
-          ]
+            ["FX DeltaCharge Low", "scalar"],
+            ["FX DeltaCharge Medium", "scalar"],
+            ["FX DeltaCharge High", "scalar"]
         ],
         "overrides": [],
         "hide_zeros": false,
         "totals": false,
-        "calc_params": {},
+        "calc_params": {
+            "apply_fx_curv_div": "true",
+            "reporting_ccy": "USD",
+            "drc_offset": "true",
+            "jurisdiction": "BCBS"
+        },
         "additionalRows": {
           "prepare": false,
           "rows": []
         }
       }"#
+}
+
+fn params() -> BTreeMap<String, String> {
+    BTreeMap::from_iter([
+        ("fx_sqrt2_div".into(),  "true".into()),
+        ("vega_risk_weights".into(), "./tests/data/vega_risk_weights.csv".into()),
+        ("girr_delta_base_weights".into(),  "{\"columns\":[{\"name\":\"RiskClass\",\"datatype\":\"Utf8\",\"values\":[\"GIRR\",\"GIRR\",\"GIRR\"]},{\"name\":\"RiskCategory\",\"datatype\":\"Utf8\",\"values\":[\"Delta\",\"Delta\",\"Delta\"]},{\"name\":\"RiskFactorType\",\"datatype\":\"Utf8\",\"values\":[\"Yield\",\"Inflation\",\"XCCY\"]},{\"name\":\"Weights\",\"datatype\":\"Utf8\",\"values\":[\"0.0;0.017;0.017;0.016;0.013;0.012;0.011;0.011;0.011;0.011;0.011\",\"0.016\",\"0.016\"]}]}".into()),
+        ("girr_sqrt2_div".into(), "true".into()),
+        ("csrnonsec_covered_bond_15".into(), "true".into()),
+        ("DayCountConvention".into(), "2".into()),
+        ("DateFormat".into(), "%d/%m/%Y".into()),
+    ])
 }

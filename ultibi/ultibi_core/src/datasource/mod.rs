@@ -3,15 +3,22 @@ pub mod db;
 
 use std::sync::Arc;
 
-use polars::{prelude::{LazyFrame, Schema}, series::Series, lazy::dsl::col};
+use polars::{
+    lazy::dsl::col,
+    prelude::{LazyFrame, Schema},
+    series::Series,
+};
 
-use crate::{filters::{AndOrFltrChain, fltr_chain}, errors::{UltiResult, UltimaErr}};
+use crate::{
+    errors::{UltiResult, UltimaErr},
+    filters::{fltr_chain, AndOrFltrChain},
+};
 
 use polars::prelude::{DataFrame, IntoLazy};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "db")]
-pub use self::db::{DbInfo, fltr_chain_to_sql_query, sql_query, sql_schema, sql_get_column};
+pub use self::db::{fltr_chain_to_sql_query, sql_get_column, sql_query, sql_schema, DbInfo};
 
 /// Indicated the source of data
 #[derive(Clone)]
@@ -106,24 +113,23 @@ impl DataSource {
         match self {
             DataSource::InMemory(df) => {
                 let mut df = df.select([col_name])?;
-                let srs = df.pop().ok_or(UltimaErr::Other(format!("Column {col_name} doesn't exist")))?;
+                let srs = df
+                    .pop()
+                    .ok_or(UltimaErr::Other(format!("Column {col_name} doesn't exist")))?;
                 Ok(srs.unique_stable()?)
-                }
+            }
             DataSource::Scan(lf) => {
                 lf.clone()
-                .select([col(col_name)])
-                .collect()?
-                .pop() //above select guaranteed one column
-                .ok_or(UltimaErr::Other(format!("Column {col_name} doesn't exist")))
+                    .select([col(col_name)])
+                    .collect()?
+                    .pop() //above select guaranteed one column
+                    .ok_or(UltimaErr::Other(format!("Column {col_name} doesn't exist")))
             }
             #[cfg(feature = "db")]
-            DataSource::Db(db) => {
-                sql_get_column(db, col_name)
-            }
+            DataSource::Db(db) => sql_get_column(db, col_name),
         }
     }
 }
-
 
 impl From<DataFrame> for DataSource {
     fn from(item: DataFrame) -> Self {
@@ -150,7 +156,7 @@ impl From<LazyFrame> for DataSource {
 //     /// Db -> true
 //     fn prepare_on_each_request(&self) -> bool;
 // }
-// 
+//
 // As per example:
 // use std::sync::Arc;
 
@@ -163,25 +169,25 @@ impl From<LazyFrame> for DataSource {
 // }
 
 // impl P for Empty{}
-  
+
 // trait GeeksforGeeks{
 //     type X;
 //     fn gfg_func(&self) -> Self::X;
 // }
-  
+
 // impl <U> GeeksforGeeks for U {
 //     type X = Arc<dyn P>;
 //     fn gfg_func(&self) -> Self::X {
 //         Arc::new(Empty{})
 //     }
 // }
-  
+
 // fn main() {
 //     let variable_one = Empty;
 //     let variable_two  = Null;
 
 //     let obj: Box<dyn GeeksforGeeks<X=Arc<dyn P>>> = Box::new(variable_two);
-      
+
 //     obj.gfg_func();
-  
+
 // }

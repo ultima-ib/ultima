@@ -1,10 +1,17 @@
 use std::sync::Arc;
 
-use connectorx::{source_router::SourceConn, sql::CXQuery};
-use polars::{lazy::dsl::col, prelude::{DataType, Schema, LazyFrame, IntoLazy}, series::Series};
-use connectorx::prelude::get_arrow2;
-use crate::{errors::UltimaErr, filters::{FilterE, AndOrFltrChain}};
 use crate::errors::UltiResult;
+use crate::{
+    errors::UltimaErr,
+    filters::{AndOrFltrChain, FilterE},
+};
+use connectorx::prelude::get_arrow2;
+use connectorx::{source_router::SourceConn, sql::CXQuery};
+use polars::{
+    lazy::dsl::col,
+    prelude::{DataType, IntoLazy, LazyFrame, Schema},
+    series::Series,
+};
 
 /// DbInfo Depends on the kind of Db you are connecting to
 #[derive(Clone)]
@@ -24,9 +31,7 @@ pub struct DbInfo {
     pub conn_uri: String,
 }
 
-
 pub fn sql_schema(db: &DbInfo) -> UltiResult<Arc<Schema>> {
-
     if let Some(schema) = &db.schema {
         Ok(Arc::clone(schema))
     } else {
@@ -60,11 +65,9 @@ pub fn sql_get_column(db: &DbInfo, col_name: &str) -> UltiResult<Series> {
     }
 
     Ok(srs)
-
 }
 
 pub fn sql_query(db: &DbInfo, query: &str) -> UltiResult<LazyFrame> {
-
     let source_conn = SourceConn::try_from(db.conn_uri.as_str())
         .map_err(|err| UltimaErr::Other(err.to_string()))?;
 
@@ -181,6 +184,3 @@ pub fn vec_to_or_sql(field: &str, ors: &[Option<String>], not: bool) -> String {
     }
     query
 }
-
-
-

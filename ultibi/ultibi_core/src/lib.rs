@@ -7,6 +7,7 @@ pub mod aggregations;
 pub mod cache;
 mod datarequest;
 pub mod dataset;
+pub mod datasource;
 pub mod errors;
 pub mod execution;
 pub mod filters;
@@ -16,6 +17,5 @@ mod measure;
 pub mod overrides;
 pub mod prelude;
 pub mod reports;
-pub mod datasource;
 
 pub use crate::prelude::*;

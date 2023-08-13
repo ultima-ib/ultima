@@ -1,6 +1,7 @@
 use ultibi_core::{datasource::fltr_chain_to_sql_query, filters::FilterE};
 
 #[test]
+#[cfg(feature = "db")]
 fn test_query_create() {
     let fltr = vec![
         vec![

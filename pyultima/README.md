@@ -172,7 +172,7 @@ See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 ### License 
 `ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You can choose one of the following:
 
-1) Non production usage. Where production usage means any business usage of the results and outputs arising from/produced by the software. Examples of "business usage" could be any form of - decision making, reporting etc
+1) Non production usage. Where production usage means any business usage of the results and outputs arising from/produced by the software. Examples of "business usage" could be any of, but not limited to, decision making, reporting, advising to a third party etc
 
 2) Proprietary License.  which allow you to use the software in whichever way you want. These `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via `anatoly at ultimabi dot uk`, or by visiting `ultimabi dot uk`
 

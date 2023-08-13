@@ -6,7 +6,6 @@ use crate::{
     AggregationRequest, CacheableAggregationRequest, CacheableComputeRequest, ProcessedBaseMeasure,
 };
 
-/// TODO work in progress
 /// Looks up from Cache
 /// Whatever is not found is sent to [_exec_agg]
 /// Whatever was sent to [_exec_agg] is then saved to Cache
@@ -90,10 +89,10 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
         //EXECUTE
         let new_res = super::_exec_agg_base(
             data,
-            req.filters(),
-            &req.add_row,
+            req.filters,
+            req.add_row,
             &req.overrides,
-            &req.groupby,
+            req.groupby,
             req.totals,
             processed_base_measures,
             streaming,

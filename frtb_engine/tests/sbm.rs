@@ -142,7 +142,6 @@ fn fx_curvature() {
     assert_results_scan(request, expected_res.sum(), None)
 }
 
-
 #[test]
 fn fx_total() {
     let expected_res = arr1(&[

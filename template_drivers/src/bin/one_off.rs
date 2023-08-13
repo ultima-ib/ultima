@@ -58,11 +58,7 @@ fn main() -> anyhow::Result<()> {
         //let rqst_str = serde_json::to_string(&request);
         info!("{:?}", request);
         let now = Instant::now();
-        match ultibi::exec_agg(
-            &*Arc::clone(&arc_data),
-            request,
-            prepare,
-        ) {
+        match ultibi::exec_agg(&*Arc::clone(&arc_data), request, prepare) {
             Err(e) => {
                 error!("Application error: {:#?}", e);
                 continue;

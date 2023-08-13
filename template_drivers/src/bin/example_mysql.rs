@@ -1,14 +1,14 @@
 //! Example of a driver with SQL DataSource
-//! 
+//!
 use ultibi::datasource::DataSource;
 use ultibi::new::NewSourcedDataSet;
-use ultibi::polars::prelude::{Schema, Field, DataType};
+use ultibi::polars::prelude::{DataType, Field, Schema};
 
 use std::collections::BTreeMap;
 use std::sync::{Arc, RwLock};
 
-use ultibi::{DataSet, AggregationRequest, VisualDataSet};
 use frtb_engine::FRTBDataSet;
+use ultibi::{DataSet, VisualDataSet};
 
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
@@ -31,37 +31,37 @@ fn main() -> anyhow::Result<()> {
     // For more information see documentation
 
     //let data = config_build_validate_prepare::<DataSetType>(setup_path.as_str(), default);
-    let uri=format!("mysql://{0}:{1}@{2}:{3}/{4}?cxprotocol=binary",
-        "dummyUser" , "password", "localhost", 3306, "ultima");
+    let uri = format!(
+        "mysql://{0}:{1}@{2}:{3}/{4}?cxprotocol=binary",
+        "dummyUser", "password", "localhost", 3306, "ultima"
+    );
 
-    let request: AggregationRequest = serde_json::from_str(request()).expect("Bad requests");
+    //let request: AggregationRequest = serde_json::from_str(request()).expect("Bad requests");
 
-    let datasource  = DataSource::Db(ultibi::datasource::DbInfo { table: "frtb".to_string(), 
+    let datasource = DataSource::Db(ultibi::datasource::DbInfo {
+        table: "frtb".to_string(),
         db_type: "MySQL".to_string(),
-         conn_uri: uri,
-         schema: Some(hardcoded_schema().into())}) ;
+        conn_uri: uri,
+        schema: Some(hardcoded_schema().into()),
+    });
 
-    let dataset = FRTBDataSet::from_vec(datasource, vec![],
-    true, vec![],
-    params());
+    let dataset = FRTBDataSet::from_vec(datasource, vec![], true, vec![], params());
 
     let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(dataset));
 
     ds.ui();
 
     //dbg!(
-        // dbg!(ds.read().unwrap().compute(request.into()).expect("COMPUTE FAILED"))
-    //)
-    ;
+    // dbg!(ds.read().unwrap().compute(request.into()).expect("COMPUTE FAILED"))
+    //);
 
     Ok(())
 }
 
 /// Hardcoded schema of the table
 fn hardcoded_schema() -> Schema {
-
     let fields = vec![
-                Field::new("COB", DataType::Utf8),
+        Field::new("COB", DataType::Utf8),
         Field::new("TradeId", DataType::Utf8),
         Field::new("RiskCategory", DataType::Utf8),
         Field::new("RiskClass", DataType::Utf8),
@@ -104,36 +104,35 @@ fn hardcoded_schema() -> Schema {
     ];
 
     Schema::from_iter(fields)
-
 }
 
-// dbg
-fn request() -> &'static str {
-    r#"{
-        "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
-        "groupby": [
-          "Desk"
-        ],
-        "measures": [
-            ["FX DeltaCharge Low", "scalar"],
-            ["FX DeltaCharge Medium", "scalar"],
-            ["FX DeltaCharge High", "scalar"]
-        ],
-        "overrides": [],
-        "hide_zeros": false,
-        "totals": false,
-        "calc_params": {
-            "apply_fx_curv_div": "true",
-            "reporting_ccy": "USD",
-            "drc_offset": "true",
-            "jurisdiction": "BCBS"
-        },
-        "additionalRows": {
-          "prepare": false,
-          "rows": []
-        }
-      }"#
-}
+// // dbg
+// fn request() -> &'static str {
+//     r#"{
+//         "filters": [[{"op": "Eq", "field": "Desk", "value": "FXOptions"}]],
+//         "groupby": [
+//           "Desk"
+//         ],
+//         "measures": [
+//             ["FX DeltaCharge Low", "scalar"],
+//             ["FX DeltaCharge Medium", "scalar"],
+//             ["FX DeltaCharge High", "scalar"]
+//         ],
+//         "overrides": [],
+//         "hide_zeros": false,
+//         "totals": false,
+//         "calc_params": {
+//             "apply_fx_curv_div": "true",
+//             "reporting_ccy": "USD",
+//             "drc_offset": "true",
+//             "jurisdiction": "BCBS"
+//         },
+//         "additionalRows": {
+//           "prepare": false,
+//           "rows": []
+//         }
+//       }"#
+// }
 
 fn params() -> BTreeMap<String, String> {
     BTreeMap::from_iter([

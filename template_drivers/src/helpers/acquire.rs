@@ -26,8 +26,8 @@ pub fn data<DS: NewSourcedDataSet>(config_path: &str) -> impl DataSet {
         build_params,
     );
 
-    // If NOT prepare_on_each_request then prepare once only NOW 
-    let prepare_collect = !data.get_datasource().prepare_on_each_request(); 
+    // If NOT prepare_on_each_request then prepare once only NOW
+    let prepare_collect = !data.get_datasource().prepare_on_each_request();
 
     // If cfg is streaming then we can't collect, otherwise collect to check errors
     // if prepare_collect {

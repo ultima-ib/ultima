@@ -4,9 +4,10 @@ use once_cell::sync::Lazy;
 
 use frtb_engine::prelude::FRTBDataSet;
 use ultibi::{
+    datasource::SourceVariant,
     new::NewSourcedDataSet,
     prelude::{read_toml2, DataSet, DataSourceConfig},
-    ComputeRequest, IntoLazy, datasource::SourceVariant,
+    ComputeRequest, IntoLazy,
 };
 
 use ultibi::polars::prelude::{col, Float64Type, IndexOrder};
@@ -26,7 +27,7 @@ pub static LAZY_SCAN_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
     let conf_path = r"data/frtb/datasource_config.toml";
     let mut conf = read_toml2::<DataSourceConfig>(conf_path)
         .expect("Can not proceed without valid Data Set Up"); //Unrecovarable error
-    //change DataSource to Scan for this test
+                                                              //change DataSource to Scan for this test
     *conf.get_source_type_mut() = SourceVariant::Scan;
     let data: FRTBDataSet = FRTBDataSet::from_config(conf);
     data.validate_frame(None, 0).expect("failed to validate");

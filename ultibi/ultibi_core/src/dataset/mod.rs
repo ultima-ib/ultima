@@ -1,4 +1,3 @@
-pub mod datasource;
 pub mod new;
 
 use std::collections::{BTreeMap, HashSet};
@@ -14,7 +13,7 @@ use crate::reports::report::ReportersMap;
 use crate::{CalcParameter, ComputeRequest, MeasuresMap};
 use once_cell::sync::Lazy;
 
-use self::datasource::DataSource;
+use crate::datasource::DataSource;
 pub static EMPTY_REPORTS_MAP: Lazy<ReportersMap> = Lazy::new(Default::default);
 
 /// This is the default struct which implements Dataset
@@ -78,11 +77,7 @@ pub trait DataSet: Send + Sync {
     /// !Default implementation calls `.get_lazyframe(&vec![])`, so if `get_lazyframe` materialises/loads data (eg from DB via a connector)
     /// Be careful, this might break your app.
     fn get_column(&self, col_name: &str) -> UltiResult<Series> {
-        self.get_lazyframe(&vec![])
-            .select([col(col_name)])
-            .collect()?
-            .pop() //above select guaranteed one column
-            .ok_or(UltimaErr::Other(format!("Column {col_name} doesn't exist")))
+        self.get_datasource().get_column(col_name)
     }
 
     /// Get all Reporters associated with the DataSet

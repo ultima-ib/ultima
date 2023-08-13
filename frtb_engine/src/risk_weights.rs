@@ -7,9 +7,9 @@ use once_cell::sync::OnceCell;
 use std::collections::BTreeMap;
 use ultibi::polars::prelude::diag_concat_lf;
 use ultibi::polars::prelude::{
-    col, concat_list, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
-    IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
-    Series, Utf8NameSpaceImpl,
+    col, concat_list, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput, IntoLazy,
+    IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader, Series,
+    Utf8NameSpaceImpl,
 };
 
 static FX_SPECIAL_DELTA_FULL_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -540,27 +540,39 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         join_on,
         JoinType::Left.into(),
     );
+
     // tmp workaround, since .rename() panics
     // TODO remove
     // Adding here to check if weights were assigned, if not - create a dummy column
-    if !lf1.schema()?.iter_names().any(|col| col == "Weights") {
-        lf1 = lf1.with_column(lit(0.).implode().alias("SensWeights"))
-    } else {
-        lf1 = lf1.rename(["Weights"], ["SensWeights"])
-    }
+    // TODO This has been removed in favour of simple rename
+    // but leaving commented out code for now in case of later issues
+    // if !lf1.schema()?.iter_names().any(|col| col == "Weights") {
+    //     lf1 = lf1.with_column(lit(0.).implode().alias("SensWeights"))
+    // } else {
+    //     lf1 = lf1.rename(["Weights"], ["SensWeights"])
+    // }
+    lf1 = lf1.rename(["Weights"], ["SensWeights"]);
 
     //dbg!(lf1.clone().filter(col("RiskClass").eq(lit("FX"))).select([col("BucketBCBS"), col("RiskFactor"), col("SensWeights")]).collect());
 
+    // due to bug in polars https://github.com/pola-rs/polars/issues/10431
+    // we can only exclude col("Weights") once.
+    // Hence as a workaround we'll need to do the renaming
     let join_on = [col("RiskClass"), col("RiskCategory"), col("BucketBCBS")];
     lf1 = lf1.join(
-        weights.rc_rcat_b_weights,
+        weights
+            .rc_rcat_b_weights
+            .rename(["Weights"], ["Weights1"])
+            .collect()
+            .unwrap()
+            .lazy(), // we should never fail here,
         join_on.clone(),
         join_on,
         JoinType::Left.into(),
     );
     lf1 = lf1
-        .with_column(col("SensWeights").fill_null(col("Weights")))
-        .select([col("*").exclude(["Weights"])]);
+        .with_column(col("SensWeights").fill_null(col("Weights1")))
+        .select([col("*").exclude(["Weights1"])]);
 
     // FX SECOND HERE
     lf1 = lf1.with_column(
@@ -573,36 +585,51 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     );
     let right_on = [col("RiskClass"), col("RiskCategory"), col("Bucket")];
     lf1 = lf1.join(
-        weights.rc_rcat_b_weights_second,
+        weights
+            .rc_rcat_b_weights_second
+            .rename(["Weights"], ["Weights2"])
+            .collect()
+            .unwrap()
+            .lazy(), // we should never fail here,
         right_on.clone(),
         right_on,
         JoinType::Left.into(),
     );
     lf1 = lf1
-        .with_column(col("SensWeights").fill_null(col("Weights")))
-        .select([col("*").exclude(["Weights", "Bucket"])]);
+        .with_column(col("SensWeights").fill_null(col("Weights2")))
+        .select([col("*").exclude(["Weights2", "Bucket"])]);
 
     let join_on = [col("RiskClass"), col("RiskCategory"), col("RiskFactorType")];
     lf1 = lf1.join(
-        weights.rc_rcat_rtype_weights,
+        weights
+            .rc_rcat_rtype_weights
+            .rename(["Weights"], ["Weights3"])
+            .collect()
+            .unwrap()
+            .lazy(), // we should never fail here,
         join_on.clone(),
         join_on,
         JoinType::Left.into(),
     );
     lf1 = lf1
-        .with_column(col("SensWeights").fill_null(col("Weights")))
-        .select([col("*").exclude(["Weights"])]);
+        .with_column(col("SensWeights").fill_null(col("Weights3")))
+        .select([col("*").exclude(["Weights3"])]);
 
     let join_on = [col("RiskClass"), col("RiskCategory")];
     let mut lf1 = lf1.join(
-        weights.rc_rcat_weights,
+        weights
+            .rc_rcat_weights
+            .rename(["Weights"], ["Weights4"])
+            .collect()
+            .unwrap()
+            .lazy(), // we should never fail here,
         join_on.clone(),
         join_on,
         JoinType::Left.into(),
     );
     lf1 = lf1
-        .with_column(col("SensWeights").fill_null(col("Weights")))
-        .select([col("*").exclude(["Weights"])]);
+        .with_column(col("SensWeights").fill_null(col("Weights4")))
+        .select([col("*").exclude(["Weights4"])]);
 
     let join_on = [
         col("RiskClass"),
@@ -613,14 +640,19 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         ),
     ];
     let mut lf1 = lf1.join(
-        weights.drc_nonsec_weights_frame,
+        weights
+            .drc_nonsec_weights_frame
+            .rename(["Weights"], ["Weights5"])
+            .collect()
+            .unwrap()
+            .lazy(), // we should never fail here,
         join_on.clone(),
         join_on,
         JoinType::Left.into(),
     );
     lf1 = lf1
-        .with_column(col("SensWeights").fill_null(col("Weights")))
-        .select([col("*").exclude(["Weights"])]);
+        .with_column(col("SensWeights").fill_null(col("Weights5")))
+        .select([col("*").exclude(["Weights5"])]);
 
     //drc_secnonctp_weights
     lf1 = lf1.with_column(
@@ -651,7 +683,6 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1
         .with_column(col("SensWeights").fill_null(col("RiskWeightDRC")))
         .select([col("*").exclude(["RiskWeightDRC", "Key"])]);
-
     Ok(lf1)
 }
 

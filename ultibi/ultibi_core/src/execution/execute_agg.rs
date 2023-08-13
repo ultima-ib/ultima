@@ -20,6 +20,10 @@ use crate::{
     AggregationRequest, DataSet, Measure, MeasureName, ProcessedBaseMeasure, ProcessedMeasure,
 };
 
+#[cfg(feature = "db")]
+use crate::datasource::DataSource;
+
+/// Entry point of Aggregation Execution
 /// Looks up measures and calls calculator on those returning an Expr
 /// Breaks down requested measures into Basic and Dependents
 /// Sends Basics to [ultibi::_exec_agg_with_cache] or [ultibi::_exec_agg_base]
@@ -29,8 +33,11 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     req: AggregationRequest,
     prepare: bool,
 ) -> UltiResult<DataFrame> {
+    // If we cache, we will need req down the line. If that's the case, clone
+    let req_clone = data.as_cacheable().map(|_| req.clone());
+
     // Step 0: Lookup and return Expr
-    let all_requested_measures = req.measures();
+    let all_requested_measures = req.measures;
     if all_requested_measures.is_empty() {
         return Err(PolarsError::InvalidOperation(
             "Select measures. What do you want to aggregate?".into(),
@@ -38,16 +45,16 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
         .into());
     }
 
-    let op = req.calc_params(); // Optional params of the request
+    let op = &req.calc_params; // Optional params of the request
 
     let dataset_measure_map = data.get_measures(); // all availiable measures
 
     // Step 1.0 Lookup requested measures in the DataSet
-    let looked_up_measures = agg_measure_lookup(all_requested_measures, dataset_measure_map)?;
+    let looked_up_measures = agg_measure_lookup(&all_requested_measures, dataset_measure_map)?;
 
     // Step 1.1 For dependants we need to keep track of their "depth"
     let dependants_with_depth =
-        lookup_dependants_with_depth(all_requested_measures, dataset_measure_map);
+        lookup_dependants_with_depth(&all_requested_measures, dataset_measure_map);
 
     // Step 1.2 Express dependants now
     let mut processed_dependants = Vec::with_capacity(dependants_with_depth.len());
@@ -85,7 +92,7 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
         .collect::<PolarsResult<Vec<(&MeasureName, &AggregationName, ProcessedMeasure)>>>()?;
 
     // Keep all REQUESTED Column Names for later use:
-    let mut all_requested_columns_names = req.groupby().clone();
+    let mut all_requested_columns_names = req.groupby.clone();
     all_requested_columns_names.extend(all_requested_measures.iter().map(|(measure_name, agg)| {
         let agg = BASE_CALCS.get(agg as &str).expect("Failed to look up agg"); //we have checked in agg_measure_lookup
         agg.new_name(measure_name as &str)
@@ -104,13 +111,16 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
 
     // Step 2 Compute basics
     let mut res = match data.as_cacheable() {
-        Some(cacheable) => _exec_agg_with_cache(cacheable, req.clone(), base_measures, prepare),
+        // Safety - req_clone is not None if data.as_cacheable() is Some
+        Some(cacheable) => {
+            _exec_agg_with_cache(cacheable, req_clone.unwrap(), base_measures, prepare)
+        }
         _ => _exec_agg_base(
             data,
-            req.filters(),
-            &req.add_row,
+            req.filters,
+            req.add_row,
             &req.overrides,
-            &req.groupby,
+            req.groupby,
             req.totals,
             base_measures.into_iter().map(|(_, _, pbm)| pbm).collect(),
             prepare,
@@ -162,18 +172,25 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
 
 /// main function which returns a Result of the calculation
 /// Executes base measures on your DataSet
-pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
+pub(crate) fn _exec_agg_base<DS, I, S>(
     data: &DS,
-    filters: &AndOrFltrChain,
-    add_rows: &AdditionalRows,
+    filters: AndOrFltrChain,
+    add_rows: AdditionalRows,
     overrides: &[Override],
-    groupby: &[String],
+    groupby: I,
     totals: bool,
     processed_base_measures: Vec<ProcessedBaseMeasure>,
     prepare: bool,
-) -> UltiResult<DataFrame> {
+) -> UltiResult<DataFrame>
+where
+    DS: DataSet + ?Sized,
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    // TODO PRECOMPUTE FILTER TO THE MAIN FILTER - not so easy because precompute filter is an expr
+
     // Step 1.0 and 1.1 - get existing Filtered frame - first building block
-    let mut f1 = data.get_lazyframe(filters);
+    let mut f1 = data.get_lazyframe(&filters);
 
     // Step 2.1
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)
@@ -202,15 +219,26 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
         }
     }
 
-    // Step 2.3 Applying (Mesure)FILTER
+    // Step 2.3 Applying (Measure)FILTER
     if let Some(fltr) = measure_filter_opt {
         f1 = f1.filter(fltr)
     }
 
+    // dbg!(f1.clone().collect());
+
     // If streaming then prepare (assign weights) NOW (ie post filtering)
     if prepare {
-        f1 = data.prepare_frame(f1)?
+        f1 = data.prepare_frame(f1)?;
+
+        // Workaround
+        // We get a strange error if f1 is not collected for Db source in particular
+        #[cfg(feature = "db")]
+        if let DataSource::Db(_) = data.get_datasource() {
+            f1 = f1.collect()?.lazy();
+        }
     }
+
+    //dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeights"), col("SensitivitySpot")]).collect());
 
     // Step 2.4 Applying Overwrites
     for ow in overrides {
@@ -238,7 +266,7 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     //dbg!(&groupby);
 
     // Step 3.1 Build GROUPBY
-    let groups: Vec<Expr> = groupby.iter().map(|x| col(x)).collect();
+    let groups: Vec<Expr> = groupby.into_iter().map(|x| col(x.as_ref())).collect();
     // fill nulls with a "null" - needed for better totals views
     let groups_fill_nulls: Vec<Expr> = groups
         .clone()
@@ -249,18 +277,19 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
     //let f1 = f1.collect()?.lazy();
 
     // Step 3.2 Apply GroupBy and Agg
-    // Note .limit doesn't work with standard groupby on large frames
-    // hence use groupby_stable
-    let mut aggregated_df = f1
-        .clone()
-        .with_streaming(true) // Set streaming to True anyway - no performance penalty
-        .groupby_stable(&groups)
-        .agg(&aggregateions)
-        .limit(1_000)
-        .with_columns(&groups_fill_nulls)
-        .collect()?;
 
-    if totals & (groups.len() > 1) {
+    // The difference is that we do not need to clone f1
+    // unless we are computing totals
+    let res = if totals & (groups.len() > 1) {
+        let mut aggregated_df = f1
+            .clone() // if totals then we must clone here
+            .with_streaming(true) // Set streaming to True anyway - no performance penalty
+            .groupby_stable(&groups)
+            .agg(&aggregateions)
+            .limit(1_000)
+            .with_columns(&groups_fill_nulls)
+            .collect()?;
+
         let ordered_cols = aggregated_df.get_column_names_owned();
         let mut total_frames = vec![];
         //let mut with_cols = vec![];
@@ -294,13 +323,20 @@ pub(crate) fn _exec_agg_base<DS: DataSet + ?Sized>(
             .map(|e| e.fill_null(lit("Total")))
             .collect();
 
-        aggregated_df = aggregated_df
+        aggregated_df
             .lazy()
             .sort_by_exprs(&groups, vec![false; groups.len()], false, true)
             .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>())
             .with_columns(groups_totals)
-            .collect()?;
-    }
+            .collect()?
+    } else {
+        f1.with_streaming(true) // Set streaming to True anyway - no performance penalty
+            .groupby_stable(&groups)
+            .agg(&aggregateions)
+            .limit(1_000)
+            .with_columns(&groups_fill_nulls)
+            .collect()?
+    };
 
-    Ok(aggregated_df)
+    Ok(res)
 }

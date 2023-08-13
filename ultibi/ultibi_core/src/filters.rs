@@ -2,7 +2,7 @@ use polars::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// This type represents the convention.
-/// Outer elements are AND, innder elements are OR
+/// Outer elements are AND, inner elements are OR
 pub type AndOrFltrChain = Vec<Vec<FilterE>>;
 
 /// Inner elements of each Filter are OR

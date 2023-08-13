@@ -26,7 +26,8 @@ fn fx_delta() {
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
-    assert_results(request, dbg!(expected_res).sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]
@@ -53,7 +54,8 @@ fn fx_delta_crr2() {
     "calc_params": {"jurisdiction": "CRR2"}
             
     }"#;
-    assert_results(request, dbg!(expected_res).sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]
@@ -90,7 +92,8 @@ fn fx_vega() {
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -135,8 +138,10 @@ fn fx_curvature() {
     "calc_params": {"jurisdiction": "BCBS",
                 "apply_fx_curv_div": "true"}
     }"#;
-    assert_results(request, dbg!(expected_res).sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
+
 #[test]
 fn fx_total() {
     let expected_res = arr1(&[
@@ -155,7 +160,8 @@ fn fx_total() {
     "type": "AggregationRequest",
     "calc_params": {"jurisdiction": "BCBS"}
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -183,7 +189,8 @@ fn girr_delta() {
      "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
-    assert_results(request, dbg!(expected_res).sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -219,7 +226,8 @@ fn girr_vega() {
         "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -280,7 +288,8 @@ fn girr_curvature() {
     "hide_zeros":true,
     "calc_params": {"jurisdiction": "BCBS"}
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -308,7 +317,8 @@ fn girr_totals() {
         "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -344,7 +354,8 @@ fn eq_delta() {
         "hide_zeros":true,
     "calc_params": {"jurisdiction": "CRR2"}
     }"#;
-    assert_results(request, expected_res.sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]
@@ -382,7 +393,8 @@ fn eq_vega() {
         "apply_fx_curv_div": "true"}
         
     }"#;
-    assert_results(request, dbg!(expected_res).sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]
@@ -402,7 +414,8 @@ fn eq_curv() {
     "calc_params": {"jurisdiction": "BCBS"}
         
     }"#;
-    assert_results(request, dbg!(expected_res).sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]
@@ -424,7 +437,8 @@ fn eq_totals() {
         "hide_zeros": true,
     "calc_params": {"jurisdiction": "BCBS"}    
     }"#;
-    assert_results(request, dbg!(expected_res).sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]
@@ -453,7 +467,8 @@ fn csr_nonsec_bcbs_delta() {
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
-    assert_results(request, expected_res.sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]
@@ -490,7 +505,8 @@ fn csr_nonsec_crr2_delta() {
         "hide_zeros":true,
     "calc_params": {"jurisdiction": "CRR2"}
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -525,7 +541,8 @@ fn csr_nonsec_bcbs_vega() {
     "calc_params": {"jurisdiction": "BCBS"}
             
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -561,7 +578,8 @@ fn csr_nonsec_crr2_vega() {
     "calc_params": {"jurisdiction": "CRR2"}
             
     }"#;
-    assert_results(request, expected_res.sum(), Some(1e-4))
+    assert_results(request, expected_res.sum(), Some(1e-4));
+    assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -590,7 +608,8 @@ fn commodity_delta() {
     "hide_zeros":true,
     "calc_params": {"jurisdiction": "BCBS"}
     }"#;
-    assert_results(request, expected_res.sum(), None)
+    assert_results(request, expected_res.sum(), None);
+    assert_results_scan(request, expected_res.sum(), None)
 }
 
 #[test]

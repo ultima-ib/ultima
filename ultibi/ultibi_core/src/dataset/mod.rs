@@ -278,3 +278,11 @@ impl Serialize for dyn DataSet {
         seq.end()
     }
 }
+
+// impl Deref for dyn DataSet {
+//     type Target = dyn Send;
+
+//     fn deref(&self) -> &Self::Target {
+//         self
+//     }
+// }

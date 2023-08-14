@@ -6,7 +6,7 @@ they all import from each other via this __init__ file using
 `import ultibi.internals as uli`. The imports below are being shared across this module.
 """
 
-from ..rust_module.ultibi_engine import NoDataError, OtherError, UltimaError
+from ..rust_module.ultibi_engine import NoDataError, OtherError, UltimaError, DbInfo
 from .dataset import DS, DataSet, FRTBDataSet
 from .datasource import DataSource
 from .filters import EqFilter, Filter, InFilter, NeqFilter, NotInFilter
@@ -44,4 +44,5 @@ __all__ = [
     "CustomCalculator",
     "StandardCalculator",
     "CalcParam",
+    "DbInfo"
 ]

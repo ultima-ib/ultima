@@ -1,6 +1,6 @@
 from polars import DataFrame, LazyFrame
 
-from ..rust_module.ultibi_engine import DataSourceWrapper
+from ..rust_module.ultibi_engine import DataSourceWrapper, DbInfo
 
 
 class DataSource:
@@ -60,6 +60,10 @@ class DataSource:
     @classmethod
     def scan(cls, data: LazyFrame) -> "DataSource":
         return cls(data)
+    
+    @classmethod
+    def db(cls, data: DbInfo) -> "DataSource":
+        return cls(data)
 
     def __init__(self, data: "DataFrame | LazyFrame | str"):
         if isinstance(data, DataFrame):
@@ -68,5 +72,8 @@ class DataSource:
         elif isinstance(data, LazyFrame):
             self.inner = DataSourceWrapper.from_scan(data)
 
-        elif isinstance(data, str):
-            raise NotImplementedError("Scan DB is not yet implemented")
+        elif isinstance(data, DbInfo):
+            self.inner = DataSourceWrapper.from_db(data)
+
+        else:
+            raise NotImplementedError("Unknow source")

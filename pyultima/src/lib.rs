@@ -15,6 +15,7 @@ mod errors;
 mod filter;
 mod measure;
 mod requests;
+mod db;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {
@@ -38,6 +39,7 @@ fn ultibi_engine(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<filter::FilterWrapper>()?;
     m.add_class::<calculator::CalculatorWrapper>()?;
     m.add_class::<measure::CalcParamWrapper>()?;
+    m.add_class::<db::DbInfo>()?;
 
     m.add("UltimaError", _py.get_type::<UltimaError>()).unwrap();
 

@@ -18,7 +18,7 @@ venv:  ## Set up virtual environment - local use
 	$(VENV_BIN)/pip install -r requirements-lint.txt
 
 .PHONY: develop
-develop: venv  ## Compile and install Polars for development
+develop: venv  ## Compile and install to venv
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop
 
 .PHONY: build
@@ -26,7 +26,7 @@ build: venv  ## Build whl
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin build -i=$(PY311) --release
 
 .PHONY: develop-release
-build-release: venv  ## Compile and install a faster Polars binary
+build-release: venv  ## Compile and install to venv
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop --release
 
 .PHONY: fmt

@@ -23,6 +23,7 @@ from .internals import (
     StandardCalculator,
     UltimaError,
     aggregation_ops,
+    DbInfo
 )
 
 # import pyarrow - not needed
@@ -53,4 +54,5 @@ __all__ = [
     "StandardCalculator",
     "CalcParam",
     "UltimaError",
+    "DbInfo"
 ]

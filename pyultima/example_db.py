@@ -7,8 +7,8 @@ from polars.type_aliases import PolarsDataType
 import ultibi as ul
 
 conn_uri = "mysql://%s:%s@%s:%d/%s?cxprotocol=binary" % (
-    "dummyUser",
-    "password",
+    "root",
+    "mysql",
     "localhost",
     3306,
     "ultima",
@@ -87,5 +87,7 @@ request = dict(
     },
 )
 res = ds.compute(ul.ComputeRequest(request))
+
+print(res)
 
 res.row(0)[1:] == (11.652789365641173, 11.80386589215584, 11.95303308788192)

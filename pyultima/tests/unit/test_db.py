@@ -2,7 +2,8 @@ import os
 import unittest
 
 import polars as pl
-import pytest
+
+# import pytest
 from polars.type_aliases import PolarsDataType
 
 import ultibi as ul
@@ -31,13 +32,10 @@ class TestDb(unittest.TestCase):
         )
         df.write_database("frtb", uri, if_exists="replace")
 
-    @pytest.mark.skipif(
-        IN_GITHUB_ACTIONS, reason="Test doesn't work in Github Actions."
-    )
     def test_mysql(self) -> None:
         conn_uri = "mysql://%s:%s@%s:%d/%s?cxprotocol=binary" % (
-            "dummyUser",
-            "password",
+            "root",
+            "mysql",
             "localhost",
             3306,
             "ultima",

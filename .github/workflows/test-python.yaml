@@ -24,6 +24,22 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.9', '3.11']
+    
+    services:
+      # mysql
+      mysql:
+        image: ghcr.io/wangxiaoying/mysql:latest
+        env:
+          MYSQL_DATABASE: ultima
+          MYSQL_ROOT_PASSWORD: mysql
+          LANG: C.UTF-8
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v3
@@ -43,28 +59,28 @@ jobs:
       - name: Install tools
         run: |
           apt-get update
-      # apt-get install -y curl mysql-client mysql-server
+          apt-get install -y curl mysql-client mysql-server
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install mysqlclient
           pip install -r requirements.txt
-      # pip install mysqlclient
+          pip install mysqlclient
 
-      # 
-      # - name: Install other dependent tools
-      #   run: |
-      #     if [ ! -f "$HOME/.cargo/bin/just" ]; then curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/.cargo/bin; fi
+       
+      - name: Install other dependent tools
+        run: |
+          if [ ! -f "$HOME/.cargo/bin/just" ]; then curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/.cargo/bin; fi
 
-      # - name: Seed the database
-      #   run: just seed-db
-      #   env:
-      #     MYSQL_HOST: localhost
-      #     MYSQL_PORT: 3306
-      #     MYSQL_DB: ultima
-      #     MYSQL_USER: dummyUser
-      #     MYSQL_PASSWORD: password
+      - name: Seed the database
+        run: just seed-db
+        env:
+          MYSQL_HOST: localhost
+          MYSQL_PORT: 3306
+          MYSQL_DB: ultima
+          MYSQL_USER: root
+          MYSQL_PASSWORD: mysql
 
       # Allow untyped calls for older Python versions
       - name: Run mypy

@@ -14,6 +14,7 @@ endif
 venv:  ## Set up virtual environment - local use
 	$(PY311) -m venv $(VENV)
 	$(VENV_BIN)/python -m pip install --upgrade pip
+	$(VENV_BIN)/pip install mysqlclient 
 	$(VENV_BIN)/pip install -r requirements.txt
 	$(VENV_BIN)/pip install -r requirements-lint.txt
 

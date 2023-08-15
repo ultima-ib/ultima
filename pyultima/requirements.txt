@@ -5,7 +5,8 @@
 --prefer-binary
 
 # Dependencies
-polars
+polars[sqlalchemy]
+pandas # for writing to SQL
 
 # Tooling
 maturin

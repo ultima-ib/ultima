@@ -39,25 +39,32 @@ jobs:
         run: |
           python -m venv venv
           echo "$GITHUB_WORKSPACE/pyultima/venv/bin" >> $GITHUB_PATH
+      
+      - name: Install tools
+        run: |
+          apt-get update
+      # apt-get install -y curl mysql-client mysql-server
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install mysqlclient
           pip install -r requirements.txt
-        
-      - name: Install other dependent tools
-        run: |
-          if [ ! -f "$HOME/.cargo/bin/just" ]; then curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/.cargo/bin; fi
+      # pip install mysqlclient
 
-      - name: Seed the database
-        run: just seed-db
-        env:
-          MYSQL_HOST: localhost
-          MYSQL_PORT: 3306
-          MYSQL_DB: ultima
-          MYSQL_USER: dummyUser
-          MYSQL_PASSWORD: password
+      # 
+      # - name: Install other dependent tools
+      #   run: |
+      #     if [ ! -f "$HOME/.cargo/bin/just" ]; then curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/.cargo/bin; fi
+
+      # - name: Seed the database
+      #   run: just seed-db
+      #   env:
+      #     MYSQL_HOST: localhost
+      #     MYSQL_PORT: 3306
+      #     MYSQL_DB: ultima
+      #     MYSQL_USER: dummyUser
+      #     MYSQL_PASSWORD: password
 
       # Allow untyped calls for older Python versions
       - name: Run mypy

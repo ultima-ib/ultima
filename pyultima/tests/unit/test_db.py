@@ -1,12 +1,13 @@
+import os
 import unittest
-from typing import TypeVar
 
 import polars as pl
+import pytest
 from polars.type_aliases import PolarsDataType
 
 import ultibi as ul
 
-TDataType = TypeVar("TDataType", bound=pl.DataType)
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 
 class TestDb(unittest.TestCase):
@@ -30,6 +31,9 @@ class TestDb(unittest.TestCase):
         )
         df.write_database("frtb", uri, if_exists="replace")
 
+    @pytest.mark.skipif(
+        IN_GITHUB_ACTIONS, reason="Test doesn't work in Github Actions."
+    )
     def test_mysql(self) -> None:
         conn_uri = "mysql://%s:%s@%s:%d/%s?cxprotocol=binary" % (
             "dummyUser",

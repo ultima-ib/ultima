@@ -13,6 +13,7 @@ from .internals import (
     CustomCalculator,
     DataSet,
     DataSource,
+    DbInfo,
     DependantMeasure,
     EqFilter,
     FRTBDataSet,
@@ -24,7 +25,6 @@ from .internals import (
     StandardCalculator,
     UltimaError,
     aggregation_ops,
-    DbInfo
 )
 
 # import pyarrow - not needed
@@ -55,5 +55,5 @@ __all__ = [
     "StandardCalculator",
     "CalcParam",
     "UltimaError",
-    "DbInfo"
+    "DbInfo",
 ]

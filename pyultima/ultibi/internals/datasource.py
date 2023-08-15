@@ -1,5 +1,7 @@
 from polars import DataFrame, LazyFrame
+
 from ultibi.internals.db import DbInfo
+
 from ..rust_module.ultibi_engine import DataSourceWrapper
 
 
@@ -60,7 +62,7 @@ class DataSource:
     @classmethod
     def scan(cls, data: LazyFrame) -> "DataSource":
         return cls(data)
-    
+
     @classmethod
     def db(cls, data: DbInfo) -> "DataSource":
         return cls(data)

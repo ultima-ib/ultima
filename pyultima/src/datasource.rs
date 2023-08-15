@@ -1,10 +1,13 @@
 use std::ops::Deref;
 
 use pyo3::{pyclass, pymethods, types::PyType, FromPyObject, Py, PyAny, PyResult, Python};
-use ultibi::polars::{prelude::{LazyFrame,LogicalPlan} , series::Series};
+use ultibi::polars::{
+    prelude::{LazyFrame, LogicalPlan},
+    series::Series,
+};
 use ultibi::{datasource::DataSource, DataFrame};
 
-use crate::{conversions::series::py_series_to_rust_series, errors::PyUltimaErr, db::DbInfo};
+use crate::{conversions::series::py_series_to_rust_series, db::DbInfo, errors::PyUltimaErr};
 
 #[pyclass]
 #[derive(Clone)]

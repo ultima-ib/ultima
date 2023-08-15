@@ -55,6 +55,7 @@ disable_error_code = [
   "empty-body",
 ]
 python_version = 3.9 # MRV of Python for Ultibi is 3.9
+exclude = ['venv', '.venv']
 
 [[tool.mypy.overrides]]
 module = [
@@ -62,6 +63,10 @@ module = [
   "ultibi.rust_module.ultibi_engine",
 ]
 ignore_missing_imports = true
+
+# [[tool.mypy.overrides]]
+# module = "test_db"
+# ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = ["ultibi.*"]

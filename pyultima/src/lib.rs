@@ -11,11 +11,11 @@ mod calculator;
 mod conversions;
 mod dataset;
 mod datasource;
+mod db;
 mod errors;
 mod filter;
 mod measure;
 mod requests;
-mod db;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {

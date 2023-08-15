@@ -248,7 +248,7 @@ class FRTBDataSet(DataSet):
         return cls(
             DataSetWrapper.frtb_from_frame(df, measures, build_params, bespoke_measures)
         )
-    
+
     @classmethod
     def from_source(
         cls: Type[DS],

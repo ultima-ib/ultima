@@ -33,7 +33,7 @@ build-release: venv  ## Compile and install to venv
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop --release
 
 .PHONY: fmt
-fmt: venv  ## Run autoformatting and linting
+fmt: venv develop  ## Run autoformatting and linting
 	$(VENV_BIN)/isort .
 	$(VENV_BIN)/black .
 	$(VENV_BIN)/blackdoc .

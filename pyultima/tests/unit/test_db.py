@@ -1,7 +1,9 @@
 import os
+import sys
 import unittest
 
 import polars as pl
+import pytest
 
 # import pytest
 from polars.type_aliases import PolarsDataType
@@ -9,9 +11,10 @@ from polars.type_aliases import PolarsDataType
 import ultibi as ul
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
+LINUX = (sys.platform == "linux") or (sys.platform == "linux2")
+
 
 class TestDb(unittest.TestCase):
-
     def host(self) -> str:
         if IN_GITHUB_ACTIONS:
             print("GITHUB ACTIONS")
@@ -21,7 +24,7 @@ class TestDb(unittest.TestCase):
 
     def setUp(self) -> None:
         ds = ul.FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
-        
+
         uri = "mysql://{0}:{1}@{2}:{3}/{4}".format(
             "root", "mysql", self.host(), 3306, "ultima"
         )
@@ -39,6 +42,10 @@ class TestDb(unittest.TestCase):
         )
         df.write_database("frtb", uri, if_exists="replace")
 
+    @pytest.mark.skipif(
+        IN_GITHUB_ACTIONS and (not LINUX),
+        reason="Test doesn't work in Github Actions Windows",
+    )
     def test_mysql(self) -> None:
         conn_uri = "mysql://%s:%s@%s:%d/%s?cxprotocol=binary" % (
             "root",
@@ -47,8 +54,6 @@ class TestDb(unittest.TestCase):
             3306,
             "ultima",
         )
-
-        # schema: list[tuple[str, PolarsDataType]] = self.schema()
 
         db = ul.DbInfo("frtb", "MySQL", conn_uri, self.schema())
 

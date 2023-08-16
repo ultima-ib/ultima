@@ -9,9 +9,9 @@ on:
       tags: ['py*.*.*'] 
 
 env:
-  RUST_TOOLCHAIN: nightly-2023-06-23
+  RUST_TOOLCHAIN: nightly-2023-07-27
   PYTHON_VERSION: '3.9'
-  MATURIN_VERSION: '1.1.0'
+  MATURIN_VERSION: '1.2.1'
   
 defaults:
   run:
@@ -25,6 +25,11 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config
       
       - name: Setup node
         uses: actions/setup-node@v1
@@ -58,6 +63,11 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config
 
       - name: Setup node
         uses: actions/setup-node@v1

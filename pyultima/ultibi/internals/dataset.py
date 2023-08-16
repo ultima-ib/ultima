@@ -248,3 +248,20 @@ class FRTBDataSet(DataSet):
         return cls(
             DataSetWrapper.frtb_from_frame(df, measures, build_params, bespoke_measures)
         )
+
+    @classmethod
+    def from_source(
+        cls: Type[DS],
+        ds: uli.DataSource,
+        measures: "list[str] | None" = None,
+        build_params: "dict[str, str] | None" = None,
+        bespoke_measures: "list[TMeasure] | None" = None,
+    ) -> DS:
+        bespoke_measures = (
+            [m.inner for m in bespoke_measures] if bespoke_measures else None
+        )
+        return cls(
+            DataSetWrapper.frtb_from_source(
+                ds.inner, measures, build_params, bespoke_measures
+            ),
+        )

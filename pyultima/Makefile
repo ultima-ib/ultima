@@ -6,31 +6,34 @@ PY39 = C:/Python39/python
 PY311 = C:/Python311/python
 
 ifeq ($(OS),Windows_NT)
+	PY = C:/Python311/python
 	VENV_BIN=$(VENV)/Scripts
 else
+	PY = /usr/bin/python3
 	VENV_BIN=$(VENV)/bin
 endif
 
 venv:  ## Set up virtual environment - local use
-	$(PY311) -m venv $(VENV)
+	$(PY) -m venv $(VENV)
 	$(VENV_BIN)/python -m pip install --upgrade pip
+	$(VENV_BIN)/pip install mysqlclient 
 	$(VENV_BIN)/pip install -r requirements.txt
 	$(VENV_BIN)/pip install -r requirements-lint.txt
 
 .PHONY: develop
-develop: venv  ## Compile and install Polars for development
+develop: venv  ## Compile and install to venv
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop
 
 .PHONY: build
 build: venv  ## Build whl
-	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin build -i=$(PY311) --release
+	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin build -i=$(PY) --release
 
 .PHONY: develop-release
-build-release: venv  ## Compile and install a faster Polars binary
+build-release: venv  ## Compile and install to venv
 	@unset CONDA_PREFIX && source $(VENV_BIN)/activate && maturin develop --release
 
 .PHONY: fmt
-fmt: venv  ## Run autoformatting and linting
+fmt: venv develop  ## Run autoformatting and linting
 	$(VENV_BIN)/isort .
 	$(VENV_BIN)/black .
 	$(VENV_BIN)/blackdoc .
@@ -62,10 +65,6 @@ test-all: venv develop  ## Run all tests
 .PHONY: coverage
 coverage: venv develop  ## Run tests and report coverage
 	$(VENV_BIN)/pytest --cov
-
-.PHONY: publish
-publish: venv
-	maturin publish -r=testpypi -i=$(PY39) --skip-existing
 
 .PHONY: clean
 clean:  ## Clean up caches and build artifacts

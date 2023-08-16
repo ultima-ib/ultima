@@ -9,6 +9,7 @@ they all import from each other via this __init__ file using
 from ..rust_module.ultibi_engine import NoDataError, OtherError, UltimaError
 from .dataset import DS, DataSet, FRTBDataSet
 from .datasource import DataSource
+from .db import DbInfo
 from .filters import EqFilter, Filter, InFilter, NeqFilter, NotInFilter
 from .measure import (
     BaseMeasure,
@@ -44,4 +45,5 @@ __all__ = [
     "CustomCalculator",
     "StandardCalculator",
     "CalcParam",
+    "DbInfo",
 ]

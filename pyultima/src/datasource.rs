@@ -1,11 +1,13 @@
 use std::ops::Deref;
 
-use polars::prelude::LogicalPlan;
 use pyo3::{pyclass, pymethods, types::PyType, FromPyObject, Py, PyAny, PyResult, Python};
-use ultibi::polars::{prelude::LazyFrame, series::Series};
+use ultibi::polars::{
+    prelude::{LazyFrame, LogicalPlan},
+    series::Series,
+};
 use ultibi::{datasource::DataSource, DataFrame};
 
-use crate::{conversions::series::py_series_to_rust_series, errors::PyUltimaErr};
+use crate::{conversions::series::py_series_to_rust_series, db::DbInfo, errors::PyUltimaErr};
 
 #[pyclass]
 #[derive(Clone)]
@@ -43,6 +45,12 @@ impl DataSourceWrapper {
     fn from_scan(_: &PyType, _py: Python, pylf: PyLazyFrame) -> PyResult<Self> {
         let lf = pylf.0;
         Ok(DataSourceWrapper { inner: lf.into() })
+    }
+
+    #[classmethod]
+    fn from_db(_: &PyType, _py: Python, db: DbInfo) -> PyResult<Self> {
+        let db = db.inner;
+        Ok(DataSourceWrapper { inner: db.into() })
     }
 }
 

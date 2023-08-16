@@ -186,6 +186,27 @@ impl DataSetWrapper {
         from_source::<DataSetBase>(py, source.inner, measures, build_params, mm)
     }
 
+    #[classmethod]
+    fn frtb_from_source(
+        _: &PyType,
+        py: Python,
+        source: DataSourceWrapper,
+        measures: Option<Vec<String>>,
+        build_params: Option<BTreeMap<String, String>>,
+        bespoke_measures: Option<Vec<MeasureWrapper>>,
+    ) -> PyResult<Self> {
+        let build_params = build_params.unwrap_or_default();
+        let mm = bespoke_measures
+            .unwrap_or_default()
+            .into_iter()
+            .map(|x| {
+                let m = x._inner;
+                (m.name().clone(), m)
+            })
+            .collect::<MeasuresMap>();
+        from_source::<FRTBDataSet>(py, source.inner, measures, build_params, mm)
+    }
+
     pub fn ui(&self, py: Python) -> PyResult<()> {
         let a = Arc::clone(&self.dataset);
         py.allow_threads(|| a.ui());

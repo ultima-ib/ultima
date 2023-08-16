@@ -156,7 +156,7 @@ impl From<LazyFrame> for DataSource {
 //     /// Db -> true
 //     fn prepare_on_each_request(&self) -> bool;
 // }
-//
+
 // As per example:
 // use std::sync::Arc;
 

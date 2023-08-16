@@ -12,6 +12,12 @@ pub(crate) static POLARS: Lazy<PyObject> =
 #[repr(transparent)]
 pub struct Wrap<T>(pub T);
 
+impl<T> From<T> for Wrap<T> {
+    fn from(item: T) -> Self {
+        Wrap(item)
+    }
+}
+
 impl ToPyObject for Wrap<DataType> {
     fn to_object(&self, py: Python) -> PyObject {
         let ul = POLARS.as_ref(py);

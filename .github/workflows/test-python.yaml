@@ -24,6 +24,22 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.9', '3.11']
+    
+    services:
+      # mysql
+      mysql:
+        image: ghcr.io/wangxiaoying/mysql:latest
+        env:
+          MYSQL_DATABASE: ultima
+          MYSQL_ROOT_PASSWORD: mysql
+          LANG: C.UTF-8
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v3
@@ -39,10 +55,16 @@ jobs:
         run: |
           python -m venv venv
           echo "$GITHUB_WORKSPACE/pyultima/venv/bin" >> $GITHUB_PATH
+      
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl mysql-client mysql-server
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install mysqlclient
           pip install -r requirements.txt
 
       # Allow untyped calls for older Python versions

@@ -1,5 +1,6 @@
 """
-FRTB usecase specific library which levrages on ultima's base engine
+DataFrame UI, Pivot, Cube technology.
+FRTB use case comes ready out of the box.
 """
 
 import polars  # reexport
@@ -12,6 +13,7 @@ from .internals import (
     CustomCalculator,
     DataSet,
     DataSource,
+    DbInfo,
     DependantMeasure,
     EqFilter,
     FRTBDataSet,
@@ -53,4 +55,5 @@ __all__ = [
     "StandardCalculator",
     "CalcParam",
     "UltimaError",
+    "DbInfo",
 ]

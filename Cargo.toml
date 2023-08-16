@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.4.2"
+version = "0.5.0"
 authors = ["Anatoly Bugakov"]
 description = "Ultibi is a BI tool for no code data analysis"
 documentation = "https://ultimabi.uk/ultibi-frtb-book/"
@@ -18,8 +18,8 @@ default-members = ['template_drivers', 'ultibi', 'frtb_engine', 'ultibi/ultibi_s
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-polars = { version = "0.31.1", features = [
-    "performant",
+polars = { version = "0.32.1", features = [
+    "performant", 
     "strings",
     "ndarray",
     "lazy",

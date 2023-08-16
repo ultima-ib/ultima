@@ -13,8 +13,10 @@ use polars::{
     series::Series,
 };
 
+use super::DataSource;
+
 /// DbInfo Depends on the kind of Db you are connecting to
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DbInfo {
     /// Name of the data table
     /// SELECT * FROM table
@@ -183,4 +185,10 @@ pub fn vec_to_or_sql(field: &str, ors: &[Option<String>], not: bool) -> String {
         query.push_str(&format!(" OR {field} IS NULL"));
     }
     query
+}
+
+impl From<DbInfo> for DataSource {
+    fn from(item: DbInfo) -> Self {
+        DataSource::Db(item)
+    }
 }

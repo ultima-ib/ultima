@@ -66,10 +66,6 @@ test-all: venv develop  ## Run all tests
 coverage: venv develop  ## Run tests and report coverage
 	$(VENV_BIN)/pytest --cov
 
-.PHONY: publish
-publish: venv
-	maturin publish -r=testpypi -i=$(PY39) --skip-existing
-
 .PHONY: clean
 clean:  ## Clean up caches and build artifacts
 	@rm -rf venv/

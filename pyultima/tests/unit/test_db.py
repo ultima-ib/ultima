@@ -10,13 +10,20 @@ import ultibi as ul
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
-
 class TestDb(unittest.TestCase):
+
+    def host(self) -> str:
+        if IN_GITHUB_ACTIONS:
+            print("GITHUB ACTIONS")
+            return "127.0.0.1"
+        else:
+            return "localhost"
+
     def setUp(self) -> None:
         ds = ul.FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")
-
+        
         uri = "mysql://{0}:{1}@{2}:{3}/{4}".format(
-            "dummyUser", "password", "localhost", 3306, "ultima"
+            "root", "mysql", self.host(), 3306, "ultima"
         )
 
         df = ds.frame()
@@ -36,7 +43,7 @@ class TestDb(unittest.TestCase):
         conn_uri = "mysql://%s:%s@%s:%d/%s?cxprotocol=binary" % (
             "root",
             "mysql",
-            "localhost",
+            self.host(),
             3306,
             "ultima",
         )

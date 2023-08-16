@@ -29,7 +29,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config
+          sudo apt-get install -y pkg-config libssl-dev
       
       - name: Setup node
         uses: actions/setup-node@v1
@@ -45,7 +45,7 @@ jobs:
         working-directory: frontend
 
       - name: Publish wheel
-        uses: messense/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         env:
           MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
           RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma
@@ -67,7 +67,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config
+          sudo apt-get install -y pkg-config libssl-dev
 
       - name: Setup node
         uses: actions/setup-node@v1
@@ -83,7 +83,7 @@ jobs:
         working-directory: frontend
 
       - name: Publish wheel
-        uses: messense/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         env:
           MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
           JEMALLOC_SYS_WITH_LG_PAGE: 16
@@ -157,7 +157,7 @@ jobs:
         working-directory: frontend
 
       - name: Publish wheel
-        uses: messense/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         env:
           MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
           RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+sse4.1,+sse4.2

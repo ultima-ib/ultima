@@ -8,7 +8,7 @@ pub mod helpers;
 pub mod awss3;
 
 #[cfg(feature = "aws_s3")]
-use polars::functions::diag_concat_df;
+use polars::functions::concat_df_diagonal;
 
 use polars::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -118,13 +118,12 @@ impl DataSourceConfig {
                     }
                 }
 
-                let concatinated_frame = diag_concat_lf(
+                let concatinated_frame = concat_lf_diagonal(
                     &files
                         .iter()
                         .map(|f| path_to_lf(f, &str_cols, &f64_cols))
                         .collect::<Vec<LazyFrame>>(),
-                    true,
-                    true,
+                    Default::default()
                 )
                 .expect("Failed to concatinate provided frames"); // <- Ok to panic upon server startup
 
@@ -180,7 +179,7 @@ impl DataSourceConfig {
                 );
 
                 let concatinated_frame =
-                    diag_concat_df(&frames).expect("Failed to concatinate provided frames");
+                    concat_df_diagonal(&frames).expect("Failed to concatinate provided frames");
                 let mut tmp = str_cols.clone();
 
                 tmp.extend(a2h.clone());

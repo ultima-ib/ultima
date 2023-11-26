@@ -40,11 +40,11 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let ep = if let Some(e) = epsilon { e } else { 1e-5 };
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
     let excl = if let ComputeRequest::Aggregation(agg_req) = data_req.clone() {
-        agg_req.groupby().clone()
+        agg_req.group_by().clone()
     } else {
         unreachable!()
     };
-    //let excl = data_req.groupby().clone();
+    //let excl = data_req.group_by().clone();
     let a = LAZY_DASET.as_ref();
     let res = a
         .compute(data_req)
@@ -69,7 +69,7 @@ pub fn assert_results_scan(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     let ep = if let Some(e) = epsilon { e } else { 1e-5 };
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
     let excl = if let ComputeRequest::Aggregation(agg_req) = data_req.clone() {
-        agg_req.groupby().clone()
+        agg_req.group_by().clone()
     } else {
         unreachable!()
     };

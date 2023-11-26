@@ -20,11 +20,11 @@ pub(crate) fn com_total_high(_: &CPM) -> PolarsResult<Expr> {
 }
 /// Not a real measure. Used for analysis only
 fn com_total_max(_: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         col("Commodity TotalCharge Low"),
         col("Commodity TotalCharge Medium"),
         col("Commodity TotalCharge High"),
-    ]))
+    ])
 }
 
 pub(crate) fn com_total_measures() -> Vec<Measure> {

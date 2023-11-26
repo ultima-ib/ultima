@@ -1,5 +1,6 @@
 use crate::{prelude::*, sbm::csr_nonsec::vega::csr_nonsec_vega_charge};
-use ultibi::{polars::prelude::max_horizontal, BaseMeasure, CPM};
+use ultibi::{BaseMeasure, CPM};
+use ultibi::polars_plan::dsl::max_horizontal;
 
 pub fn total_csrsecctp_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     Ok(rc_rcat_sens("Vega", "CSR_Sec_CTP", total_vega_curv_sens()))
@@ -112,7 +113,7 @@ fn csrsecctp_vega_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecctp_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csrsecctp_vega_charge_low(op)?,
         csrsecctp_vega_charge_medium(op)?,
         csrsecctp_vega_charge_high(op)?,

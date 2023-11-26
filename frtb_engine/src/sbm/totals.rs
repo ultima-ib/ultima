@@ -34,11 +34,11 @@ fn sbm_charge_high_dep(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub(crate) fn sbm_charge_dep(_: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         col("SBM Charge High"),
         col("SBM Charge Medium"),
         col("SBM Charge Low"),
-    ]))
+    ])
 }
 
 pub(crate) fn sbm_total_measures() -> Vec<Measure> {

@@ -1,5 +1,7 @@
 use crate::{prelude::*, sbm::equity::vega::equity_vega_charge};
-use ultibi::{polars::prelude::max_horizontal, BaseMeasure, CPM};
+use ultibi::{BaseMeasure, CPM};
+use ultibi::polars_plan::dsl::max_horizontal;
+
 
 pub fn total_com_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     Ok(rc_rcat_sens("Vega", "Commodity", total_vega_curv_sens()))
@@ -81,11 +83,11 @@ fn com_vega_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         com_vega_charge_low(op)?,
         com_vega_charge_medium(op)?,
         com_vega_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

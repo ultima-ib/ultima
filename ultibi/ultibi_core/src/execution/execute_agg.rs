@@ -2,9 +2,9 @@
 
 use std::collections::{HashMap, HashSet};
 
-use polars::prelude::{diag_concat_lf, PolarsError};
+use polars::prelude::{concat_lf_diagonal, PolarsError};
 pub use polars::{
-    functions::diag_concat_df,
+    functions::concat_df_diagonal,
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
 };
 
@@ -258,7 +258,7 @@ where
             // Totally Fine since extra_frame is always relatively small
             extra_frame = extra_frame.collect()?.lazy();
         }
-        f1 = diag_concat_lf([f1, extra_frame], true, true)?;
+        f1 = concat_lf_diagonal([f1, extra_frame], Default::default())?;
     }
 
     //dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
@@ -284,7 +284,7 @@ where
         let mut aggregated_df = f1
             .clone() // if totals then we must clone here
             .with_streaming(true) // Set streaming to True anyway - no performance penalty
-            .groupby_stable(&groups)
+            .group_by_stable(&groups)
             .agg(&aggregateions)
             .limit(1_000)
             .with_columns(&groups_fill_nulls)
@@ -300,13 +300,13 @@ where
             let grp_by = &groups[0..i];
             let grp_by_fill_null = &groups_fill_nulls[0..i];
             // Not doing this, since we otherwise loose soring
-            //let last_gr_col_name = &req._groupby()[i];
+            //let last_gr_col_name = &req._group_by()[i];
             //with_cols.push(lit("Total").alias(last_gr_col_name));
 
             let _df = f1
                 .clone()
                 .with_streaming(true)
-                .groupby_stable(grp_by)
+                .group_by_stable(grp_by)
                 .agg(&aggregateions)
                 .limit(100)
                 .with_columns(grp_by_fill_null)
@@ -315,7 +315,7 @@ where
         }
 
         total_frames.push(aggregated_df);
-        aggregated_df = diag_concat_df(&total_frames)?;
+        aggregated_df = concat_df_diagonal(&total_frames)?;
 
         let groups_totals: Vec<Expr> = groups
             .clone()
@@ -331,7 +331,7 @@ where
             .collect()?
     } else {
         f1.with_streaming(true) // Set streaming to True anyway - no performance penalty
-            .groupby_stable(&groups)
+            .group_by_stable(&groups)
             .agg(&aggregateions)
             .limit(1_000)
             .with_columns(&groups_fill_nulls)

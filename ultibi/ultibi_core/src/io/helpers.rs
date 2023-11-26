@@ -122,7 +122,7 @@ pub fn finish(
 // /// TODO contribute to Polars
 // /// Concat [LazyFrame]s diagonally.
 // /// Calls [concat] internally.
-// pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
+// pub fn concat_lf_diagonal<L: AsRef<[LazyFrame]>>(
 //     lfs: L,
 //     rechunk: bool,
 //     parallel: bool,

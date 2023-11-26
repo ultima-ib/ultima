@@ -1,8 +1,9 @@
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
+use ultibi::polars_plan::dsl::max_horizontal;
 
 use ndarray::Array2;
 
@@ -156,7 +157,7 @@ where
                         .eq(lit(risk_class))
                         .and(col("rcat").eq(lit(risk_cat))),
                 )
-                .groupby([col("b"), col("rf")])
+                .group_by([col("b"), col("rf")])
                 .agg([
                     (col("y05") * col("w")).sum(),
                     (col("y1") * col("w")).sum(),
@@ -212,11 +213,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrnonsec_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csr_nonsec_vega_charge_low(op)?,
         csr_nonsec_vega_charge_medium(op)?,
         csr_nonsec_vega_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

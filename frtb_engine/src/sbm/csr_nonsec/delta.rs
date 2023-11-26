@@ -3,9 +3,11 @@ use crate::helpers::*;
 use crate::sbm::common::*;
 use ndarray::Array2;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
+use ultibi::polars_plan::dsl::max_horizontal;
+
 
 use crate::prelude::*;
 
@@ -309,7 +311,7 @@ where
                         .then(col("y10").alias("CDS_y10"))
                         .otherwise(NULL.lit()),
                 ])
-                .groupby([col("b"), col("rf")])
+                .group_by([col("b"), col("rf")])
                 .agg([
                     col("Bond_y05").sum(),
                     col("CDS_y05").sum(),
@@ -378,11 +380,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrnonsec_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csr_nonsec_delta_charge_low(op)?,
         csr_nonsec_delta_charge_medium(op)?,
         csr_nonsec_delta_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

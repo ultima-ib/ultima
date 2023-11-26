@@ -2,9 +2,10 @@
 
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput, MeltArgs},
+    polars::prelude::{apply_multiple, df, DataType, GetOutput, MeltArgs},
     BaseMeasure, IntoLazy, CPM,
 };
+use ultibi::polars_plan::dsl::max_horizontal;
 
 use ndarray::Array2;
 
@@ -189,7 +190,7 @@ where
                         .eq(lit(risk_class))
                         .and(col("rcat").eq(lit(risk_cat))),
                 )
-                .groupby([col("b"), col("rf"), col("tran")])
+                .group_by([col("b"), col("rf"), col("tran")])
                 .agg([
                     (col("y05") * col("w")).sum(),
                     (col("y1") * col("w")).sum(),
@@ -268,7 +269,7 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecnonctp_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csr_sec_nonctp_delta_charge_low(op)?,
         csr_sec_nonctp_delta_charge_medium(op)?,
         csr_sec_nonctp_delta_charge_high(op)?,

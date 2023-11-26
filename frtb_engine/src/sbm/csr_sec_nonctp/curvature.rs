@@ -112,7 +112,7 @@ fn csr_sec_nonctp_curvature_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecnonctp_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csr_sec_nonctp_curvature_charge_low(op)?,
         csr_sec_nonctp_curvature_charge_medium(op)?,
         csr_sec_nonctp_curvature_charge_high(op)?,

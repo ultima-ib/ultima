@@ -64,7 +64,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             let mut lf = df
                 .lazy()
                 .filter(col("rc").eq(lit("DRC_Sec_nonCTP")))
-                .groupby([col("b"), col("rf"), col("rft"), col("tr")])
+                .group_by([col("b"), col("rf"), col("rft"), col("tr")])
                 .agg([
                     (col("jtd") * col("s")).sum().alias("scaled_jtd"),
                     col("w").first(),
@@ -96,7 +96,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
                 .with_column(
                     col("NetShortJTD")
                         .map(
-                            |x| Ok(Some(x.f64()?.apply(|y| y.abs()).into_series())),
+                            |x| Ok(Some(x.f64()?.apply(|y| y.map(|f| f.abs())).into_series())),
                             GetOutput::from_type(DataType::Float64),
                         )
                         .alias("NetAbsShortJTD"),
@@ -121,7 +121,7 @@ fn drc_secnonctp_charge_calculator(rtrn: ReturnMetric) -> Expr {
             };
             lf = df
                 .lazy()
-                .groupby([col("b")])
+                .group_by([col("b")])
                 .agg([
                     col("NetLongJTD").sum(),
                     col("NetShortJTD").sum(),

@@ -22,7 +22,7 @@ def aggregation_ops() -> list[str]:
 class AggRequest:
     """
     This is python binding of AggregationRequest struct. This is the most basic kind of
-    request. It is executed within .groupby().apply() context. Check aggregation_ops
+    request. It is executed within .group_by().apply() context. Check aggregation_ops
     for availiable operations for measures.
 
     Examples
@@ -66,7 +66,7 @@ class AggRequest:
 class ComputeRequest:
     """
     This is python binding of AggregationRequest struct. This is the most basic kind of
-    request. It is executed within .groupby().apply() context. Check aggregation_ops
+    request. It is executed within .group_by().apply() context. Check aggregation_ops
     for availiable operations for measures.
 
     Examples

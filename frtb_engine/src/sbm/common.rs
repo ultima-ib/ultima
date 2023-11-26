@@ -7,7 +7,7 @@ use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
 use ultibi::polars::export::num::Signed;
 use ultibi::polars::prelude::{
     apply_multiple, AnyValue, ChunkAgg, ChunkCompare, ChunkSet, DataType, FillNullStrategy,
-    Float64Type, GetOutput, IntoSeries, NamedFrom, NumOpsDispatch, PolarsError, Series, TakeRandom,
+    Float64Type, GetOutput, IntoSeries, NamedFrom, NumOpsDispatch, PolarsError, Series,
 };
 
 use rayon::{

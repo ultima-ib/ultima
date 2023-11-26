@@ -1,8 +1,9 @@
 use crate::prelude::*;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
+use ultibi::polars_plan::dsl::max_horizontal;
 
 use ndarray::Array2;
 
@@ -112,7 +113,7 @@ where
             let df = df
                 .lazy()
                 .filter(col("rc").eq(lit(rc)).and(col("rcat").eq(lit("Vega"))))
-                .groupby([col("b"), col("rf")])
+                .group_by([col("b"), col("rf")])
                 .agg([
                     (col("y05") * col("wght")).sum().alias("y05"),
                     (col("y1") * col("wght")).sum().alias("y1"),
@@ -172,7 +173,7 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         equity_vega_charge_low(op)?,
         equity_vega_charge_medium(op)?,
         equity_vega_charge_high(op)?,

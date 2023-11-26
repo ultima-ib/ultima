@@ -76,7 +76,7 @@ impl AggregationRequest {
         &self.measures
     }
 
-    pub fn groupby(&self) -> &Vec<String> {
+    pub fn group_by(&self) -> &Vec<String> {
         &self.groupby
     }
 

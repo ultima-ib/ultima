@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use polars::frame::row::Row;
-use polars::functions::diag_concat_df;
+use polars::functions::concat_df_diagonal;
 use polars::prelude::{AnyValue, DataFrame, Field, PolarsResult, Schema};
 use serde::{Deserialize, Serialize};
 
@@ -58,5 +58,5 @@ pub(crate) fn df_from_maps_and_schema(
         })
         .collect::<PolarsResult<Vec<DataFrame>>>()?;
 
-    diag_concat_df(&new_rows)
+    concat_df_diagonal(&new_rows)
 }

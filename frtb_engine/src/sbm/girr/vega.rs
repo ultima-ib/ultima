@@ -7,11 +7,12 @@ use crate::sbm::common::{
 use ultibi::polars::prelude::IndexOrder;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, col, df, lit, max_horizontal, ChunkCompare, DataType, Float64Type,
-        GetOutput, TakeRandom,
+        apply_multiple, col, df, lit, ChunkCompare, DataType, Float64Type,
+        GetOutput,
     },
     CPM,
 };
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{BaseMeasure, DataFrame, IntoLazy};
 
 #[cfg(feature = "CRR2")]
@@ -152,7 +153,7 @@ fn girr_vega_charge(
                 // Fill null in case user provided empty underlying maturity for
                 // Inflation and XCCY
                 .with_column(col("um").fill_null(col("rft")))
-                .groupby([col("b"), col("um")])
+                .group_by([col("b"), col("um")])
                 .agg([
                     (col("y05") * col("weight")).sum(),
                     (col("y1") * col("weight")).sum(),
@@ -320,7 +321,7 @@ pub(crate) fn girr_vega_rho() -> Array2<f64> {
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_vega_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         girr_vega_charge_low(op)?,
         girr_vega_charge_medium(op)?,
         girr_vega_charge_high(op)?,

@@ -10,11 +10,12 @@ use crate::{
 };
 use ultibi::{
     polars::prelude::{
-        apply_multiple, df, max_horizontal, ChunkCompare, ChunkSet, DataType, GetOutput,
+        apply_multiple, df, ChunkCompare, ChunkSet, DataType, GetOutput,
         IntoSeries, PolarsError, Utf8NameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
 };
+use ultibi::polars_plan::dsl::max_horizontal;
 
 /// This works for cases like GBP reporting with BCBS params
 pub(crate) fn ccy_regex(op: &CPM) -> PolarsResult<String> {
@@ -144,7 +145,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
                             GetOutput::from_type(DataType::Boolean),
                         )),
                 )
-                .groupby([col("b")])
+                .group_by([col("b")])
                 .agg([(col("d") * col("w")).sum().alias("dw_sum")])
                 // Drop nulls (ie other reporting ccys)
                 .drop_nulls(Some(vec![col("dw_sum")]))
@@ -200,7 +201,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         fx_delta_charge_low(op)?,
         fx_delta_charge_medium(op)?,
         fx_delta_charge_high(op)?,

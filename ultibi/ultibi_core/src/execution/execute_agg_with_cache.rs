@@ -16,8 +16,8 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
     processed_base_measures: Vec<(&String, &String, ProcessedBaseMeasure)>,
     streaming: bool,
 ) -> UltiResult<DataFrame> {
-    let requested_groupby = req.groupby().clone();
-    let grp_by_expr = req.groupby().iter().map(|x| col(x)).collect::<Vec<Expr>>();
+    let requested_groupby = req.group_by().clone();
+    let grp_by_expr = req.group_by().iter().map(|x| col(x)).collect::<Vec<Expr>>();
 
     // have already been calculated
     let mut cached_results = vec![];

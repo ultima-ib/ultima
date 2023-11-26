@@ -1,5 +1,6 @@
 //! Example of a driver with SQL DataSource
 //!
+//! #[cfg(feature = "db")]
 use ultibi::datasource::DataSource;
 use ultibi::new::NewSourcedDataSet;
 use ultibi::polars::prelude::{DataType, Field, Schema};
@@ -24,6 +25,7 @@ static ALLOC: MiMalloc = MiMalloc;
 
 #[allow(clippy::uninlined_format_args)]
 fn main() -> anyhow::Result<()> {
+    
     // Read .env
     dotenv::dotenv().ok();
 
@@ -38,19 +40,21 @@ fn main() -> anyhow::Result<()> {
 
     //let request: AggregationRequest = serde_json::from_str(request()).expect("Bad requests");
 
-    let datasource = DataSource::Db(ultibi::datasource::DbInfo {
-        table: "frtb".to_string(),
-        db_type: "MySQL".to_string(),
-        conn_uri: uri,
-        schema: Some(hardcoded_schema().into()),
-    });
+    #[cfg(feature = "db")]
+    {
+        let datasource = DataSource::Db(ultibi::datasource::DbInfo {
+            table: "frtb".to_string(),
+            db_type: "MySQL".to_string(),
+            conn_uri: uri,
+            schema: Some(_hardcoded_schema().into()),
+        });
 
-    let dataset = FRTBDataSet::from_vec(datasource, vec![], true, vec![], params());
+        let dataset = FRTBDataSet::from_vec(datasource, vec![], true, vec![], _params());
 
-    let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(dataset));
+        let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(dataset));
 
-    ds.ui();
-
+        ds.ui();
+    }
     //dbg!(
     // dbg!(ds.read().unwrap().compute(request.into()).expect("COMPUTE FAILED"))
     //);
@@ -59,7 +63,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 /// Hardcoded schema of the table
-fn hardcoded_schema() -> Schema {
+fn _hardcoded_schema() -> Schema {
     let fields = vec![
         Field::new("COB", DataType::Utf8),
         Field::new("TradeId", DataType::Utf8),
@@ -134,7 +138,7 @@ fn hardcoded_schema() -> Schema {
 //       }"#
 // }
 
-fn params() -> BTreeMap<String, String> {
+fn _params() -> BTreeMap<String, String> {
     BTreeMap::from_iter([
         ("fx_sqrt2_div".into(),  "true".into()),
         ("vega_risk_weights".into(), "./tests/data/vega_risk_weights.csv".into()),

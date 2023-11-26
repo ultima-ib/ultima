@@ -152,7 +152,7 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
 
         let mut it = all_requested_columns_names
             .into_iter()
-            .zip(is_numerc_col.into_iter())
+            .zip(is_numerc_col)
             .filter(|(_, y)| *y);
 
         if let Some((c, _)) = it.next() {

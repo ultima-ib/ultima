@@ -325,7 +325,7 @@ fn girr_vega_max(op: &CPM) -> PolarsResult<Expr> {
         girr_vega_charge_low(op)?,
         girr_vega_charge_medium(op)?,
         girr_vega_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

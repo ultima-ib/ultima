@@ -231,7 +231,7 @@ fn fx_curv_max(op: &CPM) -> PolarsResult<Expr> {
         fx_curvature_charge_low(op)?,
         fx_curvature_charge_medium(op)?,
         fx_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

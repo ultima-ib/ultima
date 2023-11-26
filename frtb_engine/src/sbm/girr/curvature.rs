@@ -227,7 +227,7 @@ fn girr_curv_max(op: &CPM) -> PolarsResult<Expr> {
         girr_curvature_charge_low(op)?,
         girr_curvature_charge_medium(op)?,
         girr_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

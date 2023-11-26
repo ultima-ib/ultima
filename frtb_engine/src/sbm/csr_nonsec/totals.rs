@@ -1,7 +1,8 @@
-use polars::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::DependantMeasure;
 use ultibi::Measure;
 use ultibi::CPM;
+use ultibi::polars::prelude::{col, Expr, PolarsResult};
 
 pub(crate) fn csrnonsec_total_low(_: &CPM) -> PolarsResult<Expr> {
     Ok(col("CSR nonSec DeltaCharge Low")

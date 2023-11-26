@@ -575,7 +575,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.with_column(
         col("BucketBCBS")
             .map(
-                |s| Ok(Some(s.utf8()?.str_slice(0, Some(3))?.into_series())),
+                |s| Ok(Some(s.utf8()?.str_slice(0, Some(3)).into_series())),
                 GetOutput::from_type(DataType::Utf8),
             )
             .alias("Bucket"),

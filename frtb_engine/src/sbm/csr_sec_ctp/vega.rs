@@ -117,7 +117,7 @@ fn csrsecctp_vega_max(op: &CPM) -> PolarsResult<Expr> {
         csrsecctp_vega_charge_low(op)?,
         csrsecctp_vega_charge_medium(op)?,
         csrsecctp_vega_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

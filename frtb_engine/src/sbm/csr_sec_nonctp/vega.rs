@@ -92,7 +92,7 @@ fn csrsecnonctp_vega_max(op: &CPM) -> PolarsResult<Expr> {
         csr_sec_nonctp_vega_charge_low(op)?,
         csr_sec_nonctp_vega_charge_medium(op)?,
         csr_sec_nonctp_vega_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

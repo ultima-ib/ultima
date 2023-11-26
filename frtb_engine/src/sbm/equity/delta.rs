@@ -190,7 +190,7 @@ fn eq_delta_max(op: &CPM) -> PolarsResult<Expr> {
         equity_delta_charge_low(op)?,
         equity_delta_charge_medium(op)?,
         equity_delta_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

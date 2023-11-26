@@ -1,7 +1,8 @@
-use polars::prelude::*;
 use ultibi::DependantMeasure;
 use ultibi::Measure;
 use ultibi::CPM;
+use ultibi::polars_plan::dsl::max_horizontal;
+use ultibi::polars::prelude::{col, Expr, PolarsResult};
 
 pub(crate) fn com_total_low(_: &CPM) -> PolarsResult<Expr> {
     Ok(col("Commodity DeltaCharge Low")

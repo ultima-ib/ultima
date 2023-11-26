@@ -273,7 +273,7 @@ fn csrsecnonctp_delta_max(op: &CPM) -> PolarsResult<Expr> {
         csr_sec_nonctp_delta_charge_low(op)?,
         csr_sec_nonctp_delta_charge_medium(op)?,
         csr_sec_nonctp_delta_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

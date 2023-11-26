@@ -177,7 +177,7 @@ fn eq_vega_max(op: &CPM) -> PolarsResult<Expr> {
         equity_vega_charge_low(op)?,
         equity_vega_charge_medium(op)?,
         equity_vega_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

@@ -450,7 +450,7 @@ fn girr_delta_max(op: &CPM) -> PolarsResult<Expr> {
         girr_delta_charge_low(op)?,
         girr_delta_charge_medium(op)?,
         girr_delta_charge_high(op)?,
-    ]))
+    ])
 }
 /// Exporting Measures
 pub(crate) fn girr_delta_measures() -> Vec<Measure> {

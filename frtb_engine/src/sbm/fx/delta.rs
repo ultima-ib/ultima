@@ -205,7 +205,7 @@ fn fx_delta_max(op: &CPM) -> PolarsResult<Expr> {
         fx_delta_charge_low(op)?,
         fx_delta_charge_medium(op)?,
         fx_delta_charge_high(op)?,
-    ]))
+    ])
 }
 /// Exporting Measures
 pub(crate) fn fx_delta_measures() -> Vec<Measure> {

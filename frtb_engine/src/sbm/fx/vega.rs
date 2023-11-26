@@ -171,7 +171,7 @@ fn fx_vega_max(op: &CPM) -> PolarsResult<Expr> {
         fx_vega_charge_low(op)?,
         fx_vega_charge_medium(op)?,
         fx_vega_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

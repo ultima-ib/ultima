@@ -77,7 +77,7 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
         res.vstack_mut(&d)?;
     }
 
-    res.insert_at_idx(0, Series::new("describe", header))?;
+    res.insert_column(0, Series::new("describe", header))?;
 
     Ok(res)
 }

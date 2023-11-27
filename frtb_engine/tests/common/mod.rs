@@ -37,7 +37,7 @@ pub static LAZY_SCAN_DASET: Lazy<Arc<FRTBDataSet>> = Lazy::new(|| {
 #[ignore]
 #[allow(dead_code)]
 pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
-    let ep = if let Some(e) = epsilon { e } else { 1e-5 };
+    let ep = if let Some(e) = epsilon { e } else { 1e-7 };
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
     let excl = if let ComputeRequest::Aggregation(agg_req) = data_req.clone() {
         agg_req.group_by().clone()
@@ -60,13 +60,13 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     // Slightly naive, but we assume if the sum is equivallent then the result is accurate
     dbg!(res_arr.sum());
     dbg!(expected_sum);
-    assert!((res_arr.sum() - expected_sum).abs() < ep);
+    assert!( ( res_arr.sum() / expected_sum - 1.0 ).abs() < ep);
 }
 
 #[ignore]
 #[allow(dead_code)]
 pub fn assert_results_scan(req: &str, expected_sum: f64, epsilon: Option<f64>) {
-    let ep = if let Some(e) = epsilon { e } else { 1e-5 };
+    let ep = if let Some(e) = epsilon { e } else { 1e-7 };
     let data_req = serde_json::from_str::<ComputeRequest>(req).expect("Could not parse request");
     let excl = if let ComputeRequest::Aggregation(agg_req) = data_req.clone() {
         agg_req.group_by().clone()
@@ -89,5 +89,5 @@ pub fn assert_results_scan(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     // Slightly naive, but we assume if the sum is equivallent then the result is accurate
     dbg!(res_arr.sum());
     dbg!(expected_sum);
-    assert!((res_arr.sum() - expected_sum).abs() < ep);
+    assert!(( res_arr.sum() / expected_sum - 1.0 ).abs() < ep);
 }

@@ -151,6 +151,8 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
                 .drop_nulls(Some(vec![col("dw_sum")]))
                 .collect()?;
 
+            
+
             // Not needed anymore
             //df.rechunk();
 
@@ -164,6 +166,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
                                                             // Early return Kb or Sb, ie the required metric
             let res_len = columns[0].len();
             if let ReturnMetric::Sb = rtrn {
+                dbg!(&dw_sum.sum());
                 return Ok(Some(Series::new("res", [dw_sum.sum()])));
             }
 

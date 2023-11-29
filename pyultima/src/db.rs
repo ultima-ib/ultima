@@ -29,7 +29,7 @@ impl DbInfo {
         let schema = Arc::new(
             Schema::from_iter(
                 schema
-                .iter()
+                .into_iter()
                 .map(|(name, wrap)| {
                     Field::new(name.as_str(), wrap.0)
                 })

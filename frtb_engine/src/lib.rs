@@ -259,7 +259,7 @@ impl DataSet for FRTBDataSet {
             validate::validate_frtb_frame(lf, csrnonsec_covered_bond_15, set)
         } else {
             validate::validate_frtb_frame(
-                &self.get_lazyframe(&vec![]),
+                &self.get_lazyframe(&vec![])?,
                 csrnonsec_covered_bond_15,
                 set,
             )

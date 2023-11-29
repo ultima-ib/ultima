@@ -265,7 +265,7 @@ impl DataSetWrapper {
         self.dataset
             .read()
             .expect("Poisonned RwLock")
-            .get_lazyframe(&fltrs)
+            .get_lazyframe(&fltrs)?
             .collect()
             .map_err(PyUltimaErr::Polars)?
             .iter()

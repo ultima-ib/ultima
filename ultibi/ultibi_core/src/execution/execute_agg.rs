@@ -190,7 +190,7 @@ where
     // TODO PRECOMPUTE FILTER TO THE MAIN FILTER - not so easy because precompute filter is an expr
 
     // Step 1.0 and 1.1 - get existing Filtered frame - first building block
-    let mut f1 = data.get_lazyframe(&filters);
+    let mut f1 = data.get_lazyframe(&filters)?;
 
     // Step 2.1
     // Unpack - (New Column Name, AggExpr, MeasureSpecificFilter)

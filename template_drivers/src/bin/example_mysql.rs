@@ -46,7 +46,7 @@ fn main() -> anyhow::Result<()> {
             table: "frtb".to_string(),
             db_type: "MySQL".to_string(),
             conn_uri: uri,
-            schema: Some(_hardcoded_schema().into()),
+            schema: _hardcoded_schema().into(),
         });
 
         let dataset = FRTBDataSet::from_vec(datasource, vec![], true, vec![], _params());

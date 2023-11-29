@@ -1,5 +1,7 @@
 #[cfg(feature = "db")]
 pub mod db;
+#[cfg(feature = "db")]
+pub mod db_utils;
 
 use std::sync::Arc;
 
@@ -18,7 +20,7 @@ use polars::prelude::{DataFrame, IntoLazy};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "db")]
-pub use self::db::{fltr_chain_to_sql_query, sql_get_column, sql_query, sql_schema, DbInfo};
+pub use self::db::{fltr_chain_to_sql_query, sql_get_column, sql_query, DbInfo};
 
 /// Indicated the source of data
 #[derive(Clone)]
@@ -64,27 +66,27 @@ impl Default for DataSource {
 }
 
 impl DataSource {
-    pub fn get_lazyframe(&self, filters: &AndOrFltrChain) -> LazyFrame {
+    pub fn get_lazyframe(&self, filters: &AndOrFltrChain) -> UltiResult<LazyFrame> {
         let filter = fltr_chain(filters);
         match self {
             DataSource::InMemory(df) => {
                 if let Some(f) = filter {
-                    df.clone().lazy().filter(f)
+                    Ok(df.clone().lazy().filter(f))
                 } else {
-                    df.clone().lazy()
+                    Ok(df.clone().lazy())
                 }
             }
             DataSource::Scan(lf) => {
                 if let Some(f) = filter {
-                    lf.clone().filter(f)
+                    Ok(lf.clone().filter(f))
                 } else {
-                    lf.clone()
+                    Ok(lf.clone())
                 }
             }
             // TODO do not unwrap
             #[cfg(feature = "db")]
             DataSource::Db(db) => {
-                sql_query(db, &fltr_chain_to_sql_query(&db.table, filters)).unwrap()
+                Ok(sql_query(db, &fltr_chain_to_sql_query(&db.table, filters))?.lazy())
             }
         }
     }
@@ -93,7 +95,7 @@ impl DataSource {
             DataSource::InMemory(df) => Ok(Arc::new(df.schema())),
             DataSource::Scan(lf) => Ok(lf.schema()?),
             #[cfg(feature = "db")]
-            DataSource::Db(db) => sql_schema(db),
+            DataSource::Db(db) => Ok(db.schema()),
         }
     }
 

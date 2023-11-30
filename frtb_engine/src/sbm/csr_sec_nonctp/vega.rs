@@ -1,7 +1,6 @@
 use crate::{prelude::*, sbm::equity::vega::equity_vega_charge};
-use ultibi::{BaseMeasure, CPM};
 use ultibi::polars_plan::dsl::max_horizontal;
-
+use ultibi::{BaseMeasure, CPM};
 
 pub fn total_csr_sec_nonctp_vega_sens(_: &CPM) -> PolarsResult<Expr> {
     Ok(rc_rcat_sens(

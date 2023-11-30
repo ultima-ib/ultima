@@ -98,7 +98,7 @@ pub fn weights_assign_crr2(
             csr_non_sec_weights_frane_crr2.clone(),
             csr_sec_ctp_weights_frame_crr2.clone(),
         ],
-        Default::default()
+        Default::default(),
     )?; // we must never fail
 
     //rc_rcat_b_weights = rc_rcat_b_weights.join(rc_rcat_b_weights_crr2, );

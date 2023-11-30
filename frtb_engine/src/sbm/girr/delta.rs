@@ -1,11 +1,9 @@
 use crate::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
-    polars::prelude::{
-        apply_multiple, col, df, lit, when, DataType, GetOutput, PolarsError,
-    },
+    polars::prelude::{apply_multiple, col, df, lit, when, DataType, GetOutput, PolarsError},
     BaseMeasure, IntoLazy, CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 
 //use polars::lazy::dsl::{apply_multiple, col, lit, when};
 use rayon::prelude::IntoParallelIterator;

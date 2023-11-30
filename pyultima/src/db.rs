@@ -26,15 +26,11 @@ impl DbInfo {
         conn_uri: String,
         schema: Vec<(String, Wrap<DataType>)>,
     ) -> Self {
-        let schema = Arc::new(
-            Schema::from_iter(
-                schema
+        let schema = Arc::new(Schema::from_iter(
+            schema
                 .into_iter()
-                .map(|(name, wrap)| {
-                    Field::new(name.as_str(), wrap.0)
-                })
-            )
-            );
+                .map(|(name, wrap)| Field::new(name.as_str(), wrap.0)),
+        ));
 
         DbInfo {
             inner: DbInfoInner {

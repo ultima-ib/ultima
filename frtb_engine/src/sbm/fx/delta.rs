@@ -8,14 +8,14 @@ use crate::{
     prelude::*,
     sbm::common::{across_bucket_agg, SBMChargeType},
 };
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, df, ChunkCompare, ChunkSet, DataType, GetOutput,
-        IntoSeries, PolarsError, Utf8NameSpaceImpl,
+        apply_multiple, df, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries, PolarsError,
+        Utf8NameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 
 /// This works for cases like GBP reporting with BCBS params
 pub(crate) fn ccy_regex(op: &CPM) -> PolarsResult<String> {
@@ -150,8 +150,6 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
                 // Drop nulls (ie other reporting ccys)
                 .drop_nulls(Some(vec![col("dw_sum")]))
                 .collect()?;
-
-            
 
             // Not needed anymore
             //df.rechunk();

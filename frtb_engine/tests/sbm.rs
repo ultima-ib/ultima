@@ -2,7 +2,7 @@ mod common;
 
 use common::*;
 use ndarray::{arr1, arr2};
-        
+
 #[test]
 fn fx_delta() {
     use std::env;

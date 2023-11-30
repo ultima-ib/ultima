@@ -3,11 +3,11 @@ use crate::prelude::*;
 use crate::sbm::common::{across_bucket_agg, rc_rcat_sens, total_vega_curv_sens, SBMChargeType};
 use ndarray::{Array1, Array2, Axis};
 use polars::prelude::IndexOrder;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{apply_multiple, df, DataType, Float64Type, GetOutput},
     CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{BaseMeasure, IntoLazy};
 
 pub fn total_fx_vega_sens(_: &CPM) -> PolarsResult<Expr> {

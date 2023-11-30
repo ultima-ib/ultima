@@ -7,9 +7,9 @@ use once_cell::sync::OnceCell;
 use std::collections::BTreeMap;
 use ultibi::polars::prelude::concat_lf_diagonal;
 use ultibi::polars::prelude::{
-    lit, col, concat_list, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput, IntoLazy,
-    IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader, Series,
-    Utf8NameSpaceImpl,
+    col, concat_list, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
+    IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
+    Series, Utf8NameSpaceImpl,
 };
 
 static FX_SPECIAL_DELTA_FULL_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -465,7 +465,7 @@ pub fn weights_assign(
             _commodity_weights_frame.clone(),
             fx_rc_rcat_b_first.clone(),
         ],
-        Default::default()
+        Default::default(),
     )?; // we must never fail
 
     // Eq Delta
@@ -475,12 +475,12 @@ pub fn weights_assign(
             _equity_bucket_repo_weights.clone(),
             girr_special_weights.clone(),
         ],
-        Default::default()
+        Default::default(),
     )?;
 
     let rc_rcat_weights = concat_lf_diagonal(
         &[_vega_risk_class_weight.clone(), fx_base_weights.clone()],
-        Default::default()
+        Default::default(),
     )?;
 
     let drc_nonsec_weights_frame = DRC_NONSEC_RW

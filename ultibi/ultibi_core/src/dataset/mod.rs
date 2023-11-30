@@ -114,7 +114,7 @@ pub trait DataSet: Send + Sync {
 //where
     //    Self: Sized,
     {
-        let new_frame = self.prepare_frame(self.get_lazyframe(&vec![])? )?;
+        let new_frame = self.prepare_frame(self.get_lazyframe(&vec![])?)?;
         self.set_lazyframe_inplace(new_frame).map_err(|err| {
             UltimaErr::Other(format!(
                 "Error calling .prepare(), followed by

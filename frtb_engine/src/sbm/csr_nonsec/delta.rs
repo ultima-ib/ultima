@@ -2,12 +2,11 @@
 use crate::helpers::*;
 use crate::sbm::common::*;
 use ndarray::Array2;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
-
 
 use crate::prelude::*;
 

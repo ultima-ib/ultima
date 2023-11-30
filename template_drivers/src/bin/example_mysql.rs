@@ -1,15 +1,8 @@
 //! Example of a driver with SQL DataSource
-//!
-//! #[cfg(feature = "db")]
-use ultibi::datasource::DataSource;
-use ultibi::new::NewSourcedDataSet;
+
 use ultibi::polars::prelude::{DataType, Field, Schema};
 
 use std::collections::BTreeMap;
-use std::sync::{Arc, RwLock};
-
-use frtb_engine::FRTBDataSet;
-use ultibi::{DataSet, VisualDataSet};
 
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
@@ -25,7 +18,6 @@ static ALLOC: MiMalloc = MiMalloc;
 
 #[allow(clippy::uninlined_format_args)]
 fn main() -> anyhow::Result<()> {
-    
     // Read .env
     dotenv::dotenv().ok();
 
@@ -33,7 +25,7 @@ fn main() -> anyhow::Result<()> {
     // For more information see documentation
 
     //let data = config_build_validate_prepare::<DataSetType>(setup_path.as_str(), default);
-    let uri = format!(
+    let _uri = format!(
         "mysql://{0}:{1}@{2}:{3}/{4}?cxprotocol=binary",
         "dummyUser", "password", "localhost", 3306, "ultima"
     );
@@ -42,10 +34,16 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "db")]
     {
+        use frtb_engine::FRTBDataSet;
+        use std::sync::{Arc, RwLock};
+        use ultibi::datasource::DataSource;
+        use ultibi::new::NewSourcedDataSet;
+        use ultibi::{DataSet, VisualDataSet};
+
         let datasource = DataSource::Db(ultibi::datasource::DbInfo {
             table: "frtb".to_string(),
             db_type: "MySQL".to_string(),
-            conn_uri: uri,
+            conn_uri: _uri,
             schema: _hardcoded_schema().into(),
         });
 

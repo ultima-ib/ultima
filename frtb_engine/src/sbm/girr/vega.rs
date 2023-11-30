@@ -5,14 +5,13 @@ use crate::sbm::common::{
     total_vega_curv_sens, SBMChargeType,
 };
 use ultibi::polars::prelude::IndexOrder;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, col, df, lit, ChunkCompare, DataType, Float64Type,
-        GetOutput,
+        apply_multiple, col, df, lit, ChunkCompare, DataType, Float64Type, GetOutput,
     },
     CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{BaseMeasure, DataFrame, IntoLazy};
 
 #[cfg(feature = "CRR2")]

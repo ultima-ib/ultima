@@ -7,7 +7,6 @@ use ultibi::{prelude::CPM, BaseMeasure, IntoLazy};
 use ultibi::polars::prelude::{apply_multiple, df, DataType, GetOutput};
 use ultibi::polars_plan::dsl::max_horizontal;
 
-
 pub fn csrnonsec_curv_delta(_: &CPM) -> PolarsResult<Expr> {
     Ok(curv_delta_5("CSR_nonSec"))
 }

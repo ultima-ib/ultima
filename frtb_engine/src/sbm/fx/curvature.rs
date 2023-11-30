@@ -1,13 +1,13 @@
 use crate::prelude::*;
 use ndarray::{Array1, Array2};
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, df, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
-        GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
+        apply_multiple, df, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked, GetOutput,
+        IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 
 use super::delta::ccy_regex;
 

@@ -3,11 +3,11 @@ use crate::{
     sbm::common::{across_bucket_agg, rc_rcat_sens, SBMChargeType},
 };
 use ndarray::{Array1, Array2};
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 
 #[cfg(feature = "CRR2")]
 use super::delta::build_girr_crr2_gamma;

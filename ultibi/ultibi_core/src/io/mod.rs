@@ -123,7 +123,7 @@ impl DataSourceConfig {
                         .iter()
                         .map(|f| path_to_lf(f, &str_cols, &f64_cols))
                         .collect::<Vec<LazyFrame>>(),
-                    Default::default()
+                    Default::default(),
                 )
                 .expect("Failed to concatinate provided frames"); // <- Ok to panic upon server startup
 

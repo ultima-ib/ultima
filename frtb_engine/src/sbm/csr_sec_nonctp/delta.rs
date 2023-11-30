@@ -1,11 +1,11 @@
 //! CSR Sec non-CTP Delta Calculations
 
 use crate::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{apply_multiple, df, DataType, GetOutput, MeltArgs},
     BaseMeasure, IntoLazy, CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 
 use ndarray::Array2;
 

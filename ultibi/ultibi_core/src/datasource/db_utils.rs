@@ -1,12 +1,16 @@
-use polars::{prelude::{ DataFrame, Field}, series::Series, functions::concat_df_diagonal};
-use polars_arrow::{array::Array, datatypes::Field as PolarsArrowField};
 use arrow_array::RecordBatch;
+use polars::{
+    functions::concat_df_diagonal,
+    prelude::{DataFrame, Field},
+    series::Series,
+};
+use polars_arrow::{array::Array, datatypes::Field as PolarsArrowField};
 
 use crate::errors::{UltiResult, UltimaErr};
 
-
 pub fn record_batches_to_df<I>(batches: I) -> UltiResult<DataFrame>
-    where I: IntoIterator<Item=RecordBatch>
+where
+    I: IntoIterator<Item = RecordBatch>,
 {
     let batches_iter: <I as IntoIterator>::IntoIter = batches.into_iter();
 
@@ -21,14 +25,23 @@ pub fn record_batches_to_df<I>(batches: I) -> UltiResult<DataFrame>
 
 pub fn batch_to_df(batch: RecordBatch) -> DataFrame {
     let mut columns = vec![];
-    batch.schema().all_fields().into_iter()
-            .zip(batch.columns())
-            .for_each(|(f, c)|{
-                let polars_arrow_field = PolarsArrowField::from(f);
-                let polars_field = Field::from(&polars_arrow_field);
-                let chunk: Box<dyn Array> = From::from(c.as_ref());
-                let s = unsafe {Series::from_chunks_and_dtype_unchecked(polars_field.name.as_str(), vec![chunk], polars_field.data_type())};
-                columns.push(s);
-            });
+    batch
+        .schema()
+        .all_fields()
+        .into_iter()
+        .zip(batch.columns())
+        .for_each(|(f, c)| {
+            let polars_arrow_field = PolarsArrowField::from(f);
+            let polars_field = Field::from(&polars_arrow_field);
+            let chunk: Box<dyn Array> = From::from(c.as_ref());
+            let s = unsafe {
+                Series::from_chunks_and_dtype_unchecked(
+                    polars_field.name.as_str(),
+                    vec![chunk],
+                    polars_field.data_type(),
+                )
+            };
+            columns.push(s);
+        });
     DataFrame::from_iter(columns)
 }

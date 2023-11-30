@@ -60,7 +60,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     // Slightly naive, but we assume if the sum is equivallent then the result is accurate
     dbg!(res_arr.sum());
     dbg!(expected_sum);
-    assert!( ( res_arr.sum() / expected_sum - 1.0 ).abs() < ep);
+    assert!((res_arr.sum() / expected_sum - 1.0).abs() < ep);
 }
 
 #[ignore]
@@ -89,5 +89,5 @@ pub fn assert_results_scan(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     // Slightly naive, but we assume if the sum is equivallent then the result is accurate
     dbg!(res_arr.sum());
     dbg!(expected_sum);
-    assert!(( res_arr.sum() / expected_sum - 1.0 ).abs() < ep);
+    assert!((res_arr.sum() / expected_sum - 1.0).abs() < ep);
 }

@@ -33,10 +33,7 @@ pub fn multi_download(
 }
 
 async fn get_frames(bucket: &str, keys: &[&str], schema: &Schema) -> Vec<DataFrame> {
-    
-    let config = aws_config::defaults(BehaviorVersion{})
-        .load()
-        .await;
+    let config = aws_config::defaults(BehaviorVersion {}).load().await;
 
     let client = Client::new(&config);
 

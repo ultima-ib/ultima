@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use super::db_utils::record_batches_to_df;
+use super::DataSource;
 use crate::errors::UltiResult;
 use crate::{
     errors::UltimaErr,
@@ -13,8 +15,6 @@ use polars::{
     prelude::{IntoLazy, Schema},
     series::Series,
 };
-use super::db_utils::record_batches_to_df;
-use super::DataSource;
 
 /// DbInfo Depends on the kind of Db you are connecting to
 #[derive(Clone, Debug)]
@@ -41,7 +41,6 @@ impl DbInfo {
 }
 
 pub fn sql_get_column(db: &DbInfo, col_name: &str) -> UltiResult<Series> {
-
     let query = format!("SELECT DISTINCT {} FROM {}", col_name, db.table);
 
     let db = sql_query(db, &query)?;
@@ -49,7 +48,6 @@ pub fn sql_get_column(db: &DbInfo, col_name: &str) -> UltiResult<Series> {
     let srs = db.column(col_name)?.clone();
 
     Ok(srs)
-
 }
 
 pub fn sql_query(db: &DbInfo, query: &str) -> UltiResult<DataFrame> {
@@ -73,9 +71,12 @@ pub fn sql_query(db: &DbInfo, query: &str) -> UltiResult<DataFrame> {
     db.schema
         .iter_fields()
         .for_each(|f| casts.push(col(f.name()).cast(f.data_type().clone())));
-    
+
     // Assume query always returns all columns of schema
-    df.lazy().with_columns(casts).collect().map_err(UltimaErr::Polars)
+    df.lazy()
+        .with_columns(casts)
+        .collect()
+        .map_err(UltimaErr::Polars)
 }
 
 pub fn fltr_chain_to_sql_query(table: &str, chain: &AndOrFltrChain) -> String {

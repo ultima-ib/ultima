@@ -10,11 +10,11 @@
 //! 1 based on rft and 2 based on rf
 
 use crate::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
-use ultibi::polars_plan::dsl::max_horizontal;
 
 use ndarray::Array2;
 

@@ -65,6 +65,7 @@ pub fn finish(
         //.collect()
         //.expect("Could not join attributes to hms. Review attributes_join_hierarchy field in the setup");
     }
+
     // if files to attributes was provided
     if !f2a.is_empty() {
         let f2a_expr = f2a.iter().map(|c| col(c)).collect::<Vec<Expr>>();
@@ -122,7 +123,7 @@ pub fn finish(
 // /// TODO contribute to Polars
 // /// Concat [LazyFrame]s diagonally.
 // /// Calls [concat] internally.
-// pub fn diag_concat_lf<L: AsRef<[LazyFrame]>>(
+// pub fn concat_lf_diagonal<L: AsRef<[LazyFrame]>>(
 //     lfs: L,
 //     rechunk: bool,
 //     parallel: bool,

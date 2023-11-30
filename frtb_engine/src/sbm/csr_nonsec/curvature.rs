@@ -4,7 +4,8 @@ use crate::prelude::*;
 use ndarray::Array2;
 use ultibi::{prelude::CPM, BaseMeasure, IntoLazy};
 //use polars::lazy::dsl::apply_multiple;
-use ultibi::polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput};
+use ultibi::polars::prelude::{apply_multiple, df, DataType, GetOutput};
+use ultibi::polars_plan::dsl::max_horizontal;
 
 pub fn csrnonsec_curv_delta(_: &CPM) -> PolarsResult<Expr> {
     Ok(curv_delta_5("CSR_nonSec"))
@@ -167,7 +168,7 @@ pub(crate) fn csrnonsec_curvature_charge(
                             .or(col("PnL_Down").is_not_null()),
                     ),
                 )
-                .groupby([col("b"), col("rf")])
+                .group_by([col("b"), col("rf")])
                 .agg([
                     cvr_up_5().sum().alias("cvr_up"),
                     cvr_down_5().sum().alias("cvr_down"),
@@ -238,11 +239,11 @@ pub(crate) fn csrnonsec_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrnonsec_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csrnonsec_curvature_charge_low(op)?,
         csrnonsec_curvature_charge_medium(op)?,
         csrnonsec_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

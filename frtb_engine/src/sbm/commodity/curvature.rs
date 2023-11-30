@@ -115,11 +115,11 @@ fn com_curvature_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         com_curvature_charge_low(op)?,
         com_curvature_charge_medium(op)?,
         com_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use once_cell::sync::OnceCell;
-use ultibi::polars::prelude::diag_concat_lf;
+use ultibi::polars::prelude::concat_lf_diagonal;
 use ultibi::polars::prelude::{
     col, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsResult,
     Series, Utf8NameSpaceImpl,
@@ -93,13 +93,12 @@ pub fn weights_assign_crr2(
             })
             .lazy()
     });
-    let rc_rcat_b_weights_crr2 = diag_concat_lf(
+    let rc_rcat_b_weights_crr2 = concat_lf_diagonal(
         &[
             csr_non_sec_weights_frane_crr2.clone(),
             csr_sec_ctp_weights_frame_crr2.clone(),
         ],
-        true,
-        true,
+        Default::default(),
     )?; // we must never fail
 
     //rc_rcat_b_weights = rc_rcat_b_weights.join(rc_rcat_b_weights_crr2, );

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use aws_config::BehaviorVersion;
 //use aws_sdk_s3::Region;
 //use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_s3::Client;
@@ -32,13 +33,7 @@ pub fn multi_download(
 }
 
 async fn get_frames(bucket: &str, keys: &[&str], schema: &Schema) -> Vec<DataFrame> {
-    //let region = "eu-west-2";
-    //let region = Region::new(Cow::Borrowed(region));
-    //let region_provider = RegionProviderChain::default_provider().or_else(region);
-    let config = aws_config::from_env()
-        //.region(region_provider)
-        .load()
-        .await;
+    let config = aws_config::defaults(BehaviorVersion {}).load().await;
 
     let client = Client::new(&config);
 

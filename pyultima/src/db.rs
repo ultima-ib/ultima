@@ -24,17 +24,13 @@ impl DbInfo {
         table: String,
         db_type: String,
         conn_uri: String,
-        schema: Option<Vec<(String, Wrap<DataType>)>>,
+        schema: Vec<(String, Wrap<DataType>)>,
     ) -> Self {
-        let schema = schema
-            .map(|field| {
-                Schema::from_iter(
-                    field
-                        .into_iter()
-                        .map(|(name, wrap)| Field::new(name.as_str(), wrap.0)),
-                )
-            })
-            .map(Arc::new);
+        let schema = Arc::new(Schema::from_iter(
+            schema
+                .into_iter()
+                .map(|(name, wrap)| Field::new(name.as_str(), wrap.0)),
+        ));
 
         DbInfo {
             inner: DbInfoInner {

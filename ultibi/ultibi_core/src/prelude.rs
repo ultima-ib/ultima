@@ -8,3 +8,4 @@ pub use super::measure::*;
 
 //Reexports
 pub use polars;
+pub use polars_plan;

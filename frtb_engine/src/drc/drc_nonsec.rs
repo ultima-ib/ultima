@@ -72,7 +72,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             let mut lf = df
                 .lazy()
                 .filter(col("rc").eq(lit("DRC_nonSec")))
-                .groupby([col("b"), col("rf"), col("rft")])
+                .group_by([col("b"), col("rf"), col("rft")])
                 .agg([
                     (col("jtd") * col("s")).sum().alias("scaled_jtd"),
                     col("w").first(),
@@ -95,7 +95,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             if offset {
                 lf = lf
                     .sort_by_exprs(&[col("rft")], [false], false, true)
-                    .groupby(["b", "rf"])
+                    .group_by(["b", "rf"])
                     .apply(
                         |mut df| {
                             let mut neg = 0.;
@@ -145,7 +145,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
                 .with_column(
                     col("NetShortJTD")
                         .map(
-                            |x| Ok(Some(x.f64()?.apply(|y| y.abs()).into_series())),
+                            |x| Ok(Some(x.f64()?.apply(|y| y.map(|f| f.abs())).into_series())),
                             GetOutput::from_type(DataType::Float64),
                         )
                         .alias("NetAbsShortJTD"),
@@ -170,7 +170,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             };
             lf = df
                 .lazy()
-                .groupby([col("b")])
+                .group_by([col("b")])
                 .agg([
                     col("NetLongJTD").sum(),
                     col("NetShortJTD").sum(),

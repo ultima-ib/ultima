@@ -5,11 +5,11 @@
 use crate::drc::drc_weights;
 use once_cell::sync::OnceCell;
 use std::collections::BTreeMap;
-use ultibi::polars::prelude::diag_concat_lf;
+use ultibi::polars::prelude::concat_lf_diagonal;
 use ultibi::polars::prelude::{
-    col, concat_list, concat_str, df, CsvReader, DataFrame, DataType, Expr, GetOutput, IntoLazy,
-    IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader, Series,
-    Utf8NameSpaceImpl,
+    col, concat_list, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
+    IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
+    Series, Utf8NameSpaceImpl,
 };
 
 static FX_SPECIAL_DELTA_FULL_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -456,7 +456,7 @@ pub fn weights_assign(
     });
 
     // Eq Vega, Com, CSR Delta
-    let rc_rcat_b_weights = diag_concat_lf(
+    let rc_rcat_b_weights = concat_lf_diagonal(
         &[
             _vega_equity_weight.clone(),
             _csr_sec_nonctp_weigh.clone(),
@@ -465,25 +465,22 @@ pub fn weights_assign(
             _commodity_weights_frame.clone(),
             fx_rc_rcat_b_first.clone(),
         ],
-        true,
-        true,
+        Default::default(),
     )?; // we must never fail
 
     // Eq Delta
-    let rc_rcat_rtype_b_weights = diag_concat_lf(
+    let rc_rcat_rtype_b_weights = concat_lf_diagonal(
         &[
             _equity_bucket_spot_weights.clone(),
             _equity_bucket_repo_weights.clone(),
             girr_special_weights.clone(),
         ],
-        true,
-        true,
+        Default::default(),
     )?;
 
-    let rc_rcat_weights = diag_concat_lf(
+    let rc_rcat_weights = concat_lf_diagonal(
         &[_vega_risk_class_weight.clone(), fx_base_weights.clone()],
-        true,
-        true,
+        Default::default(),
     )?;
 
     let drc_nonsec_weights_frame = DRC_NONSEC_RW
@@ -578,7 +575,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.with_column(
         col("BucketBCBS")
             .map(
-                |s| Ok(Some(s.utf8()?.str_slice(0, Some(3))?.into_series())),
+                |s| Ok(Some(s.utf8()?.str_slice(0, Some(3)).into_series())),
                 GetOutput::from_type(DataType::Utf8),
             )
             .alias("Bucket"),
@@ -814,7 +811,7 @@ fn df_split_weights(df: DataFrame, name: &str) -> PolarsResult<DataFrame> {
         .with_column(
             col(name)
                 .str()
-                .split(";")
+                .split(lit(";"))
                 .cast(DataType::List(Box::new(DataType::Float64))),
         )
         .collect()

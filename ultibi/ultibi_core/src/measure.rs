@@ -35,7 +35,7 @@ pub struct CalcParameter {
 pub struct BaseMeasure {
     pub name: MeasureName,
     /// Main function which performs the calculation
-    /// Executed in .groupby().agg() context
+    /// Executed in .group_by().agg() context
     pub calculator: Calculator,
 
     // TODO find a nice way to attach calc_params to a measure
@@ -98,7 +98,7 @@ pub struct DependantMeasure {
 #[derive(Clone)]
 pub enum Measure {
     /// A typical measure
-    /// execute_aggregation .groupby().agg(X)
+    /// execute_aggregation .group_by().agg(X)
     Base(BaseMeasure),
     /// DependantMeasure depends on BaseMeasure
     /// Executed within .with_columns() context
@@ -188,7 +188,7 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
 /// And the precompute filter for BasicMeasure
 pub(crate) enum ProcessedMeasure {
     /// A typical measure
-    /// execute_aggregation .groupby().agg(X)
+    /// execute_aggregation .group_by().agg(X)
     Base(ProcessedBaseMeasure),
     // DependantMeasure depends on BaseMeasure
     // Executed within .with_columns() context

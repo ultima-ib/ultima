@@ -2,8 +2,9 @@
 //! TODO Commodity RiskFactor should be of the form ...CCY (same as FX, where CCY is the reporting CCY)
 
 use crate::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput, MeltArgs},
+    polars::prelude::{apply_multiple, df, DataType, GetOutput, MeltArgs},
     BaseMeasure, DataFrame, IntoLazy, CPM,
 };
 
@@ -178,7 +179,7 @@ where
                         .eq(lit("Commodity"))
                         .and(col("rcat").eq(lit("Delta"))),
                 )
-                .groupby(grp_by)
+                .group_by(grp_by)
                 .agg([
                     (col("y0") * col("w").list().get(lit(0))).sum(),
                     (col("y025") * col("w").list().get(lit(1))).sum(),
@@ -258,11 +259,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn com_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         commodity_delta_charge_low(op)?,
         commodity_delta_charge_medium(op)?,
         commodity_delta_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

@@ -3,8 +3,9 @@ use crate::{
     sbm::common::{across_bucket_agg, rc_rcat_sens, SBMChargeType},
 };
 use ndarray::{Array1, Array2};
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -133,7 +134,7 @@ fn girr_curvature_charge(
                             .or(col("PnL_Down").is_not_null()),
                     ),
                 )
-                .groupby([col("b")])
+                .group_by([col("b")])
                 .agg([
                     cvr_up().sum().alias("cvr_up"),
                     cvr_down().sum().alias("cvr_down"),
@@ -222,11 +223,11 @@ fn girr_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         girr_curvature_charge_low(op)?,
         girr_curvature_charge_medium(op)?,
         girr_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

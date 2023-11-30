@@ -1,19 +1,20 @@
 use std::sync::Arc;
 
+use super::db_utils::record_batches_to_df;
+use super::DataSource;
 use crate::errors::UltiResult;
 use crate::{
     errors::UltimaErr,
     filters::{AndOrFltrChain, FilterE},
 };
-use connectorx::prelude::get_arrow2;
+use connectorx::prelude::get_arrow;
 use connectorx::{source_router::SourceConn, sql::CXQuery};
+use polars::frame::DataFrame;
 use polars::{
     lazy::dsl::col,
-    prelude::{DataType, IntoLazy, LazyFrame, Schema},
+    prelude::{IntoLazy, Schema},
     series::Series,
 };
-
-use super::DataSource;
 
 /// DbInfo Depends on the kind of Db you are connecting to
 #[derive(Clone, Debug)]
@@ -26,80 +27,56 @@ pub struct DbInfo {
     pub db_type: String,
 
     /// Used to determine the appropriate DataType for each column
-    /// If None, we will use what we get back from SQL Server
-    pub schema: Option<Arc<Schema>>,
+    /// If a column received from DB is not in schema, we assume it's text
+    pub schema: Arc<Schema>,
 
     /// Connection String
     pub conn_uri: String,
 }
 
-pub fn sql_schema(db: &DbInfo) -> UltiResult<Arc<Schema>> {
-    if let Some(schema) = &db.schema {
-        Ok(Arc::clone(schema))
-    } else {
-        // TODO would have to match based on db type
-        let query = format!("SELECT * FROM {} LIMIT 100", db.table);
-        let schema = sql_query(db, &query)?.schema()?;
-        dbg!(schema.as_ref());
-        Ok(schema)
+impl DbInfo {
+    pub fn schema(&self) -> Arc<Schema> {
+        Arc::clone(&self.schema)
     }
 }
 
 pub fn sql_get_column(db: &DbInfo, col_name: &str) -> UltiResult<Series> {
     let query = format!("SELECT DISTINCT {} FROM {}", col_name, db.table);
 
-    let source_conn = SourceConn::try_from(db.conn_uri.as_str())
-        .map_err(|err| UltimaErr::Other(err.to_string()))?;
+    let db = sql_query(db, &query)?;
 
-    let queries = &[CXQuery::from(&query)];
-
-    let destination =
-        get_arrow2(&source_conn, None, queries).map_err(|err| UltimaErr::Other(err.to_string()))?;
-
-    let mut data = destination
-        .polars()
-        .map_err(|err| UltimaErr::Other(err.to_string()))?;
-
-    let mut srs = data.pop().unwrap();
-
-    if matches!(srs.dtype(), DataType::Binary) {
-        srs = srs.cast(&DataType::Utf8)?;
-    }
+    let srs = db.column(col_name)?.clone();
 
     Ok(srs)
 }
 
-pub fn sql_query(db: &DbInfo, query: &str) -> UltiResult<LazyFrame> {
+pub fn sql_query(db: &DbInfo, query: &str) -> UltiResult<DataFrame> {
     let source_conn = SourceConn::try_from(db.conn_uri.as_str())
         .map_err(|err| UltimaErr::Other(err.to_string()))?;
 
     let queries = &[CXQuery::from(query)];
 
     let destination =
-        get_arrow2(&source_conn, None, queries).map_err(|err| UltimaErr::Other(err.to_string()))?;
+        get_arrow(&source_conn, None, queries).map_err(|err| UltimaErr::Other(err.to_string()))?;
 
     let data = destination
-        .polars()
+        .arrow()
         .map_err(|err| UltimaErr::Other(err.to_string()))?;
+
+    let df = record_batches_to_df(data)?;
 
     // We need to perform some casting
     let mut casts = vec![];
-
     // First, into the expected schema if that was provided
-    if let Some(sch) = &db.schema {
-        sch.iter_fields()
-            .for_each(|f| casts.push(col(f.name()).cast(f.data_type().clone())));
-    } else {
-        // if wasn't provided we simply do the
-        // workaround for https://github.com/sfu-db/connector-x/issues/510
-        let schema = data.schema();
-        schema
-            .iter_fields()
-            .filter(|field| matches!(field.data_type(), DataType::Binary))
-            .for_each(|f| casts.push(col(f.name()).cast(DataType::Utf8)));
-    }
+    db.schema
+        .iter_fields()
+        .for_each(|f| casts.push(col(f.name()).cast(f.data_type().clone())));
 
-    Ok(data.lazy().with_columns(casts).collect()?.lazy())
+    // Assume query always returns all columns of schema
+    df.lazy()
+        .with_columns(casts)
+        .collect()
+        .map_err(UltimaErr::Polars)
 }
 
 pub fn fltr_chain_to_sql_query(table: &str, chain: &AndOrFltrChain) -> String {

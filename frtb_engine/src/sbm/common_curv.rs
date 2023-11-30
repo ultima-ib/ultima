@@ -265,7 +265,7 @@ where
 {
     let (kbs, sbs): (Vec<f64>, Vec<f64>) = kb_plus
         .into_iter()
-        .zip(kb_minus.into_iter())
+        .zip(kb_minus)
         .zip(cvr_up)
         .zip(cvr_down)
         .map(|(((kb_p, kb_m), cv_up), cv_down)| {

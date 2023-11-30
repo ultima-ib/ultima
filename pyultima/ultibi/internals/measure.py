@@ -114,7 +114,7 @@ class Measure:
 
 class BaseMeasure(Measure):
     """
-    Executed in .filter(precompute_filter) .groupby() .agg() context
+    Executed in .filter(precompute_filter) .group_by() .agg() context
 
     Args:
         measure_name (str): Name of your measure

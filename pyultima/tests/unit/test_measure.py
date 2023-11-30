@@ -66,7 +66,7 @@ class TestCreation(unittest.TestCase):
         )
         res = ds.compute(request)
         expected1 = pl.DataFrame({"c": ["a", "d"], "TestMeasure_sum": [2, 64]})
-        self.assertTrue(res.frame_equal(expected1))
+        self.assertTrue(res.equals(expected1))
 
         request = dict(
             measures=[["Dependant", "scalar"]],
@@ -75,7 +75,7 @@ class TestCreation(unittest.TestCase):
         )
         res = ds.compute(request)
         expected2 = pl.DataFrame({"c": ["a", "d"], "Dependant": [4, 128]})
-        self.assertTrue(res.frame_equal(expected2))
+        self.assertTrue(res.equals(expected2))
 
     def test_dependant(self) -> None:
         pass

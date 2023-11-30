@@ -1,9 +1,10 @@
 use crate::prelude::*;
 use ndarray::{Array1, Array2};
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{
-        apply_multiple, df, max_horizontal, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked,
-        GetOutput, IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
+        apply_multiple, df, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked, GetOutput,
+        IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
 };
@@ -167,7 +168,7 @@ fn fx_curvature_charge(
 
             let df = df
                 .lazy()
-                .groupby([col("b")])
+                .group_by([col("b")])
                 .agg([
                     fx_cvr_up_down(div, cvr_up_spot()).sum().alias("cvr_up"),
                     fx_cvr_up_down(div, cvr_down_spot()).sum().alias("cvr_down"),
@@ -226,11 +227,11 @@ fn fx_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn fx_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         fx_curvature_charge_low(op)?,
         fx_curvature_charge_medium(op)?,
         fx_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

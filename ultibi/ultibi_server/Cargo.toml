@@ -17,13 +17,13 @@ serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }
 tokio = { version = "1.21.0", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
-pretty_env_logger = "0.4"
+pretty_env_logger = "0.5"
 log = "0.4"
 mime = "0.3"
 actix-web-static-files = "4.0"
 static-files = "0.2.1"
-utoipa = { version="3.3.0", features = ["actix_extras"] }
-utoipa-swagger-ui = { version="3.1.4", features = ["actix-web"] }
+utoipa = { version="4.1.0", features = ["actix_extras"] }
+utoipa-swagger-ui = { version="5", features = ["actix-web"] }
 
 [build-dependencies]
 static-files = "0.2.1"

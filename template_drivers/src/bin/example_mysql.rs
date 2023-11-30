@@ -1,14 +1,8 @@
 //! Example of a driver with SQL DataSource
-//!
-use ultibi::datasource::DataSource;
-use ultibi::new::NewSourcedDataSet;
+
 use ultibi::polars::prelude::{DataType, Field, Schema};
 
 use std::collections::BTreeMap;
-use std::sync::{Arc, RwLock};
-
-use frtb_engine::FRTBDataSet;
-use ultibi::{DataSet, VisualDataSet};
 
 #[cfg(target_os = "linux")]
 use jemallocator::Jemalloc;
@@ -31,26 +25,34 @@ fn main() -> anyhow::Result<()> {
     // For more information see documentation
 
     //let data = config_build_validate_prepare::<DataSetType>(setup_path.as_str(), default);
-    let uri = format!(
+    let _uri = format!(
         "mysql://{0}:{1}@{2}:{3}/{4}?cxprotocol=binary",
         "dummyUser", "password", "localhost", 3306, "ultima"
     );
 
     //let request: AggregationRequest = serde_json::from_str(request()).expect("Bad requests");
 
-    let datasource = DataSource::Db(ultibi::datasource::DbInfo {
-        table: "frtb".to_string(),
-        db_type: "MySQL".to_string(),
-        conn_uri: uri,
-        schema: Some(hardcoded_schema().into()),
-    });
+    #[cfg(feature = "db")]
+    {
+        use frtb_engine::FRTBDataSet;
+        use std::sync::{Arc, RwLock};
+        use ultibi::datasource::DataSource;
+        use ultibi::new::NewSourcedDataSet;
+        use ultibi::{DataSet, VisualDataSet};
 
-    let dataset = FRTBDataSet::from_vec(datasource, vec![], true, vec![], params());
+        let datasource = DataSource::Db(ultibi::datasource::DbInfo {
+            table: "frtb".to_string(),
+            db_type: "MySQL".to_string(),
+            conn_uri: _uri,
+            schema: _hardcoded_schema().into(),
+        });
 
-    let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(dataset));
+        let dataset = FRTBDataSet::from_vec(datasource, vec![], true, vec![], _params());
 
-    ds.ui();
+        let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(dataset));
 
+        ds.ui();
+    }
     //dbg!(
     // dbg!(ds.read().unwrap().compute(request.into()).expect("COMPUTE FAILED"))
     //);
@@ -59,7 +61,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 /// Hardcoded schema of the table
-fn hardcoded_schema() -> Schema {
+fn _hardcoded_schema() -> Schema {
     let fields = vec![
         Field::new("COB", DataType::Utf8),
         Field::new("TradeId", DataType::Utf8),
@@ -134,7 +136,7 @@ fn hardcoded_schema() -> Schema {
 //       }"#
 // }
 
-fn params() -> BTreeMap<String, String> {
+fn _params() -> BTreeMap<String, String> {
     BTreeMap::from_iter([
         ("fx_sqrt2_div".into(),  "true".into()),
         ("vega_risk_weights".into(), "./tests/data/vega_risk_weights.csv".into()),

@@ -7,7 +7,7 @@ use ndarray::{s, Array1, Array2, ArrayView1, Axis, Zip};
 use ultibi::polars::export::num::Signed;
 use ultibi::polars::prelude::{
     apply_multiple, AnyValue, ChunkAgg, ChunkCompare, ChunkSet, DataType, FillNullStrategy,
-    Float64Type, GetOutput, IntoSeries, NamedFrom, NumOpsDispatch, PolarsError, Series, TakeRandom,
+    Float64Type, GetOutput, IntoSeries, NamedFrom, NumOpsDispatch, PolarsError, Series,
 };
 
 use rayon::{
@@ -318,9 +318,9 @@ where
     let mut res = 0.;
     let it = tenor_chunked
         .into_iter()
-        .zip(name_chunked.into_iter())
-        .zip(basis_chunked.into_iter())
-        .zip(risk_chunked.into_iter());
+        .zip(name_chunked)
+        .zip(basis_chunked)
+        .zip(risk_chunked);
 
     for (i, (((tenor, name), basis), risk)) in it.enumerate() {
         if let Some(risk) = risk {
@@ -597,7 +597,7 @@ pub(crate) fn var_covar_sum_fn(
     srs1.f64()
         .unwrap()
         .into_iter()
-        .zip(srs2.f64().unwrap().into_iter())
+        .zip(srs2.f64().unwrap())
         .for_each(|(x, y)| {
             let x = x.unwrap_or_default();
             let y = y.unwrap_or_default();
@@ -713,7 +713,7 @@ where
     //let (buckets_kbs, sbs): (Vec<(String, f64)>, Vec<f64>) = buckets_kbs_sbs.into_iter().unzip();
     //let (_buckets, kbs): (Vec<String>, Vec<f64>) = buckets_kbs.into_iter().unzip();
 
-    Ok(kbs.into_iter().zip(sbs.into_iter()).collect())
+    Ok(kbs.into_iter().zip(sbs).collect())
 }
 
 /// Girr Delta and Eq, CSR and Commodity Vega share common approach.

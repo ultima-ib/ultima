@@ -1,0 +1,36 @@
+[build-system]
+requires = ["maturin>=1.0,<2"]
+build-backend = "maturin"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+
+[project]
+name = "ultibi_frtb"
+description = "FRTB extensions for ultibi"
+readme = "README.md"
+authors = [
+  { name = "Anatoly Bugakov", email = "anatoly@ultimabi.uk" },
+]
+license = { file = "LICENSE" }
+dependencies = [
+  "polars  >= 0.19.18",
+  "pyarrow >= 7.0.0"
+]
+keywords = ["dataframe", "visualization","pivot","table","pivottable", "aggregation", "calculation", 
+  "pivot-table", "frtb", "risk"]
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Rust",
+    "License :: Free To Use But Restricted",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+Homepage = "https://ultimabi.uk/"
+Documentation = "https://ultimabi.uk/ultibi-frtb-book/"
+Repository = "https://github.com/ultima-ib/ultibi-frtb-book"

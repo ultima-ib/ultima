@@ -2,7 +2,8 @@
 
 use crate::helpers::*;
 use sbm::csr_nonsec::delta::csr_nonsec_delta_charge;
-use ultibi::{polars::prelude::max_horizontal, BaseMeasure, CPM};
+use ultibi::polars_plan::dsl::max_horizontal;
+use ultibi::{BaseMeasure, CPM};
 
 use crate::prelude::*;
 
@@ -221,11 +222,11 @@ fn csr_sec_ctp_delta_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecctp_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csr_sec_ctp_delta_charge_low(op)?,
         csr_sec_ctp_delta_charge_medium(op)?,
         csr_sec_ctp_delta_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

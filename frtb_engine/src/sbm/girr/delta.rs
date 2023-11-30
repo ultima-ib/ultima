@@ -1,8 +1,7 @@
 use crate::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
-    polars::prelude::{
-        apply_multiple, col, df, lit, max_horizontal, when, DataType, GetOutput, PolarsError,
-    },
+    polars::prelude::{apply_multiple, col, df, lit, when, DataType, GetOutput, PolarsError},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -268,7 +267,7 @@ where
             df = df
                 .lazy()
                 .filter(col("rc").eq(lit("GIRR")).and(col("rcat").eq(lit("Delta"))))
-                .groupby([col("b"), col("rf"), col("rft")])
+                .group_by([col("b"), col("rf"), col("rft")])
                 .agg([
                     (col("y0") * col("w0")).sum(),
                     (col("y025") * col("w025")).sum(),
@@ -445,11 +444,11 @@ pub(crate) fn girr_corr_matrix() -> Array2<f64> {
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn girr_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         girr_delta_charge_low(op)?,
         girr_delta_charge_medium(op)?,
         girr_delta_charge_high(op)?,
-    ]))
+    ])
 }
 /// Exporting Measures
 pub(crate) fn girr_delta_measures() -> Vec<Measure> {

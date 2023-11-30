@@ -10,8 +10,9 @@
 //! 1 based on rft and 2 based on rf
 
 use crate::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
-    polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput},
+    polars::prelude::{apply_multiple, df, DataType, GetOutput},
     BaseMeasure, IntoLazy, CPM,
 };
 
@@ -133,7 +134,7 @@ where
                         .then((col("d") * col("w")).alias("Repo"))
                         .otherwise(NULL.lit()),
                 ])
-                .groupby([col("b"), col("rf")])
+                .group_by([col("b"), col("rf")])
                 .agg([col("Spot").sum(), col("Repo").sum()])
                 .collect()?;
 
@@ -185,11 +186,11 @@ where
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_delta_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         equity_delta_charge_low(op)?,
         equity_delta_charge_medium(op)?,
         equity_delta_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

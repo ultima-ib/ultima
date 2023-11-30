@@ -2,7 +2,8 @@
 
 use crate::prelude::*;
 use ndarray::Array2;
-use ultibi::polars::prelude::{apply_multiple, df, max_horizontal, DataType, GetOutput};
+use ultibi::polars::prelude::{apply_multiple, df, DataType, GetOutput};
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::prelude::CPM;
 use ultibi::{BaseMeasure, IntoLazy};
 
@@ -128,7 +129,7 @@ pub(crate) fn eq_curvature_charge(
                             .or(col("PnL_Down").is_not_null()),
                     ),
                 )
-                .groupby([col("b"), col("rf")])
+                .group_by([col("b"), col("rf")])
                 .agg([
                     cvr_up_spot().sum().alias("cvr_up"),
                     cvr_down_spot().sum().alias("cvr_down"),
@@ -192,11 +193,11 @@ pub(crate) fn eq_curvature_charge(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn eq_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         eq_curvature_charge_low(op)?,
         eq_curvature_charge_medium(op)?,
         eq_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

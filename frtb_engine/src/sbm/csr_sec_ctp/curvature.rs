@@ -1,5 +1,5 @@
 use crate::{prelude::*, sbm::csr_nonsec::curvature::csrnonsec_curvature_charge};
-use polars::prelude::*;
+use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{prelude::CPM, BaseMeasure};
 
 pub fn csrsecctp_curv_delta(_: &CPM) -> PolarsResult<Expr> {
@@ -131,11 +131,11 @@ fn csrsecctp_curvature_charge_distributor(
 /// MAX(ir_delta_low+ir_vega_low+eq_curv_low, ..._medium, ..._high).
 /// This is for convienience view only.
 fn csrsecctp_curv_max(op: &CPM) -> PolarsResult<Expr> {
-    Ok(max_horizontal(&[
+    max_horizontal(&[
         csrsecctp_curvature_charge_low(op)?,
         csrsecctp_curvature_charge_medium(op)?,
         csrsecctp_curvature_charge_high(op)?,
-    ]))
+    ])
 }
 
 /// Exporting Measures

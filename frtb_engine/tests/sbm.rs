@@ -5,6 +5,8 @@ use ndarray::{arr1, arr2};
 
 #[test]
 fn fx_delta() {
+    use std::env;
+    env::set_var("RUST_BACKTRACE", "1");
     let expected_res = arr1(&[
         115.0, 12.197592, 12.197592, 12.197592, 11.652789, 11.803866, 11.953033, 11.953033,
     ]);
@@ -12,8 +14,8 @@ fn fx_delta() {
     {"measures": [
         ["FX DeltaSens", "sum"],
         ["FX DeltaSens Weighted", "sum"],
-        ["FX DeltaSb", "scalar"],
         ["FX DeltaKb", "scalar"],
+        ["FX DeltaSb", "scalar"],
         ["FX DeltaCharge Low", "scalar"],
         ["FX DeltaCharge Medium", "scalar"],
         ["FX DeltaCharge High", "scalar"],

@@ -169,6 +169,12 @@ Note: Naturally the later two options will be slower, because prior to computing
 [FRTB SA](https://en.wikipedia.org/wiki/Fundamental_Review_of_the_Trading_Book) is a great usecase for `ultibi`. FRTB SA is a set of standardised, computationally intensive rules established by the regulator. High business impact of these rules manifests in need for **analysis** and **visibility** thoroughout an organisation. Note: Ultima is not a certified aggregator. Always benchmark the results against your own interpretation of the rules.
 See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 
+### Polars Compatibility 
+| Ultibi      | Polars |
+| ----------- | ----------- |
+| 0.5      | 18.7       |
+| 0.6   | 19.18        |
+
 ### License 
 `ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You can choose one of the following:
 

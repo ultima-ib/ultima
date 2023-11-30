@@ -22,7 +22,7 @@ class TestCreation(unittest.TestCase):
         request = dict(measures=[["a", "sum"]], groupby=["c"])
         result = ds.compute(request)
         expected = pl.DataFrame({"c": ["z", "w"], "a_sum": [3, -3]})
-        self.assertTrue(result.frame_equal(expected))
+        self.assertTrue(result.equals(expected))
 
         # more interesting example
         request = dict(
@@ -48,7 +48,7 @@ class TestCreation(unittest.TestCase):
         )
         result = ds.compute(request)
         expected = pl.DataFrame({"c": ["z", "w"], "a_sum": [100, -3], "b_max": [4, 6]})
-        self.assertTrue(result.frame_equal(expected))
+        self.assertTrue(result.equals(expected))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1.0,<1.1"]
+requires = ["maturin>=1.0,<2"]
 build-backend = "maturin"
 
 [project]
@@ -14,7 +14,7 @@ dependencies = [
   "polars  >= 0.18.7",
   "pyarrow >= 7.0.0"
 ]
-keywords = ["dataframe", "visualization", "aggregation", "calculation", 
+keywords = ["dataframe", "visualization","pivot","table","pivottable", "aggregation", "calculation", 
   "chart", "data", "dataviz", "pivot-table", "frtb", "risk"]
 requires-python = ">=3.7"
 classifiers = [

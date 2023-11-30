@@ -22,7 +22,7 @@ class TestFilters(unittest.TestCase):
         fltr = [[filter, filter2], [filter3]]
 
         expected = pl.DataFrame({"a": [1], "b": [4], "c": ["a"]})
-        assert ds.frame(fltr).frame_equal(expected)
+        assert ds.frame(fltr).equals(expected)
 
 
 if __name__ == "__main__":

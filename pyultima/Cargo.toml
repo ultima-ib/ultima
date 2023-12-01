@@ -7,8 +7,8 @@ repository.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "ultibi"
-crate-type = ["cdylib"]
+name = "pyultima"
+crate-type = ["rlib", "cdylib"]
 
 [package.metadata.maturin]
 name = "ultibi.rust_module.ultibi_engine"

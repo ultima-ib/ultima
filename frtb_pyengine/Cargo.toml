@@ -12,10 +12,11 @@ repository.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "ultibi_frtb"
+name = "frtb_pyengine"
 # "cdylib" is necessary to produce a shared library for Python to import from.
 crate-type = ["cdylib"]
 
 [dependencies]
-ultibi = { path = "../ultibi", features=["ui", "aws_s3", "db"] }
+frtb_engine = { path = "../frtb_engine", features=["CRR2"] }
+pyultima = { path = "../pyultima" }
 pyo3 = { version = "0.20.0", features = ["extension-module", "abi3-py37"] }

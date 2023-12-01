@@ -54,7 +54,7 @@ use crate::prelude::total_sensis_sum;
 use ultibi::CPM;
 
 /// Exporting Measures
-pub(crate) fn frtb_measure_vec() -> Vec<Measure> {
+pub fn frtb_measure_vec() -> Vec<Measure> {
     let non_rc_specific = vec![
         Measure::Base(BaseMeasure {
             name: "RiskWeights".to_string(),

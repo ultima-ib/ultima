@@ -108,14 +108,17 @@ impl DataSetWrapper {
     }
 
     #[classmethod]
-    fn from_frame(
+    fn from_frame<'a>(
         _: &PyType,
         py: Python,
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
         bespoke_measures: Option<Vec<MeasureWrapper>>,
-    ) -> PyResult<Self> {
+        // x: Option<Box<dyn XMeasure>>,
+    ) -> PyResult<Self> 
+    // where FPI: FromPyObject<'a>
+    {
         let df = DataFrame::new(
             seriess
                 .into_iter()
@@ -125,6 +128,9 @@ impl DataSetWrapper {
         .map_err(PyUltimaErr::Polars)?;
         let source = DataSource::InMemory(df);
         let build_params = build_params.unwrap_or_default();
+        // let a = bespoke_measures
+        //      .unwrap() // TODO
+        //      .extract::<Box<dyn PyMeasure>>();
         let mm = bespoke_measures
             .unwrap_or_default()
             .into_iter()

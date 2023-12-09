@@ -1,13 +1,14 @@
 use std::ops::Deref;
 
-use pyo3::{pyclass, pymethods, types::PyType, FromPyObject, Py, PyAny, PyResult, Python};
-use ultibi::polars::{
-    prelude::{LazyFrame, LogicalPlan},
-    series::Series,
-};
+use pyo3::{pyclass, pymethods, types::PyType, Py, PyAny, PyResult, Python};
+use ultibi::polars::series::Series;
 use ultibi::{datasource::DataSource, DataFrame};
 
-use crate::{conversions::series::py_series_to_rust_series, db::DbInfo, errors::PyUltimaErr};
+use crate::{
+    conversions::{lazy::PyLazyFrame, series::py_series_to_rust_series},
+    db::DbInfo,
+    errors::PyUltimaErr,
+};
 
 #[pyclass]
 #[derive(Clone)]
@@ -51,19 +52,5 @@ impl DataSourceWrapper {
     fn from_db(_: &PyType, _py: Python, db: DbInfo) -> PyResult<Self> {
         let db = db.inner;
         Ok(DataSourceWrapper { inner: db.into() })
-    }
-}
-
-pub struct PyLazyFrame(pub LazyFrame);
-
-impl<'a> FromPyObject<'a> for PyLazyFrame {
-    fn extract(ob: &'a PyAny) -> PyResult<Self> {
-        let s = ob.call_method0("__getstate__")?.extract::<Vec<u8>>()?;
-        let lp: LogicalPlan = ciborium::de::from_reader(&*s).map_err(
-            |e| PyUltimaErr::Other(
-                format!("Error when deserializing LazyFrame. This may be due to mismatched polars versions. {}", e)
-            )
-        )?;
-        Ok(PyLazyFrame(LazyFrame::from(lp)))
     }
 }

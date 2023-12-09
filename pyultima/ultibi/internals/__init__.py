@@ -19,6 +19,7 @@ from .measure import (
     DependantMeasure,
     Measure,
     StandardCalculator,
+    RustCalculator
 )
 from .requests import AggRequest, ComputeRequest, aggregation_ops
 
@@ -46,4 +47,5 @@ __all__ = [
     "StandardCalculator",
     "CalcParam",
     "DbInfo",
+    "RustCalculator"
 ]

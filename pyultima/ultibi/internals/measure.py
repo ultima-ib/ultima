@@ -1,7 +1,9 @@
 # Note Measure is not ready for release. Blocked due to
 # https://github.com/pola-rs/polars/issues/8039
 
-from typing import Protocol, Type, TypeVar
+from typing import Protocol, Type, TypeVar, Any
+
+import json
 
 from polars import DataType, Expr, Series
 
@@ -47,6 +49,48 @@ class Calculator:
         """
         self.inner = calc_wrapper
 
+class RustCalculator(Calculator):
+    """
+    This should only be initiated in your
+    Rust Python mixed package
+
+    A rust Native calculator with python interface
+
+    Args:
+        lib (str): See pyo3-polars and 
+        symbol (str):
+        func_options: Jason string, must deserialize to FunctionOptions
+
+            {"collect_groups":"GroupWise",
+            "fmt_str":"",
+            "input_wildcard_expansion":false,
+            "returns_scalar":true
+            cast_to_supertypes":false,
+            "allow_rename":false,
+            "pass_name_to_apply":false,
+            "changes_length":false,
+            "check_lengths":true,
+            "allow_group_aware":true}
+    """
+
+    def __init__(
+        self,
+        lib: str,
+        symbol: str,
+        func_options: "dict[Any, Any] | str",
+        inputs: [Expr]
+    ) -> None:
+        
+        if isinstance(func_options, dict):
+            func_options = json.dumps(func_options)
+
+        calc_wrapper = CalculatorWrapper.rustc(
+            lib,
+            symbol,
+            func_options,
+            inputs
+        )
+        super().__init__(calc_wrapper)
 
 class CustomCalculator(Calculator):
     """

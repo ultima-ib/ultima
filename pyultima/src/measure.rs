@@ -1,7 +1,7 @@
 use crate::calculator::CalculatorWrapper;
 use crate::filter::FilterWrapper;
 use pyo3::types::PyType;
-use pyo3::{pyclass, pymethods, FromPyObject, PyAny, PyResult, IntoPy, PyObject, Python};
+use pyo3::{pyclass, pymethods};
 use ultibi::filters::fltr_chain;
 use ultibi::filters::FilterE;
 use ultibi::DependantMeasure;

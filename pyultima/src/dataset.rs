@@ -7,7 +7,6 @@ use std::sync::Arc;
 use ultibi::datasource::DataSource;
 use ultibi::filters::FilterE;
 use ultibi::new::NewSourcedDataSet;
-//use std::sync::Mutex;
 use crate::conversions::series::{py_series_to_rust_series, rust_series_to_py_series};
 use crate::datasource::DataSourceWrapper;
 use crate::errors::PyUltimaErr;
@@ -108,16 +107,15 @@ impl DataSetWrapper {
     }
 
     #[classmethod]
-    fn from_frame<'a>(
+    fn from_frame(
         _: &PyType,
         py: Python,
         seriess: Vec<Py<PyAny>>,
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
         bespoke_measures: Option<Vec<MeasureWrapper>>,
-        // x: Option<Box<dyn XMeasure>>,
-    ) -> PyResult<Self> 
-    // where FPI: FromPyObject<'a>
+    ) -> PyResult<Self>
+// where FPI: FromPyObject<'a>
     {
         let df = DataFrame::new(
             seriess

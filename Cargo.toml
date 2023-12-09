@@ -29,9 +29,9 @@ polars = { version = "0.35.4", features = [
     "dtype-categorical",
     "serde",
     "diagonal_concat",
-    "serde-lazy" 
+    "serde-lazy"
 ] }
-polars-plan = { version = "0.35.4"}
+polars-plan = { version = "0.35.4", features = ["ffi_plugin"]}
 polars-arrow = {version = "0.35.4", features=["arrow_rs"]}
 arrow-array = "49"
 toml = "0.8.8"

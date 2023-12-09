@@ -139,7 +139,7 @@ class DataSet:
         Returns:
             T: Self
         """
-        if isinstance(bespoke_measures, Measure):
+        if len(bespoke_measures) and isinstance(bespoke_measures[0], Measure):
             bespoke_measures = (
                 [m.inner for m in bespoke_measures] if bespoke_measures else None
             )

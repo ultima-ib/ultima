@@ -23,5 +23,6 @@ serde_json = {workspace = true}
 thiserror = "1.0.38"
 once_cell = "1.17.1"
 ciborium = "0.2"
+serde-pickle = { version = "1" }
 
 [features]

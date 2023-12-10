@@ -139,11 +139,10 @@ class DataSet:
         Returns:
             T: Self
         """
-        if len(bespoke_measures) and isinstance(bespoke_measures[0], Measure):
-            bespoke_measures = (
-                [m.inner for m in bespoke_measures] if bespoke_measures else None
-            )
-        
+        bespoke_measures = (
+            [m.inner for m in bespoke_measures] if bespoke_measures else None
+        )
+
         return cls(
             DataSetWrapper.from_frame(df, measures, build_params, bespoke_measures),
         )

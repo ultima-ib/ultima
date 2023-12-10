@@ -22,10 +22,10 @@ from .internals import (
     NoDataError,
     NotInFilter,
     OtherError,
+    RustCalculator,
     StandardCalculator,
     UltimaError,
     aggregation_ops,
-    RustCalculator
 )
 
 # import pyarrow - not needed
@@ -57,5 +57,5 @@ __all__ = [
     "CalcParam",
     "UltimaError",
     "DbInfo",
-    "RustCalculator"
+    "RustCalculator",
 ]

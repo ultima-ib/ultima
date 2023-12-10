@@ -1,9 +1,8 @@
 # Note Measure is not ready for release. Blocked due to
 # https://github.com/pola-rs/polars/issues/8039
 
-from typing import Protocol, Type, TypeVar, Any
-
 import json
+from typing import Any, Protocol, Type, TypeVar
 
 from polars import DataType, Expr, Series
 
@@ -49,6 +48,7 @@ class Calculator:
         """
         self.inner = calc_wrapper
 
+
 class RustCalculator(Calculator):
     """
     This should only be initiated in your
@@ -57,7 +57,7 @@ class RustCalculator(Calculator):
     A rust Native calculator with python interface
 
     Args:
-        lib (str): See pyo3-polars and 
+        lib (str): See pyo3-polars and
         symbol (str):
         func_options: Jason string, must deserialize to FunctionOptions
 
@@ -78,19 +78,14 @@ class RustCalculator(Calculator):
         lib: str,
         symbol: str,
         func_options: "dict[Any, Any] | str",
-        inputs: [Expr]
+        inputs: list[Expr],
     ) -> None:
-        
         if isinstance(func_options, dict):
             func_options = json.dumps(func_options)
 
-        calc_wrapper = CalculatorWrapper.rustc(
-            lib,
-            symbol,
-            func_options,
-            inputs
-        )
+        calc_wrapper = CalculatorWrapper.rustc(lib, symbol, func_options, inputs)
         super().__init__(calc_wrapper)
+
 
 class CustomCalculator(Calculator):
     """

@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Anatoly Bugakov"]
 description = "Ultibi is a BI tool for no code data analysis"
 documentation = "https://ultimabi.uk/ultibi-frtb-book/"

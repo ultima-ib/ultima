@@ -28,8 +28,7 @@ Ultibi leverages on the giants: [Actix](https://github.com/actix/actix-web), [Po
 
 # Examples
 
-Our userguide is under development.
-In the mean time refer to FRTB [userguide](https://ultimabi.uk/ultibi-frtb-book/).
+Our [userguide](https://ultimabi.uk/ultibi-frtb-book/)
 
 ## Python
 `pip install ultibi`
@@ -141,7 +140,7 @@ ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 ds.ui() 
 ```
 
-You can also wite Rust native Custom calculators measure which wouldn't be bounded by GIL! Checkout documentation
+You can also wite Rust native Custom calculators measure which wouldn't be bounded by GIL! Checkout the [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 
 ### DataSources - In and OutOf memory
 We provide aim to support different sources of the data. 

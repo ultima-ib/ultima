@@ -1,9 +1,10 @@
 import unittest
 
 import polars as pl
+from polars.testing import assert_series_equal
 
 import ultibi as ul
-from ultibi.internals.measure import BaseMeasure, DependantMeasure
+from ultibi.internals.measure import BaseMeasure, DependantMeasure, RustCalculator
 
 
 class TestCreation(unittest.TestCase):
@@ -77,8 +78,64 @@ class TestCreation(unittest.TestCase):
         expected2 = pl.DataFrame({"c": ["a", "d"], "Dependant": [4, 128]})
         self.assertTrue(res.equals(expected2))
 
-    def test_dependant(self) -> None:
-        pass
+    def test_rust_py_measure(self) -> None:
+        import os
+        import sys
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        if (
+            "win" in sys.platform
+        ):  # WINDOWS only, since pyd has ben compiled for windows
+            lib = os.path.join(dir_path, "rust_py_measure.pyd")
+
+            fo = dict(
+                collect_groups="GroupWise",
+                input_wildcard_expansion=False,
+                returns_scalar=True,
+                cast_to_supertypes=False,
+                allow_rename=False,
+                pass_name_to_apply=False,
+                changes_length=False,
+                check_lengths=True,
+                allow_group_aware=True,
+            )
+
+            inputs = [pl.col("a"), pl.col("b")]
+
+            calc = RustCalculator(lib, "hamming_distance", fo, inputs)
+
+            mm = BaseMeasure("MyRustyMeasure", calc, aggregation_restriction="scalar")
+
+            df = pl.DataFrame(
+                {
+                    "a": [1, 2, -3],
+                    "b": [4, 5, 6],
+                    "c": ["z", "z", "w"],
+                    "d": ["k", "y", "s"],
+                }
+            )
+
+        ds = ul.DataSet.from_frame(df, bespoke_measures=[mm])
+
+        request = dict(measures=[["MyRustyMeasure", "scalar"]], groupby=["d"])
+        result = ds.compute(request)
+
+        assert_series_equal(
+            result["MyRustyMeasure"], pl.Series("MyRustyMeasure", [1.0, 1.0, 1.0])
+        )
+
+        calc_params = dict(result="2")
+        request = dict(
+            measures=[["MyRustyMeasure", "scalar"]],
+            groupby=["c"],
+            calc_params=calc_params,
+        )
+        result = ds.compute(request)
+
+        assert_series_equal(
+            result["MyRustyMeasure"], pl.Series("MyRustyMeasure", [2.0, 2.0])
+        )
 
 
 if __name__ == "__main__":

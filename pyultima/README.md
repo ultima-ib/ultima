@@ -28,10 +28,10 @@ Ultibi leverages on the giants: [Actix](https://github.com/actix/actix-web), [Po
 
 # Examples
 
-Our userguide is under development.
-In the mean time refer to FRTB [userguide](https://ultimabi.uk/ultibi-frtb-book/).
+Our [userguide](https://ultimabi.uk/ultibi-frtb-book/)
 
 ## Python
+`pip install ultibi`
 
 ### Quickstart
 ```python
@@ -140,7 +140,9 @@ ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 ds.ui() 
 ```
 
-### DataSources
+You can also wite Rust native Custom calculators measure which wouldn't be bounded by GIL! Checkout the [userguide](https://ultimabi.uk/ultibi-frtb-book/).
+
+### DataSources - In and OutOf memory
 We provide aim to support different sources of the data. 
 ```python
 scan = pl.read_csv("../frtb_engine/data/frtb/Delta.csv", 
@@ -176,11 +178,18 @@ See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 | 0.6   | 19.18        |
 
 ### License 
-`ultibi` python library is made available exclusively for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You can choose one of the following:
+Licensor:             Ultibi Ltd.
+Licensed Work:        Ultima
+                      The Licensed Work is (c) 2023 Ultibi Ltd.
 
-1) Non production usage. Where production usage means any business usage of the results and outputs arising from/produced by the software. Examples of "business usage" could be any of, but not limited to, decision making, reporting, advising to a third party etc
+`ultibi` python library is made available for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You can choose one of the following:
 
-2) Proprietary License.  which allow you to use the software in whichever way you want. These `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via `anatoly at ultimabi dot uk`, or by visiting `ultimabi dot uk`
+1) [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) 
+
+2) Proprietary License. Allows you to use the software in whichever way you want. These `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via `anatoly at ultimabi dot uk`, or by visiting `ultimabi dot uk`
 
 ### No Liability
 As far as the law allows, the software comes as is, without any warranty or condition, and the licensor will not be liable to you for any damages arising out of these terms or the use or nature of the software, under any kind of legal claim.
+
+### Contributions
+All code in this Repository is a property of the Licensor. If you make a contribution via PR or any other way, you give the Licensor a right to use your code in whatever way they deem necessary, including copying or refactoring it to a private repository, provided that a copy of your work will remain available under the current conditions.

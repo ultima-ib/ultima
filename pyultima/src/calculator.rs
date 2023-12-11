@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
-use crate::conversions::{
-    series::{py_series_to_rust_series, rust_series_to_py_series},
-    wrappers::Wrap,
+use crate::{
+    conversions::{
+        lazy::PyExpr,
+        series::{py_series_to_rust_series, rust_series_to_py_series},
+        wrappers::Wrap,
+    },
+    errors::PyUltimaErr,
 };
-use polars::prelude::PolarsError;
 use pyo3::types::PyBytes;
 use pyo3::{
     pyclass, pymethods,
@@ -17,6 +20,10 @@ use ultibi::polars::prelude::Series;
 use ultibi::polars::{
     lazy::dsl::{apply_multiple, col},
     prelude::DataType,
+};
+use ultibi::{
+    polars::{lazy::dsl::FunctionExpr, prelude::PolarsError},
+    polars_plan::prelude::FunctionOptions,
 };
 use ultibi::{Calculator, PolarsResult, CPM};
 
@@ -38,10 +45,11 @@ impl CalculatorWrapper {
                 let out = lambda
                     .call(py, (op.into_py_dict(py),), None)
                     .map_err(|e| PolarsError::ComputeError(e.value(py).to_string().into()))?;
+
                 let b = out.call_method(py, "__getstate__", (), None).unwrap(); // should never fail
                 let as_pybytes = b.downcast::<PyBytes>(py).unwrap(); // should never fail
                 let rustbytes = as_pybytes.as_bytes();
-                //let e = serde_json::from_slice::<Expr>(rustbytes).unwrap(); // should never fail
+
                 let e: Expr = ciborium::de::from_reader(rustbytes).map_err(|e| {
                     PolarsError::ComputeError(format!("Error deserializing expression. This could be due to differenet Polars version. Try using Custom calculator. {}", e).into())
                 })?;
@@ -97,6 +105,46 @@ impl CalculatorWrapper {
         let calculator = Arc::new(calculator);
 
         Ok(Self { inner: calculator })
+    }
+
+    #[classmethod]
+    /// Format `AggregationRequest` as String
+    pub fn rustc(
+        _: &PyType,
+        lib: String,
+        symbol: String,
+        func_options_json: &str,
+        inputs: Vec<PyExpr>,
+    ) -> PyResult<Self> {
+        let options = serde_json::from_str::<FunctionOptions>(func_options_json)
+            .map_err(PyUltimaErr::SerdeJson)?;
+
+        let inputs_measures: Vec<Expr> = inputs.into_iter().map(|pe| pe.0).collect();
+
+        let calculator = move |op: &CPM| {
+            let _lib = lib.clone();
+            let lib: Arc<str> = Arc::from(_lib);
+
+            let _symbol = symbol.clone();
+            let symbol: Arc<str> = Arc::from(_symbol);
+
+            let ser_params = serde_pickle::to_vec(op, Default::default())
+                .map_err(|_| PolarsError::ComputeError("Failed to pickle calc params".into()))?;
+
+            Ok(Expr::Function {
+                input: inputs_measures.clone(),
+                function: FunctionExpr::FfiPlugin {
+                    lib,
+                    symbol,
+                    kwargs: Arc::from(ser_params),
+                },
+                options,
+            })
+        };
+
+        let inner = Arc::new(calculator);
+
+        Ok(Self { inner })
     }
 }
 

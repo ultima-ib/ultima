@@ -1,20 +1,19 @@
-use frtb_engine::FRTBDataSet;
-use pyo3::exceptions::PyFileNotFoundError;
-use pyo3::{prelude::*, types::PyType, PyTypeInfo};
-use std::collections::BTreeMap;
-use std::path::Path;
-use std::sync::Arc;
-use ultibi::datasource::DataSource;
-use ultibi::filters::FilterE;
-use ultibi::new::NewSourcedDataSet;
-//use std::sync::Mutex;
 use crate::conversions::series::{py_series_to_rust_series, rust_series_to_py_series};
 use crate::datasource::DataSourceWrapper;
 use crate::errors::PyUltimaErr;
 use crate::filter::FilterWrapper;
 use crate::measure::MeasureWrapper;
 use crate::requests;
+use frtb_engine::FRTBDataSet;
+use pyo3::exceptions::PyFileNotFoundError;
+use pyo3::{prelude::*, types::PyType, PyTypeInfo};
+use std::collections::BTreeMap;
+use std::path::Path;
+use std::sync::Arc;
 use std::sync::RwLock;
+use ultibi::datasource::DataSource;
+use ultibi::filters::FilterE;
+use ultibi::new::NewSourcedDataSet;
 use ultibi::polars::prelude::Series;
 use ultibi::VisualDataSet;
 use ultibi::{
@@ -115,7 +114,9 @@ impl DataSetWrapper {
         measures: Option<Vec<String>>,
         build_params: Option<BTreeMap<String, String>>,
         bespoke_measures: Option<Vec<MeasureWrapper>>,
-    ) -> PyResult<Self> {
+    ) -> PyResult<Self>
+// where FPI: FromPyObject<'a>
+    {
         let df = DataFrame::new(
             seriess
                 .into_iter()
@@ -125,6 +126,9 @@ impl DataSetWrapper {
         .map_err(PyUltimaErr::Polars)?;
         let source = DataSource::InMemory(df);
         let build_params = build_params.unwrap_or_default();
+        // let a = bespoke_measures
+        //      .unwrap() // TODO
+        //      .extract::<Box<dyn PyMeasure>>();
         let mm = bespoke_measures
             .unwrap_or_default()
             .into_iter()

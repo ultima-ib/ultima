@@ -1,6 +1,6 @@
 template_drivers/src/tmp_rqst.json
 dist/
-/target
+target
 **/*.rs.bk
 Cargo.lock
 **/*.h

@@ -7,15 +7,15 @@ use errors::{
 };
 use pyo3::{pyfunction, pymodule, types::PyModule, wrap_pyfunction, PyResult, Python};
 
-mod calculator;
-mod conversions;
-mod dataset;
-mod datasource;
-mod db;
-mod errors;
-mod filter;
-mod measure;
-mod requests;
+pub mod calculator;
+pub mod conversions;
+pub mod dataset;
+pub mod datasource;
+pub mod db;
+pub mod errors;
+pub mod filter;
+pub mod measure;
+pub mod requests;
 
 #[pyfunction]
 fn agg_ops() -> Vec<&'static str> {

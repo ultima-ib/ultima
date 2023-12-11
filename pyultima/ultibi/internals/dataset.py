@@ -142,6 +142,7 @@ class DataSet:
         bespoke_measures = (
             [m.inner for m in bespoke_measures] if bespoke_measures else None
         )
+
         return cls(
             DataSetWrapper.from_frame(df, measures, build_params, bespoke_measures),
         )

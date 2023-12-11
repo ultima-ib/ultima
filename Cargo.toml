@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Anatoly Bugakov"]
 description = "Ultibi is a BI tool for no code data analysis"
 documentation = "https://ultimabi.uk/ultibi-frtb-book/"
@@ -9,11 +9,12 @@ repository = "https://github.com/ultima-ib/ultima/"
 
 [workspace]
 resolver = "2"
-members = ['template_drivers', 'ultibi', 'frtb_engine', 'frtb_pyengine', 'pyultima', 'ultibi/ultibi_server','ultibi/ultibi_core']
+members = ['template_drivers', 'ultibi', 'frtb_engine', 'pyultima', 'ultibi/ultibi_server','ultibi/ultibi_core']
 # temporarily exclude pyultima
 # https://github.com/PyO3/maturin/issues/1374
 # Otherwise cargo chief picks it up for compilation and it fails
 default-members = ['template_drivers', 'ultibi', 'frtb_engine', 'ultibi/ultibi_server', 'ultibi/ultibi_core']
+exclude = ['templates']
 
 
 [workspace.dependencies]
@@ -28,9 +29,9 @@ polars = { version = "0.35.4", features = [
     "dtype-categorical",
     "serde",
     "diagonal_concat",
-    "serde-lazy" 
+    "serde-lazy"
 ] }
-polars-plan = { version = "0.35.4"}
+polars-plan = { version = "0.35.4", features = ["ffi_plugin"]}
 polars-arrow = {version = "0.35.4", features=["arrow_rs"]}
 arrow-array = "49"
 toml = "0.8.8"

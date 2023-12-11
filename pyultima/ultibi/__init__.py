@@ -22,6 +22,7 @@ from .internals import (
     NoDataError,
     NotInFilter,
     OtherError,
+    RustCalculator,
     StandardCalculator,
     UltimaError,
     aggregation_ops,
@@ -56,4 +57,5 @@ __all__ = [
     "CalcParam",
     "UltimaError",
     "DbInfo",
+    "RustCalculator",
 ]

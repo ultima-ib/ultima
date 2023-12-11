@@ -116,26 +116,26 @@ class TestCreation(unittest.TestCase):
                 }
             )
 
-        ds = ul.DataSet.from_frame(df, bespoke_measures=[mm])
+            ds = ul.DataSet.from_frame(df, bespoke_measures=[mm])
 
-        request = dict(measures=[["MyRustyMeasure", "scalar"]], groupby=["d"])
-        result = ds.compute(request)
+            request = dict(measures=[["MyRustyMeasure", "scalar"]], groupby=["d"])
+            result = ds.compute(request)
 
-        assert_series_equal(
-            result["MyRustyMeasure"], pl.Series("MyRustyMeasure", [1.0, 1.0, 1.0])
-        )
+            assert_series_equal(
+                result["MyRustyMeasure"], pl.Series("MyRustyMeasure", [1.0, 1.0, 1.0])
+            )
 
-        calc_params = dict(result="2")
-        request = dict(
-            measures=[["MyRustyMeasure", "scalar"]],
-            groupby=["c"],
-            calc_params=calc_params,
-        )
-        result = ds.compute(request)
+            calc_params = dict(result="2")
+            request = dict(
+                measures=[["MyRustyMeasure", "scalar"]],
+                groupby=["c"],
+                calc_params=calc_params,
+            )
+            result = ds.compute(request)
 
-        assert_series_equal(
-            result["MyRustyMeasure"], pl.Series("MyRustyMeasure", [2.0, 2.0])
-        )
+            assert_series_equal(
+                result["MyRustyMeasure"], pl.Series("MyRustyMeasure", [2.0, 2.0])
+            )
 
 
 if __name__ == "__main__":

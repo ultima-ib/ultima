@@ -51,16 +51,13 @@ class Calculator:
 
 class RustCalculator(Calculator):
     """
-    This should only be initiated in your
-    Rust Python mixed package
-
-    A rust Native calculator with python interface
+    A rust Native calculator with python interface. GIL free execution.
+    See templates\\rust_py_measure for example.
 
     Args:
-        lib (str): See pyo3-polars and
-        symbol (str):
-        func_options: Jason string, must deserialize to FunctionOptions
-
+        lib (str): See pyo3-polars shared library plugins: https://github.com/pola-rs/pyo3-polars
+        symbol (str): name of the function which will be called
+        func_options: Jason string, must deserialize to FunctionOptions, eg:
             {"collect_groups":"GroupWise",
             "fmt_str":"",
             "input_wildcard_expansion":false,
@@ -71,6 +68,10 @@ class RustCalculator(Calculator):
             "changes_length":false,
             "check_lengths":true,
             "allow_group_aware":true}
+        inputs: expressions which will be used in symbol function.
+
+    Examples:
+
     """
 
     def __init__(

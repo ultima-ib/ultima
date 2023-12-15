@@ -9,7 +9,7 @@ on:
       tags: ['py*.*.*'] 
 
 env:
-  RUST_TOOLCHAIN: nightly-2023-07-27
+  RUST_TOOLCHAIN: stable
   PYTHON_VERSION: '3.9'
   MATURIN_VERSION: '1.2.1'
   

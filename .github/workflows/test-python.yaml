@@ -118,13 +118,11 @@ jobs:
       OPENSSL_NO_VENDOR: 1
       RUSTFLAGS: -Ctarget-feature=+crt-static
       SSL_CERT_FILE: C:\OpenSSL-Win64\certs\cacert.pem
-      OPENSSL_DIR: C:\vcpkg
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up OpenSSL
-        working-directory: C
         run: |
           git clone https://github.com/microsoft/vcpkg
           cd vcpkg

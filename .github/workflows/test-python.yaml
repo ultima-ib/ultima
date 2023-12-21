@@ -114,8 +114,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.9', '3.11']
-    # env:
-    #   OPENSSL_NO_VENDOR: 1
+    env:
+      OPENSSL_NO_VENDOR: 1
     #   RUSTFLAGS: -Ctarget-feature=+crt-static
     #   SSL_CERT_FILE: C:\OpenSSL-Win64\certs\cacert.pem
 

@@ -122,14 +122,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up OpenSSL
+      - name: Install OpenSSL (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
         run: |
-          git clone https://github.com/microsoft/vcpkg
-          cd vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg install openssl:x64-windows-static
-          mkdir "C:\Program Files\OpenSSL-Win64\certs"
-          curl --remote-name --time-cond "C:\Program Files\OpenSSL-Win64\certs\cacert.pem" -o "C:\Program Files\OpenSSL-Win64\certs\cacert.pem" https://curl.se/ca/cacert.pem
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg install openssl:x64-windows-static-md
+
+      # - name: Set up OpenSSL
+      #   run: |
+      #     git clone https://github.com/microsoft/vcpkg
+      #     cd vcpkg
+      #     .\bootstrap-vcpkg.bat
+      #     .\vcpkg install openssl:x64-windows-static
+      #     mkdir "C:\Program Files\OpenSSL-Win64\certs"
+      #     curl --remote-name --time-cond "C:\Program Files\OpenSSL-Win64\certs\cacert.pem" -o "C:\Program Files\OpenSSL-Win64\certs\cacert.pem" https://curl.se/ca/cacert.pem
 
       - name: Set up Python
         uses: actions/setup-python@v4

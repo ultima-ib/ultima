@@ -136,6 +136,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
+    env:
+      OPENSSL_NO_VENDOR: 1
 
     steps:
       - uses: actions/checkout@v3
@@ -143,6 +145,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
+      - name: Install OpenSSL (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg install openssl:x64-windows-static-md
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:

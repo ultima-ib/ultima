@@ -1,8 +1,12 @@
-name: CI
+name: CI 
 
 on:
   push:
       tags: ['py*.*.*'] 
+
+# TODO Manual Trigger
+# on:
+#   workflow_dispatch:
 
 permissions:
   contents: read

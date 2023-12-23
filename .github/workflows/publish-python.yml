@@ -28,7 +28,13 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      
+
+      # This should help with OpenSSL    
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl mysql-client mysql-server
+
       - name: Install Node
         run: npm install
         working-directory: frontend
@@ -66,10 +72,18 @@ jobs:
           architecture: ${{ matrix.target }}
       
       - name: Install OpenSSL (Windows)
+        if: matrix.target == 'x64'
         shell: powershell
         run: |
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
           vcpkg install openssl:x64-windows-static-md
+      
+      - name: Install OpenSSL (Windows)
+        if: matrix.target == 'x86'
+        shell: powershell
+        run: |
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg install openssl:x86-windows-static-md
         
       - name: Install Node
         run: npm install

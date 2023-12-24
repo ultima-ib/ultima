@@ -48,7 +48,7 @@ jobs:
           target: ${{ matrix.target }}
           args: --release --out dist --manifest-path pyultima/Cargo.toml
           sccache: 'true'
-          manylinux: '2_28' # auto doesn't work see https://github.com/briansmith/ring/issues/1728#issuecomment-1758180655
+          manylinux: manylinux_2_28 # auto doesn't work see https://github.com/briansmith/ring/issues/1728#issuecomment-1758180655
           # Install tools depending on the architecture
           # https://github.com/Intreecom/scyllapy/blob/develop/.github/workflows/release.yaml
           before-script-linux: |

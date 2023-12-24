@@ -53,7 +53,7 @@ jobs:
             fi
           target: aarch64
           manylinux: manylinux_2_28 # auto doesn't work see https://github.com/briansmith/ring/issues/1728#issuecomment-1758180655
-          args: --release --out dist
+          args: --release --out dist --manifest-path pyultima/Cargo.toml
 
       - name: Upload wheels
         uses: actions/upload-artifact@v3
@@ -69,9 +69,11 @@ jobs:
         target: [x86_64, x86, armv7, i686, ppc64le]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+      
+      # TODO Remove if not needed
+      # - uses: actions/setup-python@v4
+      #   with:
+      #     python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Node
         run: npm install
@@ -80,11 +82,6 @@ jobs:
       - name: Build Node
         run: npm run build
         working-directory: frontend
-      
-      # - uses: awalsh128/cache-apt-pkgs-action@v1
-      #   with:
-      #     packages: musl-tools # provides musl-gcc
-      #     version: 1.0
 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -224,171 +221,3 @@ jobs:
         with:
           command: upload
           args: --non-interactive --skip-existing *
-
-# name: Create Python release
-
-# #on: 
-# #  release:
-# #    types: [published]
-
-# on:
-#   push:
-#       tags: ['py*.*.*'] 
-
-# env:
-#   RUST_TOOLCHAIN: stable
-#   PYTHON_VERSION: '3.9'
-#   MATURIN_VERSION: '1.2.1'
-  
-# defaults:
-#   run:
-#     shell: bash
-
-# jobs:
-#   manylinux-x64_64:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: actions/setup-python@v4
-#         with:
-#           python-version: ${{ env.PYTHON_VERSION }}
-      
-#       - name: Install tools
-#         run: |
-#           sudo apt update
-#           sudo apt install -y pkg-config libssl-dev
-      
-#       - name: Setup node
-#         uses: actions/setup-node@v1
-#         with:
-#           node-version: "16.x"
-
-#       - name: Install Node
-#         run: npm install
-#         working-directory: frontend
-      
-#       - name: Build Node
-#         run: npm run build
-#         working-directory: frontend
-
-#       - name: Publish wheel
-#         uses: PyO3/maturin-action@v1
-#         env:
-#           MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
-#           RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+ssse3,+sse4.1,+sse4.2,+popcnt,+avx,+fma
-#         with:
-#           rust-toolchain: ${{ env.RUST_TOOLCHAIN }}
-#           maturin-version: ${{ env.MATURIN_VERSION }}
-#           command: publish
-#           args: -m pyultima/Cargo.toml  --all-features --skip-existing -o wheels -u anatoly.bugakov
-
-#   # Needed for Docker on Apple M1
-#   manylinux-aarch64:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: actions/setup-python@v4
-#         with:
-#           python-version: ${{ env.PYTHON_VERSION }}
-      
-#       - name: Install tools
-#         run: |
-#           sudo apt-get update
-#           sudo apt-get install -y pkg-config libssl-dev
-
-#       - name: Setup node
-#         uses: actions/setup-node@v1
-#         with:
-#           node-version: "16.x"
-
-#       - name: Install Node
-#         run: npm install
-#         working-directory: frontend
-      
-#       - name: Build Node
-#         run: npm run build
-#         working-directory: frontend
-
-#       - name: Publish wheel
-#         uses: PyO3/maturin-action@v1
-#         env:
-#           MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
-#           JEMALLOC_SYS_WITH_LG_PAGE: 16
-#         with:
-#           rust-toolchain: ${{ env.RUST_TOOLCHAIN }}
-#           target: aarch64-unknown-linux-gnu
-#           maturin-version: ${{ env.MATURIN_VERSION }}
-#           command: publish
-#           args: -m pyultima/Cargo.toml  --all-features --skip-existing --no-sdist -o wheels -i python -u anatoly.bugakov
-
-#   win-macos:
-#     runs-on: ${{ matrix.os }}
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         os: [macos-latest, windows-latest]
-#     env:
-#       OPENSSL_NO_VENDOR: 1
-
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: actions/setup-python@v4
-#         with:
-#           python-version: ${{ env.PYTHON_VERSION }}
-      
-#       - name: Install OpenSSL (Windows)
-#         if: runner.os == 'Windows'
-#         shell: powershell
-#         run: |
-#           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
-#           vcpkg install openssl:x64-windows-static-md
-
-#       - name: Setup node
-#         uses: actions/setup-node@v1
-#         with:
-#           node-version: "16.x"
-
-#       - name: Install Node
-#         run: npm install
-#         working-directory: frontend
-      
-#       - name: Build Node
-#         run: npm run build
-#         working-directory: frontend
-
-#       - name: Publish wheel
-#         uses: PyO3/maturin-action@v1
-#         env:
-#           MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
-#           RUSTFLAGS: -C target-feature=+fxsr,+sse,+sse2,+sse3,+sse4.1,+sse4.2
-#         with:
-#           rust-toolchain: ${{ env.RUST_TOOLCHAIN }}
-#           maturin-version: ${{ env.MATURIN_VERSION }}
-#           command: publish
-#           args: -m pyultima/Cargo.toml  --all-features --no-sdist --skip-existing -o wheels -i python -u anatoly.bugakov
-
-#  This job fails - understand/check why
-#  macos-aarch64:
-#    runs-on: macos-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ env.PYTHON_VERSION }}
-#
-#      - name: Set up Rust
-#        uses: dtolnay/rust-toolchain@master
-#        with:
-#          toolchain: nightly-2022-12-20
-#
-#      - name: Set up Rust targets
-#        run: rustup target add aarch64-apple-darwin
-#
-#      - name: Publish wheel
-#        uses: messense/maturin-action@v1
-#        env:
-#          MATURIN_PASSWORD: ${{ secrets.PYPI_PASS }}
-#        with:
-#          maturin-version: ${{ env.MATURIN_VERSION }}
-#          command: publish
-#          args: -m pyultima/Cargo.toml  --all-features --target aarch64-apple-darwin --no-sdist -o wheels -i python -u anatoly.bugakov

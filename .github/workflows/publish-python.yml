@@ -18,11 +18,55 @@ env:
   MATURIN_VERSION: '1.2.1'
 
 jobs:
+  linux-aarch64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        run: npm install
+        working-directory: frontend
+        
+      - name: Build Node
+        run: npm run build
+        working-directory: frontend
+
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          # Install tools depending on the architecture
+          # https://github.com/Intreecom/scyllapy/blob/develop/.github/workflows/release.yaml
+          before-script-linux: |
+            # If we're running on rhel centos(Alpine), install needed packages.
+            if command -v yum &> /dev/null; then
+                yum update -y && yum install -y perl-core openssl openssl-devel pkgconfig libatomic
+
+                # If we're running on i686 we need to symlink libatomic
+                # in order to build openssl with -latomic flag.
+                if [[ ! -d "/usr/lib64" ]]; then
+                    ln -s /usr/lib/libatomic.so.1 /usr/lib/libatomic.so
+                fi
+            else
+                # If we're running on debian-based system.
+                apt update -y && apt-get install -y libssl-dev openssl pkg-config
+            fi
+          target: aarch64
+          manylinux: manylinux_2_28 # auto doesn't work see https://github.com/briansmith/ring/issues/1728#issuecomment-1758180655
+          args: --release --out dist
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
   linux:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        target: [x86_64, x86, aarch64, armv7, s390x, ppc64le]
+        target: [x86_64, x86, armv7, i686, ppc64le]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -37,10 +81,10 @@ jobs:
         run: npm run build
         working-directory: frontend
       
-      - uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: musl-tools # provides musl-gcc
-          version: 1.0
+      # - uses: awalsh128/cache-apt-pkgs-action@v1
+      #   with:
+      #     packages: musl-tools # provides musl-gcc
+      #     version: 1.0
 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -48,7 +92,7 @@ jobs:
           target: ${{ matrix.target }}
           args: --release --out dist --manifest-path pyultima/Cargo.toml
           sccache: 'true'
-          manylinux: manylinux_2_28 # auto doesn't work see https://github.com/briansmith/ring/issues/1728#issuecomment-1758180655
+          manylinux: auto 
           # Install tools depending on the architecture
           # https://github.com/Intreecom/scyllapy/blob/develop/.github/workflows/release.yaml
           before-script-linux: |
@@ -170,7 +214,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [linux, windows, macos, sdist]
+    needs: [linux, linux-aarch64, windows, macos, sdist]
     steps:
       - uses: actions/download-artifact@v3
         with:

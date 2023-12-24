@@ -37,7 +37,7 @@ futures = { version = "0.3", optional = true }
 #Cache
 dashmap = { workspace = true }
 # Open API Swagger
-quote = "1.0.26" # Needs to be specified for utoipa to build
+# TODO remove if compiles without quote = "1.0.26" # Needs to be specified for utoipa to build
 utoipa = { version="4.1.0", optional = true} # TODO change to version
 # DB
 connectorx = {git="https://github.com/AnatolyBuga/connector-x", branch = "arrow49", features=["dst_arrow", "src_mysql"], optional = true}

@@ -2,7 +2,7 @@
 
 <p align="center">
     <a href="https://ultimabi.uk/" target="_blank">
-    <img width="900" src="/img/logo.png" alt="Ultima Logo">
+    <img width="900" src="https://ultima-bi.s3.eu-west-2.amazonaws.com/imgs/logo.png" alt="Ultima Logo">
     </a>
 </p>
 <br>
@@ -18,7 +18,7 @@ With `Ultibi` you can turn your `DataFrame` into a pivot table with a UI and sha
 
 <p align="center">
     <a href="https://frtb.demo.ultimabi.uk/" target="_blank">
-    <img width="900" src="/img/titanic_gif.gif" alt="Ultima Logo">
+    <img width="900" src="https://ultima-bi.s3.eu-west-2.amazonaws.com/imgs/UltimaScreenshotExplained.jpg" alt="Ultima Logo">
     </a>
 </p>
 
@@ -28,11 +28,12 @@ Ultibi leverages on the giants: [Actix](https://github.com/actix/actix-web), [Po
 
 # Examples
 
-Our userguide is under development.
-In the mean time refer to FRTB [userguide](https://ultimabi.uk/ultibi-frtb-book/).
+Our [userguide](https://ultimabi.uk/ultibi-frtb-book/)
 
 ## Python
+`pip install ultibi`
 
+### Quickstart
 ```python
 import ultibi as ul
 import polars as pl
@@ -44,6 +45,31 @@ os.environ["ADDRESS"] = "0.0.0.0:8000" # host on this address
 # for more details: https://pola-rs.github.io/polars/py-polars/html/reference/api/polars.read_csv.html
 df = pl.read_csv("titanic.csv")
 
+# Convert it into an Ultibi DataSet
+ds = ul.DataSet.from_frame(df)
+
+# By default (might change in the future)
+# Fields are Utf8 (non numerics) and integers
+# Measures are numeric columns.
+ds.ui() 
+```
+
+Then navigate to `http://localhost:8000` or checkout `http://localhost:8000/swagger-ui` for the OpenAPI documentation.
+
+### More flexible - custom measures
+```python
+import ultibi as ul
+import polars as pl
+import os
+os.environ["RUST_LOG"] = "info" # enable logs
+os.environ["ADDRESS"] = "0.0.0.0:8000" # host on this address
+
+# Read Data
+# for more details: https://pola-rs.github.io/polars/py-polars/html/reference/api/polars.read_csv.html
+df = pl.read_csv("titanic.csv")
+
+# Let's add some Custom/Bespoke Calculations to our UI
+
 # Standard Calculator
 def survival_mean_age(kwargs: dict[str, str]) -> pl.Expr:
     """Mean Age of Survivals
@@ -53,6 +79,11 @@ def survival_mean_age(kwargs: dict[str, str]) -> pl.Expr:
     """
     return pl.col("age") * pl.col("survived") / pl.col("survived").sum()
 
+# Also a Standard Calculator
+def example_dep_calc(kwargs: dict[str, str]) -> pl.Expr:
+    return pl.col("SurvivalMeanAge_sum") + pl.col("SouthamptonFareDivAge_sum")
+
+# When we need more involved calculations we go for a Custom Calculator
 def custom_calculator(
             srs: list[pl.Series], kwargs: dict[str, str]
         ) -> pl.Series:
@@ -68,14 +99,8 @@ def custom_calculator(
         res = df["S"] * df["fare"] / df["age"] * multiplier
         return res
 
-def example_dep_calc(kwargs: dict[str, str]) -> pl.Expr:
-    return pl.col("SurvivalMeanAge_sum") + pl.col("SouthamptonFareDivAge_sum")
-
 # inputs for the custom_calculator srs param
 inputs = ["age", "fare", "embarked"]
-# (Optional) - we are only interested in Southampton
-# unless other measures requested
-precompute_filter = ul.EqFilter("embarked", "S")
 # We return Floats
 res_type = pl.Float64
 # We return a Series, not a scalar (which otherwise would be auto exploded)
@@ -87,7 +112,11 @@ measures = [
                 ul.CustomCalculator(
                     custom_calculator, res_type, inputs, returns_scalar
                 ),
-                [[precompute_filter]],
+                # (Optional) - we are only interested in Southampton, so
+                # unless other measures requested we might as well filter for Southampton only
+                # However, if if multiple measures requested, their precompute_filters will be joined as OR.
+                [[ul.EqFilter("embarked", "S")]],
+                # PARAMS tab of the UI
                 calc_params=[ul.CalcParam("mltplr", "1", "float")]
             ),
             ul.BaseMeasure(
@@ -108,56 +137,59 @@ ds = ul.DataSet.from_frame(df, bespoke_measures=measures)
 # By default (might change in the future)
 # Fields are Utf8 (non numerics) and integers
 # Measures are numeric columns.
+ds.ui() 
+```
+
+You can also wite Rust native Custom calculators measure which wouldn't be bounded by GIL! Checkout the [userguide](https://ultimabi.uk/ultibi-frtb-book/).
+
+### DataSources - In and OutOf memory
+We provide aim to support different sources of the data. 
+```python
+scan = pl.read_csv("../frtb_engine/data/frtb/Delta.csv", 
+                           dtypes={"SensitivitySpot": pl.Float64})
+dsource = ul.DataSource.inmemory(scan)
+ds = ul.DataSet.from_source(dsource)
+ds.prepare() # .prepare() is only relevant to FRTB dataset currently
+ds.ui()
+```
+If you don't want to/can't hold all your data in the process memory, you can sacrifise performance for memory with Scan/DataBase
+```python
+import polars as pl
+import ultibi as ul
+# Note that the LazyFrame query must start with scan_
+# and must've NOT been collected
+scan = pl.scan_csv("../frtb_engine/data/frtb/Delta.csv", 
+                    dtypes={"SensitivitySpot": pl.Float64})
+dsource = ul.DataSource.scan(scan)
+ds = ul.DataSet.from_source(dsource)
 ds.ui()
 ```
 
-Then navigate to `http://localhost:8000` or checkout `http://localhost:8000/swagger-ui` for the OpenAPI documentation.
-
-## Rust
-Note: currently if you want to use inbuild functionality of the .ui() method (instead of using a template like [template_drivers](https://github.com/ultima-ib/ultima/tree/master/template_drivers)) you have to
-1. Build Frontend
-```shell
-cd frontend
-npm run build
-```
-2. Set up env variable **STATIC_FILES_DIR**="{your_path}\frontend\dist"
-
-3. 
-```rust
-use std::sync::Arc;
-use std::sync::RwLock;
-
-use polars::prelude::LazyCsvReader;
-use ultibi::DataSet;
-use ultibi::DataSetBase;
-use ultibi::VisualDataSet;
-use std::env;
-
-pub fn example() {
-    // See logs
-    env::set_var("RUST_LOG", "info"); 
-
-    // Read df
-    let df = LazyCsvReader::new("titanic.csv")
-        .finish()
-        .unwrap();
-
-    // Conver df into Arc<RwLock<ultibi::DataSet>>
-    let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(
-        DataSetBase::new(df, Default::default(), Default::default())
-    ));
-
-    // Visualise
-    ds.ui(false);
-}
-```
-
-`cargo run --release`
+Note: Naturally the later two options will be slower, because prior to computing your measures we will need to read the relevant bits of the data into the process memory. 
 
 ### FRTB SA
 [FRTB SA](https://en.wikipedia.org/wiki/Fundamental_Review_of_the_Trading_Book) is a great usecase for `ultibi`. FRTB SA is a set of standardised, computationally intensive rules established by the regulator. High business impact of these rules manifests in need for **analysis** and **visibility** thoroughout an organisation. Note: Ultima is not a certified aggregator. Always benchmark the results against your own interpretation of the rules.
 See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 
-## Bespoke Hosting
-You don't have to use `.ui()`. You can write your own sevrer easily based on your needs (for example DB interoperability for authentication)
-See an example [template_drivers](https://github.com/ultima-ib/ultima/tree/master/template_drivers) bin server.
+### Polars Compatibility 
+| Ultibi      | Polars |
+| ----------- | ----------- |
+| 0.5      | 18.7       |
+| 0.6   | 19.18        |
+
+### License 
+Licensor:             Ultibi Ltd.
+Licensed Work:        Ultima
+                      The Licensed Work is (c) 2023 Ultibi Ltd.
+
+`ultibi` python library is made available for the purpose of demonstrating the possibilities offered by the Software so users can evaluate the possibilities and potential of the Software. You can choose one of the following:
+
+1) [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) 
+
+2) Proprietary License. Allows you to use the software in whichever way you want. These `licenses` are extremely affordable, and you can check out the options by reaching out to us directly, via `anatoly at ultimabi dot uk`, or by visiting `ultimabi dot uk`
+
+### No Liability
+As far as the law allows, the software comes as is, without any warranty or condition, and the licensor will not be liable to you for any damages arising out of these terms or the use or nature of the software, under any kind of legal claim.
+
+### Contributions
+All code in this Repository is a property of the Licensor. If you make a contribution via PR or any other way, you give the Licensor a right to use your code in whatever way they deem necessary, including copying or refactoring it to a private repository, provided that a copy of your work will remain available under the current conditions.

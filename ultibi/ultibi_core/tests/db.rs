@@ -1,4 +1,4 @@
-use ultibi_core::{datasource::fltr_chain_to_sql_query, filters::FilterE};
+use ultibi_core::filters::FilterE;
 
 #[test]
 #[cfg(feature = "db")]
@@ -37,7 +37,7 @@ fn test_query_create() {
         .replace('\t', " ")
         .replace("    ", " ");
 
-    let res = fltr_chain_to_sql_query("delta", &fltr);
+    let res = ultibi_core::datasource::fltr_chain_to_sql_query("delta", &fltr);
 
     assert_eq!(expected, res);
 }

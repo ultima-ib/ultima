@@ -173,7 +173,7 @@ where
             col("RiskFactor"),
             col("RiskFactorType"),
             col("SensitivitySpot"),
-            col("SensWeights").list().get(lit(0)),
+            col("SensWeights").list().get(lit(0), false),
         ],
         GetOutput::from_type(DataType::Float64),
         true,

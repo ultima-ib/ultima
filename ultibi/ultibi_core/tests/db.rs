@@ -1,6 +1,8 @@
 #[test]
 #[cfg(feature = "db")]
 fn test_query_create() {
+    use ultibi_core::filters::FilterE;
+
     let fltr = vec![
         vec![
             FilterE::Eq {

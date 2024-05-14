@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use polars::chunked_array::ops::SortMultipleOptions;
 use ultibi::{
     polars::prelude::{
         apply_multiple, df, ChunkApply, DataType, GetOutput, IntoSeries, NamedFromOwned,
@@ -93,8 +94,9 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             // This shouldn't be a problem since we sum positions (netShort netLong) anyway,
             // And THEN apply CreditQuality weights, BECAUSE Obligor - CreditQuality should be 1to1 map
             if offset {
+                let sort_options = SortMultipleOptions::default().with_maintain_order(true);
                 lf = lf
-                    .sort_by_exprs(&[col("rft")], [false], false, true)
+                    .sort_by_exprs(&[col("rft")], sort_options)
                     .group_by(["b", "rf"])
                     .apply(
                         |mut df| {
@@ -222,7 +224,7 @@ fn drc_nonsec_charge_calculator(rtrn: ReturnMetric, offset: bool, weights: Expr)
             col("RiskFactor"),
             col("SeniorityRank"),
             col("GrossJTD"),
-            weights.list().get(lit(0)),
+            weights.list().get(lit(0), false),
             col("ScaleFactor"),
         ],
         GetOutput::from_type(DataType::Float64),

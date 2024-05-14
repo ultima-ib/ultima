@@ -211,7 +211,7 @@ fn girr_vega_charge(
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").list().get(lit(0)),
+            col("SensWeights").list().get(lit(0), false),
             col("RiskFactorType"),
         ],
         GetOutput::from_type(DataType::Float64),

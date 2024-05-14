@@ -1,7 +1,7 @@
 #![allow(clippy::unnecessary_lazy_evaluations)]
 
 use ndarray::Array2;
-use polars::prelude::{BooleanType, ChunkedArray, PolarsError, Utf8Type};
+use polars::prelude::{BooleanType, ChunkedArray, PolarsError, StringType};
 use serde::{Deserialize, Serialize};
 use ultibi::{PolarsResult, CPM};
 
@@ -150,7 +150,7 @@ pub(crate) enum ReturnMetric {
     Hbr,
 }
 
-pub fn first_appearance(ca: &ChunkedArray<Utf8Type>) -> ChunkedArray<BooleanType> {
+pub fn first_appearance(ca: &ChunkedArray<StringType>) -> ChunkedArray<BooleanType> {
     let mut unique_values = std::collections::HashSet::new();
 
     ca.into_iter()

@@ -70,7 +70,7 @@ pub(crate) fn fx_delta_sens_repccy(op: &CPM) -> PolarsResult<Expr> {
 
 /// takes CalcParams because we need to know reporting CCY
 pub(crate) fn fx_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    Ok(fx_delta_sens_repccy(op)? * col("SensWeights").list().get(lit(0)))
+    Ok(fx_delta_sens_repccy(op)? * col("SensWeights").list().get(lit(0), false))
 }
 ///calculate FX Delta Sb, same for all scenarios
 pub(crate) fn fx_delta_sb(op: &CPM) -> PolarsResult<Expr> {
@@ -190,7 +190,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
             col("RiskClass"),
             col("BucketBCBS"),
             col("SensitivitySpot"),
-            col("SensWeights").list().get(lit(0)),
+            col("SensWeights").list().get(lit(0), false),
         ],
         GetOutput::from_type(DataType::Float64),
         true,

@@ -108,7 +108,7 @@ pub fn rc_tenor_weighted_sens(
         &[
             col("RiskClass"),
             col(delta_tenor),
-            col(weights_col).list().get(lit(weight_idx)),
+            col(weights_col).list().get(lit(weight_idx), false),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),
@@ -761,9 +761,9 @@ where
 
     // If this is a GIRR calculation, then compute XCCY and Inflation
     if let Some((rho_infl, rho_xccy)) = girr {
-        let xccy: f64 = bucket_df["XCCY"].sum().unwrap_or_else(|| 0.);
+        let xccy: f64 = bucket_df["XCCY"].sum().unwrap_or_else(|_| 0.);
         // 21.8.2.b
-        let infl: f64 = bucket_df["Inflation"].sum().unwrap_or_else(|| 0.);
+        let infl: f64 = bucket_df["Inflation"].sum().unwrap_or_else(|_| 0.);
         sb = sb + xccy + infl;
 
         var_covar_sum = var_covar_sum + xccy.powi(2) + infl.powi(2);

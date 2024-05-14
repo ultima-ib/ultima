@@ -96,7 +96,7 @@ pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> Expr {
                 )
                 .collect()?;
 
-            let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
+            let res = df["rrao"].sum::<f64>().unwrap_or_else(|_| 0.);
             //Ok(Series::from_vec("rrao", vec![res; columns[0].len()]))
             Ok(Some(Series::new("res", [res])))
         },

@@ -4,7 +4,7 @@ use polars::{
     prelude::{DataFrame, Field},
     series::Series,
 };
-use polars_arrow::{array::Array, datatypes::Field as PolarsArrowField};
+use polars_arrow::array::Array;
 
 use crate::errors::{UltiResult, UltimaErr};
 

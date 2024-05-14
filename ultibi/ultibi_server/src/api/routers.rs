@@ -54,7 +54,7 @@ async fn column_search(
 
     match res {
         Ok(srs) => Ok(HttpResponse::Ok().json(Vec::from(
-            srs.utf8()
+            srs.str()
                 .map_err(actix_web::error::ErrorInternalServerError)?,
         ))),
         Err(e) => {

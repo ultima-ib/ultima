@@ -1,4 +1,3 @@
-use ultibi_core::filters::FilterE;
 
 #[test]
 #[cfg(feature = "db")]

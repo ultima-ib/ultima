@@ -52,11 +52,11 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
 
     let mut tmp: Vec<DataFrame> = vec![
         describe_cast(&df.null_count(), &original_schema)?,
-        describe_cast(&df.sum(), &original_schema)?,
+        describe_cast(&df.lazy().sum().collect()?, &original_schema)?,
         describe_cast(&df.mean(), &original_schema)?,
         describe_cast(&df.std(1), &original_schema)?,
         describe_cast(&df.min(), &original_schema)?,
-        describe_cast(&df.max(), &original_schema)?,
+        describe_cast(&df.lazy().max().collect()?, &original_schema)?,
     ];
 
     for p in percentiles {

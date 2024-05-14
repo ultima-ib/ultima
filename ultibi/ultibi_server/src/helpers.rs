@@ -61,7 +61,7 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
 
     for p in percentiles {
         tmp.push(describe_cast(
-            &df.lazy().quantile((*p).into(), QuantileInterpolOptions::Linear)?.collect()?,
+            &df.clone().lazy().quantile((*p).into(), QuantileInterpolOptions::Linear)?.collect()?,
             &original_schema,
         )?);
         headers.push(format!("{}%", *p * 100.0));

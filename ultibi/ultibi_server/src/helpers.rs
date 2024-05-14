@@ -1,7 +1,7 @@
 use ultibi_core::{
     polars::{
-        prelude::{DataType, IdxSize, NamedFrom, QuantileInterpolOptions, Schema},
-        series::Series,IntoLazy,
+        prelude::{DataType, IdxSize, NamedFrom, QuantileInterpolOptions, Schema, IntoLazy},
+        series::Series,
     },
     DataFrame, PolarsResult,
 };

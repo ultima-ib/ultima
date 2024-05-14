@@ -1,7 +1,7 @@
 use ultibi_core::{
     polars::{
         prelude::{DataType, IdxSize, NamedFrom, QuantileInterpolOptions, Schema},
-        series::Series,
+        series::Series,IntoLazy,
     },
     DataFrame, PolarsResult,
 };
@@ -52,16 +52,16 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
 
     let mut tmp: Vec<DataFrame> = vec![
         describe_cast(&df.null_count(), &original_schema)?,
-        describe_cast(&df.lazy().sum().collect()?, &original_schema)?,
-        describe_cast(&df.mean(), &original_schema)?,
-        describe_cast(&df.std(1), &original_schema)?,
-        describe_cast(&df.min(), &original_schema)?,
-        describe_cast(&df.lazy().max().collect()?, &original_schema)?,
+        describe_cast(&df.lazy().sum()?.collect()?, &original_schema)?,
+        describe_cast(&df.lazy().mean()?.collect()?, &original_schema)?,
+        describe_cast(&df.lazy().std()?.collect()?, &original_schema)?,
+        describe_cast(&df.lazy().min()?.collect()?, &original_schema)?,
+        describe_cast(&df.lazy().max()?.collect()?, &original_schema)?,
     ];
 
     for p in percentiles {
         tmp.push(describe_cast(
-            &df.quantile(*p, QuantileInterpolOptions::Linear)?,
+            &df.lazy().quantile(*p, QuantileInterpolOptions::Linear)?.collect()?,
             &original_schema,
         )?);
         headers.push(format!("{}%", *p * 100.0));

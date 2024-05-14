@@ -1,5 +1,5 @@
 use polars::df;
-use polars::prelude::NamedFrom;
+// use polars::prelude::NamedFrom;
 use ultibi_core::{ComputeRequest, DataSet};
 
 mod common;

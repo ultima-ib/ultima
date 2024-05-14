@@ -33,7 +33,7 @@ polars = { version = "0.39.2", features = [
 ] }
 polars-plan = { version = "0.39.2", features = ["ffi_plugin"]}
 polars-arrow = {version = "0.39.2", features=["arrow_rs"]}
-arrow-array = "49"
+arrow-array = "51" # must match connector-x
 toml = "0.8.8"
 once_cell = "1.12"
 dashmap = "5.4.0"

@@ -1,6 +1,6 @@
 use ultibi_core::{
     polars::{
-        prelude::{DataType, IdxSize, NamedFrom, QuantileInterpolOptions, Schema, IntoLazy},
+        prelude::{DataType, IdxSize, IntoLazy, NamedFrom, QuantileInterpolOptions, Schema},
         series::Series,
     },
     DataFrame, PolarsResult,
@@ -34,7 +34,7 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
             .iter()
             .map(|s| Series::new(s.name(), [s.len() as IdxSize]))
             .collect();
-        unsafe{ DataFrame::new_no_checks(columns) }
+        unsafe { DataFrame::new_no_checks(columns) }
     }
 
     let percentiles = percentiles.unwrap_or(&[0.25, 0.5, 0.75]);
@@ -61,7 +61,10 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
 
     for p in percentiles {
         tmp.push(describe_cast(
-            &df.clone().lazy().quantile((*p).into(), QuantileInterpolOptions::Linear)?.collect()?,
+            &df.clone()
+                .lazy()
+                .quantile((*p).into(), QuantileInterpolOptions::Linear)?
+                .collect()?,
             &original_schema,
         )?);
         headers.push(format!("{}%", *p * 100.0));

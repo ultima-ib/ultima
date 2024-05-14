@@ -305,10 +305,10 @@ where
     let special_col = if let Some(sp_rho) = rho_overwrite {
         Some((
             df.column(&sp_rho.column)?.str()?, //0
-            &sp_rho.col_equals,                 //1
-            sp_rho.oneway,                      //2
-            sp_rho.value,                       //3
-            sp_rho.rhotype,                     //4
+            &sp_rho.col_equals,                //1
+            sp_rho.oneway,                     //2
+            sp_rho.value,                      //3
+            sp_rho.rhotype,                    //4
         ))
     } else {
         None

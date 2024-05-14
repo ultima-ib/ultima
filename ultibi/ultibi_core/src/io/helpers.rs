@@ -2,7 +2,8 @@ use std::{collections::BTreeMap, time::Instant};
 
 use polars::{
     prelude::{
-        col, DataFrame, DataType, Expr, Field, JoinArgs, JoinType, LazyCsvReader, LazyFileListReader, LazyFrame, NamedFrom, Schema
+        col, DataFrame, DataType, Expr, Field, JoinArgs, JoinType, LazyCsvReader,
+        LazyFileListReader, LazyFrame, NamedFrom, Schema,
     },
     series::Series,
 };
@@ -19,7 +20,7 @@ pub fn empty_frame(with_columns: &[String]) -> DataFrame {
     for c in with_columns {
         x.push(Series::new(c, &y));
     }
-    unsafe{ DataFrame::new_no_checks(x) }
+    unsafe { DataFrame::new_no_checks(x) }
 }
 
 /// reads DataFrame from path, casts cols to str and numeric cols to f64
@@ -68,9 +69,8 @@ pub fn finish(
     // if files to attributes was provided
     if !f2a.is_empty() {
         let f2a_expr = f2a.iter().map(|c| col(c)).collect::<Vec<Expr>>();
-        let args = JoinArgs::from(JoinType::Outer{coalesce: true});
-        concatinated_frame =
-            concatinated_frame.join(df_attr, f2a_expr.clone(), f2a_expr, args)
+        let args = JoinArgs::from(JoinType::Outer { coalesce: true });
+        concatinated_frame = concatinated_frame.join(df_attr, f2a_expr.clone(), f2a_expr, args)
         //.collect()
         //.expect("Could not join files with attributes-hms. Review files_join_attributes field in the setup");
     }

@@ -1,4 +1,3 @@
-
 #[test]
 #[cfg(feature = "db")]
 fn test_query_create() {

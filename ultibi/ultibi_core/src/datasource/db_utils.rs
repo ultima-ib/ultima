@@ -32,7 +32,10 @@ pub fn batch_to_df(batch: RecordBatch) -> DataFrame {
         .zip(batch.columns())
         .for_each(|(f, c)| {
             let polars_arrow_field = polars_arrow::datatypes::Field::from(f);
-            let polars_field = Field::from(f);
+            let polars_arrow_datatype = polars_arrow_field.data_type;
+            let polars_arrow_name = polars_arrow_field.name;
+            let polars_field = Field::new(&polars_arrow_name, (&polars_arrow_datatype).into());
+            // let polars_field = Field::from(f);
             let chunk: Box<dyn Array> = From::from(c.as_ref());
             let s = unsafe {
                 Series::from_chunks_and_dtype_unchecked(

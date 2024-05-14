@@ -21,7 +21,7 @@ pub fn multi_download(
 
     let mut vc = Vec::with_capacity(cast_to_str.len() + cast_to_f64.len());
     for str_col in cast_to_str {
-        vc.push(Field::new(str_col, DataType::Utf8))
+        vc.push(Field::new(str_col, DataType::String))
     }
     for f64_col in cast_to_f64 {
         vc.push(Field::new(f64_col, DataType::Float64))
@@ -33,7 +33,7 @@ pub fn multi_download(
 }
 
 async fn get_frames(bucket: &str, keys: &[&str], schema: &Schema) -> Vec<DataFrame> {
-    let config = aws_config::defaults(BehaviorVersion {}).load().await;
+    let config = aws_config::defaults(BehaviorVersion::latest() ).load().await;
 
     let client = Client::new(&config);
 

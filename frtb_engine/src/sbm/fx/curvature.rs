@@ -4,7 +4,7 @@ use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{
         apply_multiple, df, ChunkFillNullValue, ChunkSet, DataType, Float64Chunked, GetOutput,
-        IntoSeries, NumOpsDispatch, Utf8NameSpaceImpl,
+        IntoSeries, NumOpsDispatch, StringNameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
 };
@@ -17,7 +17,7 @@ fn risk_filtered_by_ccy(op: &CPM, risk: Expr) -> PolarsResult<Expr> {
     let ccy_regex = ccy_regex(op)?;
     Ok(risk.apply_many(
         move |columns| {
-            let mask = columns[1].utf8()?.contains(ccy_regex.as_str(), false)?;
+            let mask = columns[1].str()?.contains(ccy_regex.as_str(), false)?;
 
             let res = columns[0].f64()?.set(&!mask, None)?;
 
@@ -153,7 +153,7 @@ fn fx_curvature_charge(
                         .and(col("CurvatureRiskWeight").is_not_null())
                         .and(col("b").apply(
                             move |col| {
-                                Ok(Some(col.utf8()?.contains(&ccy_regex, false)?.into_series()))
+                                Ok(Some(col.str()?.contains(&ccy_regex, false)?.into_series()))
                             },
                             GetOutput::from_type(DataType::Boolean),
                         )),

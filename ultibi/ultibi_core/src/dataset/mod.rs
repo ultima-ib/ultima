@@ -219,7 +219,7 @@ pub fn fields_columns(schema: Arc<Schema>) -> Vec<String> {
         .filter(|field| {
             matches!(
                 field.data_type(),
-                DataType::Utf8
+                DataType::String
                     | DataType::UInt8
                     | DataType::Int8
                     | DataType::UInt16
@@ -239,7 +239,7 @@ pub fn overridable_columns(schema: Arc<Schema>) -> Vec<String> {
     schema
         .iter_fields()
         .filter(|c| match c.data_type() {
-            DataType::Utf8 | DataType::Boolean | DataType::Float64 => true,
+            DataType::String | DataType::Boolean | DataType::Float64 => true,
             DataType::List(x) => {
                 matches!(x.as_ref(), DataType::Float64)
             }

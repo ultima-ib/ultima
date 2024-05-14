@@ -169,7 +169,7 @@ fn girr_curvature_charge(
             }
 
             let _buckets: Vec<&str> = df["b"]
-                .utf8()?
+                .str()?
                 .into_iter()
                 .map(|s| s.unwrap_or("Default"))
                 .collect();

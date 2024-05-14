@@ -34,7 +34,7 @@ impl ToPyObject for Wrap<DataType> {
             DataType::Float32 => ul.getattr("Float32").unwrap().into(),
             DataType::Float64 => ul.getattr("Float64").unwrap().into(),
             DataType::Boolean => ul.getattr("Boolean").unwrap().into(),
-            DataType::Utf8 => ul.getattr("Utf8").unwrap().into(),
+            DataType::String => ul.getattr("Utf8").unwrap().into(),
             _ => PyTypeError::new_err("unsupported type").into_py(py),
         }
     }
@@ -57,7 +57,7 @@ impl FromPyObject<'_> for Wrap<DataType> {
                     "Int16" => DataType::Int16,
                     "Int32" => DataType::Int32,
                     "Int64" => DataType::Int64,
-                    "Utf8" => DataType::Utf8,
+                    "Utf8" => DataType::String,
                     "Binary" => DataType::Binary,
                     "Boolean" => DataType::Boolean,
                     "Categorical" => DataType::Categorical(None),

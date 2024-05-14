@@ -2,7 +2,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use polars::prelude::{concat_lf_diagonal, PolarsError};
+use polars::{chunked_array::ops::SortMultipleOptions, prelude::{concat_lf_diagonal, PolarsError}};
 pub use polars::{
     functions::concat_df_diagonal,
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
@@ -323,9 +323,11 @@ where
             .map(|e| e.fill_null(lit("Total")))
             .collect();
 
+        let sort_options = SortMultipleOptions::default().with_maintain_order(true);
+
         aggregated_df
             .lazy()
-            .sort_by_exprs(&groups, vec![false; groups.len()], false, true)
+            .sort_by_exprs(&groups,  sort_options)
             .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>())
             .with_columns(groups_totals)
             .collect()?

@@ -17,12 +17,12 @@ pub fn drc_scalinng(dc: Option<&String>, format: Option<&String>) -> Expr {
     apply_multiple(
         move |columns| {
             let z = columns[0]
-                .utf8()?
+                .str()?
                 .as_date(format.as_deref(), false)?
                 .as_date_iter()
                 .zip(
                     columns[1]
-                        .utf8()?
+                        .str()?
                         .as_date(format.as_deref(), false)?
                         .as_date_iter(),
                 )

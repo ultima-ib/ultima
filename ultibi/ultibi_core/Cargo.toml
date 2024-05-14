@@ -40,7 +40,7 @@ dashmap = { workspace = true }
 # TODO remove if compiles without quote = "1.0.26" # Needs to be specified for utoipa to build
 utoipa = { version="4.1.0", optional = true} # TODO change to version
 # DB
-connectorx = {git="https://github.com/AnatolyBuga/connector-x", branch = "arrow49", features=["dst_arrow", "src_mysql"], optional = true}
+connectorx = {git="https://github.com/AnatolyBuga/connector-x", branch = "arrow51", features=["dst_arrow", "src_mysql"], optional = true}
 
 
 

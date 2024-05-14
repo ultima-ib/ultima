@@ -1,4 +1,4 @@
-use polars::{prelude::Utf8NameSpaceImpl, series::Series};
+use polars::{prelude::StringNameSpaceImpl, series::Series};
 
 use crate::errors::{UltiResult, UltimaErr};
 
@@ -8,7 +8,7 @@ use crate::errors::{UltiResult, UltimaErr};
 /// TODO cache function
 pub fn filter_contains_unique(srs: &Series, pat: &str) -> UltiResult<Series> {
     let mask = srs
-        .utf8()?
+        .str()?
         .to_lowercase()
         .contains(pat.to_lowercase().as_str(), false)?;
     let filtered = srs.filter(&mask)?;

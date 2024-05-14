@@ -21,7 +21,7 @@ fn curv_delta(rc: &'static str, risk: Expr) -> Expr {
     apply_multiple(
         move |columns| {
             //RiskClass
-            let mask = columns[0].utf8()?.equal(rc);
+            let mask = columns[0].str()?.equal(rc);
 
             let mask1 = columns[1].f64()?.is_not_null();
 
@@ -175,7 +175,7 @@ pub(crate) fn curvature_kb_plus_minus(
             // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
             let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
+                AnyValue::String(st) => st.parse::<usize>().ok().and_then(|b_id| {
                     if b_id <= n_buckets {
                         Some(b_id)
                     } else {

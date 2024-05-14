@@ -9,7 +9,7 @@ use ultibi::polars::prelude::concat_lf_diagonal;
 use ultibi::polars::prelude::{
     col, concat_list, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
     IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
-    Series, Utf8NameSpaceImpl,
+    Series, StringNameSpaceImpl,
 };
 
 static FX_SPECIAL_DELTA_FULL_RW: OnceCell<LazyFrame> = OnceCell::new();
@@ -60,40 +60,40 @@ pub fn weights_assign(
 ) -> PolarsResult<LazyFrame> {
     // check columns. Some of the cast weights files must contain these:
     let check_columns0 = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("RiskFactorType").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("RiskFactorType").cast(DataType::String),
+        col("Weights").cast(DataType::String),
     ];
     let check_columns_rc_rcat_b_w = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("BucketBCBS").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("BucketBCBS").cast(DataType::String),
+        col("Weights").cast(DataType::String),
     ];
     let check_columns_rcat_rc_rft_b_w = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("BucketBCBS").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
-        col("RiskFactorType").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("BucketBCBS").cast(DataType::String),
+        col("Weights").cast(DataType::String),
+        col("RiskFactorType").cast(DataType::String),
     ];
     let check_columns_rc_rcat_w = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("Weights").cast(DataType::String),
     ];
     let check_columns4 = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("CreditQuality").cast(DataType::Utf8),
-        col("Weights").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("CreditQuality").cast(DataType::String),
+        col("Weights").cast(DataType::String),
     ];
     let check_columns_key_rc_rcat_drcrw = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("Key").cast(DataType::Utf8),
-        col("RiskWeightDRC").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("Key").cast(DataType::String),
+        col("RiskWeightDRC").cast(DataType::String),
     ];
 
     // FX  - can't be put into a frame due to regex requirement
@@ -575,8 +575,8 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.with_column(
         col("BucketBCBS")
             .map(
-                |s| Ok(Some(s.utf8()?.str_slice(0, Some(3)).into_series())),
-                GetOutput::from_type(DataType::Utf8),
+                |s| Ok(Some(s.str()?.str_slice(0, Some(3)).into_series())),
+                GetOutput::from_type(DataType::String),
             )
             .alias("Bucket"),
     );
@@ -632,8 +632,8 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         col("RiskClass"),
         col("RiskCategory"),
         col("CreditQuality").map(
-            |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
-            GetOutput::from_type(DataType::Utf8),
+            |s| Ok(Some(s.str()?.to_uppercase().into_series())),
+            GetOutput::from_type(DataType::String),
         ),
     ];
     let mut lf1 = lf1.join(
@@ -656,12 +656,12 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
         concat_str(
             [
                 col("CreditQuality").map(
-                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
-                    GetOutput::from_type(DataType::Utf8),
+                    |s| Ok(Some(s.str()?.to_uppercase().into_series())),
+                    GetOutput::from_type(DataType::String),
                 ),
                 col("RiskFactorType").map(
-                    |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
-                    GetOutput::from_type(DataType::Utf8),
+                    |s| Ok(Some(s.str()?.to_uppercase().into_series())),
+                    GetOutput::from_type(DataType::String),
                 ),
             ],
             "_",

@@ -19,13 +19,13 @@ pub fn sbm_buckets(_: &BTreeMap<String, String>) -> Expr {
                            // Hence, such mapping has to be done separately
                            /*.map(
                            move |srs| {
-                               let mut res = srs.utf8()?.to_owned();
+                               let mut res = srs.str()?.to_owned();
                                for (k, v) in &offshore_onshore {
                                    res = res.replace(k, v)?;
                                }
                                Ok(res.into_series())
                            },
-                           GetOutput::from_type(DataType::Utf8),
+                           GetOutput::from_type(DataType::String),
                            ) */
     ))
     .otherwise(col("BucketBCBS"))

@@ -20,7 +20,7 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
                 // for dates, strings, etc, we cast to string so that all
                 // statistics can be shown
                 else {
-                    s.cast(&DataType::Utf8)
+                    s.cast(&DataType::String)
                 }
             })
             .collect::<PolarsResult<Vec<Series>>>()?;
@@ -34,7 +34,7 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
             .iter()
             .map(|s| Series::new(s.name(), [s.len() as IdxSize]))
             .collect();
-        DataFrame::new_no_checks(columns)
+        unsafe{ DataFrame::new_no_checks(columns) }
     }
 
     let percentiles = percentiles.unwrap_or(&[0.25, 0.5, 0.75]);

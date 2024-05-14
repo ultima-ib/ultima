@@ -53,9 +53,9 @@ pub fn rc_rcat_sens(rcat: &'static str, rc: &'static str, risk: Expr) -> Expr {
     apply_multiple(
         move |columns| {
             //RiskClass
-            let mask = columns[0].utf8()?.equal(rc);
+            let mask = columns[0].str()?.equal(rc);
             //RiskCategory
-            let mask1 = columns[1].utf8()?.equal(rcat);
+            let mask1 = columns[1].str()?.equal(rcat);
 
             let risk_filtered = columns[2].f64()?.set(&!(mask & mask1), None)?;
 
@@ -72,7 +72,7 @@ pub fn rc_sens(rc: &'static str, risk: Expr) -> Expr {
     apply_multiple(
         move |columns| {
             //RiskClass
-            let mask = columns[0].utf8()?.equal(rc);
+            let mask = columns[0].str()?.equal(rc);
 
             let risk_filtered = columns[1].f64()?.set(&!mask, None)?;
 
@@ -96,9 +96,9 @@ pub fn rc_tenor_weighted_sens(
     apply_multiple(
         move |columns| {
             //RiskClass
-            let mask = columns[0].utf8()?.equal(rc);
+            let mask = columns[0].str()?.equal(rc);
             //RiskCategory
-            let mask1 = columns[3].utf8()?.equal(rcat);
+            let mask1 = columns[3].str()?.equal(rcat);
 
             let delta = columns[1].f64()?.set(&!(mask & mask1), None)?;
 
@@ -224,7 +224,7 @@ where
             let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
             // validating also bucket is not greater than max index of bucket_rho_diff_rf
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
+                AnyValue::String(st) => st.parse::<usize>().ok().and_then(|b_id| {
                     if (1..=n_buckets).contains(&b_id) {
                         Some(b_id)
                     } else {
@@ -298,13 +298,13 @@ where
             .sum::<f64>();
         return Ok((res, sb));
     }
-    let tenor_chunked = df[tenor_col].utf8()?;
-    let name_chunked = df[name_col].utf8()?;
-    let basis_chunked = df[basis_col].utf8()?;
+    let tenor_chunked = df[tenor_col].str()?;
+    let name_chunked = df[name_col].str()?;
+    let basis_chunked = df[basis_col].str()?;
     // If special rho was provided - unpack
     let special_col = if let Some(sp_rho) = rho_overwrite {
         Some((
-            df.column(&sp_rho.column)?.utf8()?, //0
+            df.column(&sp_rho.column)?.str()?, //0
             &sp_rho.col_equals,                 //1
             sp_rho.oneway,                      //2
             sp_rho.value,                       //3
@@ -429,7 +429,7 @@ where
             let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
             // validating also bucket is not greater than max index of bucket_rho_diff_rf
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
+                AnyValue::String(st) => st.parse::<usize>().ok().and_then(|b_id| {
                     if b_id <= n_buckets {
                         Some(b_id)
                     } else {
@@ -667,7 +667,7 @@ where
             // Safety: since we are in partition, bucket_df["b"] has at least one element
             let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
+                AnyValue::String(st) => st.parse::<usize>().ok().and_then(|b_id| {
                     if b_id <= n_buckets {
                         Some(b_id)
                     } else {
@@ -732,7 +732,7 @@ where
 {
     let bucket = unsafe {
         bucket_df["b"]
-            .utf8()?
+            .str()?
             .get_unchecked(0)
             .unwrap_or_else(|| "Default")
     }

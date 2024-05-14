@@ -12,7 +12,7 @@ use ultibi::polars_plan::dsl::max_horizontal;
 use ultibi::{
     polars::prelude::{
         apply_multiple, df, ChunkCompare, ChunkSet, DataType, GetOutput, IntoSeries, PolarsError,
-        Utf8NameSpaceImpl,
+        StringNameSpaceImpl,
     },
     BaseMeasure, IntoLazy, CPM,
 };
@@ -44,13 +44,13 @@ pub(crate) fn fx_delta_sens_repccy(op: &CPM) -> PolarsResult<Expr> {
     let ccy_regex = ccy_regex(op)?;
     Ok(apply_multiple(
         move |columns| {
-            let mask1 = columns[0].utf8()?.equal("FX");
+            let mask1 = columns[0].str()?.equal("FX");
 
             // function to take rep_ccy as an argument
-            let mask2 = columns[1].utf8()?.contains(ccy_regex.as_str(), false)?;
+            let mask2 = columns[1].str()?.contains(ccy_regex.as_str(), false)?;
 
             // function to take rep_ccy as an argument
-            let mask3 = columns[3].utf8()?.equal("Delta");
+            let mask3 = columns[3].str()?.equal("Delta");
 
             // Set delta's which don't match mask1 or mask2 to None (ie NaN)
             let delta = columns[2].f64()?.set(&!(mask1 & mask2 & mask3), None)?;
@@ -140,7 +140,7 @@ fn fx_delta_charge(gamma: f64, rtrn: ReturnMetric, ccy_regex: String) -> PolarsR
                         .and(col("rcat").eq(lit("Delta")))
                         .and(col("b").apply(
                             move |col| {
-                                Ok(Some(col.utf8()?.contains(&ccy_regex, false)?.into_series()))
+                                Ok(Some(col.str()?.contains(&ccy_regex, false)?.into_series()))
                             },
                             GetOutput::from_type(DataType::Boolean),
                         )),

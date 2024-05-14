@@ -95,7 +95,7 @@ pub(crate) fn string_to_any<'a>(
                 .map_err(|_| PolarsError::SchemaMismatch(emsg.into()))?,
         )),
         // All Other columns are
-        DataType::Utf8 => Ok(AnyValue::Utf8(value)),
+        DataType::String => Ok(AnyValue::String(value)),
 
         _ => Err(PolarsError::ComputeError(
             format!("Column {column_name} of this format cannot be overwritten",).into(),

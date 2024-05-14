@@ -31,8 +31,8 @@ pub fn batch_to_df(batch: RecordBatch) -> DataFrame {
         .into_iter()
         .zip(batch.columns())
         .for_each(|(f, c)| {
-            let polars_arrow_field = PolarsArrowField::from(f);
-            let polars_field = Field::from(&polars_arrow_field);
+            let polars_arrow_field = polars_arrow::datatypes::Field::from(f);
+            let polars_field = Field::from(f);
             let chunk: Box<dyn Array> = From::from(c.as_ref());
             let s = unsafe {
                 Series::from_chunks_and_dtype_unchecked(

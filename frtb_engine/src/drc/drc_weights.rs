@@ -1,6 +1,15 @@
 use std::collections::BTreeMap;
 
-use polars::{datatypes::StringChunked, df, lazy::{dsl::{col, concat_list}, frame::LazyFrame}, prelude::{JoinType, NamedFrom, NamedFromOwned}, series::{IntoSeries, Series}};
+use polars::{
+    datatypes::StringChunked,
+    df,
+    lazy::{
+        dsl::{col, concat_list},
+        frame::LazyFrame,
+    },
+    prelude::{JoinType, NamedFrom, NamedFromOwned},
+    series::{IntoSeries, Series},
+};
 use ultibi::{DataFrame, IntoLazy};
 
 pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {

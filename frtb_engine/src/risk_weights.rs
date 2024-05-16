@@ -575,9 +575,28 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
     lf1 = lf1.with_column(
         col("BucketBCBS")
             .map(
-                |s| Ok(Some(s.str()?.str_slice(&Series::from_any_values_and_dtype("offset", &[0.into()], &DataType::Int64, true).unwrap(),
-                &Series::from_any_values_and_dtype("offset", &[3.into()], &DataType::UInt64, true).unwrap())? // shall not fail
-                     .into_series())),
+                |s| {
+                    Ok(Some(
+                        s.str()?
+                            .str_slice(
+                                &Series::from_any_values_and_dtype(
+                                    "offset",
+                                    &[0.into()],
+                                    &DataType::Int64,
+                                    true,
+                                )
+                                .unwrap(),
+                                &Series::from_any_values_and_dtype(
+                                    "offset",
+                                    &[3.into()],
+                                    &DataType::UInt64,
+                                    true,
+                                )
+                                .unwrap(),
+                            )? // shall not fail
+                            .into_series(),
+                    ))
+                },
                 GetOutput::from_type(DataType::String),
             )
             .alias("Bucket"),
@@ -667,7 +686,7 @@ pub fn weight_assign_logic(lf: LazyFrame, weights: SensWeightsConfig) -> PolarsR
                 ),
             ],
             "_",
-            true
+            true,
         )
         .alias("Key"),
     );

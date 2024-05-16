@@ -11,7 +11,8 @@ pub fn total_csr_sec_nonctp_vega_sens(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub fn total_csr_sec_nonctp_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    total_csr_sec_nonctp_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0), false))
+    total_csr_sec_nonctp_vega_sens(op)
+        .map(|expr| expr * col("SensWeights").list().get(lit(0), false))
 }
 ///Interm Result
 pub(crate) fn csr_sec_nonctp_vega_sb(op: &CPM) -> PolarsResult<Expr> {

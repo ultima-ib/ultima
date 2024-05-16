@@ -158,9 +158,12 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
         //     .zip(is_numerc_col)
         //     .filter(|(_, y)| *y);
 
-        let mut it = all_requested_columns_names.into_iter()
-            .filter(|col_name|res.column(col_name).expect("Requested column not found")._dtype().is_numeric()); // Shall not fail
-            
+        let mut it = all_requested_columns_names.into_iter().filter(|col_name| {
+            res.column(col_name)
+                .expect("Requested column not found")
+                ._dtype()
+                .is_numeric()
+        }); // Shall not fail
 
         if let Some(c) = it.next() {
             // Filter where col is Not Eq 0 AND Not Eq Null
@@ -170,7 +173,6 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
             }
             res = res.lazy().filter(predicate).collect()?;
         }
-        
     };
 
     Ok(res)

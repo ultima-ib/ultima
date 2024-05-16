@@ -18,9 +18,8 @@ pub fn total_csrnonsec_vega_sens_weighted_bcbs(op: &CPM) -> PolarsResult<Expr> {
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => total_csrnonsec_vega_sens(op)
             .map(|expr| expr * col("SensWeightsCRR2").list().get(lit(0), false)),
-        Jurisdiction::BCBS => {
-            total_csrnonsec_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0), false))
-        }
+        Jurisdiction::BCBS => total_csrnonsec_vega_sens(op)
+            .map(|expr| expr * col("SensWeights").list().get(lit(0), false)),
     }
 }
 

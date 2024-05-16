@@ -164,8 +164,6 @@ where
                 _ => (),
             }
 
-            
-
             across_bucket_agg(kbs, sbs, &gamma, columns[0].len(), SBMChargeType::DeltaVega)
         },
         &[

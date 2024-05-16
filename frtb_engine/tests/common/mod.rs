@@ -46,7 +46,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
     };
     //let excl = data_req.group_by().clone();
     let a = LAZY_DASET.as_ref();
-    
+
     let res = a
         .compute(data_req)
         .expect("Error while calculating results");

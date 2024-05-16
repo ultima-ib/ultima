@@ -147,27 +147,30 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     // TODO Step 4 - cosmetics
     // Hide Zeros
     if hide_zeros {
-        let is_numerc_col = res
-            .columns(&all_requested_columns_names)?
-            .into_iter()
-            .map(|c| c._dtype().is_numeric())
-            .collect::<Vec<bool>>();
+        // let is_numerc_col = res
+        //     .columns(&all_requested_columns_names)?
+        //     .into_iter()
+        //     .map(|c| c._dtype().is_numeric())
+        //     .collect::<Vec<bool>>();
 
-        let mut it = all_requested_columns_names
-            .into_iter()
-            .zip(is_numerc_col)
-            .filter(|(_, y)| *y);
+        // let mut it = all_requested_columns_names
+        //     .into_iter()
+        //     .zip(is_numerc_col)
+        //     .filter(|(_, y)| *y);
 
-        if let Some((c, _)) = it.next() {
+        let mut it = all_requested_columns_names.into_iter()
+            .filter(|col_name|res.column(col_name).expect("Requested column not found")._dtype().is_numeric()); // Shall not fail
+            
+
+        if let Some(c) = it.next() {
             // Filter where col is Not Eq 0 AND Not Eq Null
-            let mut predicate = col(&c).neq(lit::<f64>(0.)).and(col(&c).neq(NULL.lit()));
-            for (c, _) in it {
-                predicate = predicate.or(col(&c).neq(lit::<f64>(0.)).and(col(&c).neq(NULL.lit())))
+            let mut predicate = col(&c).neq(lit::<f64>(0.)).and(col(&c).is_not_null());
+            for c in it {
+                predicate = predicate.or(col(&c).neq(lit::<f64>(0.)).and(col(&c).is_not_null()))
             }
             res = res.lazy().filter(predicate).collect()?;
         }
-        //let all_numerics = Expr::DtypeColumn(vec![DataType::Float64]);
-        //res = res.lazy().filter(all_numerics.clone().neq(lit::<f64>(0.)).and(all_numerics.neq(NULL.lit()))).collect()?;
+        
     };
 
     Ok(res)

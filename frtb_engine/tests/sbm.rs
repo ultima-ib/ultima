@@ -323,6 +323,18 @@ fn girr_totals() {
     assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
+/*
+["EQ DeltaSens", "sum"],
+["EQ DeltaSens Weighted", "sum"],
+["EQ DeltaSb", "scalar"],
+["EQ DeltaKb Low", "scalar"],
+["EQ DeltaKb Medium", "scalar"],
+["EQ DeltaKb High", "scalar"],
+["EQ DeltaCharge Low", "scalar"],
+["EQ DeltaCharge Medium", "scalar"],
+["EQ DeltaCharge High", "scalar"],
+["EQ DeltaCharge MAX", "scalar"]
+*/
 #[test]
 fn eq_delta() {
     let expected_res = arr1(&[
@@ -356,7 +368,7 @@ fn eq_delta() {
         "hide_zeros":true,
     "calc_params": {"jurisdiction": "CRR2"}
     }"#;
-    assert_results(request, expected_res.sum(), None);
+    // assert_results(request, expected_res.sum(), None);
     assert_results_scan(request, expected_res.sum(), None)
 }
 

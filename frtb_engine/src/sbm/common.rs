@@ -161,6 +161,8 @@ pub(crate) fn across_bucket_agg<I: IntoIterator<Item = f64>>(
         SBMChargeType::Curvature => f64::max(sum, 0.).sqrt(),
     };
 
+    dbg!(res);
+
     // The function is supposed to return a series of same len as the input, hence we broadcast the result
     //let res_arr = Array::from_elem(res_len, res);
     // if option panics on .unwrap() implement match and use .iter() and then Series from iter

@@ -119,7 +119,7 @@ pub(crate) enum Cvr {
     Down,
 }
 ///21.5.3.b
-pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
+pub(crate) fn phi(sbs: &[f64]) -> Array2<f64> {
     let mut arr = Array2::ones((sbs.len(), sbs.len()));
     let mut tmp: Vec<usize> = Vec::with_capacity(sbs.len()); // To keep track on negative Sbs
     for (i, v) in sbs.iter().enumerate() {

@@ -108,7 +108,7 @@ pub fn rc_tenor_weighted_sens(
         &[
             col("RiskClass"),
             col(delta_tenor),
-            col(weights_col).list().get(lit(weight_idx), false),
+            col(weights_col).list().get(lit(weight_idx), true),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),

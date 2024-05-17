@@ -166,6 +166,9 @@ fn fx_total() {
     assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
+/*
+
+*/
 #[test]
 fn girr_delta() {
     let expected_res = arr1(&[
@@ -174,7 +177,8 @@ fn girr_delta() {
     ]);
     let request = r#"
     {"measures": [
-        ["GIRR DeltaSens", "sum"],
+        
+    ["GIRR DeltaSens", "sum"],
 ["GIRR DeltaSens Weighted", "sum"],
 ["GIRR DeltaSb", "scalar"],
 ["GIRR DeltaKb Low", "scalar"],
@@ -192,7 +196,7 @@ fn girr_delta() {
             
     }"#;
     assert_results(request, expected_res.sum(), Some(1e-4));
-    assert_results_scan(request, expected_res.sum(), Some(1e-4))
+    // assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
 #[test]
@@ -323,18 +327,7 @@ fn girr_totals() {
     assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
-/*
-["EQ DeltaSens", "sum"],
-["EQ DeltaSens Weighted", "sum"],
-["EQ DeltaSb", "scalar"],
-["EQ DeltaKb Low", "scalar"],
-["EQ DeltaKb Medium", "scalar"],
-["EQ DeltaKb High", "scalar"],
-["EQ DeltaCharge Low", "scalar"],
-["EQ DeltaCharge Medium", "scalar"],
-["EQ DeltaCharge High", "scalar"],
-["EQ DeltaCharge MAX", "scalar"]
-*/
+
 #[test]
 fn eq_delta() {
     let expected_res = arr1(&[

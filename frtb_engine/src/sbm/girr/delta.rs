@@ -191,6 +191,7 @@ where
 {
     apply_multiple(
         move |columns| {
+
             let mut df = df![
                 "rcat" => columns[15].clone(),
                 "rc" =>   columns[0].clone(),
@@ -221,6 +222,10 @@ where
                 "w20" =>  columns[25].clone(),
                 "w30" =>  columns[26].clone(),
             ]?;
+
+            dbg!(&df);
+
+            
 
             // If the weight of the reporting currency has not yet been reduced - reduce it
             if !REDUCED_IR_WEIGHT.contains(rep_ccy.as_str()) {
@@ -370,17 +375,17 @@ where
             col("Sensitivity_30Y"),
             col("RiskCategory"),
             //col("SensWeights"),
-            col("SensWeights").list().get(lit(0), false),
-            col("SensWeights").list().get(lit(1), false),
-            col("SensWeights").list().get(lit(2), false),
-            col("SensWeights").list().get(lit(3), false),
-            col("SensWeights").list().get(lit(4), false),
-            col("SensWeights").list().get(lit(5), false),
-            col("SensWeights").list().get(lit(6), false),
-            col("SensWeights").list().get(lit(7), false),
-            col("SensWeights").list().get(lit(8), false),
-            col("SensWeights").list().get(lit(9), false),
-            col("SensWeights").list().get(lit(10), false),
+            col("SensWeights").list().get(lit(0), true),
+            col("SensWeights").list().get(lit(1), true),
+            col("SensWeights").list().get(lit(2), true),
+            col("SensWeights").list().get(lit(3), true),
+            col("SensWeights").list().get(lit(4), true),
+            col("SensWeights").list().get(lit(5), true),
+            col("SensWeights").list().get(lit(6), true),
+            col("SensWeights").list().get(lit(7), true),
+            col("SensWeights").list().get(lit(8), true),
+            col("SensWeights").list().get(lit(9), true),
+            col("SensWeights").list().get(lit(10), true),
         ],
         GetOutput::from_type(DataType::Float64),
         true,

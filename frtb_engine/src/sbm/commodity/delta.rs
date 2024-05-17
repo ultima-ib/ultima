@@ -16,7 +16,7 @@ pub fn total_commodity_delta_sens(_: &CPM) -> PolarsResult<Expr> {
 
 /// Total Commodity Delta
 pub(crate) fn commodity_delta_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    total_commodity_delta_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0), false))
+    total_commodity_delta_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0), true))
 }
 
 /// Interm Result: Commodity Delta Sb <--> Sb Low == Sb Medium == Sb High
@@ -181,17 +181,17 @@ where
                 )
                 .group_by(grp_by)
                 .agg([
-                    (col("y0") * col("w").list().get(lit(0), false)).sum(),
-                    (col("y025") * col("w").list().get(lit(1), false)).sum(),
-                    (col("y05") * col("w").list().get(lit(2), false)).sum(),
-                    (col("y1") * col("w").list().get(lit(3), false)).sum(),
-                    (col("y2") * col("w").list().get(lit(4), false)).sum(),
-                    (col("y3") * col("w").list().get(lit(5), false)).sum(),
-                    (col("y5") * col("w").list().get(lit(6), false)).sum(),
-                    (col("y10") * col("w").list().get(lit(7), false)).sum(),
-                    (col("y15") * col("w").list().get(lit(8), false)).sum(),
-                    (col("y20") * col("w").list().get(lit(9), false)).sum(),
-                    (col("y30") * col("w").list().get(lit(10), false)).sum(),
+                    (col("y0") * col("w").list().get(lit(0), true)).sum(),
+                    (col("y025") * col("w").list().get(lit(1), true)).sum(),
+                    (col("y05") * col("w").list().get(lit(2), true)).sum(),
+                    (col("y1") * col("w").list().get(lit(3), true)).sum(),
+                    (col("y2") * col("w").list().get(lit(4), true)).sum(),
+                    (col("y3") * col("w").list().get(lit(5), true)).sum(),
+                    (col("y5") * col("w").list().get(lit(6), true)).sum(),
+                    (col("y10") * col("w").list().get(lit(7), true)).sum(),
+                    (col("y15") * col("w").list().get(lit(8), true)).sum(),
+                    (col("y20") * col("w").list().get(lit(9), true)).sum(),
+                    (col("y30") * col("w").list().get(lit(10), true)).sum(),
                 ])
                 // No need to fill null here
                 .collect()?;

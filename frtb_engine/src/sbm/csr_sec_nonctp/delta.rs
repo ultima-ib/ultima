@@ -256,7 +256,7 @@ where
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").list().get(lit(0), false),
+            col("SensWeights").list().get(lit(0), true),
             col("RiskCategory"),
         ],
         GetOutput::from_type(DataType::Float64),

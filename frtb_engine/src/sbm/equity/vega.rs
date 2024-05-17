@@ -12,7 +12,7 @@ pub fn total_eq_vega_sens(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub fn total_eq_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    total_eq_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0), false))
+    total_eq_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0), true))
 }
 ///Interm Result
 pub(crate) fn equity_vega_sb(op: &CPM) -> PolarsResult<Expr> {
@@ -161,7 +161,7 @@ where
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").list().get(lit(0), false),
+            col("SensWeights").list().get(lit(0), true),
         ],
         GetOutput::from_type(DataType::Float64),
         true,

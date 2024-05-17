@@ -15,7 +15,7 @@ pub fn total_fx_vega_sens(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub fn total_fx_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    Ok(total_fx_vega_sens(op)? * col("SensWeights").list().get(lit(0), false))
+    Ok(total_fx_vega_sens(op)? * col("SensWeights").list().get(lit(0), true))
 }
 
 /// Sb Low == Sb Medium == Sb High
@@ -154,7 +154,7 @@ fn fx_vega_charge(
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").list().get(lit(0), false),
+            col("SensWeights").list().get(lit(0), true),
         ],
         GetOutput::from_type(DataType::Float64),
         true,

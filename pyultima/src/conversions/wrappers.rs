@@ -60,7 +60,7 @@ impl FromPyObject<'_> for Wrap<DataType> {
                     "Utf8" => DataType::String,
                     "Binary" => DataType::Binary,
                     "Boolean" => DataType::Boolean,
-                    "Categorical" => DataType::Categorical(None),
+                    "Categorical" => DataType::Categorical(None, Default::default()),
                     "Date" => DataType::Date,
                     "Time" => DataType::Time,
                     "Float32" => DataType::Float32,

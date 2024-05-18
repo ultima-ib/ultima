@@ -3,7 +3,6 @@ mod common;
 use common::LAZY_DASET;
 use ultibi::polars::prelude::{Float64Type, IndexOrder};
 
-
 /// Note in later(post 25.1) versions of polars cannot call max_expr on
 /// an aggregated Expr. See this:
 /// https://github.com/pola-rs/polars/issues/6115
@@ -42,5 +41,4 @@ fn dependant_sbm() {
     // Instead it was derived via measures which were derived from a SS
     let expected = 2267954.452798342;
     assert!((sum1 - expected).abs() < 1e-4);
-
 }

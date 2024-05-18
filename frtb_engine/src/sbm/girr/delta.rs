@@ -191,7 +191,6 @@ where
 {
     apply_multiple(
         move |columns| {
-
             let mut df = df![
                 "rcat" => columns[15].clone(),
                 "rc" =>   columns[0].clone(),
@@ -224,8 +223,6 @@ where
             ]?;
 
             dbg!(&df);
-
-            
 
             // If the weight of the reporting currency has not yet been reduced - reduce it
             if !REDUCED_IR_WEIGHT.contains(rep_ccy.as_str()) {

@@ -51,7 +51,7 @@ pub fn assert_results(req: &str, expected_sum: f64, epsilon: Option<f64>) {
         .compute(data_req)
         .expect("Error while calculating results");
 
-        let res_numeric = res
+    let res_numeric = res
         .lazy()
         .select([col("*").exclude(excl)])
         .collect()

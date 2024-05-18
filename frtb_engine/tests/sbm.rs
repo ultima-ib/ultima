@@ -327,7 +327,6 @@ fn girr_totals() {
     assert_results_scan(request, expected_res.sum(), Some(1e-4))
 }
 
-
 #[test]
 fn eq_delta() {
     let expected_res = arr1(&[

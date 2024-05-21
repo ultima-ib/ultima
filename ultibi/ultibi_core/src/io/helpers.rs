@@ -38,10 +38,10 @@ pub fn path_to_lf(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
     let lf = LazyCsvReader::new(path)
-        .has_header(true)
+        .with_has_header(true)
         .with_try_parse_dates(true)
-        .with_dtype_overwrite(Some(&schema))
-        //.with_ignore_parser_errors(ignore)
+        .with_dtype_overwrite(Some(schema.into()))
+        // .with_ignore_parser_errors(ignore)
         .finish()
         .unwrap_or_else(|_| panic!("Error reading file: {path}"));
 
@@ -69,7 +69,7 @@ pub fn finish(
     // if files to attributes was provided
     if !f2a.is_empty() {
         let f2a_expr = f2a.iter().map(|c| col(c)).collect::<Vec<Expr>>();
-        let args = JoinArgs::from(JoinType::Outer { coalesce: true });
+        let args = JoinArgs::from(JoinType::Outer );
         concatinated_frame = concatinated_frame.join(df_attr, f2a_expr.clone(), f2a_expr, args)
         //.collect()
         //.expect("Could not join files with attributes-hms. Review files_join_attributes field in the setup");

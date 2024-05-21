@@ -2,12 +2,14 @@
 //! It follows the logic prescribed by the text https://www.bis.org/bcbs/publ/d457.pdf
 //! TODO Weights column is a list. We can't read it as list from a csv. frame_from_path_or_str must concat_lst columns which have Sens in the name
 
+use std::path::Path;
 use crate::drc::drc_weights;
 use once_cell::sync::OnceCell;
+use polars::io::csv::read::CsvReadOptions;
 use std::collections::BTreeMap;
 use ultibi::polars::prelude::concat_lf_diagonal;
 use ultibi::polars::prelude::{
-    col, concat_list, concat_str, df, lit, CsvReader, DataFrame, DataType, Expr, GetOutput,
+    col, concat_list, concat_str, df, lit, DataFrame, DataType, Expr, GetOutput,
     IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsError, PolarsResult, SerReader,
     Series, StringNameSpaceImpl,
 };
@@ -809,18 +811,19 @@ pub(crate) fn girr_infl_xccy_weights_frame(
 /// If not tries to serialise it
 /// Checks for expected columns
 pub fn frame_from_path_or_str(
-    some_str: &str,
+    path_or_serialised_df: &str,
     check_columns: &[Expr],
     cast_to_lst_f64: &str,
 ) -> PolarsResult<DataFrame> {
-    let df = if let Ok(csv) = CsvReader::from_path(some_str) {
-        csv.has_header(true)
-            .finish()?
-            .lazy()
-            .select(check_columns)
-            .collect()
-    } else {
-        serde_json::from_str::<DataFrame>(some_str)
+
+    let df = if Path::new(path_or_serialised_df).exists() {
+        CsvReadOptions::default()
+        .with_has_header(true)
+        .try_into_reader_with_file_path(Some(path_or_serialised_df.into())).unwrap() // path exists, we shouldn't panic
+        .finish() 
+    }
+    else {
+        serde_json::from_str::<DataFrame>(path_or_serialised_df)
             .map_err(|_| PolarsError::InvalidOperation("couldn't serialise string to frame".into()))
             .and_then(|df| df.lazy().select(check_columns).collect())
     }?;

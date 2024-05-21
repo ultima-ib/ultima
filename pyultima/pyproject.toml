@@ -11,7 +11,7 @@ authors = [
 ]
 license = { file = "LICENSE" }
 dependencies = [
-  "polars  >= 0.19.18",
+  "polars  == 0.20.27",
   "pyarrow >= 7.0.0",
 ]
 keywords = ["dataframe", "visualization","pivot","table","pivottable", "aggregation", "calculation", 

@@ -20,7 +20,8 @@ exclude = ['templates']
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-polars = { version = "0.39.2", features = [
+#  git = "https://github.com/pola-rs/polars", tag="py-0.20.27"
+polars = { version = "0.40.0", features = [
     "performant", 
     "strings",
     "ndarray",
@@ -31,8 +32,8 @@ polars = { version = "0.39.2", features = [
     "diagonal_concat",
     "serde-lazy"
 ] }
-polars-plan = { version = "0.39.2", features = ["ffi_plugin"]}
-polars-arrow = {version = "0.39.2", features=["arrow_rs"]}
+polars-plan = { version = "0.40.0", features = ["ffi_plugin"]}
+polars-arrow = {version = "0.40.0", features=["arrow_rs"]}
 arrow-array = "51" # must match connector-x
 toml = "0.8.8"
 once_cell = "1.12"

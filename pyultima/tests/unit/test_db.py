@@ -15,6 +15,8 @@ LINUX = (sys.platform == "linux") or (sys.platform == "linux2")
 
 
 class TestDb(unittest.TestCase):
+    """REQUIRES A RUNNING SQL SERVICE. If running locally create MySql Service and table
+    """
     def host(self) -> str:
         if IN_GITHUB_ACTIONS:
             print("GITHUB ACTIONS")

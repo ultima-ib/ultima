@@ -29,11 +29,6 @@ toml = { workspace = true }
 once_cell = { workspace = true }
 derivative = "2.2"
 thiserror = "*"
-#AWS S3
-aws-config = { version = "1", optional = true }
-aws-sdk-s3 = { version = "1", optional = true }
-tokio = { version = "1.21.2", features = ["rt-multi-thread"], optional = true }
-futures = { version = "0.3", optional = true }
 #Cache
 dashmap = { workspace = true }
 # Open API Swagger
@@ -46,6 +41,5 @@ connectorx = {git="https://github.com/AnatolyBuga/connector-x", branch = "arrow5
 
 [features]
 default = []
-aws_s3 = ["dep:aws-config", "dep:aws-sdk-s3", "dep:tokio", "dep:futures"]
 openapi = ["dep:utoipa"]
 db = ["dep:connectorx", "dep:polars-arrow", "dep:arrow-array", "polars-arrow/arrow_rs"]

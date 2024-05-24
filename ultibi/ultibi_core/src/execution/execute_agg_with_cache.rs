@@ -62,7 +62,7 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
                     df.lazy(),
                     grp_by_expr.clone(),
                     grp_by_expr.clone(),
-                    JoinArgs::from(JoinType::Outer ),
+                    JoinArgs::from(JoinType::Outer),
                 )
                 .collect()?
         }

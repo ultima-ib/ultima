@@ -84,9 +84,11 @@ impl DataSourceConfig {
                 build_params,
                 source_type,
             } => {
-
                 for f in files.iter() {
-                    assert!(Path::new(&f).exists(), "{f} : File path doesn't exist. Check your config file")
+                    assert!(
+                        Path::new(&f).exists(),
+                        "{f} : File path doesn't exist. Check your config file"
+                    )
                 }
                 for s in f2a.iter() {
                     if !str_cols.contains(s) {

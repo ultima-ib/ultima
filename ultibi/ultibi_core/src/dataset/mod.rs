@@ -37,7 +37,6 @@ pub struct DataSetBase {
 ///
 /// If you have your own DataSet, implement this
 pub trait DataSet: Send + Sync {
-
     /// Since we support a limited number of data sources, each [DataSet] must contain a source.
     /// Since many of the [DataSet] methods' logic depends on the variant of the source, we implement those there    
     fn get_datasource(&self) -> &DataSource;

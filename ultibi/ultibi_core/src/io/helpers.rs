@@ -37,15 +37,13 @@ pub fn path_to_lf(path: &str, cast_to_str: &[String], cast_to_f64: &[String]) ->
 
     // if path provided, then we expect it to be of the correct format
     // unrecoverable. Panic if failed to read file
-    let lf = LazyCsvReader::new(path)
+    LazyCsvReader::new(path)
         .with_has_header(true)
         .with_try_parse_dates(true)
         .with_dtype_overwrite(Some(schema.into()))
         // .with_ignore_parser_errors(ignore)
         .finish()
-        .unwrap_or_else(|_| panic!("Error reading file: {path}"));
-
-    lf
+        .unwrap_or_else(|_| panic!("Error reading file: {path}"))
 }
 
 pub fn finish(

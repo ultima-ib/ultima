@@ -1,4 +1,5 @@
 use once_cell::sync::Lazy;
+use polars::datatypes::UnknownKind;
 use pyo3::{
     exceptions::{PyTypeError, PyValueError},
     types::PyModule,
@@ -67,7 +68,7 @@ impl FromPyObject<'_> for Wrap<DataType> {
                     "Float64" => DataType::Float64,
                     "List" => DataType::List(Box::new(DataType::Boolean)),
                     "Null" => DataType::Null,
-                    "Unknown" => DataType::Unknown,
+                    "Unknown" => DataType::Unknown(UnknownKind::Any),
                     _ => return Err(PyValueError::new_err("not a correct polars DataType")),
                 }
             }

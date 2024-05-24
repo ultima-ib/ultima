@@ -1,6 +1,6 @@
 use pyo3::{FromPyObject, PyAny, PyResult};
 use ultibi::polars::lazy::dsl::Expr;
-use ultibi::{polars::lazy::frame::LazyFrame, polars_plan::logical_plan::LogicalPlan};
+use ultibi::{polars::lazy::frame::LazyFrame, polars::prelude::DslPlan};
 
 use crate::errors::PyUltimaErr;
 
@@ -9,7 +9,7 @@ pub struct PyLazyFrame(pub LazyFrame);
 impl<'a> FromPyObject<'a> for PyLazyFrame {
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
         let s = ob.call_method0("__getstate__")?.extract::<Vec<u8>>()?;
-        let lp: LogicalPlan = ciborium::de::from_reader(&*s).map_err(
+        let lp: DslPlan = ciborium::de::from_reader(&*s).map_err(
             |e| PyUltimaErr::Other(
                 format!("Error when deserializing LazyFrame. This may be due to mismatched polars versions. {}", e)
             )

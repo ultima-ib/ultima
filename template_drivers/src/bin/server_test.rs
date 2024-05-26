@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
     let default = BTreeMap::new();
     let data = config_build_validate_prepare::<DataSetType>(setup_path.as_str(), default);
     let ds: Arc<RwLock<dyn DataSet>> = Arc::new(RwLock::new(data));
-
+    
     // Assume non streaming mode
     // For more information see documentation
     ds.ui();

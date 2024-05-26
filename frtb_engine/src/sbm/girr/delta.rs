@@ -222,8 +222,6 @@ where
                 "w30" =>  columns[26].clone(),
             ]?;
 
-            dbg!(&df);
-
             // If the weight of the reporting currency has not yet been reduced - reduce it
             if !REDUCED_IR_WEIGHT.contains(rep_ccy.as_str()) {
                 df = df

@@ -1,4 +1,4 @@
-use polars::prelude::{col, DataFrame, Expr, IntoLazy, JoinArgs, JoinType};
+use polars::prelude::{col, DataFrame, Expr, IntoLazy, JoinArgs, JoinType, JoinCoalesce};
 
 use crate::cache::CacheableDataSet;
 use crate::errors::UltiResult;
@@ -54,17 +54,18 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
     let _chached_df = if !cached_results.is_empty() {
         let mut it = cached_results.into_iter();
         let mut res = it.next().unwrap(); //cached_res is not empty
-
+        dbg!(&res);
         for df in it {
-            res = res
+            dbg!(&df);
+            res = dbg!(res
                 .lazy()
                 .join(
                     df.lazy(),
                     grp_by_expr.clone(),
                     grp_by_expr.clone(),
-                    JoinArgs::from(JoinType::Outer),
+                    JoinArgs::from(JoinType::Outer).with_coalesce(JoinCoalesce::CoalesceColumns),
                 )
-                .collect()?
+                .collect()?)
         }
         Some(res)
     } else {
@@ -122,7 +123,7 @@ pub(crate) fn _exec_agg_with_cache<DS: CacheableDataSet + ?Sized>(
                 new.lazy(),
                 grp_by_expr.clone(),
                 grp_by_expr,
-                JoinArgs::from(JoinType::Outer),
+                JoinArgs::from(JoinType::Outer).with_coalesce(JoinCoalesce::CoalesceColumns),
             )
             .collect()?),
         (None, Some(df)) | (Some(df), None) => Ok(df),

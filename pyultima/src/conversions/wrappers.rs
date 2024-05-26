@@ -58,7 +58,7 @@ impl FromPyObject<'_> for Wrap<DataType> {
                     "Int16" => DataType::Int16,
                     "Int32" => DataType::Int32,
                     "Int64" => DataType::Int64,
-                    "Utf8" => DataType::String,
+                    "String" => DataType::String,
                     "Binary" => DataType::Binary,
                     "Boolean" => DataType::Boolean,
                     "Categorical" => DataType::Categorical(None, Default::default()),

@@ -150,11 +150,11 @@ fn csr_nonsec_delta_charge_distributor(
         #[cfg(feature = "CRR2")]
         Jurisdiction::CRR2 => (
             [
-                col("SensWeightsCRR2").list().get(lit(0)),
-                col("SensWeightsCRR2").list().get(lit(1)),
-                col("SensWeightsCRR2").list().get(lit(2)),
-                col("SensWeightsCRR2").list().get(lit(3)),
-                col("SensWeightsCRR2").list().get(lit(4)),
+                col("SensWeightsCRR2").list().get(lit(0), true),
+                col("SensWeightsCRR2").list().get(lit(1), true),
+                col("SensWeightsCRR2").list().get(lit(2), true),
+                col("SensWeightsCRR2").list().get(lit(3), true),
+                col("SensWeightsCRR2").list().get(lit(4), true),
             ],
             col("BucketCRR2"),
             Vec::from(scenario.csr_nonsec_delta_diff_name_rho_per_bucket_base_crr2),
@@ -165,11 +165,11 @@ fn csr_nonsec_delta_charge_distributor(
 
         Jurisdiction::BCBS => (
             [
-                col("SensWeights").list().get(lit(0)),
-                col("SensWeights").list().get(lit(1)),
-                col("SensWeights").list().get(lit(2)),
-                col("SensWeights").list().get(lit(3)),
-                col("SensWeights").list().get(lit(4)),
+                col("SensWeights").list().get(lit(0), true),
+                col("SensWeights").list().get(lit(1), true),
+                col("SensWeights").list().get(lit(2), true),
+                col("SensWeights").list().get(lit(3), true),
+                col("SensWeights").list().get(lit(4), true),
             ],
             col("BucketBCBS"),
             Vec::from(scenario.csr_nonsec_delta_vega_diff_name_rho_per_bucket_base_bcbs),

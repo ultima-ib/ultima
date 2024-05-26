@@ -42,7 +42,7 @@ pub(crate) fn other_charge(op: &CPM) -> PolarsResult<Expr> {
 pub(crate) fn rrao_weighted_notional(weight: Option<f64>, rrao_type: &'static str) -> Expr {
     apply_multiple(
         move |columns| {
-            let first_appearance_mask = first_appearance(columns[0].utf8()?);
+            let first_appearance_mask = first_appearance(columns[0].str()?);
             let rrao_type_mask = columns[1].bool()?.fill_null_with_values(false)?;
 
             let notional = columns[2]
@@ -96,7 +96,7 @@ pub(crate) fn rrao_calc(exotic_weight: f64, other_weight: f64) -> Expr {
                 )
                 .collect()?;
 
-            let res = df["rrao"].sum::<f64>().unwrap_or_else(|| 0.);
+            let res = df["rrao"].sum::<f64>().unwrap_or_else(|_| 0.);
             //Ok(Series::from_vec("rrao", vec![res; columns[0].len()]))
             Ok(Some(Series::new("res", [res])))
         },

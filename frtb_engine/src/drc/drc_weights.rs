@@ -1,5 +1,16 @@
-use polars::prelude::*;
 use std::collections::BTreeMap;
+
+use polars::{
+    datatypes::StringChunked,
+    df,
+    lazy::{
+        dsl::{col, concat_list},
+        frame::LazyFrame,
+    },
+    prelude::{JoinType, NamedFrom, NamedFromOwned},
+    series::{IntoSeries, Series},
+};
+use ultibi::{DataFrame, IntoLazy};
 
 pub(crate) fn dcr_nonsec_default_weights() -> DataFrame {
     let s0 = Series::new("AAA", &[0.005]);
@@ -89,7 +100,7 @@ pub(crate) fn drc_secnonctp_weights_frame() -> DataFrame {
         .into_iter()
         .map(|(k, v)| (k.to_string(), v / 100.))
         .unzip();
-    let seniority_arr = Utf8Chunked::from_iter(key);
+    let seniority_arr = StringChunked::from_iter(key);
     df![
         "Key" => seniority_arr.into_series(),
         "RiskWeightDRC" => Series::from_vec("RiskWeight",weight),

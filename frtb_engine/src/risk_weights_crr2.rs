@@ -6,7 +6,7 @@ use once_cell::sync::OnceCell;
 use ultibi::polars::prelude::concat_lf_diagonal;
 use ultibi::polars::prelude::{
     col, DataType, GetOutput, IntoLazy, IntoSeries, JoinType, LazyFrame, NamedFrom, PolarsResult,
-    Series, Utf8NameSpaceImpl,
+    Series, StringNameSpaceImpl,
 };
 
 use crate::{
@@ -33,16 +33,16 @@ pub fn weights_assign_crr2(
     build_params: &BTreeMap<String, String>,
 ) -> PolarsResult<LazyFrame> {
     let check_columns = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("BucketCRR2").cast(DataType::Utf8),
-        col("WeightsCRR2").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("BucketCRR2").cast(DataType::String),
+        col("WeightsCRR2").cast(DataType::String),
     ];
     let check_columns4 = [
-        col("RiskClass").cast(DataType::Utf8),
-        col("RiskCategory").cast(DataType::Utf8),
-        col("CreditQuality").cast(DataType::Utf8),
-        col("WeightsCRR2").cast(DataType::Utf8),
+        col("RiskClass").cast(DataType::String),
+        col("RiskCategory").cast(DataType::String),
+        col("CreditQuality").cast(DataType::String),
+        col("WeightsCRR2").cast(DataType::String),
     ];
 
     let csr_nonsec_weights_crr2 = [
@@ -141,8 +141,8 @@ pub fn weight_assign_logic_crr2(
         col("RiskClass"),
         col("RiskCategory"),
         col("CreditQuality").map(
-            |s| Ok(Some(s.utf8()?.to_uppercase().into_series())),
-            GetOutput::from_type(DataType::Utf8),
+            |s| Ok(Some(s.str()?.to_uppercase().into_series())),
+            GetOutput::from_type(DataType::String),
         ),
     ];
     let mut lf1 = lf1.join(

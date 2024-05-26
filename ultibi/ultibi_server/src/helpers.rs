@@ -1,6 +1,6 @@
 use ultibi_core::{
     polars::{
-        prelude::{DataType, IdxSize, NamedFrom, QuantileInterpolOptions, Schema},
+        prelude::{DataType, IdxSize, IntoLazy, NamedFrom, QuantileInterpolOptions, Schema},
         series::Series,
     },
     DataFrame, PolarsResult,
@@ -20,7 +20,7 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
                 // for dates, strings, etc, we cast to string so that all
                 // statistics can be shown
                 else {
-                    s.cast(&DataType::Utf8)
+                    s.cast(&DataType::String)
                 }
             })
             .collect::<PolarsResult<Vec<Series>>>()?;
@@ -34,7 +34,7 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
             .iter()
             .map(|s| Series::new(s.name(), [s.len() as IdxSize]))
             .collect();
-        DataFrame::new_no_checks(columns)
+        unsafe { DataFrame::new_no_checks(columns) }
     }
 
     let percentiles = percentiles.unwrap_or(&[0.25, 0.5, 0.75]);
@@ -52,16 +52,19 @@ pub fn describe(df: DataFrame, percentiles: Option<&[f64]>) -> PolarsResult<Data
 
     let mut tmp: Vec<DataFrame> = vec![
         describe_cast(&df.null_count(), &original_schema)?,
-        describe_cast(&df.sum(), &original_schema)?,
-        describe_cast(&df.mean(), &original_schema)?,
-        describe_cast(&df.std(1), &original_schema)?,
-        describe_cast(&df.min(), &original_schema)?,
-        describe_cast(&df.max(), &original_schema)?,
+        describe_cast(&df.clone().lazy().sum().collect()?, &original_schema)?,
+        describe_cast(&df.clone().lazy().mean().collect()?, &original_schema)?,
+        describe_cast(&df.clone().lazy().std(1).collect()?, &original_schema)?,
+        describe_cast(&df.clone().lazy().min().collect()?, &original_schema)?,
+        describe_cast(&df.clone().lazy().max().collect()?, &original_schema)?,
     ];
 
     for p in percentiles {
         tmp.push(describe_cast(
-            &df.quantile(*p, QuantileInterpolOptions::Linear)?,
+            &df.clone()
+                .lazy()
+                .quantile((*p).into(), QuantileInterpolOptions::Linear)
+                .collect()?,
             &original_schema,
         )?);
         headers.push(format!("{}%", *p * 100.0));

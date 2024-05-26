@@ -37,11 +37,6 @@ pub struct DataSetBase {
 ///
 /// If you have your own DataSet, implement this
 pub trait DataSet: Send + Sync {
-    #[cfg(feature = "ui")]
-    fn ui(&self) {
-        ultibi_server::run_server(self)
-    }
-
     /// Since we support a limited number of data sources, each [DataSet] must contain a source.
     /// Since many of the [DataSet] methods' logic depends on the variant of the source, we implement those there    
     fn get_datasource(&self) -> &DataSource;
@@ -219,7 +214,7 @@ pub fn fields_columns(schema: Arc<Schema>) -> Vec<String> {
         .filter(|field| {
             matches!(
                 field.data_type(),
-                DataType::Utf8
+                DataType::String
                     | DataType::UInt8
                     | DataType::Int8
                     | DataType::UInt16
@@ -239,7 +234,7 @@ pub fn overridable_columns(schema: Arc<Schema>) -> Vec<String> {
     schema
         .iter_fields()
         .filter(|c| match c.data_type() {
-            DataType::Utf8 | DataType::Boolean | DataType::Float64 => true,
+            DataType::String | DataType::Boolean | DataType::Float64 => true,
             DataType::List(x) => {
                 matches!(x.as_ref(), DataType::Float64)
             }

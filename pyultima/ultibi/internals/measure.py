@@ -29,14 +29,12 @@ TFilter = TypeVar("TFilter", bound=Filter)
 
 class CustomCalculatorType(Protocol):
     # Define types here, as if __call__ were a function (ignore self).
-    def __call__(self, srs: list[Series], kwargs: dict[str, str]) -> Series:
-        ...
+    def __call__(self, srs: list[Series], kwargs: dict[str, str]) -> Series: ...
 
 
 class StandardCalculatorType(Protocol):
     # Define types here, as if __call__ were a function (ignore self).
-    def __call__(self, kwargs: dict[str, str]) -> Expr:
-        ...
+    def __call__(self, kwargs: dict[str, str]) -> Expr: ...
 
 
 class Calculator:

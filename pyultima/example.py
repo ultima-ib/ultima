@@ -1,6 +1,8 @@
 import polars as pl
 
-from pyultima.ultibi.internals.requests import AggRequest  # type: ignore[import]
+from pyultima.ultibi.internals.requests import (  # type: ignore[import-not-found]
+    AggRequest,
+)
 from ultibi.internals.dataset import DataSet, FRTBDataSet
 
 dataset = FRTBDataSet.from_config_path("./tests/data/datasource_config.toml")

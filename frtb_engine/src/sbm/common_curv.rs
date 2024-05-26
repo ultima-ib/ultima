@@ -21,7 +21,7 @@ fn curv_delta(rc: &'static str, risk: Expr) -> Expr {
     apply_multiple(
         move |columns| {
             //RiskClass
-            let mask = columns[0].utf8()?.equal(rc);
+            let mask = columns[0].str()?.equal(rc);
 
             let mask1 = columns[1].f64()?.is_not_null();
 
@@ -119,7 +119,7 @@ pub(crate) enum Cvr {
     Down,
 }
 ///21.5.3.b
-pub(crate) fn phi(sbs: &Vec<f64>) -> Array2<f64> {
+pub(crate) fn phi(sbs: &[f64]) -> Array2<f64> {
     let mut arr = Array2::ones((sbs.len(), sbs.len()));
     let mut tmp: Vec<usize> = Vec::with_capacity(sbs.len()); // To keep track on negative Sbs
     for (i, v) in sbs.iter().enumerate() {
@@ -175,7 +175,7 @@ pub(crate) fn curvature_kb_plus_minus(
             // Ok to go unsafe here becaause we validate length in [equity_delta_charge_distributor]
             let b_as_idx_plus_1 = unsafe { bucket_df["b"].get_unchecked(0) };
             let b_as_idx_plus_1 = match b_as_idx_plus_1 {
-                AnyValue::Utf8(st) => st.parse::<usize>().ok().and_then(|b_id| {
+                AnyValue::String(st) => st.parse::<usize>().ok().and_then(|b_id| {
                     if b_id <= n_buckets {
                         Some(b_id)
                     } else {

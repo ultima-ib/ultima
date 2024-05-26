@@ -1,4 +1,5 @@
 use once_cell::sync::Lazy;
+use polars::datatypes::UnknownKind;
 use pyo3::{
     exceptions::{PyTypeError, PyValueError},
     types::PyModule,
@@ -34,7 +35,7 @@ impl ToPyObject for Wrap<DataType> {
             DataType::Float32 => ul.getattr("Float32").unwrap().into(),
             DataType::Float64 => ul.getattr("Float64").unwrap().into(),
             DataType::Boolean => ul.getattr("Boolean").unwrap().into(),
-            DataType::Utf8 => ul.getattr("Utf8").unwrap().into(),
+            DataType::String => ul.getattr("Utf8").unwrap().into(),
             _ => PyTypeError::new_err("unsupported type").into_py(py),
         }
     }
@@ -57,17 +58,17 @@ impl FromPyObject<'_> for Wrap<DataType> {
                     "Int16" => DataType::Int16,
                     "Int32" => DataType::Int32,
                     "Int64" => DataType::Int64,
-                    "Utf8" => DataType::Utf8,
+                    "String" => DataType::String,
                     "Binary" => DataType::Binary,
                     "Boolean" => DataType::Boolean,
-                    "Categorical" => DataType::Categorical(None),
+                    "Categorical" => DataType::Categorical(None, Default::default()),
                     "Date" => DataType::Date,
                     "Time" => DataType::Time,
                     "Float32" => DataType::Float32,
                     "Float64" => DataType::Float64,
                     "List" => DataType::List(Box::new(DataType::Boolean)),
                     "Null" => DataType::Null,
-                    "Unknown" => DataType::Unknown,
+                    "Unknown" => DataType::Unknown(UnknownKind::Any),
                     _ => return Err(PyValueError::new_err("not a correct polars DataType")),
                 }
             }

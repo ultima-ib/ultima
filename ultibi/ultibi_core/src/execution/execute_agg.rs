@@ -2,7 +2,10 @@
 
 use std::collections::{HashMap, HashSet};
 
-use polars::prelude::{concat_lf_diagonal, PolarsError};
+use polars::{
+    chunked_array::ops::SortMultipleOptions,
+    prelude::{concat_lf_diagonal, PolarsError},
+};
 pub use polars::{
     functions::concat_df_diagonal,
     prelude::{col, lit, DataFrame, Expr, IntoLazy, Literal, PolarsResult, NULL},
@@ -111,7 +114,6 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
 
     // Step 2 Compute basics
     let mut res = match data.as_cacheable() {
-        // Safety - req_clone is not None if data.as_cacheable() is Some
         Some(cacheable) => {
             _exec_agg_with_cache(cacheable, req_clone.unwrap(), base_measures, prepare)
         }
@@ -144,27 +146,21 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     // TODO Step 4 - cosmetics
     // Hide Zeros
     if hide_zeros {
-        let is_numerc_col = res
-            .columns(&all_requested_columns_names)?
-            .into_iter()
-            .map(|c| c._dtype().is_numeric())
-            .collect::<Vec<bool>>();
+        let mut it = all_requested_columns_names.into_iter().filter(|col_name| {
+            res.column(col_name)
+                .expect("Requested column not found")
+                ._dtype()
+                .is_numeric()
+        }); // Shall not fail
 
-        let mut it = all_requested_columns_names
-            .into_iter()
-            .zip(is_numerc_col)
-            .filter(|(_, y)| *y);
-
-        if let Some((c, _)) = it.next() {
+        if let Some(c) = it.next() {
             // Filter where col is Not Eq 0 AND Not Eq Null
-            let mut predicate = col(&c).neq(lit::<f64>(0.)).and(col(&c).neq(NULL.lit()));
-            for (c, _) in it {
-                predicate = predicate.or(col(&c).neq(lit::<f64>(0.)).and(col(&c).neq(NULL.lit())))
+            let mut predicate = col(&c).neq(lit::<f64>(0.)).and(col(&c).is_not_null());
+            for c in it {
+                predicate = predicate.or(col(&c).neq(lit::<f64>(0.)).and(col(&c).is_not_null()))
             }
             res = res.lazy().filter(predicate).collect()?;
         }
-        //let all_numerics = Expr::DtypeColumn(vec![DataType::Float64]);
-        //res = res.lazy().filter(all_numerics.clone().neq(lit::<f64>(0.)).and(all_numerics.neq(NULL.lit()))).collect()?;
     };
 
     Ok(res)
@@ -238,7 +234,7 @@ where
         }
     }
 
-    //dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeights"), col("SensitivitySpot")]).collect());
+    // dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeights"), col("SensitivitySpot")]).collect());
 
     // Step 2.4 Applying Overwrites
     for ow in overrides {
@@ -261,7 +257,7 @@ where
         f1 = concat_lf_diagonal([f1, extra_frame], Default::default())?;
     }
 
-    //dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
+    // dbg!(f1.clone().select([col("TradeId"), col("Desk"), col("RiskFactor"),col("BucketBCBS"), col("SensWeightsCRR2"), col("SensWeights")]).collect());
     //dbg!(f1.clone().select([col("*")]).collect());
     //dbg!(&groupby);
 
@@ -323,9 +319,11 @@ where
             .map(|e| e.fill_null(lit("Total")))
             .collect();
 
+        let sort_options = SortMultipleOptions::default().with_maintain_order(true);
+
         aggregated_df
             .lazy()
-            .sort_by_exprs(&groups, vec![false; groups.len()], false, true)
+            .sort_by_exprs(&groups, sort_options)
             .select(ordered_cols.iter().map(|c| col(c)).collect::<Vec<Expr>>())
             .with_columns(groups_totals)
             .collect()?

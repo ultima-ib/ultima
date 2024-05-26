@@ -74,7 +74,7 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
@@ -99,7 +99,7 @@ jobs:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
         run: |
           source activate
-          maturin develop --all-features
+          maturin develop --all-features --release
 
       - name: Run tests and report coverage
         run: pytest --cov
@@ -142,7 +142,7 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
 
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
@@ -168,7 +168,7 @@ jobs:
           RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
         # we do build and install to better mimic real life
         run: |
-          maturin build --all-features
+          maturin build --all-features --release
           pip install ../target/wheels/ultibi-*.whl
 
       - name: Run tests

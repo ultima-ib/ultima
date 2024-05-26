@@ -54,25 +54,25 @@ impl FilterE {
 
 pub(crate) fn fltr_in(c: &str, vs: &Vec<Option<String>>) -> Expr {
     let s = Series::new("filter", vs);
-    col(c).cast(DataType::Utf8).is_in(s.lit())
+    col(c).cast(DataType::String).is_in(s.lit())
 }
 
 pub(crate) fn fltr_not_in(c: &str, vs: &Vec<Option<String>>) -> Expr {
     let s = Series::new("filter", vs);
-    col(c).cast(DataType::Utf8).is_in(s.lit()).not()
+    col(c).cast(DataType::String).is_in(s.lit()).not()
 }
 
 pub(crate) fn fltr_eq(c: &str, v: &Option<String>) -> Expr {
     match v {
         None => col(c).is_null(),
-        Some(v) => col(c).cast(DataType::Utf8).eq(lit::<&str>(v)),
+        Some(v) => col(c).cast(DataType::String).eq(lit::<&str>(v)),
     }
 }
 
 pub(crate) fn fltr_neq(c: &str, v: &Option<String>) -> Expr {
     match v {
         None => col(c).is_not_null(),
-        Some(v) => col(c).cast(DataType::Utf8).neq(lit::<&str>(v)),
+        Some(v) => col(c).cast(DataType::String).neq(lit::<&str>(v)),
     }
 }
 

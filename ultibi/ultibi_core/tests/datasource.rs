@@ -10,7 +10,7 @@ fn toml2config() {
 }
 
 #[test]
-#[should_panic(expected = "Error reading file")]
+#[should_panic(expected = "File path doesn't exist. Check your config file")]
 fn config_build() {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path.extend(["tests", "data", "bad_config.toml"]);

@@ -7,7 +7,7 @@ pub fn total_com_vega_sens(_: &CPM) -> PolarsResult<Expr> {
 }
 
 pub fn total_com_vega_sens_weighted(op: &CPM) -> PolarsResult<Expr> {
-    total_com_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0)))
+    total_com_vega_sens(op).map(|expr| expr * col("SensWeights").list().get(lit(0), true))
 }
 ///Interm Result
 pub(crate) fn com_vega_sb(op: &CPM) -> PolarsResult<Expr> {

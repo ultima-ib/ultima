@@ -186,6 +186,7 @@ pub fn derive_basic_measures_vec(dataset_numer_cols: Vec<String>) -> Vec<Measure
 
 /// This is the main [Measure] processed, ie it holds the final name, final Expr(with aggregation)
 /// And the precompute filter for BasicMeasure
+#[allow(dead_code)] // tmp
 pub(crate) enum ProcessedMeasure {
     /// A typical measure
     /// execute_aggregation .group_by().agg(X)

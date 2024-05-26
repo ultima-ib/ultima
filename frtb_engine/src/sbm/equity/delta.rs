@@ -26,7 +26,7 @@ pub(crate) fn equity_delta_sens(_: &CPM) -> PolarsResult<Expr> {
 pub(crate) fn equity_delta_sens_weighted(_: &CPM) -> PolarsResult<Expr> {
     Ok(equity_delta_sens_weighted_spot())
 }
-///
+
 pub(crate) fn equity_delta_sens_weighted_spot() -> Expr {
     rc_tenor_weighted_sens("Delta", "Equity", "SensitivitySpot", "SensWeights", 0)
 }
@@ -173,7 +173,7 @@ where
             col("RiskFactor"),
             col("RiskFactorType"),
             col("SensitivitySpot"),
-            col("SensWeights").list().get(lit(0)),
+            col("SensWeights").list().get(lit(0), false),
         ],
         GetOutput::from_type(DataType::Float64),
         true,

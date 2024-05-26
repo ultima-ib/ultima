@@ -211,7 +211,7 @@ fn girr_vega_charge(
             col("Sensitivity_3Y"),
             col("Sensitivity_5Y"),
             col("Sensitivity_10Y"),
-            col("SensWeights").list().get(lit(0)),
+            col("SensWeights").list().get(lit(0), true),
             col("RiskFactorType"),
         ],
         GetOutput::from_type(DataType::Float64),
@@ -223,7 +223,7 @@ fn girr_vega_bucket_kb_sb<'a>(
     bucket_df: &'a DataFrame,
     girr_vega_rho: &Array2<f64>,
 ) -> PolarsResult<((&'a str, f64), f64)> {
-    let bucket = unsafe { bucket_df["b"].utf8()?.get_unchecked(0).unwrap_or("Default") };
+    let bucket = unsafe { bucket_df["b"].str()?.get_unchecked(0).unwrap_or("Default") };
 
     // Extracting yield curves
     let yield_05um = girr_underlying_maturity_arr(bucket_df, "0.5Y", bucket)?;

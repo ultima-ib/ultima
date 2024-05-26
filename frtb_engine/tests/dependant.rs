@@ -41,6 +41,4 @@ fn dependant_sbm() {
     // Instead it was derived via measures which were derived from a SS
     let expected = 2267954.452798342;
     assert!((sum1 - expected).abs() < 1e-4);
-
-    // ALso test performance! res2 must be much faster!
 }

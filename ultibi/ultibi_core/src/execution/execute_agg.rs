@@ -114,7 +114,6 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
 
     // Step 2 Compute basics
     let mut res = match data.as_cacheable() {
-        
         Some(cacheable) => {
             _exec_agg_with_cache(cacheable, req_clone.unwrap(), base_measures, prepare)
         }
@@ -147,7 +146,6 @@ pub fn exec_agg<DS: DataSet + ?Sized>(
     // TODO Step 4 - cosmetics
     // Hide Zeros
     if hide_zeros {
-
         let mut it = all_requested_columns_names.into_iter().filter(|col_name| {
             res.column(col_name)
                 .expect("Requested column not found")

@@ -2,7 +2,8 @@ use std::{collections::BTreeMap, time::Instant};
 
 use polars::{
     prelude::{
-        col, DataFrame, DataType, Expr, Field, JoinArgs, JoinCoalesce, JoinType, LazyCsvReader, LazyFileListReader, LazyFrame, NamedFrom, Schema
+        col, DataFrame, DataType, Expr, Field, JoinArgs, JoinCoalesce, JoinType, LazyCsvReader,
+        LazyFileListReader, LazyFrame, NamedFrom, Schema,
     },
     series::Series,
 };

@@ -176,6 +176,7 @@ See python frtb [userguide](https://ultimabi.uk/ultibi-frtb-book/).
 | ----------- | ----------- |
 | 0.5      | 18.7       |
 | 0.6   | 19.18        |
+| 0.7   | 20.27        |
 
 ### License 
 Licensor:             Ultibi Ltd.
